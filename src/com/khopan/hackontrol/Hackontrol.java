@@ -1,5 +1,7 @@
 package com.khopan.hackontrol;
 
+import com.khopan.hackontrol.command.Command;
+import com.khopan.hackontrol.command.DeviceListCommand;
 import com.khopan.hackontrol.source.CommandSource;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -21,6 +23,11 @@ public class Hackontrol {
 		bot.addEventListener(new Listener());
 		this.userIdentifier = bot.getSelfUser().getIdLong();
 		this.dispatcher = new CommandDispatcher<>();
+		this.registerCommand(new DeviceListCommand());
+	}
+
+	private void registerCommand(Command command) {
+		command.register(this.dispatcher);
 	}
 
 	private void processMessage(MessageReceivedEvent Event) {
