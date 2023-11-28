@@ -90,10 +90,12 @@ public class Hackontrol {
 			return;
 		}
 
+		CommandSource source = new DefaultCommandSource(this.machineIdentifier, channel);
+
 		try {
-			this.dispatcher.execute(message, new DefaultCommandSource(this.machineIdentifier, channel));
+			this.dispatcher.execute(message, source);
 		} catch(CommandSyntaxException Exception) {
-			channel.sendMessage('`' + Exception.getMessage() + '`').queue();
+			source.sendCodeMessage(Exception.getMessage());
 		}
 	}
 
