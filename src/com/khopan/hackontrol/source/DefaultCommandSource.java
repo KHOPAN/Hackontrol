@@ -22,6 +22,11 @@ public class DefaultCommandSource implements CommandSource {
 	}
 
 	@Override
+	public void sendCodeMessage(String message) {
+		this.sendMessage('`' + message + '`');
+	}
+
+	@Override
 	public void sendBoldCodeMessage(String message) {
 		this.sendMessage("**`" + message + "`**");
 	}

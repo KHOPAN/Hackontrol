@@ -9,6 +9,7 @@ import java.util.Random;
 
 import com.khopan.hackontrol.command.Command;
 import com.khopan.hackontrol.command.DeviceListCommand;
+import com.khopan.hackontrol.command.HelpCommand;
 import com.khopan.hackontrol.source.CommandSource;
 import com.khopan.hackontrol.source.DefaultCommandSource;
 import com.mojang.brigadier.CommandDispatcher;
@@ -33,6 +34,7 @@ public class Hackontrol {
 		bot.addEventListener(new Listener());
 		this.userIdentifier = bot.getSelfUser().getIdLong();
 		this.dispatcher = new CommandDispatcher<>();
+		this.registerCommand(new HelpCommand());
 		this.registerCommand(new DeviceListCommand());
 	}
 
