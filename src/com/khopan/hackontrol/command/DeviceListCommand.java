@@ -8,6 +8,9 @@ public class DeviceListCommand implements Command {
 	@Override
 	public void register(CommandDispatcher<CommandSource> dispatcher) {
 		dispatcher.register(LiteralArgumentBuilder.<CommandSource>literal("devicelist").executes(context -> {
+			CommandSource source = context.getSource();
+			String machineIdentifier = source.getMachineId();
+			source.sendBoldCodeMessage(machineIdentifier);
 			return 1;
 		}));
 	}

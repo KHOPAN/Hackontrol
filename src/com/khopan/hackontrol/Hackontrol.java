@@ -89,7 +89,7 @@ public class Hackontrol {
 		}
 
 		try {
-			this.dispatcher.execute(message, new DefaultCommandSource(channel));
+			this.dispatcher.execute(message, new DefaultCommandSource(this.machineIdentifier, channel));
 		} catch(CommandSyntaxException Exception) {
 			channel.sendMessage('`' + Exception.getMessage() + '`').queue();
 		}
