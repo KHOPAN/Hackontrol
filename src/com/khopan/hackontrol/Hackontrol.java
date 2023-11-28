@@ -10,6 +10,7 @@ import java.util.Random;
 import com.khopan.hackontrol.command.Command;
 import com.khopan.hackontrol.command.DeviceListCommand;
 import com.khopan.hackontrol.source.CommandSource;
+import com.khopan.hackontrol.source.DefaultCommandSource;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
@@ -87,10 +88,8 @@ public class Hackontrol {
 			return;
 		}
 
-		System.out.println("Command: " + message);
-
 		try {
-			this.dispatcher.execute(message, null);
+			this.dispatcher.execute(message, new DefaultCommandSource(channel));
 		} catch(CommandSyntaxException Exception) {
 			channel.sendMessage('`' + Exception.getMessage() + '`').queue();
 		}
