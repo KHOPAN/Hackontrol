@@ -228,7 +228,7 @@ public class Hackontrol {
 	private class Listener extends ListenerAdapter {
 		@Override
 		public void onMessageReceived(MessageReceivedEvent Event) {
-			Hackontrol.this.processMessage(Event);
+			new Thread(() -> Hackontrol.this.processMessage(Event)).start();
 		}
 	}
 }
