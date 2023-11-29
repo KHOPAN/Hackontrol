@@ -5,4 +5,6 @@ public interface CommandSource {
 	void sendMessage(String message);
 	void sendCodeMessage(String message);
 	void sendBoldCodeMessage(String message);
+	boolean isSelected();
+	void setSelected(boolean selected);
 }

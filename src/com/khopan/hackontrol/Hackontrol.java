@@ -10,6 +10,7 @@ import java.util.Random;
 import com.khopan.hackontrol.command.Command;
 import com.khopan.hackontrol.command.DeviceListCommand;
 import com.khopan.hackontrol.command.HelpCommand;
+import com.khopan.hackontrol.command.SelectCommand;
 import com.khopan.hackontrol.source.CommandSource;
 import com.khopan.hackontrol.source.DefaultCommandSource;
 import com.mojang.brigadier.CommandDispatcher;
@@ -29,6 +30,8 @@ public class Hackontrol {
 	private final long userIdentifier;
 	private final CommandDispatcher<CommandSource> dispatcher;
 
+	private boolean selected;
+
 	private Hackontrol(JDA bot, String machineIdentifier) {
 		this.machineIdentifier = machineIdentifier;
 		bot.addEventListener(new Listener());
@@ -36,6 +39,7 @@ public class Hackontrol {
 		this.dispatcher = new CommandDispatcher<>();
 		this.registerCommand(new HelpCommand());
 		this.registerCommand(new DeviceListCommand());
+		this.registerCommand(new SelectCommand());
 	}
 
 	private void registerCommand(Command command) {
@@ -90,7 +94,7 @@ public class Hackontrol {
 			return;
 		}
 
-		CommandSource source = new DefaultCommandSource(this.machineIdentifier, channel);
+		CommandSource source = new DefaultCommandSource(this.machineIdentifier, channel, () -> this.selected, selected -> this.selected = selected);
 
 		try {
 			this.dispatcher.execute(message, source);
