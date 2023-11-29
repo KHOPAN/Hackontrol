@@ -101,6 +101,10 @@ public class Hackontrol {
 		try {
 			this.dispatcher.execute(message, source);
 		} catch(CommandSyntaxException Exception) {
+			if(!this.selected) {
+				return;
+			}
+
 			source.sendCodeMessage(Exception.getMessage());
 		}
 	}
