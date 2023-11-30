@@ -12,6 +12,7 @@ import com.khopan.hackontrol.command.DeviceListCommand;
 import com.khopan.hackontrol.command.HelpCommand;
 import com.khopan.hackontrol.command.ScreenshotCommand;
 import com.khopan.hackontrol.command.SelectCommand;
+import com.khopan.hackontrol.command.StreamCommand;
 import com.khopan.hackontrol.source.CommandSource;
 import com.khopan.hackontrol.source.DefaultCommandSource;
 import com.mojang.brigadier.CommandDispatcher;
@@ -42,6 +43,7 @@ public class Hackontrol {
 		this.registerCommand(new DeviceListCommand());
 		this.registerCommand(new SelectCommand());
 		this.registerCommand(new ScreenshotCommand());
+		this.registerCommand(new StreamCommand());
 	}
 
 	private void registerCommand(Command command) {

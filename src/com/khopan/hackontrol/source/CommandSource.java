@@ -2,9 +2,12 @@ package com.khopan.hackontrol.source;
 
 import java.awt.Image;
 
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+
 public interface CommandSource {
 	String getMachineId();
 	boolean isSelected();
+	MessageChannel getChannel();
 	void setSelected(boolean selected);
 	void sendMessage(String message);
 	void sendCodeMessage(String message);

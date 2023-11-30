@@ -36,6 +36,11 @@ public class DefaultCommandSource implements CommandSource {
 	}
 
 	@Override
+	public MessageChannel getChannel() {
+		return this.channel;
+	}
+
+	@Override
 	public void setSelected(boolean selected) {
 		if(this.selected.get() == selected) {
 			return;
@@ -62,7 +67,7 @@ public class DefaultCommandSource implements CommandSource {
 
 	@Override
 	public void sendImage(Image image) {
-		FileUpload upload = this.toFileUpload(image);
+		FileUpload upload = DefaultCommandSource.toFileUpload(image, this);
 
 		if(upload == null) {
 			return;
@@ -73,7 +78,7 @@ public class DefaultCommandSource implements CommandSource {
 
 	@Override
 	public void sendImage(Image image, String message) {
-		FileUpload upload = this.toFileUpload(image);
+		FileUpload upload = DefaultCommandSource.toFileUpload(image, this);
 
 		if(upload == null) {
 			return;
@@ -82,7 +87,7 @@ public class DefaultCommandSource implements CommandSource {
 		this.channel.sendMessage(message).addFiles(upload).queue();
 	}
 
-	private FileUpload toFileUpload(Image image) {
+	public static FileUpload toFileUpload(Image image, CommandSource source) {
 		BufferedImage bufferedImage;
 
 		if(image instanceof BufferedImage buffered) {
@@ -101,7 +106,7 @@ public class DefaultCommandSource implements CommandSource {
 		try {
 			ImageIO.write(bufferedImage, "png", stream);
 		} catch(Throwable ignored) {
-			this.sendMessage("Failed to send an image `" + this.getMachineId() + '`');
+			source.sendMessage("Failed to send an image `" + source.getMachineId() + '`');
 			return null;
 		}
 
