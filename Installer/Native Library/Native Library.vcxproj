@@ -132,9 +132,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Administrator.cpp" />
+    <ClCompile Include="TaskScheduler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="com_khopan_hackontrol_installer_nativelib_Administrator.h" />
+    <ClInclude Include="com_khopan_hackontrol_installer_nativelib_TaskScheduler.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

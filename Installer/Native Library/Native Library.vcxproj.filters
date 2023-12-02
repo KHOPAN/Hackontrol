@@ -18,9 +18,15 @@
     <ClCompile Include="Administrator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TaskScheduler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="com_khopan_hackontrol_installer_nativelib_Administrator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="com_khopan_hackontrol_installer_nativelib_TaskScheduler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
