@@ -24,24 +24,23 @@ public class StreamCommand implements Command {
 	public void register(CommandDispatcher<CommandSource> dispatcher) {
 		dispatcher.register(LiteralArgumentBuilder.<CommandSource>literal("stream").requires(source -> source.isSelected()).then(LiteralArgumentBuilder.<CommandSource>literal("start").executes(context -> {
 			CommandSource source = context.getSource();
-			String machineId = source.getMachineId();
 
 			if(this.running) {
-				source.sendMessage("Failed to start stream `" + machineId + "`, stream is already started");
+				source.message("Error: Stream is already started");
 				return -1;
 			}
 
 			try {
 				this.robot = new Robot();
 			} catch(Throwable ignored) {
-				source.sendMessage("Failed to start stream `" + machineId + '`');
+				source.message("Error: Failed to start stream");
 				return -1;
 			}
 
 			this.area = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
 			MessageChannel channel = source.getChannel();
 			this.running = true;
-			source.sendMessage("Successfully started `" + machineId + "` stream:");
+			source.message("Stream is successfully started");
 			new Thread(() -> {
 				while(true) {
 					if(!this.running) {
@@ -64,15 +63,14 @@ public class StreamCommand implements Command {
 			return 1;
 		})).then(LiteralArgumentBuilder.<CommandSource>literal("stop").executes(context -> {
 			CommandSource source = context.getSource();
-			String machineId = source.getMachineId();
 
 			if(!this.running) {
-				source.sendMessage("Failed to stop stream `" + machineId + "`, stream is not started");
+				source.message("Error: Stream is not started");
 				return -1;
 			}
 
 			this.running = false;
-			source.sendMessage("Successfully stop `" + machineId + "` stream");
+			source.message("Stream is successfully stopped");
 			return 1;
 		})));
 	}

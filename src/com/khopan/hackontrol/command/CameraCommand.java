@@ -1,25 +1,16 @@
 package com.khopan.hackontrol.command;
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-
-import javax.imageio.ImageIO;
-
-import com.khopan.camera.Camera;
-import com.khopan.camera.CameraManager;
 import com.khopan.hackontrol.source.CommandSource;
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.IntegerArgumentType;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 
 public class CameraCommand implements Command {
-	private Camera[] cameraList;
-	private Camera selectedCamera;
+	//private Camera[] cameraList;
+	//private Camera selectedCamera;
 
 	@Override
 	public void register(CommandDispatcher<CommandSource> dispatcher) {
-		dispatcher.register(LiteralArgumentBuilder.<CommandSource>literal("camera").requires(source -> source.isSelected()).executes(context -> {
+		// TEMPORARY REMOVE. REASON: CAMERA API NOT STABLE
+		/*dispatcher.register(LiteralArgumentBuilder.<CommandSource>literal("camera").requires(source -> source.isSelected()).executes(context -> {
 			CommandSource source = context.getSource();
 
 			if(this.selectedCamera == null) {
@@ -87,6 +78,6 @@ public class CameraCommand implements Command {
 			this.selectedCamera = this.cameraList[index];
 			source.sendMessage('`' + this.selectedCamera.getName() + "` was selected for `" + source.getMachineId() + '`');
 			return 1;
-		}))));
+		}))));*/
 	}
 }

@@ -15,14 +15,18 @@ import net.dv8tion.jda.api.utils.FileUpload;
 public class DefaultCommandSource implements CommandSource {
 	private final String machineIdentifier;
 	private final MessageChannel channel;
-	private final Supplier<Boolean> selected;
+	private final Supplier<Boolean> getSelected;
 	private final Consumer<Boolean> setSelected;
+	private final Supplier<String> getNickname;
+	private final Consumer<String> setNickname;
 
-	public DefaultCommandSource(String machineIdentifier, MessageChannel channel, Supplier<Boolean> selected, Consumer<Boolean> setSelected) {
+	public DefaultCommandSource(String machineIdentifier, MessageChannel channel, Supplier<Boolean> getSelected, Consumer<Boolean> setSelected, Supplier<String> getNickname, Consumer<String> setNickname) {
 		this.machineIdentifier = machineIdentifier;
 		this.channel = channel;
-		this.selected = selected;
+		this.getSelected = getSelected;
 		this.setSelected = setSelected;
+		this.getNickname = getNickname;
+		this.setNickname = setNickname;
 	}
 
 	@Override
@@ -31,8 +35,24 @@ public class DefaultCommandSource implements CommandSource {
 	}
 
 	@Override
+	public String getName() {
+		String nickname = this.getNickname.get();
+
+		if(nickname != null) {
+			return nickname + " (" + this.machineIdentifier + ')';
+		}
+
+		return this.machineIdentifier;
+	}
+
+	@Override
 	public boolean isSelected() {
-		return this.selected.get();
+		return this.getSelected.get();
+	}
+
+	@Override
+	public String getNickname() {
+		return this.getNickname.get();
 	}
 
 	@Override
@@ -42,12 +62,17 @@ public class DefaultCommandSource implements CommandSource {
 
 	@Override
 	public void setSelected(boolean selected) {
-		if(this.selected.get() == selected) {
+		if(this.getSelected.get() == selected) {
 			return;
 		}
 
 		this.setSelected.accept(selected);
-		this.sendMessage('`' + this.machineIdentifier + "` was " + (selected ? "" : "un") + "selected!");
+		this.channel.sendMessage('`' + this.getName() + "` was " + (selected ? "" : "un") + "selected").queue();
+	}
+
+	@Override
+	public void setNickname(String nickname) {
+		this.setNickname.accept(nickname);
 	}
 
 	@Override
@@ -111,5 +136,10 @@ public class DefaultCommandSource implements CommandSource {
 		}
 
 		return FileUpload.fromData(stream.toByteArray(), "image.png");
+	}
+
+	@Override
+	public void message(String message) {
+		this.channel.sendMessage('`' + this.getName() + "`: " + message).queue();
 	}
 }

@@ -14,18 +14,17 @@ public class ScreenshotCommand implements Command {
 	public void register(CommandDispatcher<CommandSource> dispatcher) {
 		dispatcher.register(LiteralArgumentBuilder.<CommandSource>literal("screenshot").requires(source -> source.isSelected()).executes(context -> {
 			CommandSource source = context.getSource();
-			String machineId = source.getMachineId();
 			Robot robot;
 
 			try {
 				robot = new Robot();
 			} catch(Throwable ignored) {
-				source.sendMessage("Failed to screenshot `" + machineId + '`');
+				source.message("Error: Failed to screenshot");
 				return -1;
 			}
 
 			BufferedImage screenshot = robot.createScreenCapture(new Rectangle(Toolkit.getDefaultToolkit().getScreenSize()));
-			source.sendImage(screenshot, "Screenshot for `" + machineId + "`:");
+			source.sendImage(screenshot, '`' + source.getName() + "` screenshot:");
 			return 1;
 		}));
 	}

