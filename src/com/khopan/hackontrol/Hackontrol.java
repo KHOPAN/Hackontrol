@@ -280,6 +280,7 @@ public class Hackontrol {
 		Preferences preferences = Preferences.systemRoot();
 
 		synchronized(System.err) {
+			PrintStream error = System.err;
 			System.setErr(new PrintStream(new OutputStream() {
 				@Override
 				public void write(int data) {
@@ -295,7 +296,7 @@ public class Hackontrol {
 			} catch(Exception Exception) {
 				return false;
 			} finally {
-				System.setErr(System.err);
+				System.setErr(error);
 			}
 		}
 	}
