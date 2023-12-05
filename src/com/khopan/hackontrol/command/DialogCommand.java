@@ -11,7 +11,7 @@ import com.mojang.brigadier.context.CommandContext;
 public class DialogCommand implements Command {
 	@Override
 	public void register(CommandDispatcher<CommandSource> dispatcher) {
-		dispatcher.register(LiteralArgumentBuilder.<CommandSource>literal("dialog").then(LiteralArgumentBuilder.<CommandSource>literal("error").then(RequiredArgumentBuilder.<CommandSource, String>argument("message", StringArgumentType.string()).executes(context -> {
+		dispatcher.register(LiteralArgumentBuilder.<CommandSource>literal("dialog").requires(source -> source.isSelected()).then(LiteralArgumentBuilder.<CommandSource>literal("error").then(RequiredArgumentBuilder.<CommandSource, String>argument("message", StringArgumentType.string()).executes(context -> {
 			return this.message(context, Win32.MB_ICONERROR);
 		})).then(RequiredArgumentBuilder.<CommandSource, String>argument("title", StringArgumentType.string()).then(RequiredArgumentBuilder.<CommandSource, String>argument("message", StringArgumentType.string()).executes(context -> {
 			return this.title(context, Win32.MB_ICONERROR);
