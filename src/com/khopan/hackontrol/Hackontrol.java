@@ -20,6 +20,7 @@ import com.khopan.hackontrol.command.PowerCommand;
 import com.khopan.hackontrol.command.ScreenshotCommand;
 import com.khopan.hackontrol.command.SelectCommand;
 import com.khopan.hackontrol.command.StreamCommand;
+import com.khopan.hackontrol.command.WakeCommand;
 import com.khopan.hackontrol.source.CommandSource;
 import com.khopan.hackontrol.source.DefaultCommandSource;
 import com.khopan.win32.Win32Library;
@@ -58,6 +59,7 @@ public class Hackontrol {
 		this.registerCommand(new PowerCommand());
 		this.registerCommand(new CameraCommand());
 		this.registerCommand(new NicknameCommand());
+		this.registerCommand(new WakeCommand());
 	}
 
 	private void registerCommand(Command command) {
