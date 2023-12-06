@@ -42,5 +42,5 @@ public class DialogCommand implements Command {
 		return 1;
 	}
 
-	public static native void messageBox(String message, String title, int type);
+	private static native void messageBox(String message, String title, int type);
 }
