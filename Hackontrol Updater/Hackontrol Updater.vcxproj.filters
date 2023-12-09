@@ -24,6 +24,9 @@
     <ClCompile Include="HU_GetVersionFile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="HU_IsFileExists.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="HackontrolUpdater.h">
