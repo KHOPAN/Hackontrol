@@ -1,0 +1,12 @@
+#pragma once
+
+#define CURL_STATICLIB
+#include <curl/curl.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+CURL* HU_InitializeCURL();
+#ifdef __cplusplus
+}
+#endif
