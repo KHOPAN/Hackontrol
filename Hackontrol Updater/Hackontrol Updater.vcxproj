@@ -148,6 +148,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="HU_GetVersionFile.cpp" />
+    <ClCompile Include="HU_Hash.c" />
     <ClCompile Include="HU_InitializeCURL.c" />
     <ClCompile Include="HU_IsFileExists.c" />
     <ClCompile Include="main.cpp" />
