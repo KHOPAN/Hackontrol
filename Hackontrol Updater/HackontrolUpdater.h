@@ -7,6 +7,7 @@
 extern "C" {
 #endif
 CURL* HU_InitializeCURL();
+const char* HU_GetVersionFile(CURL*);
 #ifdef __cplusplus
 }
 #endif

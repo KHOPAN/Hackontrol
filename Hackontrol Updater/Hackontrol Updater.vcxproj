@@ -147,6 +147,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="HU_GetVersionFile.cpp" />
     <ClCompile Include="HU_InitializeCURL.c" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
