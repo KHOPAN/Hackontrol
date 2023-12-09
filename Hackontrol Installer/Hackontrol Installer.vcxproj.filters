@@ -33,7 +33,7 @@
     <ClCompile Include="HI_NewTask.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="HI_SetPrincipal.cpp">
+    <ClCompile Include="HI_SetPrincipal.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="HI_SetActions.cpp">

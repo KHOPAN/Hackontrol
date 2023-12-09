@@ -140,7 +140,7 @@
     <ClCompile Include="HI_FormatError.c" />
     <ClCompile Include="HI_RegisterTask.cpp" />
     <ClCompile Include="HI_SetActions.cpp" />
-    <ClCompile Include="HI_SetPrincipal.cpp" />
+    <ClCompile Include="HI_SetPrincipal.c" />
     <ClCompile Include="HI_InitializeComAPI.c" />
     <ClCompile Include="HI_NewTask.c" />
     <ClCompile Include="HI_SetSettings.cpp" />

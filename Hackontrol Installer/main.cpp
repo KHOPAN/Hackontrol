@@ -1,8 +1,3 @@
-#include <stdio.h>
-#include <Windows.h>
-#include <taskschd.h>
-#include <comdef.h>
-
 #include "HackontrolInstaller.h"
 
 int main(int argc, char** argv) {
