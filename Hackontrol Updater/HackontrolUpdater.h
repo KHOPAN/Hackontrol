@@ -6,6 +6,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+void HU_DisplayError(DWORD, const wchar_t*);
 CURL* HU_InitializeCURL();
 const char* HU_GetVersionFile(CURL*);
 BOOL HU_IsFileExists(const wchar_t*);
