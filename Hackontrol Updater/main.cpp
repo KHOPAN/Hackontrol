@@ -7,7 +7,7 @@
 #define FILE_NAME L"hksct32.exe"
 
 int main(int argc, char** argv) {
-	const wchar_t* filePath = HU_GetSystemDirectory(FILE_NAME);
+	wchar_t* filePath = HU_GetSystemDirectory(FILE_NAME);
 	CURL* curl = HU_InitializeCURL();
 	const char* versionFile = HU_GetVersionFile(curl);
 	rapidjson::Document document;

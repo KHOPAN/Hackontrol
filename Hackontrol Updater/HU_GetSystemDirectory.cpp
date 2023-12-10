@@ -1,7 +1,7 @@
 #include <string>
 #include "HackontrolUpdater.h"
 
-const wchar_t* HU_GetSystemDirectory(const wchar_t* fileName) {
+wchar_t* HU_GetSystemDirectory(const wchar_t* fileName) {
 	INT size = GetWindowsDirectoryW(NULL, 0);
 
 	if(size == NULL) {
