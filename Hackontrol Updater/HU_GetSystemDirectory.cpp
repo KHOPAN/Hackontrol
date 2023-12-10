@@ -22,7 +22,7 @@ const wchar_t* HU_GetSystemDirectory(const wchar_t* fileName) {
 
 	if(size == NULL) {
 		HU_DisplayError(GetLastError(), L"GetWindowsDirectoryW()");
-		ExitProcess(-1);
+		ExitProcess(-3);
 		return NULL;
 	}
 
