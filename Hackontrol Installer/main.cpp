@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
 		return -1;
 	}
 
-	printf("Total Size: %d Bytes\nBytes Written: %d Bytes\n", size, written);
+	printf("Total Size: %d\nBytes Written: %d\n", size, written);
 	printf("Closing File\n");
 
 	if(CloseHandle(file) == NULL) {
