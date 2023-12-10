@@ -1,4 +1,9 @@
+#include <stdio.h>
 #include "HackontrolUpdater.h"
+
+static size_t write_data(void* data, size_t size, size_t count, void* stream) {
+	return fwrite(data, size, count, (FILE*) stream);
+}
 
 void HU_DownloadFile(CURL* curl, const char* url, const wchar_t* filePath) {
 	CURLcode code = curl_easy_setopt(curl, CURLOPT_URL, url);
@@ -7,6 +12,14 @@ void HU_DownloadFile(CURL* curl, const char* url, const wchar_t* filePath) {
 		HU_CURLError(code, "curl_easy_setopt()");
 		ExitProcess(code);
 		return;
+	}
+
+	code = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
+
+	if(code != CURLE_OK) {
+		HU_CURLError(code, "curl_easy_setopt()");
+		ExitProcess(code);
+		return NULL;
 	}
 
 	FILE* file = NULL;
