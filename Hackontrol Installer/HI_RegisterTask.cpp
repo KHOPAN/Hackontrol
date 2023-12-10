@@ -21,7 +21,19 @@ void HI_RegisterTask(ITaskFolder* folder, ITaskDefinition* definition, const wch
 		return;
 	}
 
-	task->Release();
 	printf("Task Registered Successfully\n");
 	MessageBoxW(NULL, L"Hackontrol successfully installed on your machine", L"Hackontrol Installer", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+	IRunningTask* runningTask = NULL;
+	result = task->Run(VARIANT(), &runningTask);
+	task->Release();
+
+	if(FAILED(result)) {
+		HI_FormatError(result, "IRegisteredTask::Run()");
+		definition->Release();
+		folder->Release();
+		CoUninitialize();
+		ExitProcess(static_cast<UINT>(result));
+	}
+
+	runningTask->Release();
 }
