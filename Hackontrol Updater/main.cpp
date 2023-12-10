@@ -6,6 +6,8 @@
 
 #define FILE_NAME L"hksct32.exe"
 
+int executeProgram(wchar_t*);
+
 int main(int argc, char** argv) {
 	wchar_t* filePath = HU_GetSystemDirectory(FILE_NAME);
 	CURL* curl = HU_InitializeCURL();
@@ -66,7 +68,7 @@ int main(int argc, char** argv) {
 				return -11;
 			}
 
-			return 0;
+			return executeProgram(filePath);
 		}
 
 		free(const_cast<char*>(hash));
@@ -91,5 +93,29 @@ int main(int argc, char** argv) {
 
 	const char* downloadURL = downloadElement.GetString();
 	HU_DownloadFile(curl, downloadURL, filePath);
+	return executeProgram(filePath);
+}
+
+int executeProgram(wchar_t* filePath) {
+	STARTUPINFO startupInformation = {0};
+	startupInformation.cb = sizeof(STARTUPINFO);
+	PROCESS_INFORMATION processInformtion = {0};
+
+	if(CreateProcessW(filePath, NULL, NULL, NULL, TRUE, NULL, NULL, NULL, &startupInformation, &processInformtion) == NULL) {
+		free(filePath);
+		HU_DisplayError(GetLastError(), L"CreateProcessW()");
+		return -17;
+	}
+
+	if(CloseHandle(processInformtion.hProcess) == NULL) {
+		HU_DisplayError(GetLastError(), L"CloseHandle()");
+		return -18;
+	}
+
+	if(CloseHandle(processInformtion.hThread) == NULL) {
+		HU_DisplayError(GetLastError(), L"CloseHandle()");
+		return -19;
+	}
+
 	return 0;
 }
