@@ -35,6 +35,19 @@ const wchar_t* HU_GetSystemDirectory(const wchar_t* fileName) {
 
 	string += L"System32\\";
 	string += fileName;
-	const wchar_t* filePath = string.c_str();
+	size_t length = string.length();
+	wchar_t* filePath = static_cast<wchar_t*>(malloc(sizeof(wchar_t) * (length + 1)));
+	
+	if(filePath == NULL) {
+		HU_DisplayError(ERROR_NOT_ENOUGH_MEMORY, L"malloc()");
+		ExitProcess(-15);
+		return NULL;
+	}
+
+	for(size_t i = 0; i < length; i++) {
+		filePath[i] = string.at(i);
+	}
+
+	filePath[length] = '\u0000';
 	return filePath;
 }
