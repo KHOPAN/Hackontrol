@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
 
 		DWORD bytesRead = 0;
 
-		if(ReadFile(file, dataBuffer, integer.QuadPart, &bytesRead, NULL) == NULL) {
+		if(ReadFile(file, dataBuffer, static_cast<DWORD>(integer.QuadPart), &bytesRead, NULL) == NULL) {
 			HU_DisplayError(GetLastError(), L"ReadFile()");
 			return -10;
 		}

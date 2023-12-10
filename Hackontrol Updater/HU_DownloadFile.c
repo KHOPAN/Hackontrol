@@ -12,7 +12,7 @@ void HU_DownloadFile(CURL* curl, const char* url, const wchar_t* filePath) {
 	FILE* file = NULL;
 	errno_t errorCode = _wfopen_s(&file, filePath, L"wb");
 	
-	if(errorCode != NULL || file == NULL) {
+	if(errorCode != 0 || file == NULL) {
 		HU_DisplayError(errorCode, L"_wfopen_s()");
 		ExitProcess(errorCode);
 		return;
