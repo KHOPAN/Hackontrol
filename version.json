@@ -1,5 +1,5 @@
 {
     "version": 1,
-    "download": "https://github.com/KHOPAN/Hackontrol/raw/main/release/rust-window.exe",
+    "download": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/release/rust-window.exe",
     "hash": "5c7dd9626317c77cd00c6add3202507429e1fd90a1749d8d229d5135be14d4648b4bdfc0fd44c276ea4e51c624227c19579a1a01673f34121301a501af240e64"
 }
