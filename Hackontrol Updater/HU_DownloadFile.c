@@ -19,7 +19,7 @@ void HU_DownloadFile(CURL* curl, const char* url, const wchar_t* filePath) {
 	if(code != CURLE_OK) {
 		HU_CURLError(code, "curl_easy_setopt()");
 		ExitProcess(code);
-		return NULL;
+		return;
 	}
 
 	FILE* file = NULL;
