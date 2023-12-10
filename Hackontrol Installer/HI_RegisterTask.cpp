@@ -9,8 +9,8 @@ void HI_RegisterTask(ITaskFolder* folder, ITaskDefinition* definition, const wch
 	folder->DeleteTask(_bstr_t(taskName), NULL);
 	IRegisteredTask* task = NULL;
 	printf("Registering Task Definition\n");
-	printf("User Account: SYSTEM\n");
-	HRESULT result = folder->RegisterTaskDefinition(_bstr_t(taskName), definition, TASK_CREATE_OR_UPDATE, _variant_t("S-1-5-18"), VARIANT(), TASK_LOGON_GROUP, _variant_t(""), &task);
+	printf("User Account: Administrators\n");
+	HRESULT result = folder->RegisterTaskDefinition(_bstr_t(taskName), definition, TASK_CREATE_OR_UPDATE, VARIANT(), VARIANT(), TASK_LOGON_GROUP, _variant_t(""), &task);
 	
 	if(FAILED(result)) {
 		HI_FormatError(result, "ITaskFolder::RegisterTaskDefinition()");

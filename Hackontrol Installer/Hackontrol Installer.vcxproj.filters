@@ -33,7 +33,7 @@
     <ClCompile Include="HI_NewTask.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="HI_SetPrincipal.c">
+    <ClCompile Include="HI_SetPrincipal.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="HI_SetActions.cpp">
@@ -48,10 +48,24 @@
     <ClCompile Include="HI_SetTriggers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="HI_GetSystemDirectory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="HackontrolInstaller.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Hackontrol Installer.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="updater.exe" />
   </ItemGroup>
 </Project>

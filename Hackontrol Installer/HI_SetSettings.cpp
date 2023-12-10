@@ -105,7 +105,6 @@ void HI_SetSettings(ITaskFolder* folder, ITaskDefinition* definition) {
 		ExitProcess(static_cast<UINT>(result));
 	}
 
-
 	printf("Putting Hidden: True\n");
 	result = settings->put_Hidden(VARIANT_TRUE);
 	settings->Release();

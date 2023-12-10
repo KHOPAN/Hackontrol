@@ -32,29 +32,5 @@ void HI_SetTriggers(ITaskFolder* folder, ITaskDefinition* definition) {
 		return;
 	}
 
-	ILogonTrigger* logonTrigger = NULL;
-	printf("Casting To Logon Trigger\n");
-	result = trigger->QueryInterface(IID_ILogonTrigger, reinterpret_cast<void**>(&logonTrigger));
 	trigger->Release();
-
-	if(FAILED(result)) {
-		HI_FormatError(result, "ITrigger::QueryInterface()");
-		definition->Release();
-		folder->Release();
-		CoUninitialize();
-		ExitProcess(static_cast<UINT>(result));
-		return;
-	}
-
-	printf("Putting Logon Trigger ID: Trigger1\n");
-	result = logonTrigger->put_Id(_bstr_t(L"Trigger1"));
-	logonTrigger->Release();
-
-	if(FAILED(result)) {
-		HI_FormatError(result, "ILogonTrigger::put_Id()");
-		definition->Release();
-		folder->Release();
-		CoUninitialize();
-		ExitProcess(static_cast<UINT>(result));
-	}
 }

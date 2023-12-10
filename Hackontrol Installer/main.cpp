@@ -72,7 +72,7 @@ int main(int argc, char** argv) {
 	HI_SetTriggers(folder, definition);
 	HI_SetActions(folder, definition, filePath);
 	HI_SetSettings(folder, definition);
-	HI_RegisterTask(folder, definition, L"TestTask");
+	HI_RegisterTask(folder, definition, L"Startup");
 	definition->Release();
 	folder->Release();
 	CoUninitialize();
