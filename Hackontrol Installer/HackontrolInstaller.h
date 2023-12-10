@@ -15,6 +15,7 @@ void HI_SetTriggers(ITaskFolder*, ITaskDefinition*);
 void HI_SetActions(ITaskFolder*, ITaskDefinition*, const wchar_t*);
 void HI_SetSettings(ITaskFolder*, ITaskDefinition*);
 void HI_RegisterTask(ITaskFolder*, ITaskDefinition*, const wchar_t*);
+wchar_t* HI_GetSystemDirectory(const wchar_t*);
 #ifdef __cplusplus
 }
 #endif
