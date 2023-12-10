@@ -39,6 +39,9 @@
     <ClCompile Include="HU_DisplayError.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="HU_CURLError.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="HackontrolUpdater.h">

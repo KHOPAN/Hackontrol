@@ -7,6 +7,7 @@
 extern "C" {
 #endif
 void HU_DisplayError(DWORD, const wchar_t*);
+void HU_CURLError(CURLcode, const char*);
 CURL* HU_InitializeCURL();
 const char* HU_GetVersionFile(CURL*);
 BOOL HU_IsFileExists(const wchar_t*);
