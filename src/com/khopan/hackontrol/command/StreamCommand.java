@@ -70,6 +70,7 @@ public class StreamCommand implements Command {
 			}
 
 			this.running = false;
+			this.message = null;
 			source.message("Stream is successfully stopped");
 			return 1;
 		})));
