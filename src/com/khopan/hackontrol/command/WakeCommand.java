@@ -14,6 +14,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
 
 public class WakeCommand implements Command {
 	/*@Override
@@ -91,89 +92,95 @@ public class WakeCommand implements Command {
 			source.message("WOL packet sent");
 			return 1;
 		})).then(LiteralArgumentBuilder.<CommandSource>literal("all").executes(context -> {
-			CommandSource source = context.getSource();
-			WSADATA data = new WSADATA();
-			long result = Win32.WSAStartup(0x0202, data);
+			return this.wakeAll(context, "192.168.1.");
+		}).then(RequiredArgumentBuilder.<CommandSource, String>argument("prefix", StringArgumentType.string()).executes(context -> {
+			return this.wakeAll(context, StringArgumentType.getString(context, "prefix"));
+		}))));
+	}
 
-			if(result != 0) {
-				source.message("Error: " + Win32.FormatErrorMessage(result).trim());
-				return -1;
-			}
+	private int wakeAll(CommandContext<CommandSource> context, String prefix) {
+		CommandSource source = context.getSource();
+		WSADATA data = new WSADATA();
+		long result = Win32.WSAStartup(0x0202, data);
 
-			List<Thread> threadList = new ArrayList<>();
-			List<DatagramPacket> packetList = new ArrayList<>();
+		if(result != 0) {
+			source.message("Error: " + Win32.FormatErrorMessage(result).trim());
+			return -1;
+		}
 
-			for(int i = 1; i <= 255; i++) {
-				int t = i;
-				Thread thread = new Thread(() -> {
-					byte[] macAddress = new byte[6];
+		List<Thread> threadList = new ArrayList<>();
+		List<DatagramPacket> packetList = new ArrayList<>();
 
-					if(Win32.SendARP(0x01A8C0 | ((t & 0xFF) << 24), 0, macAddress, new MutableInteger(macAddress.length)) != 0) {
-						return;
-					}
+		for(int i = 1; i <= 255; i++) {
+			int t = i;
+			Thread thread = new Thread(() -> {
+				byte[] macAddress = new byte[6];
 
-					byte[] magicBytes = new byte[6 + 16 * macAddress.length];
+				if(Win32.SendARP(0x01A8C0 | ((t & 0xFF) << 24), 0, macAddress, new MutableInteger(macAddress.length)) != 0) {
+					return;
+				}
 
-					for(int x = 0; x < 6; x++) {
-						magicBytes[x] = (byte) 0xFF;
-					}
+				byte[] magicBytes = new byte[6 + 16 * macAddress.length];
 
-					for(int x = 6; x < magicBytes.length; x += macAddress.length) {
-						System.arraycopy(macAddress, 0, magicBytes, x, macAddress.length);
-					}
+				for(int x = 0; x < 6; x++) {
+					magicBytes[x] = (byte) 0xFF;
+				}
 
-					InetAddress address;
+				for(int x = 6; x < magicBytes.length; x += macAddress.length) {
+					System.arraycopy(macAddress, 0, magicBytes, x, macAddress.length);
+				}
 
-					try {
-						address = InetAddress.getByName("192.168.1." + t);
-					} catch(Throwable ignored) {
-						return;
-					}
+				InetAddress address;
 
-					DatagramPacket packet = new DatagramPacket(magicBytes, magicBytes.length, address, 9);
-					packetList.add(packet);
-				});
-
-				threadList.add(thread);
-				thread.start();
-			}
-
-			for(Thread thread : threadList) {
 				try {
-					thread.join();
+					address = InetAddress.getByName(prefix + t);
 				} catch(Throwable ignored) {
-
+					return;
 				}
-			}
 
-			if(packetList.isEmpty()) {
-				source.message("No connected device found");
-				return 1;
-			}
+				DatagramPacket packet = new DatagramPacket(magicBytes, magicBytes.length, address, 9);
+				packetList.add(packet);
+			});
 
+			threadList.add(thread);
+			thread.start();
+		}
+
+		for(Thread thread : threadList) {
 			try {
-				DatagramSocket socket = new DatagramSocket();
+				thread.join();
+			} catch(Throwable ignored) {
 
-				for(DatagramPacket packet : packetList) {
-					socket.send(packet);
-				}
-
-				socket.close();
-			} catch(Throwable Errors) {
-				source.message("Error: " + Errors.toString());
-				return -1;
 			}
+		}
 
-			result = Win32.WSACleanup();
-
-			if(result != 0) {
-				source.message("Error: " + Win32.FormatErrorMessage(result).trim());
-				return -1;
-			}
-
-			int size = packetList.size();
-			source.message("WOL packet" + (size == 1 ? "" : "s") + " sent (" + size + " packet" + (size == 1 ? ")" : "s)"));
+		if(packetList.isEmpty()) {
+			source.message("No connected device found");
 			return 1;
-		})));
+		}
+
+		try {
+			DatagramSocket socket = new DatagramSocket();
+
+			for(DatagramPacket packet : packetList) {
+				socket.send(packet);
+			}
+
+			socket.close();
+		} catch(Throwable Errors) {
+			source.message("Error: " + Errors.toString());
+			return -1;
+		}
+
+		result = Win32.WSACleanup();
+
+		if(result != 0) {
+			source.message("Error: " + Win32.FormatErrorMessage(result).trim());
+			return -1;
+		}
+
+		int size = packetList.size();
+		source.message("WOL packet" + (size == 1 ? "" : "s") + " sent (" + size + " packet" + (size == 1 ? ")" : "s)"));
+		return 1;
 	}
 }
