@@ -139,7 +139,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="HU_CURLError.c" />
+    <ClCompile Include="HU_DisplayError.c" />
+    <ClCompile Include="HU_DownloadFile.c" />
+    <ClCompile Include="HU_GetSystemDirectory.cpp" />
+    <ClCompile Include="HU_GetVersionFile.cpp" />
+    <ClCompile Include="HU_Hash.c" />
+    <ClCompile Include="HU_InitializeCURL.c" />
+    <ClCompile Include="HU_IsFileExists.c" />
+    <ClCompile Include="Download.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="definition.h" />
