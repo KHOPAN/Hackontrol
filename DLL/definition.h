@@ -11,6 +11,7 @@
 extern "C" {
 #endif
 EXPORT Execute(HWND, HINSTANCE, LPSTR, int);
+EXPORT DownloadFile(HWND, HINSTANCE, LPSTR, int);
 void HU_CURLError(CURLcode, const char*);
 void HU_DisplayError(DWORD, const wchar_t*);
 void HU_DownloadFile(CURL*, const char*, const wchar_t*);

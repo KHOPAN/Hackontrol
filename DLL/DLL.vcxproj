@@ -139,6 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DownloadFile.cpp" />
     <ClCompile Include="HU_CURLError.c" />
     <ClCompile Include="HU_DisplayError.c" />
     <ClCompile Include="HU_DownloadFile.c" />

@@ -38,6 +38,9 @@
     <ClCompile Include="HU_IsFileExists.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DownloadFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="definition.h">
