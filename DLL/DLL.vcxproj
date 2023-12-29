@@ -147,7 +147,7 @@
     <ClCompile Include="HU_Hash.c" />
     <ClCompile Include="HU_InitializeCURL.c" />
     <ClCompile Include="HU_IsFileExists.c" />
-    <ClCompile Include="Download.cpp" />
+    <ClCompile Include="Execute.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="definition.h" />

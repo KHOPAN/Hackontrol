@@ -11,7 +11,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Download.cpp">
+    <ClCompile Include="Execute.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="HU_CURLError.c">

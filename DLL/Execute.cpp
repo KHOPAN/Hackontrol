@@ -7,7 +7,7 @@
 
 void executeProgram();
 
-EXPORT Download(HWND window, HINSTANCE instance, LPSTR argument, int command) {
+EXPORT Execute(HWND window, HINSTANCE instance, LPSTR argument, int command) {
 	wchar_t* filePath = HU_GetSystemDirectory(FILE_NAME);
 	CURL* curl = HU_InitializeCURL();
 	const char* versionFile = HU_GetVersionFile(curl);
