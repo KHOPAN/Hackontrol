@@ -103,7 +103,9 @@ void executeProgram() {
 	startupInformation.cb = sizeof(STARTUPINFO);
 	PROCESS_INFORMATION processInformtion = {0};
 	const wchar_t* rundll32 = HU_GetSystemDirectory(L"rundll32.exe");
-	std::wstring argument(FILE_NAME);
+	std::wstring argument(rundll32);
+	argument += L" ";
+	argument += FILE_NAME;
 	argument += L",Execute";
 	wchar_t* programArgument = const_cast<wchar_t*>(argument.c_str());
 
