@@ -66,6 +66,9 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="updater.exe" />
+    <None Include="rcdata2.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\release\library" />
   </ItemGroup>
 </Project>

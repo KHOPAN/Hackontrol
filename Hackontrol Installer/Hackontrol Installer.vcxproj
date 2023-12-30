@@ -156,7 +156,8 @@
     <ResourceCompile Include="Hackontrol Installer.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="updater.exe" />
+    <None Include="..\release\library" />
+    <None Include="rcdata2.bin" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
