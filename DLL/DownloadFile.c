@@ -18,10 +18,11 @@ EXPORT DownloadFile(HWND window, HINSTANCE instance, LPSTR argument, int command
 		return;
 	}
 
+	CURL* curl = HU_InitializeCURL();
 	memcpy(url, argument, index);
 	memcpy(outputFile, argument + index + 1, outputLength);
 	url[index] = 0;
-	MessageBoxA(NULL, url, outputFile, MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+	HU_DownloadFile(curl, url, outputFile, FALSE);
 }
 
 int indexOf(const char* text, size_t length, char character) {

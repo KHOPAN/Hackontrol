@@ -93,7 +93,7 @@ EXPORT Execute(HWND window, HINSTANCE instance, LPSTR argument, int command) {
 	}
 
 	const char* downloadURL = downloadElement.GetString();
-	HU_DownloadFile(curl, downloadURL, filePath);
+	HU_DownloadFile(curl, downloadURL, filePath, TRUE);
 	free(filePath);
 	executeProgram();
 }
