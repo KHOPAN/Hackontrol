@@ -7,6 +7,7 @@ EXPORT DownloadFile(HWND window, HINSTANCE instance, LPSTR argument, int command
 	int index = indexOf(argument, length, ',');
 
 	if(index == -1) {
+		MessageBoxW(NULL, L"Argument must be in format:\n<url>,<outputPath>", L"Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 		return;
 	}
 
@@ -15,6 +16,7 @@ EXPORT DownloadFile(HWND window, HINSTANCE instance, LPSTR argument, int command
 	char* outputFile = malloc(outputLength * sizeof(char));
 
 	if(url == NULL || outputFile == NULL) {
+		HU_DisplayError(ERROR_NOT_ENOUGH_MEMORY, L"malloc()");
 		return;
 	}
 
