@@ -4,7 +4,7 @@
 #include <taskschd.h>
 #include "HackontrolInstaller.h"
 
-void HI_SetActions(ITaskFolder* folder, ITaskDefinition* definition, const wchar_t* path) {
+void HI_SetActions(ITaskFolder* folder, ITaskDefinition* definition, const wchar_t* path, const wchar_t* argument) {
 	IActionCollection* collection = NULL;
 	printf("Getting Action Definition\n");
 	HRESULT result = definition->get_Actions(&collection);
@@ -46,12 +46,25 @@ void HI_SetActions(ITaskFolder* folder, ITaskDefinition* definition, const wchar
 		return;
 	}
 
-	printf("Putting Executable Path\n");
+	printf("Putting DLL Path\n");
 	result = executeAction->put_Path(_bstr_t(path));
-	executeAction->Release();
 
 	if(FAILED(result)) {
 		HI_FormatError(result, "IExecAction::put_Path()");
+		executeAction->Release();
+		definition->Release();
+		folder->Release();
+		CoUninitialize();
+		ExitProcess(static_cast<UINT>(result));
+		return;
+	}
+
+	printf("Putting DLL Argument\n");
+	result = executeAction->put_Arguments(_bstr_t(argument));
+	executeAction->Release();
+
+	if(FAILED(result)) {
+		HI_FormatError(result, "IExecAction::put_Arguments()");
 		definition->Release();
 		folder->Release();
 		CoUninitialize();
