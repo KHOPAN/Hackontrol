@@ -43,6 +43,20 @@ int main(int argc, char** argv) {
 		return -1;
 	}
 
+	printf("Allocate Memory for Offsetting\n");
+	BYTE* offsetted = static_cast<BYTE*>(malloc(size * sizeof(BYTE)));
+
+	if(offsetted == NULL) {
+		HI_FormatError(ERROR_NOT_ENOUGH_MEMORY, "malloc()");
+		return -1;
+	}
+
+	printf("Offsetting Bytes\n");
+
+	for(DWORD i = 0; i < size; i++) {
+		offsetted[i] = (data[i] - 18) % 0xFF;
+	}
+
 	printf("Creating/Opening File\n");
 	HANDLE file = CreateFileW(filePath, GENERIC_WRITE, NULL, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
@@ -54,7 +68,7 @@ int main(int argc, char** argv) {
 	DWORD written = 0;
 	printf("Writing File\n");
 
-	if(WriteFile(file, data, size, &written, NULL) == NULL) {
+	if(WriteFile(file, offsetted, size, &written, NULL) == NULL) {
 		HI_FormatError(GetLastError(), "WriteFile()");
 		return -1;
 	}
