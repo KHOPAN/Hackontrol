@@ -2,12 +2,12 @@
 #include "HackontrolInstaller.h"
 #include "resource.h"
 
-#define FILE_NAME L"udhk32.exe"
+#define FILE_NAME L"libdll32.dll"
 
 int main(int argc, char** argv) {
 	printf("Getting System Directory\n");
 	wchar_t* filePath = HI_GetSystemDirectory(FILE_NAME);
-	printf("Getting Executable Resource\n");
+	printf("Getting DLL Resource\n");
 	HRSRC resourceHandle = FindResourceW(NULL, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
 
 	if(resourceHandle == NULL) {
