@@ -143,11 +143,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="lodepng.cpp" />
+    <ClCompile Include="lodepng_encode32_noerror.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="screenshot.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bottoken.h" />
     <ClInclude Include="definition.h" />
+    <ClInclude Include="lodepng.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

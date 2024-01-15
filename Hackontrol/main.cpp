@@ -1,6 +1,9 @@
 #include <dpp/dpp.h>
+#include <stdio.h>
 #include "definition.h"
 #include "bottoken.h"
+
+void command_screenshot(const dpp::interaction_create_t&);
 
 int main(int argc, char** argv) {
 	Execute(NULL, NULL, NULL, 0);
@@ -11,8 +14,11 @@ EXPORT Execute(HWND window, HINSTANCE instance, LPSTR argument, int command) {
 	dpp::cluster bot(BOT_TOKEN);
 	bot.on_log(dpp::utility::cout_logger());
 	bot.on_slashcommand([](auto event) {
-		if(event.command.get_command_name() == "screenshot") {
-			event.reply("!! NOT IMPLEMENTED !!");
+		std::string commandName = event.command.get_command_name();
+
+		if(commandName == "screenshot") {
+			printf("%s used the command /screenshot\n", event.command.usr.global_name);
+			command_screenshot(event);
 		}
 	});
 
@@ -23,4 +29,33 @@ EXPORT Execute(HWND window, HINSTANCE instance, LPSTR argument, int command) {
 	});
 
 	bot.start(dpp::st_wait);
+}
+
+void command_screenshot(const dpp::interaction_create_t& event) {
+	size_t pngSize = NULL;
+	BYTE* pngImage = screenshot(&pngSize);
+	unsigned long long longValue = reinterpret_cast<unsigned long long>(pngImage);
+	
+	if(longValue == -1L) {
+		event.reply("`Error: Not enough memory`");
+		return;
+	} else if(longValue == -2L) {
+		event.reply("`Internal Error: GetDIBits() function error`");
+		return;
+	} else if(longValue == -3L) {
+		event.reply("`Error: PNG compression error`");
+		return;
+	}
+
+	std::string imageString(pngSize, '\u0000');
+
+	for(unsigned int i = 0; i < pngSize; i++) {
+		imageString[i] = pngImage[i];
+	}
+
+	free(pngImage);
+	dpp::message message(event.command.channel_id, "");
+	message.add_file("screenshot.png", imageString);
+	printf("Sending screenshot. File size: %d\n", pngSize);
+	event.reply(message);
 }
