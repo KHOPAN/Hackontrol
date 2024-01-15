@@ -23,5 +23,8 @@
     <ClInclude Include="bottoken.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="definition.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
