@@ -17,7 +17,7 @@ EXPORT Execute(HWND window, HINSTANCE instance, LPSTR argument, int command) {
 		std::string commandName = event.command.get_command_name();
 
 		if(commandName == "screenshot") {
-			printf("%s used the command /screenshot\n", event.command.usr.global_name);
+			printf("%s used the command /screenshot\n", event.command.usr.username);
 			command_screenshot(event);
 		}
 	});
@@ -56,6 +56,6 @@ void command_screenshot(const dpp::interaction_create_t& event) {
 	free(pngImage);
 	dpp::message message(event.command.channel_id, "");
 	message.add_file("screenshot.png", imageString);
-	printf("Sending screenshot. File size: %d\n", pngSize);
+	printf("Sending screenshot. File size: %u\n", pngSize);
 	event.reply(message);
 }
