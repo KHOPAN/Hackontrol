@@ -146,6 +146,7 @@
     <ClCompile Include="CommandSource.cpp" />
     <ClCompile Include="DialogCommand.cpp" />
     <ClCompile Include="ErrorUtils.cpp" />
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="PowerCommand.cpp" />
     <ClCompile Include="StringUtils.cpp" />
     <ClCompile Include="WakeCommand.cpp" />
