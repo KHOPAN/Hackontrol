@@ -32,7 +32,7 @@ void HU_DownloadFile(CURL* curl, const char* url, const void* filePath, BOOL wid
 	}
 
 	if(errorCode != 0 || file == NULL) {
-		HU_DisplayError(errorCode, L"_wfopen_s()");
+		HU_DisplayError(errorCode, wide ? L"_wfopen_s()" : L"fopen_s");
 		ExitProcess(errorCode);
 		return;
 	}

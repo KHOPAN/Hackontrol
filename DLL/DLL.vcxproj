@@ -81,7 +81,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>libcurl_a.lib;Ws2_32.lib;Crypt32.lib;Wldap32.lib;Normaliz.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libcurl_a.lib;Ws2_32.lib;Crypt32.lib;Wldap32.lib;Normaliz.lib;Taskschd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>D:\libcurl\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -100,7 +100,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>libcurl_a.lib;Ws2_32.lib;Crypt32.lib;Wldap32.lib;Normaliz.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libcurl_a.lib;Ws2_32.lib;Crypt32.lib;Wldap32.lib;Normaliz.lib;Taskschd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>D:\libcurl\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -115,7 +115,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>libcurl_a.lib;Ws2_32.lib;Crypt32.lib;Wldap32.lib;Normaliz.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libcurl_a.lib;Ws2_32.lib;Crypt32.lib;Wldap32.lib;Normaliz.lib;Taskschd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>D:\libcurl\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -134,12 +134,21 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>libcurl_a.lib;Ws2_32.lib;Crypt32.lib;Wldap32.lib;Normaliz.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libcurl_a.lib;Ws2_32.lib;Crypt32.lib;Wldap32.lib;Normaliz.lib;Taskschd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>D:\libcurl\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DownloadFile.c" />
+    <ClCompile Include="HI_CreateFolder.cpp" />
+    <ClCompile Include="HI_CreateTaskService.cpp" />
+    <ClCompile Include="HI_InitializeComAPI.c" />
+    <ClCompile Include="HI_NewTask.c" />
+    <ClCompile Include="HI_RegisterTask.cpp" />
+    <ClCompile Include="HI_SetActions.cpp" />
+    <ClCompile Include="HI_SetPrincipal.cpp" />
+    <ClCompile Include="HI_SetSettings.cpp" />
+    <ClCompile Include="HI_SetTriggers.cpp" />
     <ClCompile Include="HU_CURLError.c" />
     <ClCompile Include="HU_DisplayError.c" />
     <ClCompile Include="HU_DownloadFile.c" />
@@ -149,6 +158,7 @@
     <ClCompile Include="HU_InitializeCURL.c" />
     <ClCompile Include="HU_IsFileExists.c" />
     <ClCompile Include="Execute.cpp" />
+    <ClCompile Include="Install.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="definition.h" />

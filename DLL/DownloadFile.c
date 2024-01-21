@@ -2,7 +2,7 @@
 
 int indexOf(const char*, size_t, char);
 
-EXPORT DownloadFile(HWND window, HINSTANCE instance, LPSTR argument, int command) {
+EXPORT(DownloadFile) {
 	size_t length = strlen(argument);
 	int index = indexOf(argument, length, ',');
 
