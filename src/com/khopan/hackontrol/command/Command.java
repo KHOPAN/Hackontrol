@@ -1,8 +1,10 @@
 package com.khopan.hackontrol.command;
 
-import com.khopan.hackontrol.source.CommandSource;
-import com.mojang.brigadier.CommandDispatcher;
+import com.khopan.hackontrol.permission.Permission;
+
+import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 
 public interface Command {
-	void register(CommandDispatcher<CommandSource> dispatcher);
+	SlashCommandData getCommand();
+	Permission getPermissionLevel();
 }
