@@ -135,21 +135,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="CommandSource.h" />
-    <ClInclude Include="com_khopan_hackontrol_command_DialogCommand.h" />
-    <ClInclude Include="com_khopan_hackontrol_command_PowerCommand.h" />
-    <ClInclude Include="com_khopan_hackontrol_command_WakeCommand.h" />
-    <ClInclude Include="ErrorUtils.h" />
-    <ClInclude Include="StringUtils.h" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Screenshot.take.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CommandSource.cpp" />
-    <ClCompile Include="DialogCommand.cpp" />
-    <ClCompile Include="ErrorUtils.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="PowerCommand.cpp" />
-    <ClCompile Include="StringUtils.cpp" />
-    <ClCompile Include="WakeCommand.cpp" />
+    <ClInclude Include="com_khopan_hackontrol_function_Screenshot.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
