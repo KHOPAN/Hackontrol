@@ -27,12 +27,18 @@
     <ClCompile Include="EnablePrivilege.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ConsolePrint.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="com_khopan_hackontrol_function_Screenshot.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="definition.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utilities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

