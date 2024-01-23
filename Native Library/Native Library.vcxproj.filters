@@ -21,8 +21,10 @@
     <ClCompile Include="Screenshot.take.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ProtectProcess.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="EnablePrivilege.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

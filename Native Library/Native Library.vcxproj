@@ -135,11 +135,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="EnablePrivilege.c" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="ProtectProcess.c" />
     <ClCompile Include="Screenshot.take.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="com_khopan_hackontrol_function_Screenshot.h" />
+    <ClInclude Include="definition.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
