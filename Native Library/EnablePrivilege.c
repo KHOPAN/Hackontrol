@@ -1,6 +1,6 @@
 #include "definition.h"
 
-bool EnablePrivilege(LPCWSTR privilege) {
+BOOL EnablePrivilege(LPCWSTR privilege) {
 	if(!privilege) {
 		return FALSE;
 	}

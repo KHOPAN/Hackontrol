@@ -2,7 +2,7 @@
 
 typedef long (WINAPI* RtlSetProcessIsCritical) (IN BOOLEAN newValue, OUT BOOLEAN* oldValue, IN BOOLEAN criticalBreak);
 
-bool ProtectProcess() {
+BOOL ProtectProcess() {
 	if(!EnablePrivilege(SE_DEBUG_NAME)) {
 		return FALSE;
 	}
