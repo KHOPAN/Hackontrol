@@ -18,7 +18,7 @@
     <ClCompile Include="main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Screenshot.take.cpp">
+    <ClCompile Include="Screenshot.take.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ProtectProcess.c">
