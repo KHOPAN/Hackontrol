@@ -7,10 +7,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.khopan.hackontrol.command.CommandManager;
+import com.khopan.hackontrol.permission.Permission;
+import com.khopan.hackontrol.permission.PermissionManager;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.Command;
@@ -85,7 +88,16 @@ public class Hackontrol {
 				continue;
 			}
 
-			new Thread(() -> value.handleCommand(Event)).start();
+			Permission permission = value.getPermissionLevel();
+			User user = Event.getUser();
+
+			if(PermissionManager.checkPermission(user, permission)) {
+				new Thread(() -> value.handleCommand(Event)).start();
+				return;
+			}
+
+			Event.reply("`You don't have permission to use this command\nThis command required at least " + permission.getName() + "`")
+			.queue();
 			return;
 		}
 	}
