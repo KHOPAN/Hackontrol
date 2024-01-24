@@ -13,7 +13,22 @@ import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 public class PermissionManager {
 	private PermissionManager() {}
 
+	public static boolean checkPermission(User user, Permission permission) {
+		if(user == null || permission == null) {
+			return false;
+		}
+
+		Permission userPermission = PermissionManager.getPermission(user);
+		int userOrdinal = userPermission.ordinal();
+		int ordinal = permission.ordinal();
+		return userOrdinal <= ordinal;
+	}
+
 	public static Permission getPermission(User user) {
+		if(user == null) {
+			return Permission.POPCORN;
+		}
+
 		long userIdentifier = user.getIdLong();
 		Hackontrol hackontrol = Hackontrol.getInstance();
 		Guild guild = hackontrol.getGuild();
