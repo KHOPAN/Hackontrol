@@ -137,7 +137,7 @@
   <ItemGroup>
     <ClCompile Include="ConsolePrint.c" />
     <ClCompile Include="EnablePrivilege.c" />
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="main.c" />
     <ClCompile Include="ProtectProcess.c" />
     <ClCompile Include="Screenshot.take.cpp" />
   </ItemGroup>
