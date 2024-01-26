@@ -135,17 +135,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="HI_CreateFolder.cpp" />
-    <ClCompile Include="HI_CreateTaskService.cpp" />
     <ClCompile Include="HI_FormatError.c" />
-    <ClCompile Include="HI_GetSystemDirectory.cpp" />
-    <ClCompile Include="HI_RegisterTask.cpp" />
-    <ClCompile Include="HI_SetActions.cpp" />
-    <ClCompile Include="HI_SetPrincipal.cpp" />
-    <ClCompile Include="HI_InitializeComAPI.c" />
-    <ClCompile Include="HI_NewTask.c" />
-    <ClCompile Include="HI_SetSettings.cpp" />
-    <ClCompile Include="HI_SetTriggers.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
