@@ -48,7 +48,7 @@ BYTE* screenshot(size_t* outputSize) {
 	free(data);
 	BYTE* pngResult = NULL;
 	size_t pngSize = 0;
-	result = lodepng_encode32_noerror(&pngResult, &pngSize, flippedImage, width, height);
+	result = lodepng_encode32(&pngResult, &pngSize, flippedImage, width, height);
 
 	if(result != 0) {
 		return (BYTE*) -3;

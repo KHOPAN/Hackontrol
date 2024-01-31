@@ -1,14 +1,8 @@
 #include <dpp/dpp.h>
-#include <stdio.h>
 #include "definition.h"
 #include "bottoken.h"
 
 void command_screenshot(const dpp::interaction_create_t&);
-
-int main(int argc, char** argv) {
-	Execute(NULL, NULL, NULL, 0);
-	return 0;
-}
 
 EXPORT Execute(HWND window, HINSTANCE instance, LPSTR argument, int command) {
 	dpp::cluster bot(BOT_TOKEN);

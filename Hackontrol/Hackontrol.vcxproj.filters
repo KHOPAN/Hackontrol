@@ -21,9 +21,6 @@
     <ClCompile Include="screenshot.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="lodepng_encode32_noerror.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bottoken.h">
