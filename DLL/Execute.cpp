@@ -101,7 +101,7 @@ EXPORT(Execute) {
 void executeProgram() {
 	STARTUPINFO startupInformation = {0};
 	startupInformation.cb = sizeof(STARTUPINFO);
-	PROCESS_INFORMATION processInformtion = {0};
+	PROCESS_INFORMATION processInformation = {0};
 	const wchar_t* rundll32 = HU_GetSystemDirectory(L"rundll32.exe");
 	std::wstring argument(rundll32);
 	argument += L" ";
@@ -109,17 +109,17 @@ void executeProgram() {
 	argument += L",Execute";
 	wchar_t* programArgument = const_cast<wchar_t*>(argument.c_str());
 
-	if(CreateProcessW(rundll32, programArgument, NULL, NULL, TRUE, NULL, NULL, NULL, &startupInformation, &processInformtion) == NULL) {
+	if(CreateProcessW(rundll32, programArgument, NULL, NULL, TRUE, NULL, NULL, NULL, &startupInformation, &processInformation) == NULL) {
 		HU_DisplayError(GetLastError(), L"CreateProcessW()");
 		return;
 	}
 
-	if(CloseHandle(processInformtion.hProcess) == NULL) {
+	if(CloseHandle(processInformation.hProcess) == NULL) {
 		HU_DisplayError(GetLastError(), L"CloseHandle()");
 		return;
 	}
 
-	if(CloseHandle(processInformtion.hThread) == NULL) {
+	if(CloseHandle(processInformation.hThread) == NULL) {
 		HU_DisplayError(GetLastError(), L"CloseHandle()");
 	}
 }

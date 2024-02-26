@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <string>
-#include <Windows.h>
 #include "HackontrolInstaller.h"
 #include "resource.h"
 
@@ -78,6 +77,33 @@ int main(int argc, char** argv) {
 	printf("Closing File\n");
 
 	if(CloseHandle(file) == NULL) {
+		HI_FormatError(GetLastError(), "CloseHandle()");
+		return -1;
+	}
+
+	STARTUPINFO startupInformation = {0};
+	startupInformation.cb = sizeof(STARTUPINFO);
+	PROCESS_INFORMATION processInformation = {0};
+	std::wstring argument(rundll32);
+	argument += L" ";
+	argument += FILE_NAME;
+	argument += L",Install";
+	wchar_t* programArgument = const_cast<wchar_t*>(argument.c_str());
+	printf("Running DLL File\n");
+
+	if(CreateProcessW(rundll32, programArgument, NULL, NULL, TRUE, NULL, NULL, NULL, &startupInformation, &processInformation) == NULL) {
+		HI_FormatError(GetLastError(), "CreateProcessW()");
+		return -1;
+	}
+
+	printf("Closing Handles\n");
+
+	if(CloseHandle(processInformation.hProcess) == NULL) {
+		HI_FormatError(GetLastError(), "CloseHandle()");
+		return -1;
+	}
+
+	if(CloseHandle(processInformation.hThread) == NULL) {
 		HI_FormatError(GetLastError(), "CloseHandle()");
 		return -1;
 	}

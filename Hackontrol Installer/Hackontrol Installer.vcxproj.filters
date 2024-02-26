@@ -21,6 +21,9 @@
     <ClCompile Include="HI_FormatError.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="HI_GetSystemDirectory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="HackontrolInstaller.h">
