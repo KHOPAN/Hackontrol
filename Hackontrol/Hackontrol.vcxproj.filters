@@ -18,15 +18,27 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="screenshot.c">
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="machine.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="error.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="bottoken.h">
+    <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="definition.h">
+    <ClInclude Include="bot_token.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="machine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="error.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
