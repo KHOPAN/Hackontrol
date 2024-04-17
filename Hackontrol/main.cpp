@@ -14,6 +14,8 @@ int main(int argc, char** argv) {
 	});
 
 	bot.start(dpp::st_wait);*/
-	machine_getUUID();
+	char* guid = machine_getGUID();
+	printf("GUID: %s\n", guid);
+	free(guid);
 	return 0;
 }

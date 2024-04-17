@@ -3,7 +3,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-void machine_getUUID();
+char* machine_getGUID();
 #ifdef __cplusplus
 }
 #endif

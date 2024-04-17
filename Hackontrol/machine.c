@@ -3,48 +3,35 @@
 #include "error.h"
 #include "machine.h"
 
-void machine_getUUID() {
+char* machine_getGUID() {
 	LSTATUS status = 0;
 	DWORD size = 0;
 
-	if(status = RegGetValueW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Cryptography", L"MachineGuid", RRF_RT_REG_SZ, NULL, NULL, &size) != ERROR_SUCCESS) {
-		error_showError(status, L"RegGetValueW");
+	if(status = RegGetValueA(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Cryptography", "MachineGuid", RRF_RT_REG_SZ, NULL, NULL, &size) != ERROR_SUCCESS) {
+		error_showError(status, L"RegGetValueA");
 		ExitProcess(1);
-		return;
+		return NULL;
 	}
 
 	if(size <= 0) {
 		MessageBoxW(NULL, L"Error: Zero-length string", L"Error", MB_OK | MB_DEFBUTTON1 | MB_ICONERROR | MB_SYSTEMMODAL);
 		ExitProcess(1);
-		return;
+		return NULL;
 	}
 
-	HANDLE heap = GetProcessHeap();
-
-	if(!heap) {
-		error_showError(GetLastError(), L"GetProcessHeap");
-		ExitProcess(1);
-		return;
-	}
-
-	LPVOID buffer = HeapAlloc(heap, HEAP_ZERO_MEMORY, size * sizeof(wchar_t));
+	void* buffer = malloc(size * sizeof(char));
 
 	if(!buffer) {
-		error_showError(ERROR_NOT_ENOUGH_MEMORY, L"HeapAlloc");
+		error_showError(ERROR_OUTOFMEMORY, L"malloc");
 		ExitProcess(1);
-		return;
+		return NULL;
 	}
 
-	if(status = RegGetValueW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Cryptography", L"MachineGuid", RRF_RT_REG_SZ, NULL, buffer, &size) != ERROR_SUCCESS) {
-		error_showError(status, L"RegGetValueW");
+	if(status = RegGetValueA(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Cryptography", "MachineGuid", RRF_RT_REG_SZ, NULL, buffer, &size) != ERROR_SUCCESS) {
+		error_showError(status, L"RegGetValueA");
 		ExitProcess(1);
-		return;
+		return NULL;
 	}
 
-	printf("Size: %d\nText: %ws\n", size, (wchar_t*) buffer);
-
-	if(!HeapFree(heap, 0, buffer)) {
-		error_showError(GetLastError(), L"HeapFree");
-		ExitProcess(1);
-	}
+	return buffer;
 }
