@@ -3,8 +3,10 @@ package com.khopan.hackontrol;
 import java.util.List;
 
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.MessageHistory;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 
 public class DiscordUtils {
 	private DiscordUtils() {}
@@ -39,5 +41,10 @@ public class DiscordUtils {
 		}
 
 		return category.createTextChannel(name).complete();
+	}
+
+	public static boolean isChannelEmpty(MessageChannel channel) {
+		MessageHistory history = MessageHistory.getHistoryFromBeginning(channel).complete();
+		return history.getRetrievedHistory().isEmpty();
 	}
 }

