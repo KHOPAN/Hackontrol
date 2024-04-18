@@ -29,6 +29,8 @@ public class Hackontrol {
 	private final List<HackontrolChannel> channelList;
 	private final List<ButtonHandlerEntry> handlerList;
 
+	private Consumer<Boolean> questionCallback;
+
 	private Hackontrol() {
 		Hackontrol.INSTANCE = this;
 		this.bot = JDABuilder.createDefault(Token.BOT_TOKEN)
@@ -112,12 +114,26 @@ public class Hackontrol {
 
 			Button button = Event.getButton();
 			String identifier = button.getId();
+			ButtonInteraction interaction = new ButtonInteractionImplementation(Event);
+
+			if(Hackontrol.this.questionCallback != null && ("ok".equals(identifier) || "cancel".equals(identifier))) {
+				interaction.consume();
+
+				if("ok".equals(identifier)) {
+					Hackontrol.this.questionCallback.accept(true);
+				} else {
+					Hackontrol.this.questionCallback.accept(false);
+				}
+
+				Hackontrol.this.questionCallback = null;
+				return;
+			}
 
 			for(int i = 0; i < Hackontrol.this.handlerList.size(); i++) {
 				ButtonHandlerEntry entry = Hackontrol.this.handlerList.get(i);
 
 				if(identifier.equals(entry.buttonIdentifier)) {
-					entry.action.accept(new ButtonInteractionImplementation(Event));
+					entry.action.accept(interaction);
 					return;
 				}
 			}
@@ -129,7 +145,7 @@ public class Hackontrol {
 		private Consumer<ButtonInteraction> action;
 	}
 
-	private static class ButtonInteractionImplementation implements ButtonInteraction {
+	private class ButtonInteractionImplementation implements ButtonInteraction {
 		private final ButtonInteractionEvent Event;
 
 		private ButtonInteractionImplementation(ButtonInteractionEvent Event) {
@@ -143,7 +159,22 @@ public class Hackontrol {
 
 		@Override
 		public void consume() {
-			this.Event.deferReply().queue(hook -> hook.deleteOriginal().queue());
+			this.Event.deferEdit().queue(hook -> hook.deleteOriginal().queue());
+		}
+
+		@Override
+		public void okCancelQuestion(String question, Consumer<Boolean> callback) {
+			this.question(question, callback, "Ok", "Cancel");
+		}
+
+		@Override
+		public void yesNoQuestion(String question, Consumer<Boolean> callback) {
+			this.question(question, callback, "Yes", "No");
+		}
+
+		private void question(String question, Consumer<Boolean> callback, String ok, String cancel) {
+			Hackontrol.this.questionCallback = callback;
+			this.Event.reply(question).addActionRow(Button.success("ok", ok), Button.danger("cancel", cancel)).queue();
 		}
 	}
 }
