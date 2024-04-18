@@ -20,9 +20,6 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 public class Hackontrol {
 	private static Hackontrol INSTANCE;
 
-	/*@Native Useful for later
-	private static final boolean CRITICAL_PROCESS = false;*/
-
 	private final JDA bot;
 	private final Guild guild;
 	private final Category category;
@@ -74,14 +71,6 @@ public class Hackontrol {
 		entry.buttonIdentifier = buttonIdentifier;
 		entry.action = action;
 		this.handlerList.add(entry);
-	}
-
-	public JDA getBot() {
-		return this.bot;
-	}
-
-	public Guild getGuild() {
-		return this.guild;
 	}
 
 	public static void main(String[] args) throws Throwable {
