@@ -1,4 +1,4 @@
-package com.khopan.hackontrol;
+package com.khopan.hackontrol.button;
 
 import java.util.function.Consumer;
 

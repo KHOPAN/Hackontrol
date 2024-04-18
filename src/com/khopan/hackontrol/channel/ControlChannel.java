@@ -1,8 +1,8 @@
 package com.khopan.hackontrol.channel;
 
-import com.khopan.hackontrol.ButtonHandlerRegistry;
-import com.khopan.hackontrol.ButtonInteraction;
 import com.khopan.hackontrol.HackontrolChannel;
+import com.khopan.hackontrol.button.ButtonHandlerRegistry;
+import com.khopan.hackontrol.button.ButtonInteraction;
 
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 

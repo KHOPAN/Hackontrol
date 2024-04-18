@@ -1,5 +1,7 @@
 package com.khopan.hackontrol;
 
+import com.khopan.hackontrol.button.ButtonHandlerRegistry;
+
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 public abstract class HackontrolChannel {
