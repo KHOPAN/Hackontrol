@@ -6,6 +6,7 @@ import java.io.StringWriter;
 import com.khopan.hackontrol.Hackontrol;
 import com.khopan.hackontrol.button.ButtonInteraction;
 
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 public class ErrorUtils {
@@ -21,6 +22,25 @@ public class ErrorUtils {
 	}
 
 	public static void sendErrorReply(ButtonInteraction interaction, Throwable Errors) {
-		interaction.getEvent().reply("```" + ErrorUtils.getErrorMessage(Errors) + "```").addActionRow(Button.danger(Hackontrol.DELETE_SELF_IDENTIFIER, "Delete")).queue();
+		String message = ErrorUtils.limitBlock(ErrorUtils.getErrorMessage(Errors));
+		interaction.getEvent().reply(message).addActionRow(Button.danger(Hackontrol.DELETE_SELF_IDENTIFIER, "Delete")).queue();
+	}
+
+	public static void sendErrorMessage(MessageChannel channel, Throwable Errors) {
+		String message = ErrorUtils.limitBlock(ErrorUtils.getErrorMessage(Errors));
+		channel.sendMessage(message).addActionRow(Button.danger(Hackontrol.DELETE_SELF_IDENTIFIER, "Delete")).queue();
+	}
+
+	private static String limitBlock(String text) {
+		String message = ErrorUtils.limit(text, 1994);
+		return "```" + message + "```";
+	}
+
+	private static String limit(String text, int limit) {
+		if(text.length() > limit) {
+			text = text.substring(0, limit);
+		}
+
+		return text;
 	}
 }
