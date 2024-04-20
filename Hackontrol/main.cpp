@@ -2,20 +2,28 @@
 #include "machine.h"
 #include "bot_token.h"
 
+char* g_machineGuid;
+
+void onReady(dpp::cluster&);
+
 int main(int argc, char** argv) {
-	/*dpp::cluster bot(BOT_TOKEN);
+	g_machineGuid = machine_getGUID();
+	dpp::cluster bot(BOT_TOKEN);
 	bot.on_log(dpp::utility::cout_logger());
 	bot.on_ready([&bot](auto event) {
-		dpp::message message;
-		message.set_content("Hello, world!, bot has started");
-		message.set_guild_id(dpp::snowflake(1173967259304198154L));
-		message.set_channel_id(dpp::snowflake(1173967259862048891L));
-		bot.message_create(message);
+		onReady(bot);
 	});
 
-	bot.start(dpp::st_wait);*/
-	char* guid = machine_getGUID();
-	printf("GUID: %s\n", guid);
-	free(guid);
+	bot.start(dpp::st_wait);
 	return 0;
+}
+
+void onReady(dpp::cluster& bot) {
+	dpp::channel_map channels = bot.channels_get_sync(dpp::snowflake(1173967259304198154L));
+	
+	for(std::pair<const dpp::snowflake, dpp::channel> entry : channels) {
+		const dpp::snowflake snowflake = entry.first;
+		dpp::channel channel = entry.second;
+		std::cout << channel.name << '\n';
+	}
 }
