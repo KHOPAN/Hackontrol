@@ -15,18 +15,21 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="HI_FormatError.c">
+    <ClCompile Include="consoleError.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="HI_GetSystemDirectory.cpp">
+    <ClCompile Include="system32.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mergepath.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="HackontrolInstaller.h">
+    <ClInclude Include="installer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">

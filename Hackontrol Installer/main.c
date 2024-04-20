@@ -1,12 +1,10 @@
-#include <stdio.h>
-#include <string>
-#include "HackontrolInstaller.h"
-#include "resource.h"
+#include "installer.h"
+//#include "resource.h"
 
-#define FILE_NAME L"libdll32.dll"
+#define DLL_NAME L"libdll32.dll"
 
 int main(int argc, char** argv) {
-	printf("Getting System Directory\n");
+	/*printf("Getting System Directory\n");
 	wchar_t* filePath = HI_GetSystemDirectory(FILE_NAME);
 	printf("Getting rundll32.exe Directory\n");
 	wchar_t* rundll32 = HI_GetSystemDirectory(L"rundll32.exe");
@@ -106,7 +104,12 @@ int main(int argc, char** argv) {
 	if(CloseHandle(processInformation.hThread) == NULL) {
 		HI_FormatError(GetLastError(), "CloseHandle()");
 		return -1;
-	}
+	}*/
 
+	wchar_t* system32 = getSystem32Directory();
+	wchar_t* dllFile = mergePath(system32, DLL_NAME);
+	printf("Root: %ws\nDLL: %ws\n", system32, dllFile);
+	free(system32);
+	free(dllFile);
 	return 0;
 }
