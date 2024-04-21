@@ -7,7 +7,6 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine.Info;
 import javax.sound.sampled.TargetDataLine;
 
-import com.khopan.hackontrol.Hackontrol;
 import com.khopan.hackontrol.HackontrolChannel;
 import com.khopan.hackontrol.button.ButtonInteraction;
 import com.khopan.hackontrol.manager.ButtonManager;
@@ -80,7 +79,7 @@ public class ControlChannel extends HackontrolChannel {
 		}
 
 		if(this.handler == null) {
-			Event.reply("Hackontrol is already disconnected").addActionRow(Button.success(Hackontrol.DELETE_SELF_IDENTIFIER, "Ok")).queue();
+			Event.reply("Hackontrol is already disconnected").addActionRow(Button.success(ButtonManager.BUTTON_DELETE_SELF, "Ok")).queue();
 			return;
 		}
 

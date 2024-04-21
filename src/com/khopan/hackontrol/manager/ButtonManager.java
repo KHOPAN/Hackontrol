@@ -21,7 +21,10 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 public class ButtonManager implements Manager {
 	public static final RegistryType<String, Consumer<ButtonInteraction>> BUTTON_CALLBACK_REGISTRY = RegistryType.create();
 
+	public static final String BUTTON_DELETE_SELF = "buttonManagerSpecialDeleteSelf";
+
 	private List<RegistrationTypeEntry<String, Consumer<ButtonInteraction>>> list;
+	private Consumer<Boolean> callback;
 
 	@Override
 	public void configureBuilder(JDABuilder builder) {
@@ -56,13 +59,33 @@ public class ButtonManager implements Manager {
 
 		Button button = Event.getButton();
 		String identifier = button.getId();
+		ButtonInteraction interaction = new ButtonInteractionImplementation(Event);
+
+		if(this.callback != null && ("ok".equals(identifier) || "cancel".equals(identifier))) {
+			interaction.consume();
+
+			if("ok".equals(identifier)) {
+				this.callback.accept(true);
+			} else {
+				this.callback.accept(false);
+			}
+
+			this.callback = null;
+			return;
+		}
+
+		if(ButtonManager.BUTTON_DELETE_SELF.equals(identifier)) {
+			interaction.consume();
+			return;
+		}
+
 		Consumer<ButtonInteraction> value = RegistrationTypeEntry.filter(this.list, hackontrolChannel, identifier);
 
 		if(value == null) {
 			return;
 		}
 
-		value.accept(new ButtonInteractionImplementation(Event));
+		value.accept(interaction);
 	}
 
 	private class ButtonInteractionImplementation implements ButtonInteraction {
@@ -93,6 +116,7 @@ public class ButtonManager implements Manager {
 		}
 
 		private void question(String question, Consumer<Boolean> callback, String ok, String cancel) {
+			ButtonManager.this.callback = callback;
 			this.Event.reply(question).addActionRow(Button.success("ok", ok), Button.danger("cancel", cancel)).queue();
 		}
 	}

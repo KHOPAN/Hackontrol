@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.khopan.hackontrol.manager.Manager;
 import com.khopan.hackontrol.registration.ChannelRegistry;
 import com.khopan.hackontrol.registration.ManagerRegistry;
@@ -23,7 +26,8 @@ public class Hackontrol {
 	public static final RegistryType<Void, Class<? extends Manager>> MANAGER_REGISTRY = RegistryType.create();
 	public static final RegistryType<Void, Class<? extends HackontrolChannel>> CHANNEL_REGISTRY = RegistryType.create();
 
-	public static final String DELETE_SELF_IDENTIFIER = "hackontrolSpecialDeleteSelf";
+	public static final String NAME = "Hackontrol";
+	public static final Logger LOGGER = LoggerFactory.getLogger(Hackontrol.NAME);
 
 	private static Hackontrol INSTANCE;
 
@@ -42,6 +46,7 @@ public class Hackontrol {
 		StrictClassValueOnlyRegistryImplementation<HackontrolChannel> channelRegistryImplementation = StrictClassValueOnlyRegistryImplementation.create(Hackontrol.CHANNEL_REGISTRY, HackontrolChannel.class);
 		ChannelRegistry.register(channelRegistryImplementation);
 		this.channelList = channelRegistryImplementation.getList();
+		this.channelList.forEach(channel -> Hackontrol.LOGGER.info("Registered channel: {}", channel.getClass().getName()));
 		this.registrationHandler = new RegistrationHandler();
 		JDABuilder builder = JDABuilder.createDefault(Token.BOT_TOKEN).enableIntents(GatewayIntent.MESSAGE_CONTENT);
 		this.managerList.forEach(manager -> manager.configureBuilder(builder));
@@ -93,6 +98,7 @@ public class Hackontrol {
 	}
 
 	public static void main(String[] args) throws Throwable {
+		Hackontrol.LOGGER.info("Initializing");
 		Hackontrol.getInstance();
 	}
 

