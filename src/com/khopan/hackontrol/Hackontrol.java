@@ -78,12 +78,14 @@ public class Hackontrol {
 			channel.register(this.registrationHandler.createRegistry(channel));
 
 			if(DiscordUtils.isChannelEmpty(textChannel)) {
+				Hackontrol.LOGGER.info("Channel #{} empty", textChannel.getName());
 				channel.initialize();
 			}
 		}
 
 		for(int i = 0; i < this.managerList.size(); i++) {
 			Manager manager = this.managerList.get(i);
+			Hackontrol.LOGGER.info("Initializing manager: {}", manager.getClass().getName());
 			manager.initialize(this.registrationHandler);
 		}
 	}
