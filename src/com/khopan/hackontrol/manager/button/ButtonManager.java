@@ -51,7 +51,7 @@ public class ButtonManager implements Manager {
 			return;
 		}
 
-		HackontrolChannel hackontrolChannel = hackontrol.getHackontrolChannel(textChannel);
+		HackontrolChannel hackontrolChannel = hackontrol.getChannel(textChannel);
 
 		if(hackontrolChannel == null) {
 			return;
