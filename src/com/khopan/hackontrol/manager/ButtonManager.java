@@ -18,10 +18,11 @@ public class ButtonManager implements Manager {
 
 	@Override
 	public void configureBuilder(JDABuilder builder) {
-		builder.addEventListeners(FilteredEventListener.create(ButtonInteractionEvent.class, this :: buttonCallback));
+		builder.addEventListeners(FilteredEventListener.create(ButtonInteractionEvent.class, this :: buttonEvent));
 	}
 
-	private void buttonCallback(ButtonInteractionEvent Event) {
+	private void buttonEvent(ButtonInteractionEvent Event) {
 		System.out.println("Callback");
+		System.out.println(ButtonManager.BUTTON_CALLBACK_REGISTRY.map());
 	}
 }
