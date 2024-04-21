@@ -1,6 +1,7 @@
 package com.khopan.hackontrol;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.khopan.hackontrol.channel.ControlChannel;
@@ -38,8 +39,9 @@ public class Hackontrol {
 
 	private Hackontrol() {
 		Hackontrol.INSTANCE = this;
-		this.managerList = new ArrayList<>();
-		ManagerRegistry.register(new HackontrolManagerRegistryImplementation());
+		StrictClassValueOnlyRegistryImplementation<Manager> managerRegistryImplementation = StrictClassValueOnlyRegistryImplementation.create(Hackontrol.MANAGER_REGISTRY, Manager.class);
+		ManagerRegistry.register(managerRegistryImplementation);
+		this.managerList = managerRegistryImplementation.getList();
 		this.registrationHandler = new RegistrationHandler();
 		JDABuilder builder = JDABuilder.createDefault(Token.BOT_TOKEN).enableIntents(GatewayIntent.MESSAGE_CONTENT);
 		this.managerList.forEach(manager -> manager.configureBuilder(builder));
@@ -97,7 +99,15 @@ public class Hackontrol {
 		return Hackontrol.INSTANCE;
 	}
 
-	private class HackontrolManagerRegistryImplementation implements Registry {
+	private static class StrictClassValueOnlyRegistryImplementation<V> implements Registry {
+		private final RegistryType<?, ?> allowedType;
+		private final List<V> list;
+
+		private StrictClassValueOnlyRegistryImplementation(RegistryType<?, ?> allowedType) {
+			this.allowedType = allowedType;
+			this.list = new ArrayList<>();
+		}
+
 		@Override
 		public <T, U> void register(RegistryType<T, U> type, T identifier, U value) {
 			this.register(type, value);
@@ -106,7 +116,7 @@ public class Hackontrol {
 		@SuppressWarnings("unchecked")
 		@Override
 		public <U> void register(RegistryType<?, U> type, U value) {
-			if(!Hackontrol.MANAGER_REGISTRY.equals(type)) {
+			if(!this.allowedType.equals(type)) {
 				throw new IllegalArgumentException("Invalid registry type");
 			}
 
@@ -114,14 +124,26 @@ public class Hackontrol {
 				return;
 			}
 
-			Class<? extends Manager> managerClass = (Class<? extends Manager>) value;
+			if(!(value instanceof Class)) {
+				throw new IllegalArgumentException("Invalid value type");
+			}
+
+			Class<V> valueAsClass = (Class<V>) value;
 
 			try {
-				Manager manager = managerClass.getDeclaredConstructor().newInstance();
-				Hackontrol.this.managerList.add(manager);
+				V valueInstance = valueAsClass.getDeclaredConstructor().newInstance();
+				this.list.add(valueInstance);
 			} catch(Throwable Errors) {
 				throw new RuntimeException(Errors);
 			}
+		}
+
+		public List<V> getList() {
+			return Collections.unmodifiableList(this.list);
+		}
+
+		public static <V> StrictClassValueOnlyRegistryImplementation<V> create(RegistryType<?, ?> allowedType, Class<V> valueType) {
+			return new StrictClassValueOnlyRegistryImplementation<V>(allowedType);
 		}
 	}
 
