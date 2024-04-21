@@ -21,7 +21,7 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
 public class Hackontrol {
-	public static final RegistryType<Void, Class<? extends Manager>> MANAGER_REGISTRY = RegistryType.create(Hackontrol.class);
+	public static final RegistryType<Void, Class<? extends Manager>> MANAGER_REGISTRY = RegistryType.create();
 
 	public static final String DELETE_SELF_IDENTIFIER = "hackontrolSpecialDeleteSelf";
 
