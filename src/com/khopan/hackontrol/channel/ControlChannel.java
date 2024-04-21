@@ -9,8 +9,9 @@ import javax.sound.sampled.TargetDataLine;
 
 import com.khopan.hackontrol.Hackontrol;
 import com.khopan.hackontrol.HackontrolChannel;
-import com.khopan.hackontrol.button.ButtonHandlerRegistry;
 import com.khopan.hackontrol.button.ButtonInteraction;
+import com.khopan.hackontrol.manager.ButtonManager;
+import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.utils.ErrorUtils;
 
 import net.dv8tion.jda.api.audio.AudioSendHandler;
@@ -38,23 +39,23 @@ public class ControlChannel extends HackontrolChannel {
 	}
 
 	@Override
-	public String getChannelName() {
+	public String getName() {
 		return ControlChannel.CHANNEL_NAME;
 	}
 
 	@Override
-	public void sendInitializeMessage() {
+	public void initialize() {
 		this.channel.sendMessage("**Power Control**").addActionRow(Button.success(ControlChannel.SLEEP_BUTTON_IDENTIFIER, "Sleep"), Button.danger(ControlChannel.SHUTDOWN_BUTTON_IDENTIFIER, "Shutdown"), Button.primary(ControlChannel.RESTART_BUTTON_IDENTIFIER, "Restart")).queue();
 		this.channel.sendMessage("**Microphone Control**").addActionRow(Button.success(ControlChannel.CONNECT_BUTTON_IDENTIFIER, "Connect"), Button.danger(ControlChannel.DISCONNECT_BUTTON_IDENTIFIER, "Disconnect")).queue();
 	}
 
 	@Override
-	public void registerButtonHandler(ButtonHandlerRegistry registry) {
-		registry.register(ControlChannel.SLEEP_BUTTON_IDENTIFIER, interaction -> this.power(interaction, PowerAction.SLEEP));
-		registry.register(ControlChannel.SHUTDOWN_BUTTON_IDENTIFIER, interaction -> this.power(interaction, PowerAction.SHUTDOWN));
-		registry.register(ControlChannel.RESTART_BUTTON_IDENTIFIER, interaction -> this.power(interaction, PowerAction.RESTART));
-		registry.register(ControlChannel.CONNECT_BUTTON_IDENTIFIER, interaction -> this.connect(interaction, true));
-		registry.register(ControlChannel.DISCONNECT_BUTTON_IDENTIFIER, interaction -> this.connect(interaction, false));
+	public void register(Registry registry) {
+		registry.register(ButtonManager.BUTTON_CALLBACK_REGISTRY, ControlChannel.SLEEP_BUTTON_IDENTIFIER, interaction -> this.power(interaction, PowerAction.SLEEP));
+		registry.register(ButtonManager.BUTTON_CALLBACK_REGISTRY, ControlChannel.SHUTDOWN_BUTTON_IDENTIFIER, interaction -> this.power(interaction, PowerAction.SHUTDOWN));
+		registry.register(ButtonManager.BUTTON_CALLBACK_REGISTRY, ControlChannel.RESTART_BUTTON_IDENTIFIER, interaction -> this.power(interaction, PowerAction.RESTART));
+		registry.register(ButtonManager.BUTTON_CALLBACK_REGISTRY, ControlChannel.CONNECT_BUTTON_IDENTIFIER, interaction -> this.connect(interaction, true));
+		registry.register(ButtonManager.BUTTON_CALLBACK_REGISTRY, ControlChannel.DISCONNECT_BUTTON_IDENTIFIER, interaction -> this.connect(interaction, false));
 	}
 
 	private void power(ButtonInteraction interaction, PowerAction powerAction) {
