@@ -7,6 +7,7 @@ import java.util.function.Consumer;
 import com.khopan.hackontrol.button.ButtonInteraction;
 import com.khopan.hackontrol.channel.ControlChannel;
 import com.khopan.hackontrol.channel.ScreenshotChannel;
+import com.khopan.hackontrol.manager.ButtonManager;
 import com.khopan.hackontrol.utils.DiscordUtils;
 
 import net.dv8tion.jda.api.JDA;
@@ -35,10 +36,12 @@ public class Hackontrol {
 
 	private Hackontrol() {
 		Hackontrol.INSTANCE = this;
-		this.bot = JDABuilder.createDefault(Token.BOT_TOKEN)
+		JDABuilder builder = JDABuilder.createDefault(Token.BOT_TOKEN)
 				.enableIntents(GatewayIntent.MESSAGE_CONTENT)
-				.addEventListeners(new Listener())
-				.build();
+				.addEventListeners(new Listener());
+
+		new ButtonManager().configureBuilder(builder);
+		this.bot = builder.build();
 
 		try {
 			this.bot.awaitReady();
