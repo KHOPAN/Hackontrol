@@ -7,7 +7,7 @@ import java.util.List;
 import com.khopan.hackontrol.channel.ControlChannel;
 import com.khopan.hackontrol.channel.ScreenshotChannel;
 import com.khopan.hackontrol.manager.Manager;
-import com.khopan.hackontrol.manager.ManagerRegistry;
+import com.khopan.hackontrol.registration.ManagerRegistry;
 import com.khopan.hackontrol.registry.RegistrationHandler;
 import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.registry.RegistryType;
