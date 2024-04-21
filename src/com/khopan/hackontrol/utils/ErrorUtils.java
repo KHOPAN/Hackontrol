@@ -3,8 +3,8 @@ package com.khopan.hackontrol.utils;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import com.khopan.hackontrol.button.ButtonInteraction;
-import com.khopan.hackontrol.manager.ButtonManager;
+import com.khopan.hackontrol.manager.button.ButtonInteraction;
+import com.khopan.hackontrol.manager.button.ButtonManager;
 
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;

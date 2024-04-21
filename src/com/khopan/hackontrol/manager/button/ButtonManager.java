@@ -1,12 +1,12 @@
-package com.khopan.hackontrol.manager;
+package com.khopan.hackontrol.manager.button;
 
 import java.util.List;
 import java.util.function.Consumer;
 
 import com.khopan.hackontrol.Hackontrol;
 import com.khopan.hackontrol.HackontrolChannel;
-import com.khopan.hackontrol.button.ButtonInteraction;
 import com.khopan.hackontrol.eventlistener.FilteredEventListener;
+import com.khopan.hackontrol.manager.Manager;
 import com.khopan.hackontrol.registry.RegistrationHandler;
 import com.khopan.hackontrol.registry.RegistrationHandler.RegistrationTypeEntry;
 import com.khopan.hackontrol.registry.RegistryType;

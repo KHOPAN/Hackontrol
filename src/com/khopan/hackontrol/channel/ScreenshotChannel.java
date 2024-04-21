@@ -11,8 +11,8 @@ import java.util.Calendar;
 import javax.imageio.ImageIO;
 
 import com.khopan.hackontrol.HackontrolChannel;
-import com.khopan.hackontrol.button.ButtonInteraction;
-import com.khopan.hackontrol.manager.ButtonManager;
+import com.khopan.hackontrol.manager.button.ButtonInteraction;
+import com.khopan.hackontrol.manager.button.ButtonManager;
 import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.utils.ErrorUtils;
 
