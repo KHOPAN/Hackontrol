@@ -77,24 +77,78 @@ public class Hackontrol {
 		this.managerList.forEach(manager -> manager.initialize(this.registrationHandler));
 	}
 
-	public Category getCategory() {
-		return this.category;
+	public List<Manager> getManagerList() {
+		return Collections.unmodifiableList(this.managerList);
 	}
 
-	public HackontrolChannel getHackontrolChannel(TextChannel channel) {
-		if(channel == null) {
-			return null;
+	@SuppressWarnings("unchecked")
+	public <T extends Manager> T getManager(Class<T> managerClass) {
+		if(managerClass == null) {
+			throw new NullPointerException("Manager class cannot be null");
 		}
 
-		for(int i = 0; i < this.channelList.size(); i++) {
-			HackontrolChannel hackontrolChannel = this.channelList.get(i);
+		for(int i = 0; i < this.managerList.size(); i++) {
+			Manager manager = this.managerList.get(i);
 
-			if(channel.equals(hackontrolChannel.channel)) {
-				return hackontrolChannel;
+			if(managerClass.isAssignableFrom(manager.getClass())) {
+				return (T) manager;
 			}
 		}
 
 		return null;
+	}
+
+	public List<HackontrolChannel> getChannelList() {
+		return Collections.unmodifiableList(this.channelList);
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T extends HackontrolChannel> T getChannel(Class<T> channelClass) {
+		if(channelClass == null) {
+			throw new NullPointerException("Channel class cannot be null");
+		}
+
+		for(int i = 0; i < this.channelList.size(); i++) {
+			HackontrolChannel channel = this.channelList.get(i);
+
+			if(channelClass.isAssignableFrom(channel.getClass())) {
+				return (T) channel;
+			}
+		}
+
+		return null;
+	}
+
+	public HackontrolChannel getChannel(TextChannel textChannel) {
+		if(textChannel == null) {
+			throw new NullPointerException("Text channel cannot be null");
+		}
+
+		for(int i = 0; i < this.channelList.size(); i++) {
+			HackontrolChannel channel = this.channelList.get(i);
+
+			if(textChannel.equals(channel.channel)) {
+				return channel;
+			}
+		}
+
+		return null;
+	}
+
+	public RegistrationHandler getRegistrationHandler() {
+		return this.registrationHandler;
+	}
+
+	public JDA getBot() {
+		return this.bot;
+	}
+
+	public Guild getGuild() {
+		return this.guild;
+	}
+
+	public Category getCategory() {
+		return this.category;
 	}
 
 	public static void main(String[] args) throws Throwable {
