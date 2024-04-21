@@ -12,8 +12,9 @@ import javax.imageio.ImageIO;
 
 import com.khopan.hackontrol.Hackontrol;
 import com.khopan.hackontrol.HackontrolChannel;
-import com.khopan.hackontrol.button.ButtonHandlerRegistry;
 import com.khopan.hackontrol.button.ButtonInteraction;
+import com.khopan.hackontrol.manager.ButtonManager;
+import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.utils.ErrorUtils;
 
 import net.dv8tion.jda.api.interactions.components.ActionRow;
@@ -43,18 +44,18 @@ public class ScreenshotChannel extends HackontrolChannel {
 	}
 
 	@Override
-	public String getChannelName() {
+	public String getName() {
 		return ScreenshotChannel.CHANNEL_NAME;
 	}
 
 	@Override
-	public void sendInitializeMessage() {
+	public void initialize() {
 		this.channel.sendMessageComponents(ActionRow.of(Button.success(ScreenshotChannel.SCREENSHOT_BUTTON_IDENTIFIER, "Screenshot"))).queue();
 	}
 
 	@Override
-	public void registerButtonHandler(ButtonHandlerRegistry registry) {
-		registry.register(ScreenshotChannel.SCREENSHOT_BUTTON_IDENTIFIER, this :: screenshot);
+	public void register(Registry registry) {
+		registry.register(ButtonManager.BUTTON_CALLBACK_REGISTRY, ScreenshotChannel.SCREENSHOT_BUTTON_IDENTIFIER, this :: screenshot);
 	}
 
 	private void screenshot(ButtonInteraction interaction) {
