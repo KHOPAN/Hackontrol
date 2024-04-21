@@ -12,10 +12,6 @@ import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 public class ButtonManager implements Manager {
 	public static final RegistryType<String, Consumer<ButtonInteraction>> BUTTON_CALLBACK_REGISTRY = RegistryType.create(ButtonManager.class);
 
-	public ButtonManager() {
-
-	}
-
 	@Override
 	public void configureBuilder(JDABuilder builder) {
 		builder.addEventListeners(FilteredEventListener.create(ButtonInteractionEvent.class, this :: buttonEvent));
@@ -23,6 +19,5 @@ public class ButtonManager implements Manager {
 
 	private void buttonEvent(ButtonInteractionEvent Event) {
 		System.out.println("Callback");
-		System.out.println(ButtonManager.BUTTON_CALLBACK_REGISTRY.map());
 	}
 }

