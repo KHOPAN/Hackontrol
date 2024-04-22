@@ -2,8 +2,11 @@ package com.khopan.hackontrol.utils;
 
 import java.util.List;
 
+import com.khopan.hackontrol.Hackontrol;
+
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageHistory;
+import net.dv8tion.jda.api.entities.channel.Channel;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
@@ -46,5 +49,21 @@ public class DiscordUtils {
 	public static boolean isChannelEmpty(MessageChannel channel) {
 		MessageHistory history = MessageHistory.getHistoryFromBeginning(channel).complete();
 		return history.getRetrievedHistory().isEmpty();
+	}
+
+	public static boolean checkCategory(Channel channel) {
+		if(!(channel instanceof TextChannel)) {
+			return false;
+		}
+
+		TextChannel textChannel = (TextChannel) channel;
+		Category category = textChannel.getParentCategory();
+		Hackontrol hackontrol = Hackontrol.getInstance();
+
+		if(!hackontrol.getCategory().equals(category)) {
+			return false;
+		}
+
+		return true;
 	}
 }

@@ -1,5 +1,6 @@
 package com.khopan.hackontrol.manager.button;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -10,114 +11,146 @@ import com.khopan.hackontrol.manager.Manager;
 import com.khopan.hackontrol.registry.RegistrationHandler;
 import com.khopan.hackontrol.registry.RegistrationHandler.RegistrationTypeEntry;
 import com.khopan.hackontrol.registry.RegistryType;
+import com.khopan.hackontrol.utils.DiscordUtils;
 
 import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.entities.channel.Channel;
-import net.dv8tion.jda.api.entities.channel.concrete.Category;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
+import net.dv8tion.jda.api.interactions.InteractionHook;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 
 public class ButtonManager implements Manager {
-	public static final RegistryType<String, Consumer<ButtonInteraction>> BUTTON_CALLBACK_REGISTRY = RegistryType.create();
+	public static final RegistryType<String, Consumer<ButtonInteraction>> STATIC_BUTTON_REGISTRY = RegistryType.create();
 
-	public static final String BUTTON_DELETE_SELF = "buttonManagerSpecialDeleteSelf";
-
-	private List<RegistrationTypeEntry<String, Consumer<ButtonInteraction>>> list;
-	private Consumer<Boolean> callback;
+	private List<RegistrationTypeEntry<String, Consumer<ButtonInteraction>>> staticCallbackList;
 
 	@Override
 	public void configureBuilder(JDABuilder builder) {
 		builder.addEventListeners(FilteredEventListener.create(ButtonInteractionEvent.class, this :: buttonEvent));
+		builder.addEventListeners(FilteredEventListener.create(MessageDeleteEvent.class, this :: deleteEvent));
 	}
 
 	@Override
 	public void initialize(RegistrationHandler handler) {
-		this.list = handler.filterType(ButtonManager.BUTTON_CALLBACK_REGISTRY);
+		this.staticCallbackList = handler.filterType(ButtonManager.STATIC_BUTTON_REGISTRY);
 	}
 
 	private void buttonEvent(ButtonInteractionEvent Event) {
-		Channel channel = Event.getChannel();
+		MessageChannelUnion channel = Event.getChannel();
 
-		if(!(channel instanceof TextChannel)) {
-			return;
-		}
-
-		TextChannel textChannel = (TextChannel) channel;
-		Category category = textChannel.getParentCategory();
-		Hackontrol hackontrol = Hackontrol.getInstance();
-
-		if(!hackontrol.getCategory().equals(category)) {
-			return;
-		}
-
-		HackontrolChannel hackontrolChannel = hackontrol.getChannel(textChannel);
-
-		if(hackontrolChannel == null) {
+		if(!DiscordUtils.checkCategory(channel)) {
 			return;
 		}
 
 		Button button = Event.getButton();
 		String identifier = button.getId();
-		ButtonInteraction interaction = new ButtonInteractionImplementation(Event);
+		DynamicButtonSession session = DynamicButtonSession.decodeSession(identifier);
+		Hackontrol.LOGGER.info("Processing button: {}", identifier);
+		Consumer<ButtonInteraction> action;
 
-		if(this.callback != null && ("ok".equals(identifier) || "cancel".equals(identifier))) {
-			interaction.consume();
+		if(session == null) {
+			HackontrolChannel hackontrolChannel = Hackontrol.getInstance().getChannel((TextChannel) channel);
+			action = RegistrationTypeEntry.filter(this.staticCallbackList, hackontrolChannel, identifier);
+		} else {			
+			action = session.action;
+		}
 
-			if("ok".equals(identifier)) {
-				this.callback.accept(true);
-			} else {
-				this.callback.accept(false);
-			}
-
-			this.callback = null;
+		if(action == null) {
+			Hackontrol.LOGGER.warn("Button {} has null action", identifier);
 			return;
 		}
 
-		if(ButtonManager.BUTTON_DELETE_SELF.equals(identifier)) {
-			interaction.consume();
-			return;
-		}
-
-		Consumer<ButtonInteraction> value = RegistrationTypeEntry.filter(this.list, hackontrolChannel, identifier);
-
-		if(value == null) {
-			return;
-		}
-
-		value.accept(interaction);
+		action.accept(new ButtonInteractionImplementation(Event, session == null ? null : session.paramters));
 	}
 
-	private class ButtonInteractionImplementation implements ButtonInteraction {
-		private final ButtonInteractionEvent Event;
-
-		private ButtonInteractionImplementation(ButtonInteractionEvent Event) {
-			this.Event = Event;
+	private void deleteEvent(MessageDeleteEvent Event) {
+		if(!DiscordUtils.checkCategory(Event.getChannel())) {
+			return;
 		}
 
-		@Override
-		public ButtonInteractionEvent getEvent() {
-			return this.Event;
+		long messageIdentifier = Event.getMessageIdLong();
+		List<DynamicButtonSession> deleteList = new ArrayList<>();
+
+		for(int i = 0; i < DynamicButtonSession.SESSION_LIST.size(); i++) {
+			DynamicButtonSession session = DynamicButtonSession.SESSION_LIST.get(i);
+
+			if(session.messageIdentifier == messageIdentifier) {
+				deleteList.add(session);
+			}
 		}
 
-		@Override
-		public void consume() {
-			this.Event.deferEdit().queue(hook -> hook.deleteOriginal().queue());
+		DynamicButtonSession.SESSION_LIST.removeAll(deleteList);
+	}
+
+	public static Button dynamicButton(ButtonStyle style, String label, Consumer<ButtonInteraction> action, Object... paramters) {
+		if(style == null) {
+			throw new NullPointerException("Button style cannot be null");
 		}
 
-		@Override
-		public void okCancelQuestion(String question, Consumer<Boolean> callback) {
-			this.question(question, callback, "Ok", "Cancel");
+		if(label == null) {
+			label = "Button";
 		}
 
-		@Override
-		public void yesNoQuestion(String question, Consumer<Boolean> callback) {
-			this.question(question, callback, "Yes", "No");
-		}
+		long sessionIdentifier = DynamicButtonSession.randomSessionIdentifier();
+		String buttonIdentifier = "bm-sid" + Long.toString(sessionIdentifier);
+		Button button = ButtonManager.staticButton(style, label, buttonIdentifier);
+		DynamicButtonSession session = new DynamicButtonSession();
+		session.sessionIdentifier = sessionIdentifier;
+		session.action = action;
+		session.paramters = paramters;
+		DynamicButtonSession.SESSION_LIST.add(session);
+		return button;
+	}
 
-		private void question(String question, Consumer<Boolean> callback, String ok, String cancel) {
-			ButtonManager.this.callback = callback;
-			this.Event.reply(question).addActionRow(Button.success("ok", ok), Button.danger("cancel", cancel)).queue();
+	public static Button staticButton(ButtonStyle style, String label, String identifier) {
+		switch(style) {
+		case PRIMARY:
+			return Button.primary(identifier, label);
+		case SECONDARY:
+			return Button.secondary(identifier, label);
+		case SUCCESS:
+			return Button.success(identifier, label);
+		case DANGER:
+			return Button.danger(identifier, label);
+		case LINK:
+			return Button.link(identifier, label);
+		default:
+			throw new IllegalArgumentException("Invalid button style");
 		}
+	}
+
+	public static Button selfDelete(ButtonStyle style, String label, Object... paramters) {
+		return ButtonManager.dynamicButton(style, label, ButtonInteraction :: delete, paramters);
+	}
+
+	public static void dynamicButtonCallback(Message message) {
+		long messageIdentifier = message.getIdLong();
+		List<ActionRow> actionRows = message.getActionRows();
+
+		for(int x = 0; x < actionRows.size(); x++) {
+			ActionRow actionRow = actionRows.get(x);
+			List<Button> buttons = actionRow.getButtons();
+
+			for(int y = 0; y < buttons.size(); y++) {
+				Button button = buttons.get(y);
+				String identifier = button.getId();
+				DynamicButtonSession session = DynamicButtonSession.decodeSession(identifier);
+
+				if(session == null) {
+					continue;
+				}
+
+				session.messageIdentifier = messageIdentifier;
+			}
+		}
+	}
+
+	public static void dynamicButtonCallback(InteractionHook hook) {
+		hook.retrieveOriginal().queue(ButtonManager :: dynamicButtonCallback);
 	}
 }

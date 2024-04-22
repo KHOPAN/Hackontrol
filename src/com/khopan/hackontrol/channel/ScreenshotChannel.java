@@ -17,7 +17,7 @@ import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.utils.ErrorUtils;
 
 import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.utils.FileUpload;
 
 public class ScreenshotChannel extends HackontrolChannel {
@@ -49,12 +49,12 @@ public class ScreenshotChannel extends HackontrolChannel {
 
 	@Override
 	public void initialize() {
-		this.channel.sendMessageComponents(ActionRow.of(Button.success(ScreenshotChannel.SCREENSHOT_BUTTON_IDENTIFIER, "Screenshot"))).queue();
+		this.channel.sendMessageComponents(ActionRow.of(ButtonManager.staticButton(ButtonStyle.SUCCESS, "Screenshot", ScreenshotChannel.SCREENSHOT_BUTTON_IDENTIFIER))).queue();
 	}
 
 	@Override
 	public void register(Registry registry) {
-		registry.register(ButtonManager.BUTTON_CALLBACK_REGISTRY, ScreenshotChannel.SCREENSHOT_BUTTON_IDENTIFIER, this :: screenshot);
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ScreenshotChannel.SCREENSHOT_BUTTON_IDENTIFIER, this :: screenshot);
 	}
 
 	private void screenshot(ButtonInteraction interaction) {
@@ -75,7 +75,10 @@ public class ScreenshotChannel extends HackontrolChannel {
 		}
 
 		byte[] byteArray = stream.toByteArray();
-		interaction.getEvent().replyFiles(FileUpload.fromData(byteArray, ScreenshotChannel.getScreenshotFileName())).addActionRow(Button.success(ScreenshotChannel.SCREENSHOT_BUTTON_IDENTIFIER, "Screenshot"), Button.danger(ButtonManager.BUTTON_DELETE_SELF, "Delete")).queue();
+		interaction.getEvent().replyFiles(FileUpload.fromData(byteArray, ScreenshotChannel.getScreenshotFileName())).addActionRow(
+				ButtonManager.staticButton(ButtonStyle.SUCCESS, "Screenshot", ScreenshotChannel.SCREENSHOT_BUTTON_IDENTIFIER),
+				ButtonManager.selfDelete(ButtonStyle.DANGER, "Delete")
+				).queue(ButtonManager :: dynamicButtonCallback);
 	}
 
 	private static String getScreenshotFileName() {

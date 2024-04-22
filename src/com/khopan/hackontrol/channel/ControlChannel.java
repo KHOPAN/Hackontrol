@@ -17,7 +17,7 @@ import net.dv8tion.jda.api.audio.AudioSendHandler;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.managers.AudioManager;
 
 public class ControlChannel extends HackontrolChannel {
@@ -44,17 +44,25 @@ public class ControlChannel extends HackontrolChannel {
 
 	@Override
 	public void initialize() {
-		this.channel.sendMessage("**Power Control**").addActionRow(Button.success(ControlChannel.SLEEP_BUTTON_IDENTIFIER, "Sleep"), Button.danger(ControlChannel.SHUTDOWN_BUTTON_IDENTIFIER, "Shutdown"), Button.primary(ControlChannel.RESTART_BUTTON_IDENTIFIER, "Restart")).queue();
-		this.channel.sendMessage("**Microphone Control**").addActionRow(Button.success(ControlChannel.CONNECT_BUTTON_IDENTIFIER, "Connect"), Button.danger(ControlChannel.DISCONNECT_BUTTON_IDENTIFIER, "Disconnect")).queue();
+		this.channel.sendMessage("**Power Control**").addActionRow(
+				ButtonManager.staticButton(ButtonStyle.SUCCESS, "Sleep", ControlChannel.SLEEP_BUTTON_IDENTIFIER),
+				ButtonManager.staticButton(ButtonStyle.DANGER, "Shutdown", ControlChannel.SHUTDOWN_BUTTON_IDENTIFIER),
+				ButtonManager.staticButton(ButtonStyle.PRIMARY, "Restart", ControlChannel.RESTART_BUTTON_IDENTIFIER)
+				).queue();
+
+		this.channel.sendMessage("**Microphone Control**").addActionRow(
+				ButtonManager.staticButton(ButtonStyle.SUCCESS, "Connect", ControlChannel.CONNECT_BUTTON_IDENTIFIER),
+				ButtonManager.staticButton(ButtonStyle.DANGER, "Disconnect", ControlChannel.DISCONNECT_BUTTON_IDENTIFIER)
+				).queue();
 	}
 
 	@Override
 	public void register(Registry registry) {
-		registry.register(ButtonManager.BUTTON_CALLBACK_REGISTRY, ControlChannel.SLEEP_BUTTON_IDENTIFIER, interaction -> this.power(interaction, PowerAction.SLEEP));
-		registry.register(ButtonManager.BUTTON_CALLBACK_REGISTRY, ControlChannel.SHUTDOWN_BUTTON_IDENTIFIER, interaction -> this.power(interaction, PowerAction.SHUTDOWN));
-		registry.register(ButtonManager.BUTTON_CALLBACK_REGISTRY, ControlChannel.RESTART_BUTTON_IDENTIFIER, interaction -> this.power(interaction, PowerAction.RESTART));
-		registry.register(ButtonManager.BUTTON_CALLBACK_REGISTRY, ControlChannel.CONNECT_BUTTON_IDENTIFIER, interaction -> this.connect(interaction, true));
-		registry.register(ButtonManager.BUTTON_CALLBACK_REGISTRY, ControlChannel.DISCONNECT_BUTTON_IDENTIFIER, interaction -> this.connect(interaction, false));
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.SLEEP_BUTTON_IDENTIFIER, interaction -> this.power(interaction, PowerAction.SLEEP));
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.SHUTDOWN_BUTTON_IDENTIFIER, interaction -> this.power(interaction, PowerAction.SHUTDOWN));
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.RESTART_BUTTON_IDENTIFIER, interaction -> this.power(interaction, PowerAction.RESTART));
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.CONNECT_BUTTON_IDENTIFIER, interaction -> this.connect(interaction, true));
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.DISCONNECT_BUTTON_IDENTIFIER, interaction -> this.connect(interaction, false));
 	}
 
 	private void power(ButtonInteraction interaction, PowerAction powerAction) {
@@ -79,7 +87,7 @@ public class ControlChannel extends HackontrolChannel {
 		}
 
 		if(this.handler == null) {
-			Event.reply("Hackontrol is already disconnected").addActionRow(Button.success(ButtonManager.BUTTON_DELETE_SELF, "Ok")).queue();
+			Event.reply("Hackontrol is already disconnected").addActionRow(ButtonManager.selfDelete(ButtonStyle.SUCCESS, "Ok")).queue(ButtonManager :: dynamicButtonCallback);
 			return;
 		}
 

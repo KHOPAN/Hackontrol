@@ -7,7 +7,7 @@ import com.khopan.hackontrol.manager.button.ButtonInteraction;
 import com.khopan.hackontrol.manager.button.ButtonManager;
 
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 
 public class ErrorUtils {
 	private ErrorUtils() {}
@@ -23,12 +23,12 @@ public class ErrorUtils {
 
 	public static void sendErrorReply(ButtonInteraction interaction, Throwable Errors) {
 		String message = ErrorUtils.limitBlock(ErrorUtils.getErrorMessage(Errors));
-		interaction.getEvent().reply(message).addActionRow(Button.danger(ButtonManager.BUTTON_DELETE_SELF, "Delete")).queue();
+		interaction.getEvent().reply(message).addActionRow(ButtonManager.selfDelete(ButtonStyle.DANGER, "Delete")).queue();
 	}
 
 	public static void sendErrorMessage(MessageChannel channel, Throwable Errors) {
 		String message = ErrorUtils.limitBlock(ErrorUtils.getErrorMessage(Errors));
-		channel.sendMessage(message).addActionRow(Button.danger(ButtonManager.BUTTON_DELETE_SELF, "Delete")).queue();
+		channel.sendMessage(message).addActionRow(ButtonManager.selfDelete(ButtonStyle.DANGER, "Delete")).queue();
 	}
 
 	private static String limitBlock(String text) {
