@@ -32,8 +32,8 @@ public class ErrorUtils {
 	}
 
 	private static String limitBlock(String text) {
-		String message = ErrorUtils.limit(text, 1994);
-		return "```" + message + "```";
+		String message = ErrorUtils.limit(text, 1992);
+		return "```\n" + message + "\n```";
 	}
 
 	private static String limit(String text, int limit) {
