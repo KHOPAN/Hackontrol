@@ -1,10 +1,11 @@
 package test;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import com.khopan.hackontrol.logger.HackontrolLoggerFactory;
 
 public class Main {
-	public static final Logger LOGGER = LoggerFactory.getLogger("Main");
+	public static final Logger LOGGER = new HackontrolLoggerFactory().getLogger("Main"); //LoggerFactory.getLogger("Main");
 
 	public static void main(String[] args) {
 		Main.LOGGER.info("Hello, world!");
