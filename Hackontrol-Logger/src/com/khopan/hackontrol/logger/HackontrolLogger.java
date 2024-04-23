@@ -1,5 +1,7 @@
 package com.khopan.hackontrol.logger;
 
+import java.util.Calendar;
+
 import org.slf4j.Logger;
 import org.slf4j.Marker;
 
@@ -141,12 +143,12 @@ public class HackontrolLogger implements Logger {
 
 	@Override
 	public boolean isInfoEnabled() {
-		return false;
+		return true;
 	}
 
 	@Override
 	public void info(String message) {
-		HackontrolLoggerInternal.out.println("[00:00:00] [Main thread/INFO] [Main]: " + message);
+		this.log(message, LogLevel.INFO);
 	}
 
 	@Override
@@ -317,5 +319,23 @@ public class HackontrolLogger implements Logger {
 	@Override
 	public void error(Marker marker, String message, Throwable Errors) {
 
+	}
+
+	private void log(String message, LogLevel level) {
+		Calendar calendar = Calendar.getInstance();
+		int hour = calendar.get(Calendar.HOUR_OF_DAY);
+		int minute = calendar.get(Calendar.MINUTE);
+		int second = calendar.get(Calendar.SECOND);
+		String threadName = Thread.currentThread().getName();
+		String type = level.name();
+		HackontrolLoggerInternal.out.println(String.format("[%02d:%02d:%02d] [%s/%s] [%s]: %s", hour, minute, second, threadName, type, this.name, message));
+	}
+
+	private static enum LogLevel {
+		TRACE,
+		DEBUG,
+		INFO,
+		WARN,
+		ERROR;
 	}
 }
