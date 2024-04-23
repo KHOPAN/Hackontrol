@@ -146,7 +146,7 @@ public class HackontrolLogger implements Logger {
 
 	@Override
 	public void info(String message) {
-		System.out.println("[00:00:00] [Main thread/INFO] [Main]: " + message);
+		HackontrolLoggerInternal.out.println("[00:00:00] [Main thread/INFO] [Main]: " + message);
 	}
 
 	@Override
