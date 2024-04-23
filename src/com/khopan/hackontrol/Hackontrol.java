@@ -1,11 +1,13 @@
 package com.khopan.hackontrol;
 
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.Collections;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.khopan.hackontrol.errorhandling.ErrorHandler;
 import com.khopan.hackontrol.logger.HackontrolLoggerConfig;
 import com.khopan.hackontrol.manager.Manager;
 import com.khopan.hackontrol.registration.ChannelRegistry;
@@ -30,6 +32,7 @@ public class Hackontrol {
 
 	private static Hackontrol INSTANCE;
 
+	private final UncaughtExceptionHandler defaultHandler;
 	private final List<Manager> managerList;
 	private final List<HackontrolChannel> channelList;
 	private final RegistrationHandler registrationHandler;
@@ -37,8 +40,12 @@ public class Hackontrol {
 	private final Guild guild;
 	private final Category category;
 
+	private ErrorHandler handler;
+
 	private Hackontrol() {
 		Hackontrol.INSTANCE = this;
+		this.defaultHandler = Thread.getDefaultUncaughtExceptionHandler();
+		Thread.setDefaultUncaughtExceptionHandler(this :: handleError);
 		StrictClassValueOnlyRegistryImplementation<Manager> managerRegistryImplementation = StrictClassValueOnlyRegistryImplementation.create(Hackontrol.MANAGER_REGISTRY, Manager.class);
 		ManagerRegistry.register(managerRegistryImplementation);
 		this.managerList = managerRegistryImplementation.getList();
@@ -89,6 +96,16 @@ public class Hackontrol {
 			Hackontrol.LOGGER.info("Initializing manager: {}", manager.getClass().getName());
 			manager.initialize(this.registrationHandler);
 		}
+	}
+
+	private void handleError(Thread thread, Throwable Errors) {
+		if(this.handler == null) {
+			this.defaultHandler.uncaughtException(thread, Errors);
+			return;
+		}
+
+		Hackontrol.LOGGER.warn("Uncaught Exception: {}", Errors.toString());
+		this.handler.errorOccured(thread, Errors);
 	}
 
 	public List<Manager> getManagerList() {
@@ -163,6 +180,14 @@ public class Hackontrol {
 
 	public Category getCategory() {
 		return this.category;
+	}
+
+	public ErrorHandler getErrorHandler() {
+		return this.handler;
+	}
+
+	public void setErrorHandler(ErrorHandler handler) {
+		this.handler = handler;
 	}
 
 	public static void main(String[] args) throws Throwable {

