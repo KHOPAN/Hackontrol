@@ -4,6 +4,10 @@ import org.slf4j.Logger;
 import org.slf4j.Marker;
 
 public class HackontrolLogger implements Logger {
+	static {
+		HackontrolLoggerInternal.staticInitialize();
+	}
+
 	private final String name;
 
 	HackontrolLogger(String name) {
@@ -21,17 +25,17 @@ public class HackontrolLogger implements Logger {
 	}
 
 	@Override
-	public void trace(String msg) {
+	public void trace(String message) {
 
 	}
 
 	@Override
-	public void trace(String format, Object arg) {
+	public void trace(String format, Object argument) {
 
 	}
 
 	@Override
-	public void trace(String format, Object arg1, Object arg2) {
+	public void trace(String format, Object firstArgument, Object secondArgument) {
 
 	}
 
@@ -41,7 +45,7 @@ public class HackontrolLogger implements Logger {
 	}
 
 	@Override
-	public void trace(String msg, Throwable t) {
+	public void trace(String message, Throwable Errors) {
 
 	}
 
@@ -51,27 +55,27 @@ public class HackontrolLogger implements Logger {
 	}
 
 	@Override
-	public void trace(Marker marker, String msg) {
+	public void trace(Marker marker, String message) {
 
 	}
 
 	@Override
-	public void trace(Marker marker, String format, Object arg) {
+	public void trace(Marker marker, String format, Object argument) {
 
 	}
 
 	@Override
-	public void trace(Marker marker, String format, Object arg1, Object arg2) {
+	public void trace(Marker marker, String format, Object firstArgument, Object secondArgument) {
 
 	}
 
 	@Override
-	public void trace(Marker marker, String format, Object... argArray) {
+	public void trace(Marker marker, String format, Object... arguments) {
 
 	}
 
 	@Override
-	public void trace(Marker marker, String msg, Throwable t) {
+	public void trace(Marker marker, String message, Throwable Errors) {
 
 	}
 
@@ -81,17 +85,17 @@ public class HackontrolLogger implements Logger {
 	}
 
 	@Override
-	public void debug(String msg) {
+	public void debug(String message) {
 
 	}
 
 	@Override
-	public void debug(String format, Object arg) {
+	public void debug(String format, Object argument) {
 
 	}
 
 	@Override
-	public void debug(String format, Object arg1, Object arg2) {
+	public void debug(String format, Object firstArgument, Object secondArgument) {
 
 	}
 
@@ -101,7 +105,7 @@ public class HackontrolLogger implements Logger {
 	}
 
 	@Override
-	public void debug(String msg, Throwable t) {
+	public void debug(String message, Throwable Errors) {
 
 	}
 
@@ -111,17 +115,17 @@ public class HackontrolLogger implements Logger {
 	}
 
 	@Override
-	public void debug(Marker marker, String msg) {
+	public void debug(Marker marker, String message) {
 
 	}
 
 	@Override
-	public void debug(Marker marker, String format, Object arg) {
+	public void debug(Marker marker, String format, Object argument) {
 
 	}
 
 	@Override
-	public void debug(Marker marker, String format, Object arg1, Object arg2) {
+	public void debug(Marker marker, String format, Object firstArgument, Object secondArgument) {
 
 	}
 
@@ -131,7 +135,7 @@ public class HackontrolLogger implements Logger {
 	}
 
 	@Override
-	public void debug(Marker marker, String msg, Throwable t) {
+	public void debug(Marker marker, String message, Throwable Errors) {
 
 	}
 
@@ -141,17 +145,17 @@ public class HackontrolLogger implements Logger {
 	}
 
 	@Override
-	public void info(String msg) {
+	public void info(String message) {
+		System.out.println("[00:00:00] [Main thread/INFO] [Main]: " + message);
+	}
+
+	@Override
+	public void info(String format, Object argument) {
 
 	}
 
 	@Override
-	public void info(String format, Object arg) {
-
-	}
-
-	@Override
-	public void info(String format, Object arg1, Object arg2) {
+	public void info(String format, Object firstArgument, Object secondArgument) {
 
 	}
 
@@ -161,7 +165,7 @@ public class HackontrolLogger implements Logger {
 	}
 
 	@Override
-	public void info(String msg, Throwable t) {
+	public void info(String message, Throwable Errors) {
 
 	}
 
@@ -171,17 +175,17 @@ public class HackontrolLogger implements Logger {
 	}
 
 	@Override
-	public void info(Marker marker, String msg) {
+	public void info(Marker marker, String message) {
 
 	}
 
 	@Override
-	public void info(Marker marker, String format, Object arg) {
+	public void info(Marker marker, String format, Object argument) {
 
 	}
 
 	@Override
-	public void info(Marker marker, String format, Object arg1, Object arg2) {
+	public void info(Marker marker, String format, Object firstArgument, Object secondArgument) {
 
 	}
 
@@ -191,7 +195,7 @@ public class HackontrolLogger implements Logger {
 	}
 
 	@Override
-	public void info(Marker marker, String msg, Throwable t) {
+	public void info(Marker marker, String message, Throwable Errors) {
 
 	}
 
@@ -201,12 +205,12 @@ public class HackontrolLogger implements Logger {
 	}
 
 	@Override
-	public void warn(String msg) {
+	public void warn(String message) {
 
 	}
 
 	@Override
-	public void warn(String format, Object arg) {
+	public void warn(String format, Object argument) {
 
 	}
 
@@ -216,12 +220,12 @@ public class HackontrolLogger implements Logger {
 	}
 
 	@Override
-	public void warn(String format, Object arg1, Object arg2) {
+	public void warn(String format, Object firstArgument, Object secondArgument) {
 
 	}
 
 	@Override
-	public void warn(String msg, Throwable t) {
+	public void warn(String message, Throwable Errors) {
 
 	}
 
@@ -231,17 +235,17 @@ public class HackontrolLogger implements Logger {
 	}
 
 	@Override
-	public void warn(Marker marker, String msg) {
+	public void warn(Marker marker, String message) {
 
 	}
 
 	@Override
-	public void warn(Marker marker, String format, Object arg) {
+	public void warn(Marker marker, String format, Object argument) {
 
 	}
 
 	@Override
-	public void warn(Marker marker, String format, Object arg1, Object arg2) {
+	public void warn(Marker marker, String format, Object firstArgument, Object secondArgument) {
 
 	}
 
@@ -251,7 +255,7 @@ public class HackontrolLogger implements Logger {
 	}
 
 	@Override
-	public void warn(Marker marker, String msg, Throwable t) {
+	public void warn(Marker marker, String message, Throwable Errors) {
 
 	}
 
@@ -261,17 +265,17 @@ public class HackontrolLogger implements Logger {
 	}
 
 	@Override
-	public void error(String msg) {
+	public void error(String message) {
 
 	}
 
 	@Override
-	public void error(String format, Object arg) {
+	public void error(String format, Object argument) {
 
 	}
 
 	@Override
-	public void error(String format, Object arg1, Object arg2) {
+	public void error(String format, Object firstArgument, Object secondArgument) {
 
 	}
 
@@ -281,7 +285,7 @@ public class HackontrolLogger implements Logger {
 	}
 
 	@Override
-	public void error(String msg, Throwable t) {
+	public void error(String message, Throwable Errors) {
 
 	}
 
@@ -291,17 +295,17 @@ public class HackontrolLogger implements Logger {
 	}
 
 	@Override
-	public void error(Marker marker, String msg) {
+	public void error(Marker marker, String message) {
 
 	}
 
 	@Override
-	public void error(Marker marker, String format, Object arg) {
+	public void error(Marker marker, String format, Object argument) {
 
 	}
 
 	@Override
-	public void error(Marker marker, String format, Object arg1, Object arg2) {
+	public void error(Marker marker, String format, Object firstArgument, Object secondArgument) {
 
 	}
 
@@ -311,7 +315,7 @@ public class HackontrolLogger implements Logger {
 	}
 
 	@Override
-	public void error(Marker marker, String msg, Throwable t) {
+	public void error(Marker marker, String message, Throwable Errors) {
 
 	}
 }
