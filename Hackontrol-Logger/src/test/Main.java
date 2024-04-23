@@ -17,6 +17,7 @@ public class Main {
 		System.out.println(23.15f);
 		System.out.println(216547431);
 		System.out.println(217491579416576461L);
+		Main.LOGGER.debug("Hello", new RuntimeException());
 		System.out.println(new TestObject());
 		System.out.println("Normal string?");
 	}
