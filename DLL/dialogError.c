@@ -6,7 +6,7 @@ void dialogError(DWORD errorCode, const wchar_t* functionName) {
 	wchar_t* messageBuffer = NULL;
 	DWORD size = FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR) &messageBuffer, 0, NULL);
 
-	if(size == 0) {
+	if(!size) {
 		MessageBoxW(NULL, L"Error while getting the error message text", L"Fatal Error", MB_OK | MB_DEFBUTTON1 | MB_ICONERROR | MB_SYSTEMMODAL);
 		return;
 	}
@@ -20,9 +20,9 @@ void dialogError(DWORD errorCode, const wchar_t* functionName) {
 	}
 
 	size += 1;
-	wchar_t* displayMessage = malloc(sizeof(wchar_t) * size);
+	wchar_t* displayMessage = malloc(size * sizeof(wchar_t));
 
-	if(displayMessage == NULL) {
+	if(!displayMessage) {
 		MessageBoxW(NULL, L"Out of memory error. Not enough memory for the error message", L"Memory Error", MB_OK | MB_DEFBUTTON1 | MB_ICONERROR | MB_SYSTEMMODAL);
 		return;
 	}

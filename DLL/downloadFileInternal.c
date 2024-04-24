@@ -9,14 +9,14 @@ BOOL downloadFileInternal(CURL* curl, const char* url, const void* filePath, BOO
 	CURLcode code = curl_easy_setopt(curl, CURLOPT_URL, url);
 
 	if(code != CURLE_OK) {
-		HU_CURLError(code, "curl_easy_setopt()");
+		curlError(code, L"curl_easy_setopt");
 		return FALSE;
 	}
 
 	code = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
 
 	if(code != CURLE_OK) {
-		HU_CURLError(code, "curl_easy_setopt()");
+		curlError(code, L"curl_easy_setopt");
 		return FALSE;
 	}
 
@@ -38,7 +38,7 @@ BOOL downloadFileInternal(CURL* curl, const char* url, const void* filePath, BOO
 
 	if(code != CURLE_OK) {
 		fclose(file);
-		HU_CURLError(code, "curl_easy_setopt()");
+		curlError(code, L"curl_easy_setopt");
 		return FALSE;
 	}
 
@@ -46,7 +46,7 @@ BOOL downloadFileInternal(CURL* curl, const char* url, const void* filePath, BOO
 
 	if(code != CURLE_OK) {
 		fclose(file);
-		HU_CURLError(code, "curl_easy_perform()");
+		curlError(code, L"curl_easy_perform");
 		return FALSE;
 	}
 

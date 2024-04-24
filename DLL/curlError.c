@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include "definition.h"
 
-void HU_CURLError(CURLcode errorCode, const char* functionName) {
+void curlError(CURLcode errorCode, const wchar_t* functionName) {
 	const char* curlMessage = curl_easy_strerror(errorCode);
-	const char* formatString = "%s error ocurred. Error code: %d Message:\n%s";
+	const char* formatString = "%ws() error ocurred. Error code: %d Message:\n%s";
 	DWORD size = _scprintf(formatString, functionName, errorCode, curlMessage);
 
 	if(size == -1) {
@@ -12,9 +12,9 @@ void HU_CURLError(CURLcode errorCode, const char* functionName) {
 	}
 
 	size += 1;
-	char* displayMessage = malloc(sizeof(char) * size);
+	char* displayMessage = malloc(size * sizeof(char));
 
-	if(displayMessage == NULL) {
+	if(!displayMessage) {
 		MessageBoxW(NULL, L"Out of memory error. Not enough memory for the error message", L"Memory Error", MB_OK | MB_DEFBUTTON1 | MB_ICONERROR | MB_SYSTEMMODAL);
 		return;
 	}

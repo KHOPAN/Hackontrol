@@ -14,7 +14,7 @@
     <ClCompile Include="Execute.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="HU_CURLError.c">
+    <ClCompile Include="curlError.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="dialogError.c">

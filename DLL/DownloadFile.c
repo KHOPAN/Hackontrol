@@ -47,14 +47,14 @@ EXPORT(DownloadFile) {
 	CURLcode code = curl_global_init(CURL_GLOBAL_ALL);
 
 	if(code != CURLE_OK) {
-		HU_CURLError(code, "curl_global_init()");
+		curlError(code, L"curl_global_init");
 		goto freeOutputFile;
 	}
 
 	CURL* curl = curl_easy_init();
 
 	if(!curl) {
-		HU_CURLError(code, "curl_easy_init()");
+		curlError(code, L"curl_easy_init");
 		goto globalCleanup;
 	}
 

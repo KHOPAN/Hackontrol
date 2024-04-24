@@ -149,7 +149,7 @@
     <ClCompile Include="HI_SetPrincipal.cpp" />
     <ClCompile Include="HI_SetSettings.cpp" />
     <ClCompile Include="HI_SetTriggers.cpp" />
-    <ClCompile Include="HU_CURLError.c" />
+    <ClCompile Include="curlError.c" />
     <ClCompile Include="dialogError.c" />
     <ClCompile Include="downloadFileInternal.c" />
     <ClCompile Include="HU_GetSystemDirectory.cpp" />

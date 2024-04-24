@@ -15,7 +15,7 @@ EXPORT(DownloadFile); // DONE
 EXPORT(Install); // IN PROGRESS
 EXPORT(Execute);
 
-void HU_CURLError(CURLcode, const char*);
+void curlError(CURLcode, const wchar_t*);
 void dialogError(DWORD, const wchar_t*);
 void HU_DisplayError(DWORD, const wchar_t*);
 

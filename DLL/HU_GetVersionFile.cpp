@@ -8,7 +8,7 @@ const char* HU_GetVersionFile(CURL* curl) {
 	CURLcode code = curl_easy_setopt(curl, CURLOPT_URL, "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/version.json");
 
 	if(code != CURLE_OK) {
-		HU_CURLError(code, "curl_easy_setopt()");
+		curlError(code, L"curl_easy_setopt");
 		ExitProcess(code);
 		return NULL;
 	}
@@ -16,7 +16,7 @@ const char* HU_GetVersionFile(CURL* curl) {
 	code = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
 
 	if(code != CURLE_OK) {
-		HU_CURLError(code, "curl_easy_setopt()");
+		curlError(code, L"curl_easy_setopt");
 		ExitProcess(code);
 		return NULL;
 	}
@@ -24,7 +24,7 @@ const char* HU_GetVersionFile(CURL* curl) {
 	code = curl_easy_setopt(curl, CURLOPT_WRITEDATA, NULL);
 
 	if(code != CURLE_OK) {
-		HU_CURLError(code, "curl_easy_setopt()");
+		curlError(code, L"curl_easy_setopt");
 		ExitProcess(code);
 		return NULL;
 	}
@@ -32,7 +32,7 @@ const char* HU_GetVersionFile(CURL* curl) {
 	code = curl_easy_perform(curl);
 
 	if(code != CURLE_OK) {
-		HU_CURLError(code, "curl_easy_perform()");
+		curlError(code, L"curl_easy_perform");
 		ExitProcess(code);
 		return NULL;
 	}
