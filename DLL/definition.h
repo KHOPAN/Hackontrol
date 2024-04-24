@@ -11,9 +11,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+EXPORT(DownloadFile); // DONE
+EXPORT(Install); // IN PROGRESS
 EXPORT(Execute);
-EXPORT(DownloadFile);
-EXPORT(Install);
 
 void HU_CURLError(CURLcode, const char*);
 void dialogError(DWORD, const wchar_t*);

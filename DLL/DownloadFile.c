@@ -45,8 +45,28 @@ EXPORT(DownloadFile) {
 
 	url[index] = 0;
 	outputFile[outputLength] = 0;
-	CURL* curl = HU_InitializeCURL();
+	CURLcode code = curl_global_init(CURL_GLOBAL_ALL);
+
+	if(code != CURLE_OK) {
+		free(url);
+		free(outputFile);
+		HU_CURLError(code, "curl_global_init()");
+		return;
+	}
+
+	CURL* curl = curl_easy_init();
+
+	if(!curl) {
+		free(url);
+		free(outputFile);
+		curl_global_cleanup();
+		HU_CURLError(code, "curl_easy_init()");
+		return;
+	}
+
 	downloadFileInternal(curl, url, outputFile, FALSE);
 	free(url);
 	free(outputFile);
+	curl_easy_cleanup(curl);
+	curl_global_cleanup();
 }
