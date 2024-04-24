@@ -63,9 +63,16 @@ EXPORT(Install) {
 		}
 	}
 
-	//ITaskFolder* folder = HI_CreateFolder(taskService, L"Microsoft\\Windows\\Registry");
-	/*ITaskDefinition* definition = HI_NewTask(service, folder);
-	HI_SetPrincipal(folder, definition);
+	ITaskDefinition* taskDefinition = NULL;
+	result = taskService->lpVtbl->NewTask(taskService, 0, &taskDefinition);
+
+	if(FAILED(result)) {
+		dialogError(result, L"ITaskService::NewTask");
+		goto releaseTaskFolder;
+	}
+
+	//ITaskDefinition* definition = HI_NewTask(taskService, taskFolder);
+	/*HI_SetPrincipal(folder, definition);
 	HI_SetTriggers(folder, definition);
 	std::wstring programArgument(FILE_NAME);
 	programArgument += L",Execute";
@@ -75,6 +82,8 @@ EXPORT(Install) {
 	HI_RegisterTask(folder, definition, L"Startup");
 	definition->Release();
 	folder->Release();*/
+releaseTaskFolder:
+	taskFolder->lpVtbl->Release(taskFolder);
 releaseTaskService:
 	taskService->lpVtbl->Release(taskService);
 uninitializeExit:
