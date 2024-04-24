@@ -24,7 +24,7 @@
     <ClCompile Include="system32.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mergepath.c">
+    <ClCompile Include="mergePath.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -140,7 +140,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="consoleError.c" />
-    <ClCompile Include="mergepath.c" />
+    <ClCompile Include="mergePath.c" />
     <ClCompile Include="system32.c" />
     <ClCompile Include="main.c" />
   </ItemGroup>
