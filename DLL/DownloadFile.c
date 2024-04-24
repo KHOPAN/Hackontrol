@@ -30,9 +30,8 @@ EXPORT(DownloadFile) {
 	char* outputFile = malloc((outputLength + 1) * sizeof(char));
 
 	if(!outputFile) {
-		free(url);
 		dialogError(ERROR_OUTOFMEMORY, L"malloc");
-		return;
+		goto freeURL;
 	}
 
 	for(size_t i = 0; i < index; i++) {
@@ -48,25 +47,23 @@ EXPORT(DownloadFile) {
 	CURLcode code = curl_global_init(CURL_GLOBAL_ALL);
 
 	if(code != CURLE_OK) {
-		free(url);
-		free(outputFile);
 		HU_CURLError(code, "curl_global_init()");
-		return;
+		goto freeOutputFile;
 	}
 
 	CURL* curl = curl_easy_init();
 
 	if(!curl) {
-		free(url);
-		free(outputFile);
-		curl_global_cleanup();
 		HU_CURLError(code, "curl_easy_init()");
-		return;
+		goto globalCleanup;
 	}
 
 	downloadFileInternal(curl, url, outputFile, FALSE);
-	free(url);
-	free(outputFile);
 	curl_easy_cleanup(curl);
+globalCleanup:
 	curl_global_cleanup();
+freeOutputFile:
+	free(outputFile);
+freeURL:
+	free(url);
 }
