@@ -2,7 +2,7 @@
 #include "resource.h"
 
 #define DLL_NAME L"libdll32.dll"
-#define DLL_FUNCTION L"DownloadFile"
+#define DLL_FUNCTION L"Install"
 
 int main(int argc, char** argv) {
 	printf("Finding resource\n");
