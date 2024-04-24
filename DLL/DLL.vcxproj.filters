@@ -17,10 +17,10 @@
     <ClCompile Include="HU_CURLError.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="HU_DisplayError.c">
+    <ClCompile Include="dialogError.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="HU_DownloadFile.c">
+    <ClCompile Include="downloadFileInternal.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="HU_GetSystemDirectory.cpp">

@@ -5,7 +5,7 @@ static size_t write_data(void* data, size_t size, size_t count, void* stream) {
 	return fwrite(data, size, count, (FILE*) stream);
 }
 
-void HU_DownloadFile(CURL* curl, const char* url, const void* filePath, BOOL wide) {
+void downloadFileInternal(CURL* curl, const char* url, const void* filePath, BOOL wide) {
 	CURLcode code = curl_easy_setopt(curl, CURLOPT_URL, url);
 
 	if(code != CURLE_OK) {
@@ -32,7 +32,7 @@ void HU_DownloadFile(CURL* curl, const char* url, const void* filePath, BOOL wid
 	}
 
 	if(errorCode != 0 || file == NULL) {
-		HU_DisplayError(errorCode, wide ? L"_wfopen_s()" : L"fopen_s");
+		dialogError(errorCode, wide ? L"_wfopen_s" : L"fopen_s");
 		ExitProcess(errorCode);
 		return;
 	}

@@ -150,8 +150,8 @@
     <ClCompile Include="HI_SetSettings.cpp" />
     <ClCompile Include="HI_SetTriggers.cpp" />
     <ClCompile Include="HU_CURLError.c" />
-    <ClCompile Include="HU_DisplayError.c" />
-    <ClCompile Include="HU_DownloadFile.c" />
+    <ClCompile Include="dialogError.c" />
+    <ClCompile Include="downloadFileInternal.c" />
     <ClCompile Include="HU_GetSystemDirectory.cpp" />
     <ClCompile Include="HU_GetVersionFile.cpp" />
     <ClCompile Include="HU_Hash.c" />

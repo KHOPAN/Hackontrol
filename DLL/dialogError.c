@@ -2,7 +2,7 @@
 #include <Windows.h>
 #include "definition.h"
 
-void HU_DisplayError(DWORD errorCode, const wchar_t* functionName) {
+void dialogError(DWORD errorCode, const wchar_t* functionName) {
 	wchar_t* messageBuffer = NULL;
 	DWORD size = FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR) &messageBuffer, 0, NULL);
 
@@ -11,7 +11,7 @@ void HU_DisplayError(DWORD errorCode, const wchar_t* functionName) {
 		return;
 	}
 
-	const wchar_t* formatString = L"%ws error ocurred. Error code: %u Message:\n%ws";
+	const wchar_t* formatString = L"%ws() error ocurred. Error code: %u Message:\n%ws";
 	size = _scwprintf(formatString, functionName, errorCode, messageBuffer);
 
 	if(size == -1) {
@@ -37,4 +37,8 @@ void HU_DisplayError(DWORD errorCode, const wchar_t* functionName) {
 
 	MessageBoxW(NULL, displayMessage, L"Error", MB_OK | MB_DEFBUTTON1 | MB_ICONERROR | MB_SYSTEMMODAL);
 	free(displayMessage);
+}
+
+void HU_DisplayError(DWORD code, const wchar_t* function) {
+	dialogError(code, function); // TEMPORARY
 }

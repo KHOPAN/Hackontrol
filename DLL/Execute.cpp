@@ -93,7 +93,7 @@ EXPORT(Execute) {
 	}
 
 	const char* downloadURL = downloadElement.GetString();
-	HU_DownloadFile(curl, downloadURL, filePath, TRUE);
+	downloadFileInternal(curl, downloadURL, filePath, TRUE);
 	free(filePath);
 	executeProgram();
 }

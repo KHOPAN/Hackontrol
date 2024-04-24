@@ -1,10 +1,18 @@
 #include "definition.h"
 
-int indexOf(const char*, size_t, char);
+size_t indexOfComma(const char* text, size_t length) {
+	for(size_t i = 0; i < length; i++) {
+		if(text[i] == ',') {
+			return i;
+		}
+	}
+
+	return -1;
+}
 
 EXPORT(DownloadFile) {
 	size_t length = strlen(argument);
-	int index = indexOf(argument, length, ',');
+	size_t index = indexOfComma(argument, length);
 
 	if(index == -1) {
 		MessageBoxW(NULL, L"Argument must be in format:\n<url>,<outputPath>", L"Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
@@ -12,27 +20,33 @@ EXPORT(DownloadFile) {
 	}
 
 	char* url = malloc((index + 1) * sizeof(char));
-	size_t outputLength = length - index - 1;
-	char* outputFile = malloc(outputLength * sizeof(char));
 
-	if(url == NULL || outputFile == NULL) {
-		HU_DisplayError(ERROR_NOT_ENOUGH_MEMORY, L"malloc()");
+	if(!url) {
+		dialogError(ERROR_OUTOFMEMORY, L"malloc");
 		return;
 	}
 
-	CURL* curl = HU_InitializeCURL();
-	memcpy(url, argument, index);
-	memcpy(outputFile, argument + index + 1, outputLength);
-	url[index] = 0;
-	HU_DownloadFile(curl, url, outputFile, FALSE);
-}
+	size_t outputLength = length - index - 1;
+	char* outputFile = malloc((outputLength + 1) * sizeof(char));
 
-int indexOf(const char* text, size_t length, char character) {
-	for(int i = 0; i < length; i++) {
-		if(text[i] == character) {
-			return i;
-		}
+	if(!outputFile) {
+		free(url);
+		dialogError(ERROR_OUTOFMEMORY, L"malloc");
+		return;
 	}
 
-	return -1;
+	for(size_t i = 0; i < index; i++) {
+		url[i] = argument[i];
+	}
+
+	for(size_t i = 0; i < outputLength; i++) {
+		outputFile[i] = argument[i + index + 1];
+	}
+
+	url[index] = 0;
+	outputFile[outputLength] = 0;
+	CURL* curl = HU_InitializeCURL();
+	downloadFileInternal(curl, url, outputFile, FALSE);
+	free(url);
+	free(outputFile);
 }
