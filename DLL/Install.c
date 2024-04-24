@@ -92,10 +92,27 @@ EXPORT(Install) {
 		dialogError(result, L"IPrincipal::put_UserId");
 		goto releasePrincipal;
 	}
+	
+	ITriggerCollection* triggerCollection = NULL;
+	result = taskDefinition->lpVtbl->get_Triggers(taskDefinition, &triggerCollection);
 
-	//HI_SetPrincipal(taskFolder, taskDefinition);
-	/*HI_SetTriggers(folder, definition);
-	std::wstring programArgument(FILE_NAME);
+	if(FAILED(result)) {
+		dialogError(result, L"ITaskDefinition::get_Triggers");
+		goto releasePrincipal;
+	}
+
+	ITrigger* trigger = NULL;
+	result = triggerCollection->lpVtbl->Create(triggerCollection, TASK_TRIGGER_LOGON, &trigger);
+	triggerCollection->lpVtbl->Release(triggerCollection);
+
+	if(FAILED(result)) {
+		dialogError(result, L"ITriggerCollection::Create");
+		goto releasePrincipal;
+	}
+
+	trigger->lpVtbl->Release(trigger);
+	//HI_SetTriggers(folder, definition);
+	/*std::wstring programArgument(FILE_NAME);
 	programArgument += L",Execute";
 	wchar_t* rundll32 = HU_GetSystemDirectory(L"rundll32.exe");
 	HI_SetActions(folder, definition, rundll32, programArgument.c_str());
