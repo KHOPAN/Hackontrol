@@ -1,4 +1,5 @@
-#include "definition.h"
+#include "errorLog.h"
+#include "exportMacro.h"
 
 size_t indexOfComma(const char* text, size_t length) {
 	for(size_t i = 0; i < length; i++) {

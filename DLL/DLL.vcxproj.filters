@@ -76,5 +76,14 @@
     <ClInclude Include="definition.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="errorLog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="curlLib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="exportMacro.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,12 +1,8 @@
 #pragma once
 
-#include <Windows.h>
+#include "errorLog.h"
 #include <taskschd.h>
-
-#define CURL_STATICLIB
-#include <curl/curl.h>
-
-#define EXPORT(x) __declspec(dllexport) void __stdcall x(HWND window, HINSTANCE instance, LPSTR argument, int command)
+#include "exportMacro.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,10 +10,6 @@ extern "C" {
 EXPORT(DownloadFile); // DONE
 EXPORT(Install); // IN PROGRESS
 EXPORT(Execute);
-
-void curlError(CURLcode, const wchar_t*);
-void dialogError(DWORD, const wchar_t*);
-void HU_DisplayError(DWORD, const wchar_t*);
 
 BOOL downloadFileInternal(CURL*, const char*, const void*, BOOL);
 
