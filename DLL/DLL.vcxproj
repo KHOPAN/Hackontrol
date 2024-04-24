@@ -140,10 +140,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DownloadFile.c" />
-    <ClCompile Include="HI_CreateFolder.cpp" />
-    <ClCompile Include="HI_CreateTaskService.cpp" />
-    <ClCompile Include="HI_InitializeComAPI.c" />
-    <ClCompile Include="HI_NewTask.c" />
     <ClCompile Include="HI_RegisterTask.cpp" />
     <ClCompile Include="HI_SetActions.cpp" />
     <ClCompile Include="HI_SetPrincipal.cpp" />

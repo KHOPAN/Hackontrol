@@ -44,18 +44,6 @@
     <ClCompile Include="Install.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="HI_InitializeComAPI.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="HI_CreateTaskService.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="HI_CreateFolder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="HI_NewTask.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="HI_SetPrincipal.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
