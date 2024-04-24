@@ -1,6 +1,7 @@
 //#include <string>
 #include "definition.h"
 
+#define TASK_FOLDER_NAME L"Microsoft\\Windows\\Registry"
 #define FILE_NAME L"libdll32.dll"
 
 EXPORT(Install) {
@@ -34,9 +35,36 @@ EXPORT(Install) {
 		goto releaseTaskService;
 	}
 
-	//ITaskService* service = HI_CreateTaskService();
-	/*ITaskFolder* folder = HI_CreateFolder(service, L"Microsoft\\Windows\\Registry");
-	ITaskDefinition* definition = HI_NewTask(service, folder);
+	ITaskFolder* rootFolder = NULL;
+	result = taskService->lpVtbl->GetFolder(taskService, L"\\", &rootFolder);
+
+	if(FAILED(result)) {
+		dialogError(result, L"ITaskService::GetFolder");
+		goto releaseTaskService;
+	}
+
+	ITaskFolder* taskFolder = NULL;
+	result = rootFolder->lpVtbl->CreateFolder(rootFolder, TASK_FOLDER_NAME, emptyVariant, &taskFolder);
+
+	if(result == 0x800700B7) {
+		result = rootFolder->lpVtbl->GetFolder(rootFolder, TASK_FOLDER_NAME, &taskFolder);
+		rootFolder->lpVtbl->Release(rootFolder);
+
+		if(FAILED(result)) {
+			dialogError(result, L"ITaskFolder::GetFolder");
+			goto releaseTaskService;
+		}
+	} else {
+		rootFolder->lpVtbl->Release(rootFolder);
+
+		if(FAILED(result)) {
+			dialogError(result, L"ITaskFolder::CreateFolder");
+			goto releaseTaskService;
+		}
+	}
+
+	//ITaskFolder* folder = HI_CreateFolder(taskService, L"Microsoft\\Windows\\Registry");
+	/*ITaskDefinition* definition = HI_NewTask(service, folder);
 	HI_SetPrincipal(folder, definition);
 	HI_SetTriggers(folder, definition);
 	std::wstring programArgument(FILE_NAME);
