@@ -158,7 +158,7 @@
     <ClCompile Include="HU_InitializeCURL.c" />
     <ClCompile Include="HU_IsFileExists.c" />
     <ClCompile Include="Execute.cpp" />
-    <ClCompile Include="Install.cpp" />
+    <ClCompile Include="Install.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="curlLib.h" />

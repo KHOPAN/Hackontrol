@@ -41,7 +41,7 @@
     <ClCompile Include="DownloadFile.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Install.cpp">
+    <ClCompile Include="Install.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="HI_InitializeComAPI.c">
