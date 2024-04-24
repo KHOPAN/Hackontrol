@@ -19,7 +19,6 @@ const char* HU_Hash(BYTE*, size_t);
 CURL* HU_InitializeCURL();
 BOOL HU_IsFileExists(const wchar_t*);
 
-void HI_SetPrincipal(ITaskFolder*, ITaskDefinition*);
 void HI_SetTriggers(ITaskFolder*, ITaskDefinition*);
 void HI_SetActions(ITaskFolder*, ITaskDefinition*, const wchar_t*, const wchar_t*);
 void HI_SetSettings(ITaskFolder*, ITaskDefinition*);
