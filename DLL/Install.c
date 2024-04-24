@@ -103,6 +103,7 @@ EXPORT(Install) {
 	HI_RegisterTask(folder, definition, L"Startup");
 	definition->Release();
 	folder->Release();*/
+	MessageBoxW(NULL, L"Status: OK", L"Information", MB_OK | MB_DEFBUTTON1 | MB_ICONINFORMATION | MB_SYSTEMMODAL);
 releasePrincipal:
 	principal->lpVtbl->Release(principal);
 releaseTaskDefinition:
