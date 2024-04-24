@@ -19,7 +19,8 @@ void HU_CURLError(CURLcode, const char*);
 void dialogError(DWORD, const wchar_t*);
 void HU_DisplayError(DWORD, const wchar_t*);
 
-void downloadFileInternal(CURL*, const char*, const void*, BOOL);
+BOOL downloadFileInternal(CURL*, const char*, const void*, BOOL);
+
 wchar_t* HU_GetSystemDirectory(const wchar_t*);
 const char* HU_GetVersionFile(CURL*);
 const char* HU_Hash(BYTE*, size_t);

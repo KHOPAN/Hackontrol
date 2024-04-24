@@ -5,21 +5,19 @@ static size_t write_data(void* data, size_t size, size_t count, void* stream) {
 	return fwrite(data, size, count, (FILE*) stream);
 }
 
-void downloadFileInternal(CURL* curl, const char* url, const void* filePath, BOOL wide) {
+BOOL downloadFileInternal(CURL* curl, const char* url, const void* filePath, BOOL wide) {
 	CURLcode code = curl_easy_setopt(curl, CURLOPT_URL, url);
 
 	if(code != CURLE_OK) {
 		HU_CURLError(code, "curl_easy_setopt()");
-		ExitProcess(code);
-		return;
+		return FALSE;
 	}
 
 	code = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
 
 	if(code != CURLE_OK) {
 		HU_CURLError(code, "curl_easy_setopt()");
-		ExitProcess(code);
-		return;
+		return FALSE;
 	}
 
 	FILE* file = NULL;
@@ -33,8 +31,7 @@ void downloadFileInternal(CURL* curl, const char* url, const void* filePath, BOO
 
 	if(errorCode != 0 || file == NULL) {
 		dialogError(errorCode, wide ? L"_wfopen_s" : L"fopen_s");
-		ExitProcess(errorCode);
-		return;
+		return FALSE;
 	}
 
 	code = curl_easy_setopt(curl, CURLOPT_WRITEDATA, file);
@@ -42,8 +39,7 @@ void downloadFileInternal(CURL* curl, const char* url, const void* filePath, BOO
 	if(code != CURLE_OK) {
 		fclose(file);
 		HU_CURLError(code, "curl_easy_setopt()");
-		ExitProcess(code);
-		return;
+		return FALSE;
 	}
 
 	code = curl_easy_perform(curl);
@@ -51,9 +47,9 @@ void downloadFileInternal(CURL* curl, const char* url, const void* filePath, BOO
 	if(code != CURLE_OK) {
 		fclose(file);
 		HU_CURLError(code, "curl_easy_perform()");
-		ExitProcess(code);
-		return;
+		return FALSE;
 	}
 
 	fclose(file);
+	return TRUE;
 }
