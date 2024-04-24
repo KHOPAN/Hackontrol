@@ -10,6 +10,10 @@ size_t indexOfComma(const char* text, size_t length) {
 	return -1;
 }
 
+static size_t write_data(void* data, size_t size, size_t count, void* stream) {
+	return fwrite(data, size, count, (FILE*) stream);
+}
+
 EXPORT(DownloadFile) {
 	size_t length = strlen(argument);
 	size_t index = indexOfComma(argument, length);
@@ -58,7 +62,44 @@ EXPORT(DownloadFile) {
 		goto globalCleanup;
 	}
 
-	downloadFileInternal(curl, url, outputFile, FALSE);
+	code = curl_easy_setopt(curl, CURLOPT_URL, url);
+
+	if(code != CURLE_OK) {
+		curlError(code, L"curl_easy_setopt");
+		goto easyCleanup;
+	}
+
+	code = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
+
+	if(code != CURLE_OK) {
+		curlError(code, L"curl_easy_setopt");
+		goto easyCleanup;
+	}
+
+	FILE* file = NULL;
+	errno_t errorCode = fopen_s(&file, outputFile, "wb");
+
+	if(errorCode != 0 || !file) {
+		dialogError(errorCode, L"fopen_s");
+		goto easyCleanup;
+	}
+
+	code = curl_easy_setopt(curl, CURLOPT_WRITEDATA, file);
+
+	if(code != CURLE_OK) {
+		curlError(code, L"curl_easy_setopt");
+		goto closeFile;
+	}
+
+	code = curl_easy_perform(curl);
+
+	if(code != CURLE_OK) {
+		curlError(code, L"curl_easy_perform");
+	}
+
+closeFile:
+	fclose(file);
+easyCleanup:
 	curl_easy_cleanup(curl);
 globalCleanup:
 	curl_global_cleanup();
