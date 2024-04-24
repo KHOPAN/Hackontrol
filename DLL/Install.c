@@ -18,9 +18,24 @@ EXPORT(Install) {
 		goto uninitializeExit;
 	}
 
-	//HI_InitializeComAPI();
-	/*ITaskService* service = HI_CreateTaskService();
-	ITaskFolder* folder = HI_CreateFolder(service, L"Microsoft\\Windows\\Registry");
+	ITaskService* taskService = NULL;
+	result = CoCreateInstance(&CLSID_TaskScheduler, NULL, CLSCTX_INPROC_SERVER, &IID_ITaskService, &taskService);
+
+	if(FAILED(result)) {
+		dialogError(result, L"CoCreateInstance");
+		goto uninitializeExit;
+	}
+
+	VARIANT emptyVariant = {VT_EMPTY};
+	result = taskService->lpVtbl->Connect(taskService, emptyVariant, emptyVariant, emptyVariant, emptyVariant);
+
+	if(FAILED(result)) {
+		dialogError(result, L"ITaskService::Connect");
+		goto releaseTaskService;
+	}
+
+	//ITaskService* service = HI_CreateTaskService();
+	/*ITaskFolder* folder = HI_CreateFolder(service, L"Microsoft\\Windows\\Registry");
 	ITaskDefinition* definition = HI_NewTask(service, folder);
 	HI_SetPrincipal(folder, definition);
 	HI_SetTriggers(folder, definition);
@@ -32,6 +47,8 @@ EXPORT(Install) {
 	HI_RegisterTask(folder, definition, L"Startup");
 	definition->Release();
 	folder->Release();*/
+releaseTaskService:
+	taskService->lpVtbl->Release(taskService);
 uninitializeExit:
 	CoUninitialize();
 }
