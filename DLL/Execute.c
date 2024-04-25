@@ -54,6 +54,10 @@ static size_t write_data(BYTE* data, size_t size, size_t count, void** dataPoint
 	return length;
 }
 
+static size_t write_data_file(void* data, size_t size, size_t count, FILE* stream) {
+	return fwrite(data, size, count, stream);
+}
+
 EXPORT(Execute) {
 	UINT directoryLength = GetWindowsDirectoryW(NULL, 0);
 
@@ -169,23 +173,23 @@ EXPORT(Execute) {
 	char* sourceHash = cJSON_GetStringValue(hashObject);
 
 	if(!sourceHash) {
-		MessageBoxW(NULL, L"JSON field 'hash' is not string", L"Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+		MessageBoxW(NULL, L"JSON field 'hash' is not a string", L"Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 		goto deleteJson;
 	}
 
-	HANDLE file = CreateFileW(fileNameBuffer, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	HANDLE fileHandle = CreateFileW(fileNameBuffer, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
-	if(file == INVALID_HANDLE_VALUE) {
+	if(fileHandle == INVALID_HANDLE_VALUE) {
 		dialogError(GetLastError(), L"CreateFileW");
 		goto deleteJson;
 	}
 
 	LARGE_INTEGER integer;
 
-	if(!GetFileSizeEx(file, &integer)) {
+	if(!GetFileSizeEx(fileHandle, &integer)) {
 		dialogError(GetLastError(), L"GetFileSizeEx");
 
-		if(!CloseHandle(file)) {
+		if(!CloseHandle(fileHandle)) {
 			dialogError(GetLastError(), L"CloseHandle");
 		}
 
@@ -197,7 +201,7 @@ EXPORT(Execute) {
 	if(!dataBuffer) {
 		dialogError(ERROR_OUTOFMEMORY, L"malloc");
 
-		if(!CloseHandle(file)) {
+		if(!CloseHandle(fileHandle)) {
 			dialogError(GetLastError(), L"CloseHandle");
 		}
 
@@ -206,11 +210,11 @@ EXPORT(Execute) {
 
 	DWORD bytesRead = 0;
 
-	if(!ReadFile(file, dataBuffer, (DWORD) integer.QuadPart, &bytesRead, NULL)) {
+	if(!ReadFile(fileHandle, dataBuffer, (DWORD) integer.QuadPart, &bytesRead, NULL)) {
 		dialogError(GetLastError(), L"ReadFile");
 		free(dataBuffer);
 
-		if(!CloseHandle(file)) {
+		if(!CloseHandle(fileHandle)) {
 			dialogError(GetLastError(), L"CloseHandle");
 		}
 
@@ -221,7 +225,7 @@ EXPORT(Execute) {
 	free(dataBuffer);
 
 	if(!hash) {
-		if(!CloseHandle(file)) {
+		if(!CloseHandle(fileHandle)) {
 			dialogError(GetLastError(), L"CloseHandle");
 		}
 
@@ -231,9 +235,8 @@ EXPORT(Execute) {
 	if(strcmp(hash, sourceHash) == 0) {
 		free(hash);
 		executeProgram();
-		MessageBoxA(NULL, "Hash Match", "Execute", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 
-		if(!CloseHandle(file)) {
+		if(!CloseHandle(fileHandle)) {
 			dialogError(GetLastError(), L"CloseHandle");
 		}
 
@@ -242,28 +245,64 @@ EXPORT(Execute) {
 
 	free(hash);
 
-	if(!CloseHandle(file)) {
+	if(!CloseHandle(fileHandle)) {
 		dialogError(GetLastError(), L"CloseHandle");
 		goto deleteJson;
 	}
 	
-	/*if(!document.HasMember("download")) {
+	cJSON* downloadObject = cJSON_GetObjectItem(rootJson, "download");
+
+	if(!downloadObject) {
 		MessageBoxW(NULL, L"JSON field 'download' not found", L"Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
-		return;
+		goto deleteJson;
 	}
 
-	rapidjson::Value& downloadElement = document["download"];
-
-	if(!downloadElement.IsString()) {
-		MessageBoxW(NULL, L"JSON field 'download' is not string", L"Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
-		return;
+	char* downloadURL = cJSON_GetStringValue(downloadObject);
+	
+	if(!downloadURL) {
+		MessageBoxW(NULL, L"JSON field 'download' is not a string", L"Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+		goto deleteJson;
 	}
 
-	const char* downloadURL = downloadElement.GetString();
-	downloadFileInternal(curl, downloadURL, filePath, TRUE);
-	free(filePath);
-	executeProgram();*/
-	MessageBoxA(NULL, "Hash Not Match", "Execute", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+	code = curl_easy_setopt(curl, CURLOPT_URL, downloadURL);
+
+	if(code != CURLE_OK) {
+		curlError(code, L"curl_easy_setopt");
+		goto deleteJson;
+	}
+
+	code = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data_file);
+
+	if(code != CURLE_OK) {
+		curlError(code, L"curl_easy_setopt");
+		goto deleteJson;
+	}
+
+	FILE* file = NULL;
+	errno_t errorCode = _wfopen_s(&file, fileNameBuffer, L"wb");
+
+	if(errorCode != 0 || file == NULL) {
+		dialogError(errorCode, L"_wfopen_s");
+		goto deleteJson;
+	}
+
+	code = curl_easy_setopt(curl, CURLOPT_WRITEDATA, file);
+
+	if(code != CURLE_OK) {
+		curlError(code, L"curl_easy_setopt");
+		goto closeFile;
+	}
+
+	code = curl_easy_perform(curl);
+
+	if(code != CURLE_OK) {
+		curlError(code, L"curl_easy_perform");
+		goto closeFile;
+	}
+
+	executeProgram();
+closeFile:
+	fclose(file);
 deleteJson:
 	cJSON_Delete(rootJson);
 easyCleanup:
@@ -275,7 +314,7 @@ freeFileNameBuffer:
 }
 
 void executeProgram() {
-
+	MessageBoxW(NULL, L"Execute Program", L"Information", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 }
 
 /*void executeProgram() {

@@ -11,8 +11,8 @@ size_t indexOfComma(const char* text, size_t length) {
 	return -1;
 }
 
-static size_t write_data(void* data, size_t size, size_t count, void* stream) {
-	return fwrite(data, size, count, (FILE*) stream);
+static size_t write_data(void* data, size_t size, size_t count, FILE* stream) {
+	return fwrite(data, size, count, stream);
 }
 
 EXPORT(DownloadFile) {
