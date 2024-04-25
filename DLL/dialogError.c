@@ -1,6 +1,4 @@
-#include <stdio.h>
-#include <Windows.h>
-#include "definition.h"
+#include "errorLog.h"
 
 void dialogError(DWORD errorCode, const wchar_t* functionName) {
 	wchar_t* messageBuffer = NULL;

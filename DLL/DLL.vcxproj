@@ -146,15 +146,13 @@
     <ClCompile Include="DownloadFile.c" />
     <ClCompile Include="curlError.c" />
     <ClCompile Include="dialogError.c" />
-    <ClCompile Include="hashSHA512.c" />
+    <ClCompile Include="sha512.c" />
     <ClCompile Include="Execute.c" />
     <ClCompile Include="Install.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="curlLib.h" />
-    <ClInclude Include="definition.h" />
     <ClInclude Include="errorLog.h" />
-    <ClInclude Include="exportMacro.h" />
+    <ClInclude Include="sha512.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

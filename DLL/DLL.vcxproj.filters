@@ -20,7 +20,7 @@
     <ClCompile Include="dialogError.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="hashSHA512.c">
+    <ClCompile Include="sha512.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DownloadFile.c">
@@ -31,16 +31,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="definition.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="errorLog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="curlLib.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="exportMacro.h">
+    <ClInclude Include="sha512.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

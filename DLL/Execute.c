@@ -1,5 +1,6 @@
-#include "definition.h"
+#include "errorLog.h"
 #include <cJSON.h>
+#include "sha512.h"
 
 #define FILE_NAME_PATH L"System32\\ctrl32.dll"
 
@@ -58,7 +59,7 @@ static size_t write_data_file(void* data, size_t size, size_t count, FILE* strea
 	return fwrite(data, size, count, stream);
 }
 
-EXPORT(Execute) {
+__declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LPSTR argument, int command) {
 	UINT directoryLength = GetWindowsDirectoryW(NULL, 0);
 
 	if(!directoryLength) {
@@ -221,7 +222,7 @@ EXPORT(Execute) {
 		goto deleteJson;
 	}
 
-	char* hash = hashSHA512(dataBuffer, bytesRead);
+	char* hash = sha512Hash(dataBuffer, bytesRead);
 	free(dataBuffer);
 
 	if(!hash) {

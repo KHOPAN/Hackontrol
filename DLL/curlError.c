@@ -1,5 +1,4 @@
-#include <stdio.h>
-#include "definition.h"
+#include "errorLog.h"
 
 void curlError(CURLcode errorCode, const wchar_t* functionName) {
 	const char* curlMessage = curl_easy_strerror(errorCode);
