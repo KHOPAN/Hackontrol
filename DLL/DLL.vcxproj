@@ -140,7 +140,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DownloadFile.c" />
-    <ClCompile Include="HI_RegisterTask.cpp" />
     <ClCompile Include="curlError.c" />
     <ClCompile Include="dialogError.c" />
     <ClCompile Include="downloadFileInternal.c" />

