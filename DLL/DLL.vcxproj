@@ -78,6 +78,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>D:\cJSON\include;D:\libcurl\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\include</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -96,6 +97,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>D:\cJSON\include;D:\libcurl\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\include</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -114,6 +116,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>D:\cJSON\include;D:\libcurl\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\include</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -132,6 +135,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>D:\cJSON\include;D:\libcurl\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\include</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

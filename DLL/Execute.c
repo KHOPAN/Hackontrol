@@ -2,7 +2,12 @@
 #include <cJSON.h>
 #include "sha512.h"
 
-#define FILE_NAME_PATH L"System32\\ctrl32.dll"
+#define FUNCTION_NAME L"Execute"
+#define FILE_NAME L"ctrl32.dll"
+#define FILE_NAME_PATH L"System32\\" FILE_NAME
+
+
+#define RUNDLL32PATH L"System32\\rundll32.exe"
 
 void executeProgram();
 
@@ -315,11 +320,84 @@ freeFileNameBuffer:
 }
 
 void executeProgram() {
-	MessageBoxW(NULL, L"Execute Program", L"Information", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
-}
+	UINT windowsDirectoryLength = GetWindowsDirectoryW(NULL, 0);
 
-/*void executeProgram() {
-	STARTUPINFO startupInformation = {0};
+	if(!windowsDirectoryLength) {
+		dialogError(GetLastError(), L"GetWindowsDirectoryW");
+		return;
+	}
+
+	wchar_t* windowsDirectoryBuffer = malloc(windowsDirectoryLength * sizeof(wchar_t));
+
+	if(!windowsDirectoryBuffer) {
+		dialogError(ERROR_OUTOFMEMORY, L"malloc");
+		return;
+	}
+
+	windowsDirectoryLength = GetWindowsDirectoryW(windowsDirectoryBuffer, windowsDirectoryLength);
+
+	if(!windowsDirectoryLength) {
+		dialogError(GetLastError(), L"GetWindowsDirectoryW");
+		free(windowsDirectoryBuffer);
+		return;
+	}
+
+	size_t rundll32PathLength = wcslen(RUNDLL32PATH);
+	int notEndWithBackslash = windowsDirectoryBuffer[windowsDirectoryLength - 1] != L'\\';
+	size_t rundll32PathBufferSize = windowsDirectoryLength + rundll32PathLength + notEndWithBackslash + 1;
+	wchar_t* rundll32PathBuffer = malloc(rundll32PathBufferSize * sizeof(wchar_t));
+
+	if(!rundll32PathBuffer) {
+		dialogError(ERROR_OUTOFMEMORY, L"malloc");
+		free(windowsDirectoryBuffer);
+		return;
+	}
+
+	for(size_t i = 0; i < windowsDirectoryLength; i++) {
+		rundll32PathBuffer[i] = windowsDirectoryBuffer[i];
+	}
+
+	free(windowsDirectoryBuffer);
+
+	if(notEndWithBackslash) {
+		rundll32PathBuffer[windowsDirectoryLength] = L'\\';
+	}
+
+	for(size_t i = 0; i < rundll32PathLength; i++) {
+		rundll32PathBuffer[i + windowsDirectoryLength + notEndWithBackslash] = RUNDLL32PATH[i];
+	}
+
+	rundll32PathBuffer[rundll32PathBufferSize - 1] = 0;
+	
+	size_t fileNameLength = wcslen(FILE_NAME);
+	size_t functionNameLength = wcslen(FUNCTION_NAME);
+	size_t argumentBufferSize = (rundll32PathBufferSize - 1) + 1 + fileNameLength + 1 + functionNameLength + 1;
+	wchar_t* argumentBuffer = malloc(argumentBufferSize * sizeof(wchar_t));
+
+	if(!argumentBuffer) {
+		dialogError(ERROR_OUTOFMEMORY, L"malloc");
+		goto freeRundll32PathBuffer;
+	}
+
+	for(size_t i = 0; i < rundll32PathBufferSize - 1; i++) {
+		argumentBuffer[i] = rundll32PathBuffer[i];
+	}
+
+	argumentBuffer[rundll32PathBufferSize - 1] = L' ';
+
+	for(size_t i = 0; i < fileNameLength; i++) {
+		argumentBuffer[i + rundll32PathBufferSize] = FILE_NAME[i];
+	}
+
+	argumentBuffer[fileNameLength + rundll32PathBufferSize] = L',';
+
+	for(size_t i = 0; i < functionNameLength; i++) {
+		argumentBuffer[i + fileNameLength + rundll32PathBufferSize + 1] = FUNCTION_NAME[i];
+	}
+
+	argumentBuffer[argumentBufferSize - 1] = 0;
+	MessageBoxW(NULL, argumentBuffer, rundll32PathBuffer, MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+	/*STARTUPINFO startupInformation = {0};
 	startupInformation.cb = sizeof(STARTUPINFO);
 	PROCESS_INFORMATION processInformation = {0};
 	const wchar_t* rundll32 = HU_GetSystemDirectory(L"rundll32.exe");
@@ -341,5 +419,9 @@ void executeProgram() {
 
 	if(CloseHandle(processInformation.hThread) == NULL) {
 		HU_DisplayError(GetLastError(), L"CloseHandle()");
-	}
-}*/
+	}*/
+freeArgumentBuffer:
+	free(argumentBuffer);
+freeRundll32PathBuffer:
+	free(rundll32PathBuffer);
+}
