@@ -23,7 +23,7 @@
     <ClCompile Include="downloadFileInternal.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="HU_Hash.c">
+    <ClCompile Include="hashSHA512.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="HU_IsFileExists.c">

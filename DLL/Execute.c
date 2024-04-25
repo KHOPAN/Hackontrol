@@ -1,11 +1,9 @@
-//#include <rapidjson/document.h>
-//#include <rapidjson/reader.h>
-//#include <string>
 #include "definition.h"
+#include <cJSON.h>
 
 #define FILE_NAME_PATH L"System32\\ctrl32.dll"
 
-//void executeProgram();
+void executeProgram();
 
 static size_t write_data(BYTE* data, size_t size, size_t count, void** dataPointer) {
 	if(!dataPointer) {
@@ -153,77 +151,103 @@ EXPORT(Execute) {
 		goto easyCleanup;
 	}
 
-	//const char* versionFile = HU_GetVersionFile(curl);
-	/*rapidjson::Document document;
-	document.Parse(versionFile);
+	cJSON* rootJson = cJSON_Parse(versionFile);
+	free(versionFile);
 
-	if(!document.HasMember("hash")) {
+	if(!rootJson) {
+		MessageBoxW(NULL, L"JSON parsing error", L"Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+		goto easyCleanup;
+	}
+
+	cJSON* hashObject = cJSON_GetObjectItem(rootJson, "hash");
+
+	if(!hashObject) {
 		MessageBoxW(NULL, L"JSON field 'hash' not found", L"Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
-		return;
+		goto deleteJson;
 	}
 
-	rapidjson::Value& hashElement = document["hash"];
+	char* sourceHash = cJSON_GetStringValue(hashObject);
 
-	if(!hashElement.IsString()) {
+	if(!sourceHash) {
 		MessageBoxW(NULL, L"JSON field 'hash' is not string", L"Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
-		return;
+		goto deleteJson;
 	}
 
-	const char* sourceHash = hashElement.GetString();
-	HANDLE file = CreateFileW(filePath, GENERIC_READ | GENERIC_WRITE, NULL, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	HANDLE file = CreateFileW(fileNameBuffer, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
 	if(file == INVALID_HANDLE_VALUE) {
-		HU_DisplayError(GetLastError(), L"CreateFileW()");
-		return;
+		dialogError(GetLastError(), L"CreateFileW");
+		goto deleteJson;
 	}
 
-	if(HU_IsFileExists(filePath)) {
-		LARGE_INTEGER integer;
+	LARGE_INTEGER integer;
 
-		if(GetFileSizeEx(file, &integer) == NULL) {
-			HU_DisplayError(GetLastError(), L"GetFileSizeEx()");
-			return;
+	if(!GetFileSizeEx(file, &integer)) {
+		dialogError(GetLastError(), L"GetFileSizeEx");
+
+		if(!CloseHandle(file)) {
+			dialogError(GetLastError(), L"CloseHandle");
 		}
 
-		BYTE* dataBuffer = static_cast<BYTE*>(malloc(integer.QuadPart));
+		goto deleteJson;
+	}
 
-		if(dataBuffer == NULL) {
-			HU_DisplayError(ERROR_NOT_ENOUGH_MEMORY, L"malloc()");
-			return;
+	BYTE* dataBuffer = malloc(integer.QuadPart);
+
+	if(!dataBuffer) {
+		dialogError(ERROR_OUTOFMEMORY, L"malloc");
+
+		if(!CloseHandle(file)) {
+			dialogError(GetLastError(), L"CloseHandle");
 		}
 
-		DWORD bytesRead = 0;
+		goto deleteJson;
+	}
 
-		if(ReadFile(file, dataBuffer, static_cast<DWORD>(integer.QuadPart), &bytesRead, NULL) == NULL) {
-			HU_DisplayError(GetLastError(), L"ReadFile()");
-			return;
-		}
+	DWORD bytesRead = 0;
 
-		const char* hash = HU_Hash(dataBuffer, bytesRead);
+	if(!ReadFile(file, dataBuffer, (DWORD) integer.QuadPart, &bytesRead, NULL)) {
+		dialogError(GetLastError(), L"ReadFile");
 		free(dataBuffer);
 
-		if(strcmp(hash, sourceHash) == 0) {
-			free(const_cast<char*>(hash));
-
-			if(CloseHandle(file) == NULL) {
-				HU_DisplayError(GetLastError(), L"CloseHandle()");
-				return;
-			}
-
-			free(filePath);
-			executeProgram();
-			return;
+		if(!CloseHandle(file)) {
+			dialogError(GetLastError(), L"CloseHandle");
 		}
 
-		free(const_cast<char*>(hash));
+		goto deleteJson;
 	}
 
-	if(CloseHandle(file) == NULL) {
-		HU_DisplayError(GetLastError(), L"CloseHandle()");
-		return;
+	char* hash = hashSHA512(dataBuffer, bytesRead);
+	free(dataBuffer);
+
+	if(!hash) {
+		if(!CloseHandle(file)) {
+			dialogError(GetLastError(), L"CloseHandle");
+		}
+
+		goto deleteJson;
 	}
 
-	if(!document.HasMember("download")) {
+	if(strcmp(hash, sourceHash) == 0) {
+		free(hash);
+		executeProgram();
+		MessageBoxA(NULL, "Hash Match", "Execute", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+
+		if(!CloseHandle(file)) {
+			dialogError(GetLastError(), L"CloseHandle");
+		}
+
+		goto deleteJson;
+	}
+
+	free(hash);
+
+	if(!CloseHandle(file)) {
+		dialogError(GetLastError(), L"CloseHandle");
+		goto deleteJson;
+	}
+	
+	/*if(!document.HasMember("download")) {
 		MessageBoxW(NULL, L"JSON field 'download' not found", L"Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 		return;
 	}
@@ -239,14 +263,19 @@ EXPORT(Execute) {
 	downloadFileInternal(curl, downloadURL, filePath, TRUE);
 	free(filePath);
 	executeProgram();*/
-	MessageBoxA(NULL, versionFile, "Execute", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
-	free(versionFile);
+	MessageBoxA(NULL, "Hash Not Match", "Execute", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+deleteJson:
+	cJSON_Delete(rootJson);
 easyCleanup:
 	curl_easy_cleanup(curl);
 globalCleanup:
 	curl_global_cleanup();
 freeFileNameBuffer:
 	free(fileNameBuffer);
+}
+
+void executeProgram() {
+
 }
 
 /*void executeProgram() {
