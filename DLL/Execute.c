@@ -56,10 +56,22 @@ EXPORT(Execute) {
 	}
 
 	fileNameBuffer[fileNameBufferSize - 1] = 0;
-	MessageBoxW(NULL, fileNameBuffer, L"Execute", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
-	//wchar_t* filePath = HU_GetSystemDirectory(FILE_NAME);
-	/*CURL* curl = HU_InitializeCURL();
-	const char* versionFile = HU_GetVersionFile(curl);
+	CURLcode code = curl_global_init(CURL_GLOBAL_ALL);
+
+	if(code != CURLE_OK) {
+		curlError(code, L"curl_global_init");
+		goto freeFileNameBuffer;
+	}
+
+	CURL* curl = curl_easy_init();
+
+	if(!curl) {
+		curlError(code, L"curl_easy_init");
+		goto globalCleanup;
+	}
+
+	//CURL* curl = HU_InitializeCURL();
+	/*const char* versionFile = HU_GetVersionFile(curl);
 	rapidjson::Document document;
 	document.Parse(versionFile);
 
@@ -145,6 +157,12 @@ EXPORT(Execute) {
 	downloadFileInternal(curl, downloadURL, filePath, TRUE);
 	free(filePath);
 	executeProgram();*/
+	MessageBoxW(NULL, fileNameBuffer, L"Execute", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+	curl_easy_cleanup(curl);
+globalCleanup:
+	curl_global_cleanup();
+freeFileNameBuffer:
+	free(fileNameBuffer);
 }
 
 /*void executeProgram() {

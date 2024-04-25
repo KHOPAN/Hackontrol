@@ -29,9 +29,6 @@
     <ClCompile Include="HU_Hash.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="HU_InitializeCURL.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="HU_IsFileExists.c">
       <Filter>Source Files</Filter>
     </ClCompile>

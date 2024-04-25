@@ -15,7 +15,6 @@ BOOL downloadFileInternal(CURL*, const char*, const void*, BOOL);
 
 const char* HU_GetVersionFile(CURL*);
 const char* HU_Hash(BYTE*, size_t);
-CURL* HU_InitializeCURL();
 BOOL HU_IsFileExists(const wchar_t*);
 #ifdef __cplusplus
 }
