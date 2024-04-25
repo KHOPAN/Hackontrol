@@ -23,9 +23,6 @@
     <ClCompile Include="downloadFileInternal.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="HU_GetVersionFile.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="HU_Hash.c">
       <Filter>Source Files</Filter>
     </ClCompile>

