@@ -16,6 +16,9 @@ import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
+import net.dv8tion.jda.api.interactions.components.text.TextInput;
+import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
+import net.dv8tion.jda.api.interactions.modals.Modal;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction;
 import net.dv8tion.jda.api.utils.messages.MessageCreateRequest;
@@ -184,7 +187,23 @@ public class FileChannel extends HackontrolChannel {
 	}
 
 	private void configActionRow(MessageCreateRequest<?> request, Object... messageIdentifiers) {
-		request.addActionRow(ButtonManager.selfDelete(ButtonStyle.DANGER, "Delete", messageIdentifiers));
+		request.addActionRow(
+				ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "View", this :: view),
+				ButtonManager.selfDelete(ButtonStyle.DANGER, "Delete", messageIdentifiers)
+				);
+	}
+
+	private void view(ButtonInteraction interaction) {
+		TextInput textInput = TextInput.create("fileIndex", "File Index", TextInputStyle.SHORT)
+				.setPlaceholder("File Index")
+				.setRequired(true)
+				.build();
+
+		Modal modal = Modal.create("viewFileModal", "View File")
+				.addActionRow(textInput)
+				.build();
+
+		interaction.getEvent().replyModal(modal).queue();
 	}
 
 	private static class FileEntry {
