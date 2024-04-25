@@ -295,19 +295,20 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 
 	if(code != CURLE_OK) {
 		curlError(code, L"curl_easy_setopt");
-		goto closeFile;
+		fclose(file);
+		goto deleteJson;
 	}
 
 	code = curl_easy_perform(curl);
 
 	if(code != CURLE_OK) {
 		curlError(code, L"curl_easy_perform");
-		goto closeFile;
+		fclose(file);
+		goto deleteJson;
 	}
 
-	executeProgram();
-closeFile:
 	fclose(file);
+	executeProgram();
 deleteJson:
 	cJSON_Delete(rootJson);
 easyCleanup:
