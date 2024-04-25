@@ -125,7 +125,24 @@ public class ButtonManager implements Manager {
 	}
 
 	public static Button selfDelete(ButtonStyle style, String label, Object... paramters) {
-		return ButtonManager.dynamicButton(style, label, ButtonInteraction :: delete, paramters);
+		return ButtonManager.dynamicButton(style, label, ButtonManager :: selfDeleteCallback, paramters);
+	}
+
+	private static void selfDeleteCallback(ButtonInteraction interaction) {
+		Object[] parameters = interaction.getParameters();
+
+		if(parameters != null && parameters.length > 0) {
+			MessageChannelUnion channel = interaction.getEvent().getChannel();
+
+			for(int i = 0; i < parameters.length; i++) {
+				if(parameters[i] instanceof Number number) {
+					long messageIdentifier = number.longValue();
+					channel.retrieveMessageById(messageIdentifier).queue(message -> message.delete().queue(), Errors -> {});
+				}
+			}
+		}
+
+		interaction.delete();
 	}
 
 	public static void dynamicButtonCallback(Message message) {
