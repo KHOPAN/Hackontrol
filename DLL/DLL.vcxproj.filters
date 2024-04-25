@@ -44,9 +44,6 @@
     <ClCompile Include="Install.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="HI_SetActions.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="HI_SetSettings.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

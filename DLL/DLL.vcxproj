@@ -141,7 +141,6 @@
   <ItemGroup>
     <ClCompile Include="DownloadFile.c" />
     <ClCompile Include="HI_RegisterTask.cpp" />
-    <ClCompile Include="HI_SetActions.cpp" />
     <ClCompile Include="HI_SetSettings.cpp" />
     <ClCompile Include="curlError.c" />
     <ClCompile Include="dialogError.c" />
