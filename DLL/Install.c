@@ -84,22 +84,25 @@ EXPORT(Install) {
 
 	if(FAILED(result)) {
 		dialogError(result, L"IPrincipal::put_RunLevel");
-		goto releasePrincipal;
+		principal->lpVtbl->Release(principal);
+		goto releaseTaskDefinition;
 	}
 
 	result = principal->lpVtbl->put_UserId(principal, L"S-1-5-32-544");
 
 	if(FAILED(result)) {
 		dialogError(result, L"IPrincipal::put_UserId");
-		goto releasePrincipal;
+		principal->lpVtbl->Release(principal);
+		goto releaseTaskDefinition;
 	}
-	
+
+	principal->lpVtbl->Release(principal);
 	ITriggerCollection* triggerCollection = NULL;
 	result = taskDefinition->lpVtbl->get_Triggers(taskDefinition, &triggerCollection);
 
 	if(FAILED(result)) {
 		dialogError(result, L"ITaskDefinition::get_Triggers");
-		goto releasePrincipal;
+		goto releaseTaskDefinition;
 	}
 
 	ITrigger* trigger = NULL;
@@ -108,7 +111,7 @@ EXPORT(Install) {
 
 	if(FAILED(result)) {
 		dialogError(result, L"ITriggerCollection::Create");
-		goto releasePrincipal;
+		goto releaseTaskDefinition;
 	}
 
 	trigger->lpVtbl->Release(trigger);
@@ -116,14 +119,14 @@ EXPORT(Install) {
 
 	if(!directoryLength) {
 		dialogError(GetLastError(), L"GetWindowsDirectoryW");
-		goto releasePrincipal;
+		goto releaseTaskDefinition;
 	}
 
 	wchar_t* windowsBuffer = malloc(directoryLength * sizeof(wchar_t));
 
 	if(!windowsBuffer) {
 		dialogError(ERROR_OUTOFMEMORY, L"malloc");
-		goto releasePrincipal;
+		goto releaseTaskDefinition;
 	}
 
 	directoryLength = GetWindowsDirectoryW(windowsBuffer, directoryLength);
@@ -131,7 +134,7 @@ EXPORT(Install) {
 	if(!directoryLength) {
 		dialogError(GetLastError(), L"GetWindowsDirectoryW");
 		free(windowsBuffer);
-		goto releasePrincipal;
+		goto releaseTaskDefinition;
 	}
 
 	size_t fileNameLength = wcslen(RUNDLL32PATH);
@@ -142,7 +145,7 @@ EXPORT(Install) {
 	if(!rundll32PathBuffer) {
 		dialogError(ERROR_OUTOFMEMORY, L"malloc");
 		free(windowsBuffer);
-		goto releasePrincipal;
+		goto releaseTaskDefinition;
 	}
 
 	for(size_t i = 0; i < directoryLength; i++) {
@@ -233,8 +236,6 @@ freeFunctionBuffer:
 	free(functionBuffer);
 freeRundll32PathBuffer:
 	free(rundll32PathBuffer);
-releasePrincipal:
-	principal->lpVtbl->Release(principal);
 releaseTaskDefinition:
 	taskDefinition->lpVtbl->Release(taskDefinition);
 releaseTaskFolder:
