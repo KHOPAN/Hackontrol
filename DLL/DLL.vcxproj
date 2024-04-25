@@ -143,12 +143,11 @@
     <ClCompile Include="curlError.c" />
     <ClCompile Include="dialogError.c" />
     <ClCompile Include="downloadFileInternal.c" />
-    <ClCompile Include="HU_GetSystemDirectory.cpp" />
     <ClCompile Include="HU_GetVersionFile.cpp" />
     <ClCompile Include="HU_Hash.c" />
     <ClCompile Include="HU_InitializeCURL.c" />
     <ClCompile Include="HU_IsFileExists.c" />
-    <ClCompile Include="Execute.cpp" />
+    <ClCompile Include="Execute.c" />
     <ClCompile Include="Install.c" />
   </ItemGroup>
   <ItemGroup>

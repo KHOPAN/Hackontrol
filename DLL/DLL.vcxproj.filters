@@ -11,7 +11,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Execute.cpp">
+    <ClCompile Include="Execute.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="curlError.c">
@@ -21,9 +21,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="downloadFileInternal.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="HU_GetSystemDirectory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="HU_GetVersionFile.cpp">

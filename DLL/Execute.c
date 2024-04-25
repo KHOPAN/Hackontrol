@@ -1,15 +1,64 @@
-#include <rapidjson/document.h>
-#include <rapidjson/reader.h>
-#include <string>
+//#include <rapidjson/document.h>
+//#include <rapidjson/reader.h>
+//#include <string>
 #include "definition.h"
 
-#define FILE_NAME L"ctrl32.dll"
+#define FILE_NAME_PATH L"System32\\ctrl32.dll"
 
-void executeProgram();
+//void executeProgram();
 
 EXPORT(Execute) {
-	wchar_t* filePath = HU_GetSystemDirectory(FILE_NAME);
-	CURL* curl = HU_InitializeCURL();
+	UINT directoryLength = GetWindowsDirectoryW(NULL, 0);
+
+	if(!directoryLength) {
+		dialogError(GetLastError(), L"GetWindowsDirectoryW");
+		return;
+	}
+
+	wchar_t* windowsBuffer = malloc(directoryLength * sizeof(wchar_t));
+
+	if(!windowsBuffer) {
+		dialogError(ERROR_OUTOFMEMORY, L"malloc");
+		return;
+	}
+
+	directoryLength = GetWindowsDirectoryW(windowsBuffer, directoryLength);
+
+	if(!directoryLength) {
+		dialogError(GetLastError(), L"GetWindowsDirectoryW");
+		free(windowsBuffer);
+		return;
+	}
+
+	size_t fileNameLength = wcslen(FILE_NAME_PATH);
+	int notEndWithBackslash = windowsBuffer[directoryLength - 1] != L'\\';
+	size_t fileNameBufferSize = directoryLength + fileNameLength + notEndWithBackslash + 1;
+	wchar_t* fileNameBuffer = malloc(fileNameBufferSize * sizeof(wchar_t));
+
+	if(!fileNameBuffer) {
+		dialogError(ERROR_OUTOFMEMORY, L"malloc");
+		free(windowsBuffer);
+		return;
+	}
+
+	for(size_t i = 0; i < directoryLength; i++) {
+		fileNameBuffer[i] = windowsBuffer[i];
+	}
+
+	free(windowsBuffer);
+
+	if(notEndWithBackslash) {
+		fileNameBuffer[directoryLength] = L'\\';
+	}
+
+	for(size_t i = 0; i < fileNameLength; i++) {
+		fileNameBuffer[i + directoryLength + notEndWithBackslash] = FILE_NAME_PATH[i];
+	}
+
+	fileNameBuffer[fileNameBufferSize - 1] = 0;
+	MessageBoxW(NULL, fileNameBuffer, L"Execute", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+	//wchar_t* filePath = HU_GetSystemDirectory(FILE_NAME);
+	/*CURL* curl = HU_InitializeCURL();
 	const char* versionFile = HU_GetVersionFile(curl);
 	rapidjson::Document document;
 	document.Parse(versionFile);
@@ -95,10 +144,10 @@ EXPORT(Execute) {
 	const char* downloadURL = downloadElement.GetString();
 	downloadFileInternal(curl, downloadURL, filePath, TRUE);
 	free(filePath);
-	executeProgram();
+	executeProgram();*/
 }
 
-void executeProgram() {
+/*void executeProgram() {
 	STARTUPINFO startupInformation = {0};
 	startupInformation.cb = sizeof(STARTUPINFO);
 	PROCESS_INFORMATION processInformation = {0};
@@ -122,4 +171,4 @@ void executeProgram() {
 	if(CloseHandle(processInformation.hThread) == NULL) {
 		HU_DisplayError(GetLastError(), L"CloseHandle()");
 	}
-}
+}*/

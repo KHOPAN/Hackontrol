@@ -13,7 +13,6 @@ EXPORT(Execute);
 
 BOOL downloadFileInternal(CURL*, const char*, const void*, BOOL);
 
-wchar_t* HU_GetSystemDirectory(const wchar_t*);
 const char* HU_GetVersionFile(CURL*);
 const char* HU_Hash(BYTE*, size_t);
 CURL* HU_InitializeCURL();
