@@ -146,9 +146,7 @@
     <ClCompile Include="DownloadFile.c" />
     <ClCompile Include="curlError.c" />
     <ClCompile Include="dialogError.c" />
-    <ClCompile Include="downloadFileInternal.c" />
     <ClCompile Include="hashSHA512.c" />
-    <ClCompile Include="HU_IsFileExists.c" />
     <ClCompile Include="Execute.c" />
     <ClCompile Include="Install.c" />
   </ItemGroup>

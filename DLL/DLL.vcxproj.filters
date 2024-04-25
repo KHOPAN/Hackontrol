@@ -20,13 +20,7 @@
     <ClCompile Include="dialogError.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="downloadFileInternal.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="hashSHA512.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="HU_IsFileExists.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DownloadFile.c">
