@@ -6,7 +6,6 @@
 #define FILE_NAME L"ctrl32.dll"
 #define FILE_NAME_PATH L"System32\\" FILE_NAME
 
-
 #define RUNDLL32PATH L"System32\\rundll32.exe"
 
 void executeProgram();
@@ -396,30 +395,23 @@ void executeProgram() {
 	}
 
 	argumentBuffer[argumentBufferSize - 1] = 0;
-	MessageBoxW(NULL, argumentBuffer, rundll32PathBuffer, MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
-	/*STARTUPINFO startupInformation = {0};
+	STARTUPINFO startupInformation = {0};
 	startupInformation.cb = sizeof(STARTUPINFO);
 	PROCESS_INFORMATION processInformation = {0};
-	const wchar_t* rundll32 = HU_GetSystemDirectory(L"rundll32.exe");
-	std::wstring argument(rundll32);
-	argument += L" ";
-	argument += FILE_NAME;
-	argument += L",Execute";
-	wchar_t* programArgument = const_cast<wchar_t*>(argument.c_str());
 
-	if(CreateProcessW(rundll32, programArgument, NULL, NULL, TRUE, NULL, NULL, NULL, &startupInformation, &processInformation) == NULL) {
-		HU_DisplayError(GetLastError(), L"CreateProcessW()");
-		return;
+	if(!CreateProcessW(rundll32PathBuffer, argumentBuffer, NULL, NULL, TRUE, 0, NULL, NULL, &startupInformation, &processInformation)) {
+		dialogError(GetLastError(), L"CreateProcessW");
+		goto freeArgumentBuffer;
 	}
 
-	if(CloseHandle(processInformation.hProcess) == NULL) {
-		HU_DisplayError(GetLastError(), L"CloseHandle()");
-		return;
+	if(!CloseHandle(processInformation.hProcess)) {
+		dialogError(GetLastError(), L"CloseHandle");
+		goto freeArgumentBuffer;
 	}
 
-	if(CloseHandle(processInformation.hThread) == NULL) {
-		HU_DisplayError(GetLastError(), L"CloseHandle()");
-	}*/
+	if(!CloseHandle(processInformation.hThread)) {
+		dialogError(GetLastError(), L"CloseHandle");
+	}
 freeArgumentBuffer:
 	free(argumentBuffer);
 freeRundll32PathBuffer:
