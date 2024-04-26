@@ -7,13 +7,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.khopan.hackontrol.HackontrolChannel;
-import com.khopan.hackontrol.manager.button.ButtonInteraction;
+import com.khopan.hackontrol.manager.button.ButtonContext;
 import com.khopan.hackontrol.manager.button.ButtonManager;
 import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.utils.ErrorUtils;
 
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
-import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
@@ -51,13 +50,13 @@ public class FileChannel extends HackontrolChannel {
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, FileChannel.QUERY_FILE_BUTTON_IDENTIFIER, this :: query);
 	}
 
-	private void query(ButtonInteraction interaction) {
+	private void query(ButtonContext context) {
 		this.filePointer = new File("C:\\Windows");
 		StringBuilder builder = new StringBuilder();
 		File[] files = this.filePointer == null ? File.listRoots() : this.filePointer.listFiles();
 
 		if(files == null || files.length == 0) {
-			ErrorUtils.sendErrorReply(interaction, new InternalError("Empty file list"));
+			ErrorUtils.sendErrorReply(context, new InternalError("Empty file list"));
 			return;
 		}
 
@@ -81,7 +80,7 @@ public class FileChannel extends HackontrolChannel {
 		}
 
 		if(fileList.isEmpty() && folderList.isEmpty()) {
-			ErrorUtils.sendErrorReply(interaction, new InternalError("No files available"));
+			ErrorUtils.sendErrorReply(context, new InternalError("No files available"));
 			return;
 		}
 
@@ -144,15 +143,14 @@ public class FileChannel extends HackontrolChannel {
 				messageList.add(builder.toString());
 			}
 		} catch(Throwable Errors) {
-			ErrorUtils.sendErrorReply(interaction, Errors);
+			ErrorUtils.sendErrorReply(context, Errors);
 			return;
 		}
 
-		ButtonInteractionEvent Event = interaction.getEvent();
-		MessageChannelUnion channel = Event.getChannel();
+		MessageChannelUnion channel = context.getChannel();
 		String firstBatch = messageList.get(0);
 		messageList.remove(0);
-		ReplyCallbackAction replyCallbackAction = Event.reply(firstBatch);
+		ReplyCallbackAction replyCallbackAction = context.reply(firstBatch);
 
 		if(messageList.isEmpty()) {
 			this.configActionRow(replyCallbackAction);
@@ -193,7 +191,7 @@ public class FileChannel extends HackontrolChannel {
 				);
 	}
 
-	private void view(ButtonInteraction interaction) {
+	private void view(ButtonContext context) {
 		TextInput textInput = TextInput.create("fileIndex", "File Index", TextInputStyle.SHORT)
 				.setPlaceholder("File Index")
 				.setRequired(true)
@@ -203,7 +201,7 @@ public class FileChannel extends HackontrolChannel {
 				.addActionRow(textInput)
 				.build();
 
-		interaction.getEvent().replyModal(modal).queue();
+		context.replyModal(modal).queue();
 	}
 
 	private static class FileEntry {

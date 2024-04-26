@@ -10,7 +10,7 @@ public class DynamicButtonSession {
 	static final List<DynamicButtonSession> SESSION_LIST = new ArrayList<>();
 
 	long sessionIdentifier;
-	Consumer<ButtonInteraction> action;
+	Consumer<ButtonContext> action;
 	Object[] paramters;
 	long messageIdentifier;
 

