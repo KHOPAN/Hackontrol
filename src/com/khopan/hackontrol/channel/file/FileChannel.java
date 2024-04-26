@@ -9,6 +9,8 @@ import java.util.List;
 import com.khopan.hackontrol.HackontrolChannel;
 import com.khopan.hackontrol.manager.button.ButtonContext;
 import com.khopan.hackontrol.manager.button.ButtonManager;
+import com.khopan.hackontrol.manager.modal.ModalContext;
+import com.khopan.hackontrol.manager.modal.ModalManager;
 import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.utils.ErrorUtils;
 
@@ -18,6 +20,7 @@ import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import net.dv8tion.jda.api.interactions.modals.Modal;
+import net.dv8tion.jda.api.interactions.modals.ModalMapping;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction;
 import net.dv8tion.jda.api.utils.messages.MessageCreateRequest;
@@ -26,6 +29,7 @@ public class FileChannel extends HackontrolChannel {
 	private static final String CHANNEL_NAME = "file";
 
 	private static final String QUERY_FILE_BUTTON_IDENTIFIER = "queryFile";
+	private static final String VIEW_FILE_MODAL_IDENTIFIER = "viewFile";
 
 	private final List<FileEntry> fileList;
 
@@ -48,6 +52,7 @@ public class FileChannel extends HackontrolChannel {
 	@Override
 	public void register(Registry registry) {
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, FileChannel.QUERY_FILE_BUTTON_IDENTIFIER, this :: query);
+		registry.register(ModalManager.MODAL_REGISTRY, FileChannel.VIEW_FILE_MODAL_IDENTIFIER, this :: modalCallback);
 	}
 
 	private void query(ButtonContext context) {
@@ -192,16 +197,49 @@ public class FileChannel extends HackontrolChannel {
 	}
 
 	private void view(ButtonContext context) {
+		int size = this.fileList.size();
 		TextInput textInput = TextInput.create("fileIndex", "File Index", TextInputStyle.SHORT)
 				.setPlaceholder("File Index")
 				.setRequired(true)
+				.setMinLength(0)
+				.setMaxLength(Integer.toString(size).length())
+				.setPlaceholder("1 - " + size)
 				.build();
 
-		Modal modal = Modal.create("viewFileModal", "View File")
+		Modal modal = Modal.create(FileChannel.VIEW_FILE_MODAL_IDENTIFIER, "View File")
 				.addActionRow(textInput)
 				.build();
 
 		context.replyModal(modal).queue();
+	}
+
+	private void modalCallback(ModalContext context) {
+		ModalMapping mapping = context.value("fileIndex");
+
+		if(mapping == null) {
+			ErrorUtils.sendErrorReply(context, new InternalError("File index cannot be null"));
+			return;
+		}
+
+		String text = mapping.getAsString();
+		int index;
+
+		try {
+			index = Integer.parseInt(text);
+		} catch(Throwable Errors) {
+			context.reply("Invalid number format").addActionRow(ButtonManager.selfDelete(ButtonStyle.DANGER, "Delete")).queue();
+			return;
+		}
+
+		int size = this.fileList.size();
+
+		if(index > size) {
+			context.reply("Index " + index + " out of bounds, expected 1 - " + size).addActionRow(ButtonManager.selfDelete(ButtonStyle.DANGER, "Delete")).queue();
+			return;
+		}
+
+		context.acknowledge();
+		System.out.println(index);
 	}
 
 	private static class FileEntry {

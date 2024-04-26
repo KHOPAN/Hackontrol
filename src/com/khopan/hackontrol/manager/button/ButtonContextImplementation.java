@@ -32,16 +32,6 @@ public class ButtonContextImplementation implements ButtonContext {
 	}
 
 	@Override
-	public boolean hasParameters() {
-		return this.parameters != null && this.parameters.length > 0;
-	}
-
-	@Override
-	public Object[] getParameters() {
-		return this.parameters;
-	}
-
-	@Override
 	public void delete() {
 		this.Event.deferEdit().queue(hook -> hook.deleteOriginal().queue());
 	}
@@ -64,11 +54,6 @@ public class ButtonContextImplementation implements ButtonContext {
 	@Override
 	public void thinking(Consumer<? super InteractionHook> callback) {
 		this.Event.deferReply().queue(callback);
-	}
-
-	@Override
-	public void typing() {
-		this.Event.getChannel().sendTyping().queue();
 	}
 
 	@Override
@@ -97,8 +82,8 @@ public class ButtonContextImplementation implements ButtonContext {
 	}
 
 	@Override
-	public ReplyCallbackAction replyComponents(LayoutComponent component, LayoutComponent... other) {
-		return this.Event.replyComponents(component, other);
+	public ReplyCallbackAction replyComponents(LayoutComponent component, LayoutComponent... components) {
+		return this.Event.replyComponents(component, components);
 	}
 
 	@Override
@@ -117,11 +102,6 @@ public class ButtonContextImplementation implements ButtonContext {
 	}
 
 	@Override
-	public ModalCallbackAction replyModal(Modal modal) {
-		return this.Event.replyModal(modal);
-	}
-
-	@Override
 	public MessageCreateAction sendMessage(CharSequence text) {
 		return this.Event.getChannel().sendMessage(text);
 	}
@@ -137,8 +117,8 @@ public class ButtonContextImplementation implements ButtonContext {
 	}
 
 	@Override
-	public MessageCreateAction sendMessageEmbeds(MessageEmbed embed, MessageEmbed... other) {
-		return this.Event.getChannel().sendMessageEmbeds(embed, other);
+	public MessageCreateAction sendMessageEmbeds(MessageEmbed embed, MessageEmbed... embeds) {
+		return this.Event.getChannel().sendMessageEmbeds(embed, embeds);
 	}
 
 	@Override
@@ -147,8 +127,8 @@ public class ButtonContextImplementation implements ButtonContext {
 	}
 
 	@Override
-	public MessageCreateAction sendMessageComponents(LayoutComponent component, LayoutComponent... other) {
-		return this.Event.getChannel().sendMessageComponents(component, other);
+	public MessageCreateAction sendMessageComponents(LayoutComponent component, LayoutComponent... components) {
+		return this.Event.getChannel().sendMessageComponents(component, components);
 	}
 
 	@Override
@@ -164,6 +144,26 @@ public class ButtonContextImplementation implements ButtonContext {
 	@Override
 	public MessageCreateAction sendFiles(FileUpload... files) {
 		return this.Event.getChannel().sendFiles(files);
+	}
+
+	@Override
+	public boolean hasParameters() {
+		return this.parameters != null && this.parameters.length > 0;
+	}
+
+	@Override
+	public Object[] getParameters() {
+		return this.parameters;
+	}
+
+	@Override
+	public void typing() {
+		this.Event.getChannel().sendTyping().queue();
+	}
+
+	@Override
+	public ModalCallbackAction replyModal(Modal modal) {
+		return this.Event.replyModal(modal);
 	}
 
 	@Override
