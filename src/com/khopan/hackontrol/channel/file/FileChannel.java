@@ -192,8 +192,13 @@ public class FileChannel extends HackontrolChannel {
 	private void configActionRow(MessageCreateRequest<?> request, Object... messageIdentifiers) {
 		request.addActionRow(
 				ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "View", this :: view),
+				ButtonManager.dynamicButton(ButtonStyle.PRIMARY, "Go Inside", this :: goInside),
 				ButtonManager.selfDelete(ButtonStyle.DANGER, "Delete", messageIdentifiers)
 				);
+	}
+
+	private void goInside(ButtonContext context) {
+		context.acknowledge();
 	}
 
 	private void view(ButtonContext context) {
