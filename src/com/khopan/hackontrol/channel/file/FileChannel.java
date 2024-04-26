@@ -238,8 +238,8 @@ public class FileChannel extends HackontrolChannel {
 			return;
 		}
 
-		context.acknowledge();
-		System.out.println(index);
+		FileEntry entry = this.fileList.get(index - 1);
+		FileEmbedSender.reply(entry.file, context.getEvent());
 	}
 
 	private static class FileEntry {
