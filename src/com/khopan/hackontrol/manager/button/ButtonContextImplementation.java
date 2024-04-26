@@ -188,11 +188,11 @@ public class ButtonContextImplementation implements ButtonContext {
 
 	@Override
 	public Consumer<MessageCreateData> reply() {
-		return data -> this.Event.reply(data).queue();
+		return data -> this.Event.reply(data).queue(ButtonManager :: dynamicButtonCallback);
 	}
 
 	@Override
 	public Consumer<MessageCreateData> message() {
-		return data -> this.Event.getChannel().sendMessage(data).queue();
+		return data -> this.Event.getChannel().sendMessage(data).queue(ButtonManager :: dynamicButtonCallback);
 	}
 }

