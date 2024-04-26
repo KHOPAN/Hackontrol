@@ -129,6 +129,11 @@ public class ButtonManager implements Manager {
 	}
 
 	private static void selfDeleteCallback(ButtonContext context) {
+		ButtonManager.deleteMessagesInParameters(context);
+		context.delete();
+	}
+
+	public static void deleteMessagesInParameters(ButtonContext context) {
 		if(context.hasParameters()) {
 			Object[] parameters = context.getParameters();
 			MessageChannelUnion channel = context.getChannel();
@@ -140,8 +145,6 @@ public class ButtonManager implements Manager {
 				}
 			}
 		}
-
-		context.delete();
 	}
 
 	public static void dynamicButtonCallback(Message message) {
