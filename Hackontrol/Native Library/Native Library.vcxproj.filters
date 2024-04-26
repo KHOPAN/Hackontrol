@@ -18,13 +18,7 @@
     <ClCompile Include="main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Screenshot.take.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ProtectProcess.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="EnablePrivilege.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ConsolePrint.c">
@@ -32,9 +26,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="com_khopan_hackontrol_function_Screenshot.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="definition.h">
       <Filter>Header Files</Filter>
     </ClInclude>

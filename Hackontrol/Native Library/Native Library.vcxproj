@@ -144,13 +144,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ConsolePrint.c" />
-    <ClCompile Include="EnablePrivilege.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="ProtectProcess.c" />
-    <ClCompile Include="Screenshot.take.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="com_khopan_hackontrol_function_Screenshot.h" />
     <ClInclude Include="definition.h" />
     <ClInclude Include="utilities.h" />
   </ItemGroup>

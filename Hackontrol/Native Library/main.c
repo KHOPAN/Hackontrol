@@ -10,31 +10,12 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* virtualMachine, void* reserved) {
 		return JNI_VERSION_21;
 	}
 
-	jclass hackontrolClass = (*environment)->FindClass(environment, "com/khopan/hackontrol/Hackontrol");
-
-	if(!hackontrolClass) {
-		(*environment)->ExceptionClear(environment);
-		return JNI_VERSION_21;
-	}
-
-	jfieldID criticalProcessField = (*environment)->GetStaticFieldID(environment, hackontrolClass, "CRITICAL_PROCESS", "Z");
-	
-	if(!criticalProcessField) {
-		(*environment)->ExceptionClear(environment);
-		return JNI_VERSION_21;
-	}
-
-	jboolean criticalProcess = (*environment)->GetStaticBooleanField(environment, hackontrolClass, criticalProcessField);
-	
-	if(criticalProcess == FALSE) {
-		return JNI_VERSION_21;
-	}
-
-	BOOL result = ProtectProcess();
+	System_out_println(environment, "Hello world, from Native Library!");
+	/*BOOL result = ProtectProcess();
 
 	if(!result) {
-		System_err_println(environment, "Protecting the process has failed!");
-	}
+		System_err_println(environment, "Process protection has failed!");
+	}*/
 
 	return JNI_VERSION_21;
 }
