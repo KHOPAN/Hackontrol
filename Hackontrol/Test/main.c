@@ -1,6 +1,6 @@
-#include <stdio.h>
+#include <Windows.h>
 
 int main(int argc, char** argv) {
-	printf("Hello, world!\n");
+	MessageBoxW(NULL, L"Hello, world!", L"Information", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 	return 0;
 }
