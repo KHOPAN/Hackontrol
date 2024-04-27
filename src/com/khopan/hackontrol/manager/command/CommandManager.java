@@ -38,6 +38,7 @@ public class CommandManager implements Manager {
 		Hackontrol hackontrol = Hackontrol.getInstance();
 		JDA bot = hackontrol.getBot();
 		this.commandMap = new LinkedHashMap<>();
+		bot.updateCommands().queue();
 
 		for(int i = 0; i < commandList.size(); i++) {
 			RegistrationTypeEntry<SlashCommandData, Consumer<CommandContext>> entry = commandList.get(i);
