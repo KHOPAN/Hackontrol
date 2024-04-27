@@ -92,8 +92,13 @@ public class FileChannel extends HackontrolChannel {
 			return;
 		}
 
-		if(this.filePointer == null) {
+		if(this.filePointer == null || !this.filePointer.exists()) {
 			HackontrolError.message(context.reply(), "No target location");
+			return;
+		}
+
+		if(!this.filePointer.isDirectory()) {
+			HackontrolError.message(context.reply(), "Target location must be a directory");
 			return;
 		}
 
