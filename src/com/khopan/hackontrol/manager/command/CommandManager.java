@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import com.khopan.hackontrol.Hackontrol;
+import com.khopan.hackontrol.HackontrolChannel;
 import com.khopan.hackontrol.eventlistener.FilteredEventListener;
 import com.khopan.hackontrol.manager.Manager;
 import com.khopan.hackontrol.registry.RegistrationHandler;
@@ -15,6 +16,7 @@ import com.khopan.hackontrol.utils.DiscordUtils;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.Command;
@@ -43,6 +45,7 @@ public class CommandManager implements Manager {
 			CommandEntry commandEntry = new CommandEntry();
 			commandEntry.action = entry.value;
 			commandEntry.command = command;
+			commandEntry.channel = entry.channel;
 			this.commandMap.put(command.getIdLong(), commandEntry);
 		}
 	}
@@ -62,6 +65,13 @@ public class CommandManager implements Manager {
 			return;
 		}
 
+		Hackontrol hackontrol = Hackontrol.getInstance();
+		HackontrolChannel hackontrolChannel = hackontrol.getChannel((TextChannel) channel);
+
+		if(!hackontrolChannel.equals(entry.channel)) {
+			return;
+		}
+
 		Consumer<CommandContext> action = entry.action;
 
 		if(action == null) {
@@ -75,5 +85,6 @@ public class CommandManager implements Manager {
 	private class CommandEntry {
 		private Consumer<CommandContext> action;
 		private Command command;
+		private HackontrolChannel channel;
 	}
 }
