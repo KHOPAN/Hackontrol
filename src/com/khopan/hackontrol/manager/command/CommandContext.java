@@ -10,7 +10,9 @@ import com.khopan.hackontrol.manager.common.sender.sendable.ISendableReply;
 
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.Command;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 
 public interface CommandContext extends IEventGetter<SlashCommandInteractionEvent>, IThinkable, IRepliable, IMessageable, ICommonGetter, ISendableReply, ISendableMessage {
 	Command getCommand();
+	OptionMapping getOption(String name);
 }

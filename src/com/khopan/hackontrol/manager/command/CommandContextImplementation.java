@@ -14,6 +14,7 @@ import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.Command;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.components.LayoutComponent;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction;
@@ -175,5 +176,10 @@ public class CommandContextImplementation implements CommandContext {
 	@Override
 	public Command getCommand() {
 		return this.command;
+	}
+
+	@Override
+	public OptionMapping getOption(String name) {
+		return this.Event.getOption(name);
 	}
 }

