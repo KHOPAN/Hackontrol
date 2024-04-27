@@ -10,6 +10,8 @@ import java.util.Stack;
 import com.khopan.hackontrol.HackontrolChannel;
 import com.khopan.hackontrol.manager.button.ButtonContext;
 import com.khopan.hackontrol.manager.button.ButtonManager;
+import com.khopan.hackontrol.manager.command.CommandContext;
+import com.khopan.hackontrol.manager.command.CommandManager;
 import com.khopan.hackontrol.manager.common.sender.IMessageable;
 import com.khopan.hackontrol.manager.common.sender.IRepliable;
 import com.khopan.hackontrol.manager.common.sender.sendable.ReplySendable;
@@ -18,6 +20,7 @@ import com.khopan.hackontrol.manager.modal.ModalManager;
 import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.utils.HackontrolError;
 
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
@@ -71,6 +74,14 @@ public class FileChannel extends HackontrolChannel {
 
 		registry.register(ModalManager.MODAL_REGISTRY, FileChannel.MODAL_VIEW_FILE, this :: modalCallbackViewFile);
 		registry.register(ModalManager.MODAL_REGISTRY, FileChannel.MODAL_GO_INTO, this :: modalCallbackGoInto);
+		registry.register(CommandManager.COMMAND_REGISTRY,
+				Commands.slash("hello", "Reply a hello world message"),
+				this :: helloCommand
+				);
+	}
+
+	private void helloCommand(CommandContext context) {
+		context.reply("Hello, world!").queue();
 	}
 
 	private void goInto(ButtonContext context) {
