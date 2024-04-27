@@ -1,4 +1,4 @@
-package com.khopan.hackontrol.manager.common;
+package com.khopan.hackontrol.manager.common.sender;
 
 import java.util.Collection;
 
@@ -8,7 +8,7 @@ import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction;
 import net.dv8tion.jda.api.utils.FileUpload;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
-public interface IReplyHandler {
+public interface IRepliable {
 	ReplyCallbackAction reply(MessageCreateData message);
 	ReplyCallbackAction reply(String content);
 	ReplyCallbackAction replyEmbeds(Collection<? extends MessageEmbed> embeds);

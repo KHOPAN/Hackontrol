@@ -14,8 +14,9 @@ import com.khopan.hackontrol.manager.button.ButtonManager;
 import com.khopan.hackontrol.manager.button.Question;
 import com.khopan.hackontrol.manager.button.Question.OptionType;
 import com.khopan.hackontrol.manager.button.Question.QuestionResponse;
+import com.khopan.hackontrol.manager.common.sender.sendable.ChannelSendable;
 import com.khopan.hackontrol.registry.Registry;
-import com.khopan.hackontrol.utils.ErrorUtils;
+import com.khopan.hackontrol.utils.HackontrolError;
 
 import net.dv8tion.jda.api.audio.AudioSendHandler;
 import net.dv8tion.jda.api.entities.Guild;
@@ -85,7 +86,7 @@ public class ControlChannel extends HackontrolChannel {
 		}
 
 		if(this.handler == null) {
-			context.reply("Hackontrol is already disconnected").addActionRow(ButtonManager.selfDelete(ButtonStyle.SUCCESS, "Ok")).queue(ButtonManager :: dynamicButtonCallback);
+			HackontrolError.message(context.reply(), "Hackontrol is already disconnected");
 			return;
 		}
 
@@ -104,7 +105,7 @@ public class ControlChannel extends HackontrolChannel {
 				this.disconnect(context);
 			}
 		} catch(Throwable Errors) {
-			ErrorUtils.sendErrorMessage(context, Errors);
+			HackontrolError.throwable(context.message(), Errors);
 		}
 	}
 
@@ -146,7 +147,7 @@ public class ControlChannel extends HackontrolChannel {
 	}
 
 	private void handleError(Thread thread, Throwable Errors) {
-		ErrorUtils.sendErrorMessage(this.channel, Errors);
+		HackontrolError.throwable(ChannelSendable.of(this.channel), Errors);
 	}
 
 	private static enum PowerAction {

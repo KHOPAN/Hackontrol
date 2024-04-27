@@ -1,10 +1,8 @@
 package com.khopan.hackontrol.utils;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 import com.khopan.hackontrol.Hackontrol;
-import com.khopan.hackontrol.manager.button.ButtonManager;
 
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageHistory;
@@ -12,9 +10,6 @@ import net.dv8tion.jda.api.entities.channel.Channel;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
-import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
-import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
-import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
 public class DiscordUtils {
 	private DiscordUtils() {}
@@ -70,12 +65,5 @@ public class DiscordUtils {
 		}
 
 		return true;
-	}
-
-	public static void selfDeleteMessage(Consumer<MessageCreateData> consumer, String message) {
-		MessageCreateBuilder builder = new MessageCreateBuilder();
-		builder.setContent(message);
-		builder.addActionRow(ButtonManager.selfDelete(ButtonStyle.DANGER, "Delete"));
-		consumer.accept(builder.build());
 	}
 }

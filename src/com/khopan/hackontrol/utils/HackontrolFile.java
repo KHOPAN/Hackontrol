@@ -4,8 +4,8 @@ import java.io.File;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 
-public class FileUtils {
-	private FileUtils() {}
+public class HackontrolFile {
+	private HackontrolFile() {}
 
 	public static String getFileSizeDisplay(long bytes) {
 		if(-1000 < bytes && bytes < 1000) {
@@ -38,7 +38,7 @@ public class FileUtils {
 			long size = 0L;
 
 			for(int i = 0; i < list.length; i++) {
-				FileCountAndSize countAndSize = FileUtils.getFileCountAndSize(list[i]);
+				FileCountAndSize countAndSize = HackontrolFile.getFileCountAndSize(list[i]);
 				count += countAndSize.fileCount;
 				size += countAndSize.folderSize;
 			}

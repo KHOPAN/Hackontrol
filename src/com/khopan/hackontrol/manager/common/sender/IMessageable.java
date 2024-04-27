@@ -1,4 +1,4 @@
-package com.khopan.hackontrol.manager.common;
+package com.khopan.hackontrol.manager.common.sender;
 
 import java.util.Collection;
 
@@ -8,7 +8,7 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 import net.dv8tion.jda.api.utils.FileUpload;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
-public interface IMessageHandler {
+public interface IMessageable {
 	MessageCreateAction sendMessage(CharSequence text);
 	MessageCreateAction sendMessage(MessageCreateData message);
 	MessageCreateAction sendMessageFormat(String format, Object... arguments);

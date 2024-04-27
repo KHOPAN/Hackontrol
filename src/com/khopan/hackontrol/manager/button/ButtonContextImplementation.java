@@ -3,6 +3,10 @@ package com.khopan.hackontrol.manager.button;
 import java.util.Collection;
 import java.util.function.Consumer;
 
+import com.khopan.hackontrol.manager.common.sender.sendable.ISendable;
+import com.khopan.hackontrol.manager.common.sender.sendable.MessageSendable;
+import com.khopan.hackontrol.manager.common.sender.sendable.ReplySendable;
+
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -19,10 +23,18 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
 public class ButtonContextImplementation implements ButtonContext {
 	private final ButtonInteractionEvent Event;
+	private final JDA bot;
+	private final Guild guild;
+	private final MessageChannelUnion channel;
+	private final InteractionHook hook;
 	private final Object[] parameters;
 
 	public ButtonContextImplementation(ButtonInteractionEvent Event, Object[] parameters) {
 		this.Event = Event;
+		this.bot = this.Event.getJDA();
+		this.guild = this.Event.getGuild();
+		this.channel = this.Event.getChannel();
+		this.hook = this.Event.getHook();
 		this.parameters = parameters;
 	}
 
@@ -103,47 +115,77 @@ public class ButtonContextImplementation implements ButtonContext {
 
 	@Override
 	public MessageCreateAction sendMessage(CharSequence text) {
-		return this.Event.getChannel().sendMessage(text);
+		return this.channel.sendMessage(text);
 	}
 
 	@Override
 	public MessageCreateAction sendMessage(MessageCreateData message) {
-		return this.Event.getChannel().sendMessage(message);
+		return this.channel.sendMessage(message);
 	}
 
 	@Override
 	public MessageCreateAction sendMessageFormat(String format, Object... arguments) {
-		return this.Event.getChannel().sendMessageFormat(format, arguments);
+		return this.channel.sendMessageFormat(format, arguments);
 	}
 
 	@Override
 	public MessageCreateAction sendMessageEmbeds(MessageEmbed embed, MessageEmbed... embeds) {
-		return this.Event.getChannel().sendMessageEmbeds(embed, embeds);
+		return this.channel.sendMessageEmbeds(embed, embeds);
 	}
 
 	@Override
 	public MessageCreateAction sendMessageEmbeds(Collection<? extends MessageEmbed> embeds) {
-		return this.Event.getChannel().sendMessageEmbeds(embeds);
+		return this.channel.sendMessageEmbeds(embeds);
 	}
 
 	@Override
 	public MessageCreateAction sendMessageComponents(LayoutComponent component, LayoutComponent... components) {
-		return this.Event.getChannel().sendMessageComponents(component, components);
+		return this.channel.sendMessageComponents(component, components);
 	}
 
 	@Override
 	public MessageCreateAction sendMessageComponents(Collection<? extends LayoutComponent> components) {
-		return this.Event.getChannel().sendMessageComponents(components);
+		return this.channel.sendMessageComponents(components);
 	}
 
 	@Override
 	public MessageCreateAction sendFiles(Collection<? extends FileUpload> files) {
-		return this.Event.getChannel().sendFiles(files);
+		return this.channel.sendFiles(files);
 	}
 
 	@Override
 	public MessageCreateAction sendFiles(FileUpload... files) {
-		return this.Event.getChannel().sendFiles(files);
+		return this.channel.sendFiles(files);
+	}
+
+	@Override
+	public JDA getBot() {
+		return this.bot;
+	}
+
+	@Override
+	public Guild getGuild() {
+		return this.guild;
+	}
+
+	@Override
+	public MessageChannelUnion getChannel() {
+		return this.channel;
+	}
+
+	@Override
+	public InteractionHook getInteractionHook() {
+		return this.hook;
+	}
+
+	@Override
+	public ISendable reply() {
+		return ReplySendable.of(this);
+	}
+
+	@Override
+	public ISendable message() {
+		return MessageSendable.of(this);
 	}
 
 	@Override
@@ -158,41 +200,11 @@ public class ButtonContextImplementation implements ButtonContext {
 
 	@Override
 	public void typing() {
-		this.Event.getChannel().sendTyping().queue();
+		this.channel.sendTyping().queue();
 	}
 
 	@Override
 	public ModalCallbackAction replyModal(Modal modal) {
 		return this.Event.replyModal(modal);
-	}
-
-	@Override
-	public JDA getBot() {
-		return this.Event.getJDA();
-	}
-
-	@Override
-	public Guild getGuild() {
-		return this.Event.getGuild();
-	}
-
-	@Override
-	public MessageChannelUnion getChannel() {
-		return this.Event.getChannel();
-	}
-
-	@Override
-	public InteractionHook getInteractionHook() {
-		return this.Event.getHook();
-	}
-
-	@Override
-	public Consumer<MessageCreateData> reply() {
-		return data -> this.Event.reply(data).queue(ButtonManager :: dynamicButtonCallback);
-	}
-
-	@Override
-	public Consumer<MessageCreateData> message() {
-		return data -> this.Event.getChannel().sendMessage(data).queue(ButtonManager :: dynamicButtonCallback);
 	}
 }

