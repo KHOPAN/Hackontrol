@@ -32,12 +32,14 @@ public class FileEmbedSender implements Runnable {
 	private final File root;
 	private final Consumer<MessageCreateData> action;
 	private final Consumer<ButtonContext> downloadHandler;
+	private final Consumer<ButtonContext> openHandler;
 	private final Consumer<ButtonContext> deleteHandler;
 
-	private FileEmbedSender(File root, Consumer<MessageCreateData> action, Consumer<ButtonContext> downloadHandler, Consumer<ButtonContext> deleteHandler) {
+	private FileEmbedSender(File root, Consumer<MessageCreateData> action, Consumer<ButtonContext> downloadHandler, Consumer<ButtonContext> openHandler, Consumer<ButtonContext> deleteHandler) {
 		this.root = root;
 		this.action = action;
 		this.downloadHandler = downloadHandler;
+		this.openHandler = openHandler;
 		this.deleteHandler = deleteHandler;
 	}
 
@@ -65,9 +67,15 @@ public class FileEmbedSender implements Runnable {
 		}
 
 		List<ItemComponent> buttonList = new ArrayList<>();
+		boolean hasFileButton = exist && this.root.isFile();
 
-		if(exist && this.root.isFile()) {
+		if(hasFileButton) {
 			buttonList.add(ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "Download", this.downloadHandler :: accept));
+		}
+
+		buttonList.add(ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "Open", this.openHandler :: accept));
+
+		if(hasFileButton) {
 			buttonList.add(ButtonManager.dynamicButton(ButtonStyle.DANGER, "Delete File", this.deleteHandler :: accept));
 		}
 
@@ -134,7 +142,7 @@ public class FileEmbedSender implements Runnable {
 		}
 	}
 
-	public static void start(File root, Consumer<MessageCreateData> action, Consumer<ButtonContext> downloadHandler, Consumer<ButtonContext> deleteHandler) {
+	public static void start(File root, Consumer<MessageCreateData> action, Consumer<ButtonContext> downloadHandler, Consumer<ButtonContext> openHandler, Consumer<ButtonContext> deleteHandler) {
 		if(root == null) {
 			throw new NullPointerException("Root cannot be null");
 		}
@@ -143,12 +151,12 @@ public class FileEmbedSender implements Runnable {
 			throw new NullPointerException("Action cannot be null");
 		}
 
-		Thread thread = new Thread(new FileEmbedSender(root, action, downloadHandler, deleteHandler));
+		Thread thread = new Thread(new FileEmbedSender(root, action, downloadHandler, openHandler, deleteHandler));
 		thread.setName("Hackontrol File Query Thread");
 		thread.start();
 	}
 
-	public static void reply(File root, IReplyCallback callback, Consumer<ButtonContext> onDownload, Consumer<ButtonContext> onDelete) {
+	public static void reply(File root, IReplyCallback callback, Consumer<ButtonContext> onDownload, Consumer<ButtonContext> onOpen, Consumer<ButtonContext> onDelete) {
 		new Object() {
 			private volatile MessageCreateData message;
 			private volatile InteractionHook hook;
@@ -157,7 +165,7 @@ public class FileEmbedSender implements Runnable {
 			private boolean defer;
 
 			{
-				FileEmbedSender.start(root, this :: callback, onDownload, onDelete);
+				FileEmbedSender.start(root, this :: callback, onDownload, onOpen, onDelete);
 
 				try {
 					Thread.sleep(1500);

