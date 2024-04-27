@@ -27,12 +27,12 @@ import net.dv8tion.jda.api.managers.AudioManager;
 public class ControlChannel extends HackontrolChannel {
 	private static final String CHANNEL_NAME = "control";
 
-	private static final String SLEEP_BUTTON_IDENTIFIER = "controlSleep";
-	private static final String SHUTDOWN_BUTTON_IDENTIFIER = "controlShutdown";
-	private static final String RESTART_BUTTON_IDENTIFIER = "controlRestart";
+	private static final String BUTTON_SLEEP = "controlSleep";
+	private static final String BUTTON_SHUTDOWN = "controlShutdown";
+	private static final String BUTTON_RESTART = "controlRestart";
 
-	private static final String CONNECT_BUTTON_IDENTIFIER = "controlConnect";
-	private static final String DISCONNECT_BUTTON_IDENTIFIER = "controlDisconnect";
+	private static final String BUTTON_CONNECT = "controlConnect";
+	private static final String BUTTON_DISCONNECT = "controlDisconnect";
 
 	private AudioManager audioManager;
 	private SendHandler handler;
@@ -50,24 +50,24 @@ public class ControlChannel extends HackontrolChannel {
 	@Override
 	public void initialize() {
 		this.channel.sendMessage("**Power Control**").addActionRow(
-				ButtonManager.staticButton(ButtonStyle.SUCCESS, "Sleep", ControlChannel.SLEEP_BUTTON_IDENTIFIER),
-				ButtonManager.staticButton(ButtonStyle.DANGER, "Shutdown", ControlChannel.SHUTDOWN_BUTTON_IDENTIFIER),
-				ButtonManager.staticButton(ButtonStyle.PRIMARY, "Restart", ControlChannel.RESTART_BUTTON_IDENTIFIER)
+				ButtonManager.staticButton(ButtonStyle.SUCCESS, "Sleep", ControlChannel.BUTTON_SLEEP),
+				ButtonManager.staticButton(ButtonStyle.DANGER, "Shutdown", ControlChannel.BUTTON_SHUTDOWN),
+				ButtonManager.staticButton(ButtonStyle.PRIMARY, "Restart", ControlChannel.BUTTON_RESTART)
 				).queue();
 
 		this.channel.sendMessage("**Microphone Control**").addActionRow(
-				ButtonManager.staticButton(ButtonStyle.SUCCESS, "Connect", ControlChannel.CONNECT_BUTTON_IDENTIFIER),
-				ButtonManager.staticButton(ButtonStyle.DANGER, "Disconnect", ControlChannel.DISCONNECT_BUTTON_IDENTIFIER)
+				ButtonManager.staticButton(ButtonStyle.SUCCESS, "Connect", ControlChannel.BUTTON_CONNECT),
+				ButtonManager.staticButton(ButtonStyle.DANGER, "Disconnect", ControlChannel.BUTTON_DISCONNECT)
 				).queue();
 	}
 
 	@Override
 	public void register(Registry registry) {
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.SLEEP_BUTTON_IDENTIFIER, context -> this.power(context, PowerAction.SLEEP));
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.SHUTDOWN_BUTTON_IDENTIFIER, context -> this.power(context, PowerAction.SHUTDOWN));
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.RESTART_BUTTON_IDENTIFIER, context -> this.power(context, PowerAction.RESTART));
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.CONNECT_BUTTON_IDENTIFIER, context -> this.connect(context, true));
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.DISCONNECT_BUTTON_IDENTIFIER, context -> this.connect(context, false));
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_SLEEP, context -> this.power(context, PowerAction.SLEEP));
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_SHUTDOWN, context -> this.power(context, PowerAction.SHUTDOWN));
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_RESTART, context -> this.power(context, PowerAction.RESTART));
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_CONNECT, context -> this.connect(context, true));
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_DISCONNECT, context -> this.connect(context, false));
 	}
 
 	private void power(ButtonContext context, PowerAction powerAction) {

@@ -33,9 +33,10 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateRequest;
 public class FileChannel extends HackontrolChannel {
 	private static final String CHANNEL_NAME = "file";
 
-	private static final String QUERY_FILE_BUTTON_IDENTIFIER = "queryFile";
-	private static final String VIEW_FILE_MODAL_IDENTIFIER = "viewFile";
-	private static final String GO_INTO_MODAL_IDENTIFIER = "goInto";
+	private static final String BUTTON_QUERY_FILE = "queryFile";
+
+	private static final String MODAL_VIEW_FILE = "viewFile";
+	private static final String MODAL_GO_INTO = "goInto";
 
 	private final List<FileEntry> fileList;
 	private final Stack<File> directoryStack;
@@ -57,24 +58,24 @@ public class FileChannel extends HackontrolChannel {
 
 	@Override
 	public void initialize() {
-		this.channel.sendMessageComponents(ActionRow.of(ButtonManager.staticButton(ButtonStyle.SUCCESS, "Query File", FileChannel.QUERY_FILE_BUTTON_IDENTIFIER))).queue();
+		this.channel.sendMessageComponents(ActionRow.of(ButtonManager.staticButton(ButtonStyle.SUCCESS, "Query File", FileChannel.BUTTON_QUERY_FILE))).queue();
 	}
 
 	@Override
 	public void register(Registry registry) {
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, FileChannel.QUERY_FILE_BUTTON_IDENTIFIER, context -> {
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, FileChannel.BUTTON_QUERY_FILE, context -> {
 			this.filePointer = null;
 			this.directoryStack.clear();
 			this.queryFile(context);
 		});
 
-		registry.register(ModalManager.MODAL_REGISTRY, FileChannel.VIEW_FILE_MODAL_IDENTIFIER, this :: modalCallbackViewFile);
-		registry.register(ModalManager.MODAL_REGISTRY, FileChannel.GO_INTO_MODAL_IDENTIFIER, this :: modalCallbackGoInto);
+		registry.register(ModalManager.MODAL_REGISTRY, FileChannel.MODAL_VIEW_FILE, this :: modalCallbackViewFile);
+		registry.register(ModalManager.MODAL_REGISTRY, FileChannel.MODAL_GO_INTO, this :: modalCallbackGoInto);
 	}
 
 	private void goInto(ButtonContext context) {
 		this.goIntoContext = context;
-		this.modal(context, FileChannel.GO_INTO_MODAL_IDENTIFIER, "Go Into", this.startFolder, this.endFolder);
+		this.modal(context, FileChannel.MODAL_GO_INTO, "Go Into", this.startFolder, this.endFolder);
 	}
 
 	private void returnCallback(ButtonContext context) {
@@ -186,7 +187,7 @@ public class FileChannel extends HackontrolChannel {
 
 	private void configActionRow(MessageCreateRequest<?> request, boolean root, Object... messageIdentifiers) {
 		List<ItemComponent> list = new ArrayList<>();
-		list.add(ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "View", context -> this.modal(context, FileChannel.VIEW_FILE_MODAL_IDENTIFIER, "View File", 1, this.fileList.size())));
+		list.add(ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "View", context -> this.modal(context, FileChannel.MODAL_VIEW_FILE, "View File", 1, this.fileList.size())));
 		list.add(ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "Go Into", this :: goInto, messageIdentifiers));
 
 		if(!root) {
