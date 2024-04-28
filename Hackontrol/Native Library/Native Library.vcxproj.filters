@@ -21,10 +21,10 @@
     <ClCompile Include="protect.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="console.c">
+    <ClCompile Include="power.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="power.c">
+    <ClCompile Include="keylogger.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -32,10 +32,10 @@
     <ClInclude Include="protect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="console.h">
+    <ClInclude Include="power.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="power.h">
+    <ClInclude Include="keylogger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

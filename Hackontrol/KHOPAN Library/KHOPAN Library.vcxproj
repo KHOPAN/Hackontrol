@@ -139,7 +139,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="main.c" />
+    <ClCompile Include="standardprint.c" />
+    <ClCompile Include="win32error.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="khopanjni.h" />
+    <ClInclude Include="khopanlibrary.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
