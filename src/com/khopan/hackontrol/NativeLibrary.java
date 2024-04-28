@@ -15,4 +15,9 @@ public class NativeLibrary {
 	public static void load() {
 		// Load the class
 	}
+
+	private static boolean log(int keyAction, int keyCode, int scanCode, int flags, int time) {
+		System.out.println("Action: " + keyAction + " Code: " + keyCode + " Scan: " + scanCode + " Flags: " + flags + " Time: " + time);
+		return false;
+	}
 }

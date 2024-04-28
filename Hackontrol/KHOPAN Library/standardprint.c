@@ -1,6 +1,6 @@
 #include <Windows.h>
 #include "khopanjni.h"
-#include "khopanlibrary.h"
+#include "khopanerror.h"
 
 unsigned int print(JNIEnv* environment, const char* message, const char* fieldName) {
 	jclass systemClass = (*environment)->FindClass(environment, "java/lang/System");

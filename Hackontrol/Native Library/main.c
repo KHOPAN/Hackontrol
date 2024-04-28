@@ -41,14 +41,3 @@ nativeBindingFail:
 
 	return JNI_VERSION_21;
 }
-
-JNIEXPORT void JNICALL JNI_OnUnload(JavaVM* virtualMachine, void* reserved) {
-	JNIEnv* environment = NULL;
-	(*virtualMachine)->GetEnv(virtualMachine, (void**) &environment, JNI_VERSION_21);
-
-	if(!environment) {
-		return;
-	}
-
-	stopKeyLogger(environment);
-}
