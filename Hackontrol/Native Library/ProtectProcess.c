@@ -1,8 +1,9 @@
-#include "definition.h"
+#include <Windows.h>
+#include "protect.h"
 
 typedef long (WINAPI* RtlSetProcessIsCritical) (IN BOOLEAN newValue, OUT BOOLEAN* oldValue, IN BOOLEAN criticalBreak);
 
-BOOL EnablePrivilege(LPCWSTR privilege) {
+int EnablePrivilege(LPCWSTR privilege) {
 	if(!privilege) {
 		return FALSE;
 	}

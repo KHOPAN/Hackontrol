@@ -24,12 +24,18 @@
     <ClCompile Include="ConsolePrint.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PowerControl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="definition.h">
+    <ClInclude Include="protect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="utilities.h">
+    <ClInclude Include="console.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="power.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

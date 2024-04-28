@@ -149,11 +149,13 @@
   <ItemGroup>
     <ClCompile Include="ConsolePrint.c" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="PowerControl.c" />
     <ClCompile Include="ProtectProcess.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="definition.h" />
-    <ClInclude Include="utilities.h" />
+    <ClInclude Include="protect.h" />
+    <ClInclude Include="power.h" />
+    <ClInclude Include="console.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

