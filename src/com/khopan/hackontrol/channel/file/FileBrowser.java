@@ -30,11 +30,12 @@ import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction;
 import net.dv8tion.jda.api.utils.messages.MessageCreateRequest;
 
 public class FileBrowser {
+	File file;
+
 	private final List<File> fileList;
 	private final List<File> folderList;
 	private final Stack<File> stack;
 
-	private File file;
 	private ButtonContext context;
 
 	private FileBrowser(IRepliable repliable, IMessageable messageable) {
