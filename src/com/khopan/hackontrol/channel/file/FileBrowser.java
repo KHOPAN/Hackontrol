@@ -133,6 +133,12 @@ public class FileBrowser {
 		ButtonManager.deleteMessagesInParameters(context);
 	}
 
+	private void buttonRefresh(ButtonContext context) {
+		this.send(context, context);
+		context.getChannel().deleteMessageById(context.getEvent().getMessageIdLong()).queue();
+		ButtonManager.deleteMessagesInParameters(context);
+	}
+
 	private void modal(ButtonContext context, String identifier, String name, int start, int end) {
 		TextInput textInput = TextInput.create("fileIndex", "File Index", TextInputStyle.SHORT)
 				.setRequired(true)
@@ -157,6 +163,7 @@ public class FileBrowser {
 			list.add(ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "Return", this :: buttonReturn, identifiers));
 		}
 
+		list.add(ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "Refresh", this :: buttonRefresh, identifiers));
 		list.add(HackontrolButton.delete(identifiers));
 		request.addActionRow(list);
 	}
