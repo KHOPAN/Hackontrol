@@ -78,6 +78,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>D:\LodePNG\include;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>Default</CompileAs>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -96,6 +97,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>D:\LodePNG\include;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>Default</CompileAs>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -114,6 +116,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>D:\LodePNG\include;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>Default</CompileAs>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -132,6 +135,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>D:\LodePNG\include;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>Default</CompileAs>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
