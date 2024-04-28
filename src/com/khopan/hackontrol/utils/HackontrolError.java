@@ -30,6 +30,15 @@ public class HackontrolError {
 	}
 
 	public static void message(ISendable sender, String message) {
-		HackontrolMessage.codeblockDeletable(sender, message);
+		if(sender == null) {
+			throw new NullPointerException("Sender cannot be null");
+		}
+
+		if(message == null) {
+			throw new NullPointerException("Message cannot be null");
+		}
+
+		message = HackontrolMessage.limit(message, 1991);
+		HackontrolMessage.deletableInternal(sender, "`Error: " + message + '`');
 	}
 }

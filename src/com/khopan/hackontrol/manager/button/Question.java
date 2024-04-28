@@ -3,6 +3,7 @@ package com.khopan.hackontrol.manager.button;
 import java.util.function.Consumer;
 
 import com.khopan.hackontrol.manager.common.sender.sendable.ISendable;
+import com.khopan.hackontrol.utils.HackontrolMessage;
 
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
@@ -16,7 +17,7 @@ public class Question {
 
 	public static void custom(ISendable sender, String prompt, String positiveResponse, String negativeResponse, Consumer<QuestionResponse> callback) {
 		MessageCreateBuilder builder = new MessageCreateBuilder();
-		builder.setContent(prompt);
+		builder.setContent("**" + HackontrolMessage.limit(prompt, 1996) + "**");
 		builder.addActionRow(ButtonManager.dynamicButton(ButtonStyle.SUCCESS, positiveResponse, context -> Question.callback(context, callback, true)), ButtonManager.dynamicButton(ButtonStyle.DANGER, negativeResponse, context -> Question.callback(context, callback, false)));
 		sender.send(builder.build(), ButtonManager :: dynamicButtonCallback);
 	}

@@ -1,8 +1,11 @@
 package com.khopan.hackontrol.utils;
 
 import com.khopan.hackontrol.manager.button.ButtonManager;
+import com.khopan.hackontrol.manager.common.ICommonGetter;
+import com.khopan.hackontrol.manager.common.IEventGetter;
 import com.khopan.hackontrol.manager.common.sender.sendable.ISendable;
 
+import net.dv8tion.jda.api.events.interaction.component.GenericComponentInteractionCreateEvent;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 
 public class HackontrolMessage {
@@ -24,7 +27,11 @@ public class HackontrolMessage {
 		HackontrolMessage.deletableInternal(sender, HackontrolMessage.limitBlock(message));
 	}
 
-	private static void deletableInternal(ISendable sender, String message) {
+	public static <T extends ICommonGetter & IEventGetter<? extends GenericComponentInteractionCreateEvent>> void delete(T getter) {
+		getter.getChannel().deleteMessageById(getter.getEvent().getMessageIdLong()).queue();
+	}
+
+	static void deletableInternal(ISendable sender, String message) {
 		if(sender == null) {
 			throw new NullPointerException("Sender cannot be null");
 		}
@@ -39,7 +46,7 @@ public class HackontrolMessage {
 		return "```\n" + HackontrolMessage.limit(text, 1992) + "\n```";
 	}
 
-	private static String limit(String text, int limit) {
+	public static String limit(String text, int limit) {
 		if(!text.isEmpty() && text.length() > limit) {
 			text = text.substring(0, limit);
 		}

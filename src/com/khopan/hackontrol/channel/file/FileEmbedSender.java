@@ -1,5 +1,6 @@
 package com.khopan.hackontrol.channel.file;
 
+import java.awt.Desktop;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributeView;
@@ -12,16 +13,24 @@ import java.util.function.Supplier;
 
 import javax.swing.filechooser.FileSystemView;
 
+import com.khopan.hackontrol.Hackontrol;
 import com.khopan.hackontrol.manager.button.ButtonContext;
 import com.khopan.hackontrol.manager.button.ButtonManager;
+import com.khopan.hackontrol.manager.button.Question;
+import com.khopan.hackontrol.manager.button.Question.OptionType;
+import com.khopan.hackontrol.manager.button.Question.QuestionResponse;
+import com.khopan.hackontrol.manager.common.IThinkable;
+import com.khopan.hackontrol.manager.common.sender.IRepliable;
+import com.khopan.hackontrol.manager.common.sender.sendable.ISendable;
+import com.khopan.hackontrol.manager.common.sender.sendable.ISendableReply;
 import com.khopan.hackontrol.utils.HackontrolButton;
+import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.HackontrolFile;
 import com.khopan.hackontrol.utils.HackontrolFile.FileCountAndSize;
 import com.khopan.hackontrol.utils.ImageUtils;
+import com.khopan.hackontrol.utils.TimeSafeReplyHandler;
 
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.interactions.InteractionHook;
-import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.utils.FileUpload;
@@ -31,16 +40,70 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 public class FileEmbedSender implements Runnable {
 	private final File root;
 	private final Consumer<MessageCreateData> action;
-	private final Consumer<ButtonContext> downloadHandler;
-	private final Consumer<ButtonContext> openHandler;
-	private final Consumer<ButtonContext> deleteHandler;
 
-	private FileEmbedSender(File root, Consumer<MessageCreateData> action, Consumer<ButtonContext> downloadHandler, Consumer<ButtonContext> openHandler, Consumer<ButtonContext> deleteHandler) {
+	private FileEmbedSender(File root, Consumer<MessageCreateData> action) {
 		this.root = root;
 		this.action = action;
-		this.downloadHandler = downloadHandler;
-		this.openHandler = openHandler;
-		this.deleteHandler = deleteHandler;
+	}
+
+	private void questionDelete(QuestionResponse response, ISendable sender) {
+		if(!QuestionResponse.POSITIVE_RESPONSE.equals(response)) {
+			return;
+		}
+
+		String path = this.root.getAbsolutePath();
+		Hackontrol.LOGGER.info("Deleting '{}'", path);
+
+		if(!this.root.delete()) {
+			HackontrolError.message(sender, "Failed to delete '" + path + '\'');
+		}
+	}
+
+	private void buttonDownload(ButtonContext context) {
+		if(!this.checkFileExistence(context)) {
+			return;
+		}
+
+		Hackontrol.LOGGER.info("Downloading '{}'", this.root.getAbsolutePath());
+		TimeSafeReplyHandler.start(context, consumer -> {
+			FileUpload upload = FileUpload.fromData(this.root, this.root.getName());
+			MessageCreateData message = MessageCreateData.fromFiles(upload);
+			consumer.accept(message);
+		});
+	}
+
+	private void buttonOpen(ButtonContext context) {
+		if(!this.checkFileExistence(context)) {
+			return;
+		}
+
+		Hackontrol.LOGGER.info("Opening '{}'", this.root.getAbsolutePath());
+
+		try {
+			Desktop.getDesktop().open(this.root);
+		} catch(Throwable Errors) {
+			HackontrolError.throwable(context.reply(), Errors);
+			return;
+		}
+
+		context.acknowledge();
+	}
+
+	private void buttonDeleteFile(ButtonContext context) {
+		if(!this.checkFileExistence(context)) {
+			return;
+		}
+
+		Question.create(context.reply(), "Are you sure you want to delete '" + this.root.getAbsolutePath() + "'?", OptionType.YES_NO, response -> this.questionDelete(response, context.message()));
+	}
+
+	private boolean checkFileExistence(ISendableReply reply) {
+		if(!this.root.exists()) {
+			HackontrolError.message(reply.reply(), "File '" + this.root.getAbsolutePath() + "' does not exist");
+			return false;
+		}
+
+		return true;
 	}
 
 	@Override
@@ -49,7 +112,13 @@ public class FileEmbedSender implements Runnable {
 		embedBuilder.setTitle(this.root.getName());
 		boolean exist = this.root.exists();
 		embedBuilder.setColor(exist ? 0xFF57F287 : 0xFFED4245);
-		FileUpload upload = this.uploadIcon();
+		FileUpload upload;
+
+		try {
+			upload = FileUpload.fromData(ImageUtils.imageToByteArray(ImageUtils.getFileImage(this.root, 128, 128)), "icon.png");
+		} catch(Throwable Errors) {
+			upload = null;
+		}
 
 		if(upload != null) {
 			embedBuilder.setThumbnail("attachment://icon.png");
@@ -70,17 +139,18 @@ public class FileEmbedSender implements Runnable {
 		boolean hasFileButton = exist && this.root.isFile();
 
 		if(hasFileButton) {
-			buttonList.add(ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "Download", this.downloadHandler :: accept));
+			buttonList.add(ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "Download", this :: buttonDownload));
 		}
 
-		buttonList.add(ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "Open", this.openHandler :: accept));
+		buttonList.add(ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "Open", this :: buttonOpen));
 
 		if(hasFileButton) {
-			buttonList.add(ButtonManager.dynamicButton(ButtonStyle.DANGER, "Delete File", this.deleteHandler :: accept));
+			buttonList.add(ButtonManager.dynamicButton(ButtonStyle.DANGER, "Delete File", this :: buttonDeleteFile));
 		}
 
 		buttonList.add(HackontrolButton.delete());
 		messageBuilder.addActionRow(buttonList);
+		Hackontrol.LOGGER.info("File Viewer: '{}'", this.root.getAbsolutePath());
 		this.action.accept(messageBuilder.build());
 	}
 
@@ -122,14 +192,6 @@ public class FileEmbedSender implements Runnable {
 		}
 	}
 
-	private FileUpload uploadIcon() {
-		try {
-			return FileUpload.fromData(ImageUtils.imageToByteArray(ImageUtils.getFileImage(this.root, 128, 128)), "icon.png");
-		} catch(Throwable Errors) {
-			return null;
-		}
-	}
-
 	private void field(EmbedBuilder builder, String label, String value) {
 		builder.addField(label, value == null ? "Unavailable" : value, true);
 	}
@@ -142,7 +204,7 @@ public class FileEmbedSender implements Runnable {
 		}
 	}
 
-	public static void start(File root, Consumer<MessageCreateData> action, Consumer<ButtonContext> downloadHandler, Consumer<ButtonContext> openHandler, Consumer<ButtonContext> deleteHandler) {
+	public static void start(File root, Consumer<MessageCreateData> action) {
 		if(root == null) {
 			throw new NullPointerException("Root cannot be null");
 		}
@@ -151,69 +213,16 @@ public class FileEmbedSender implements Runnable {
 			throw new NullPointerException("Action cannot be null");
 		}
 
-		Thread thread = new Thread(new FileEmbedSender(root, action, downloadHandler, openHandler, deleteHandler));
+		Thread thread = new Thread(new FileEmbedSender(root, action));
 		thread.setName("Hackontrol File Query Thread");
 		thread.start();
 	}
 
-	public static void reply(File root, IReplyCallback callback, Consumer<ButtonContext> onDownload, Consumer<ButtonContext> onOpen, Consumer<ButtonContext> onDelete) {
-		new Object() {
-			private volatile MessageCreateData message;
-			private volatile InteractionHook hook;
-			private volatile boolean processed;
+	public static void reply(File root, IThinkable thinkable, IRepliable repliable) {
+		TimeSafeReplyHandler.start(thinkable, repliable, consumer -> FileEmbedSender.start(root, consumer));
+	}
 
-			private boolean defer;
-
-			{
-				FileEmbedSender.start(root, this :: callback, onDownload, onOpen, onDelete);
-
-				try {
-					Thread.sleep(1500);
-				} catch(Throwable Errors) {
-					Errors.printStackTrace();
-				}
-
-				if(this.message == null) {
-					this.defer = true;
-					callback.deferReply().queue(this :: hook);
-				}
-			}
-
-			private void callback(MessageCreateData message) {
-				this.message = message;
-
-				if(this.defer) {
-					if(this.hook != null) {
-						this.execute();
-					}
-				} else {
-					this.execute();
-				}
-			}
-
-			private void hook(InteractionHook hook) {
-				this.hook = hook;
-
-				if(this.message != null) {
-					this.execute();
-				}
-			}
-
-			private void execute() {
-				if(this.processed) {
-					return;
-				}
-
-
-				if(!this.defer) {
-					callback.reply(this.message).queue(ButtonManager :: dynamicButtonCallback);
-					this.processed = true;
-					return;
-				}
-
-				this.hook.sendMessage(this.message).queue(ButtonManager :: dynamicButtonCallback);
-				this.processed = true;
-			}
-		};
+	public static <T extends IThinkable & IRepliable> void reply(File root, T thinkableRepliable) {
+		FileEmbedSender.reply(root, thinkableRepliable, thinkableRepliable);
 	}
 }
