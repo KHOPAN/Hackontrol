@@ -83,7 +83,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>lodepng-debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>PowrProf.lib;lodepng-debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>D:\LodePNG\bin\x86</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -104,7 +104,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>lodepng-release.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>PowrProf.lib;lodepng-release.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>D:\LodePNG\bin\x86</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -121,7 +121,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>lodepng-debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>PowrProf.lib;lodepng-debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>D:\LodePNG\bin\x64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -142,7 +142,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>lodepng-release.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>PowrProf.lib;lodepng-release.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>D:\LodePNG\bin\x64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>

@@ -84,12 +84,12 @@ public class ControlChannel extends HackontrolChannel {
 				case SHUTDOWN -> NativeLibrary.shutdown();
 				};
 
-				if(result > 0) {
+				if(result < 0) {
 					HackontrolError.message(context.message(), powerAction.uppercase + " is not supported");
 					return;
 				}
 
-				if(result < 0) {
+				if(result > 0) {
 					HackontrolError.message(context.message(), powerAction.uppercase + " operation has failed due to unknown reasons");
 				}
 			}

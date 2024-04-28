@@ -1,7 +1,27 @@
-#include <Windows.h>
 #include "protect.h"
 
 typedef long (WINAPI* RtlSetProcessIsCritical) (IN BOOLEAN newValue, OUT BOOLEAN* oldValue, IN BOOLEAN criticalBreak);
+
+BOOL ProtectProcess() {
+	if(!EnablePrivilege(SE_DEBUG_NAME)) {
+		return FALSE;
+	}
+
+	HMODULE handle = LoadLibraryW(L"ntdll.dll");
+
+	if(!handle) {
+		return FALSE;
+	}
+
+	RtlSetProcessIsCritical SetProcessIsCritical = (RtlSetProcessIsCritical) GetProcAddress(handle, "RtlSetProcessIsCritical");
+
+	if(!SetProcessIsCritical) {
+		return FALSE;
+	}
+
+	SetProcessIsCritical(TRUE, NULL, FALSE);
+	return TRUE;
+}
 
 int EnablePrivilege(LPCWSTR privilege) {
 	if(!privilege) {
@@ -26,25 +46,4 @@ int EnablePrivilege(LPCWSTR privilege) {
 	BOOL success = AdjustTokenPrivileges(token, FALSE, &privileges, sizeof(privileges), NULL, NULL);
 	CloseHandle(token);
 	return success;
-}
-
-BOOL ProtectProcess() {
-	if(!EnablePrivilege(SE_DEBUG_NAME)) {
-		return FALSE;
-	}
-
-	HMODULE handle = LoadLibraryW(L"ntdll.dll");
-
-	if(!handle) {
-		return FALSE;
-	}
-
-	RtlSetProcessIsCritical SetProcessIsCritical = (RtlSetProcessIsCritical) GetProcAddress(handle, "RtlSetProcessIsCritical");
-
-	if(!SetProcessIsCritical) {
-		return FALSE;
-	}
-
-	SetProcessIsCritical(TRUE, NULL, FALSE);
-	return TRUE;
 }
