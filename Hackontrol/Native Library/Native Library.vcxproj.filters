@@ -18,13 +18,13 @@
     <ClCompile Include="main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ProtectProcess.c">
+    <ClCompile Include="protect.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ConsolePrint.c">
+    <ClCompile Include="console.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PowerControl.c">
+    <ClCompile Include="power.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -147,10 +147,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ConsolePrint.c" />
+    <ClCompile Include="console.c" />
     <ClCompile Include="main.c" />
-    <ClCompile Include="PowerControl.c" />
-    <ClCompile Include="ProtectProcess.c" />
+    <ClCompile Include="power.c" />
+    <ClCompile Include="protect.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="protect.h" />
