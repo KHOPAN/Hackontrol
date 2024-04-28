@@ -14,8 +14,8 @@ import com.khopan.hackontrol.registry.RegistrationHandler.RegistrationTypeEntry;
 import com.khopan.hackontrol.registry.RegistryType;
 import com.khopan.hackontrol.utils.DiscordUtils;
 
-import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -36,13 +36,13 @@ public class CommandManager implements Manager {
 	public void initialize(RegistrationHandler handler) {
 		List<RegistrationTypeEntry<SlashCommandData, Consumer<CommandContext>>> commandList = handler.filterType(CommandManager.COMMAND_REGISTRY);
 		Hackontrol hackontrol = Hackontrol.getInstance();
-		JDA bot = hackontrol.getBot();
+		Guild guild = hackontrol.getGuild();
 		this.commandMap = new LinkedHashMap<>();
-		bot.updateCommands().queue();
+		guild.updateCommands().queue();
 
 		for(int i = 0; i < commandList.size(); i++) {
 			RegistrationTypeEntry<SlashCommandData, Consumer<CommandContext>> entry = commandList.get(i);
-			Command command = bot.upsertCommand(entry.identifier).complete();
+			Command command = guild.upsertCommand(entry.identifier).complete();
 			CommandEntry commandEntry = new CommandEntry();
 			commandEntry.action = entry.value;
 			commandEntry.command = command;
