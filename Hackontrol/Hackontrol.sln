@@ -19,6 +19,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KHOPAN Library", "KHOPAN Li
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DialogDLL", "DialogDLL\DialogDLL.vcxproj", "{DD78279A-14C1-4713-9EAF-702FC9EEED85}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GPURender", "GPURender\GPURender.vcxproj", "{C9554F78-A665-4084-B810-1E1A486CAB96}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -91,6 +93,14 @@ Global
 		{DD78279A-14C1-4713-9EAF-702FC9EEED85}.Release|x64.Build.0 = Release|x64
 		{DD78279A-14C1-4713-9EAF-702FC9EEED85}.Release|x86.ActiveCfg = Release|Win32
 		{DD78279A-14C1-4713-9EAF-702FC9EEED85}.Release|x86.Build.0 = Release|Win32
+		{C9554F78-A665-4084-B810-1E1A486CAB96}.Debug|x64.ActiveCfg = Debug|x64
+		{C9554F78-A665-4084-B810-1E1A486CAB96}.Debug|x64.Build.0 = Debug|x64
+		{C9554F78-A665-4084-B810-1E1A486CAB96}.Debug|x86.ActiveCfg = Debug|Win32
+		{C9554F78-A665-4084-B810-1E1A486CAB96}.Debug|x86.Build.0 = Debug|Win32
+		{C9554F78-A665-4084-B810-1E1A486CAB96}.Release|x64.ActiveCfg = Release|x64
+		{C9554F78-A665-4084-B810-1E1A486CAB96}.Release|x64.Build.0 = Release|x64
+		{C9554F78-A665-4084-B810-1E1A486CAB96}.Release|x86.ActiveCfg = Release|Win32
+		{C9554F78-A665-4084-B810-1E1A486CAB96}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
