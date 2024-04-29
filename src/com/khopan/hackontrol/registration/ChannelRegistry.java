@@ -2,9 +2,9 @@ package com.khopan.hackontrol.registration;
 
 import com.khopan.hackontrol.Hackontrol;
 import com.khopan.hackontrol.channel.ControlChannel;
-import com.khopan.hackontrol.channel.KeyLoggerChannel;
 import com.khopan.hackontrol.channel.ScreenshotChannel;
 import com.khopan.hackontrol.channel.file.FileChannel;
+import com.khopan.hackontrol.channel.keylogger.KeyLoggerChannel;
 import com.khopan.hackontrol.registry.Registry;
 
 public class ChannelRegistry {

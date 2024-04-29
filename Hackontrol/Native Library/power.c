@@ -1,5 +1,4 @@
 #include "protect.h"
-#include "console.h"
 #include "power.h"
 #include <powrprof.h>
 

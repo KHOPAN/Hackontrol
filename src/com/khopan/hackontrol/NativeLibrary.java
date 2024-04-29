@@ -49,6 +49,7 @@ public class NativeLibrary {
 		}
 
 		entry.keyCode = keyCode;
+		entry.scanCode = scanCode;
 		Boolean value = NativeLibrary.KEYSTROKE_MAP.get(scanCode);
 		boolean previousState = value == null ? false : value;
 		entry.fake = previousState == entry.keyDown;
@@ -61,6 +62,7 @@ public class NativeLibrary {
 		public boolean keyDown;
 		public boolean systemKey;
 		public int keyCode;
+		public int scanCode;
 		public boolean fake;
 	}
 }
