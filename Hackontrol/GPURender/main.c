@@ -11,6 +11,9 @@ static SHADERDATASTRUCT ShaderList[] = {
 	{IDR_RCDATA2, GL_FRAGMENT_SHADER}
 };
 
+static void ResizeCallback(GLFWwindow*, int, int);
+static void Render(GLFWwindow*);
+
 int InitializeGPURender() {
 	int error = 1;
 
@@ -28,6 +31,7 @@ int InitializeGPURender() {
 		goto terminate;
 	}
 
+	glfwSetFramebufferSizeCallback(window, ResizeCallback);
 	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 
 	if(!monitor) {
@@ -82,10 +86,7 @@ int InitializeGPURender() {
 	glUseProgram(shaderProgram);
 
 	while(!glfwWindowShouldClose(window)) {
-		glClear(GL_COLOR_BUFFER_BIT);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
-		glfwSwapBuffers(window);
-		glfwPollEvents();
+		Render(window);
 	}
 
 	glDeleteProgram(shaderProgram);
@@ -93,4 +94,20 @@ int InitializeGPURender() {
 terminate:
 	glfwTerminate();
 	return error;
+}
+
+static void Draw() {
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
+}
+
+static void ResizeCallback(GLFWwindow* window, int width, int height) {
+	glViewport(0, 0, width, height);
+	Render(window);
+}
+
+static void Render(GLFWwindow* window) {
+	glClear(GL_COLOR_BUFFER_BIT);
+	Draw();
+	glfwSwapBuffers(window);
+	glfwPollEvents();
 }
