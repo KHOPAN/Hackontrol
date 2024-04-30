@@ -2,7 +2,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance, _In_ LPSTR arguments, _In_ int commandShow) {
+int InitializeGPURender() {
 	OutputDebugStringW(L"Hello, world!\n");
 	int error = 1;
 
@@ -50,3 +50,17 @@ terminate:
 	glfwTerminate();
 	return error;
 }
+
+#ifdef DLL
+
+__declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LPSTR argument, int command) {
+	InitializeGPURender();
+}
+
+#else
+
+int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance, _In_ LPSTR arguments, _In_ int commandShow) {
+	return InitializeGPURender();
+}
+
+#endif
