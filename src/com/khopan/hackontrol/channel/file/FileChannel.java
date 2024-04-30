@@ -20,12 +20,13 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 
 public class FileChannel extends HackontrolChannel {
 	private static final String CHANNEL_NAME = "file";
 
-	private static final String BUTTON_QUERY_FILE = "queryFile";
+	private static final Button BUTTON_QUERY_FILE = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Query File", "queryFile");
 
 	static final String MODAL_VIEW = "view";
 	static final String MODAL_GO_INTO = "goInto";
@@ -39,7 +40,7 @@ public class FileChannel extends HackontrolChannel {
 
 	@Override
 	public void initialize() {
-		this.channel.sendMessageComponents(ActionRow.of(ButtonManager.staticButton(ButtonStyle.SUCCESS, "Query File", FileChannel.BUTTON_QUERY_FILE))).queue();
+		this.channel.sendMessageComponents(ActionRow.of(FileChannel.BUTTON_QUERY_FILE)).queue();
 	}
 
 	@Override

