@@ -65,6 +65,8 @@ int InitializeGPURender() {
 		goto terminate;
 	}
 
+	glUseProgram(shaderProgram);
+
 	while(!glfwWindowShouldClose(window)) {
 		glClear(GL_COLOR_BUFFER_BIT);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
