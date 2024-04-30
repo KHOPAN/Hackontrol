@@ -4,6 +4,7 @@
 #include "main.h"
 #include "shader.h"
 #include "resource.h"
+#include "title.h"
 
 static SHADERDATASTRUCT ShaderList[] = {
 	{IDR_RCDATA1, GL_VERTEX_SHADER},
@@ -47,6 +48,9 @@ int InitializeGPURender() {
 		goto terminate;
 	}
 
+	char* title = calculateWindowTitle();
+	glfwSetWindowTitle(window, title);
+	free(title);
 	unsigned int positionBuffer;
 	glGenBuffers(1, &positionBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
