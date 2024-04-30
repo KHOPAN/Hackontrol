@@ -74,6 +74,7 @@ int InitializeGPURender() {
 		glfwPollEvents();
 	}
 
+	glDeleteProgram(shaderProgram);
 	error = 0;
 terminate:
 	glfwTerminate();
