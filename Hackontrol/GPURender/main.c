@@ -21,16 +21,6 @@ int InitializeGPURender() {
 		return error;
 	}
 
-	int width = 600;
-	int height = 400;
-	GLFWwindow* window = glfwCreateWindow(width, height, "OpenGL Window", NULL, NULL);
-
-	if(!window) {
-		MessageBoxW(NULL, L"Window creation failed", L"GLFW Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
-		goto terminate;
-	}
-
-	glfwSetFramebufferSizeCallback(window, ResizeCallback);
 	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 
 	if(!monitor) {
@@ -41,9 +31,19 @@ int InitializeGPURender() {
 	const GLFWvidmode* videoMode = glfwGetVideoMode(monitor);
 	int screenWidth = videoMode->width;
 	int screenHeight = videoMode->height;
+	int width = (int) (((double) screenHeight) * 0.648148148);
+	int height = width;
+	GLFWwindow* window = glfwCreateWindow(width, height, "OpenGL Window", NULL, NULL);
+
+	if(!window) {
+		MessageBoxW(NULL, L"Window creation failed", L"GLFW Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+		goto terminate;
+	}
+
 	int windowX = (screenWidth - width) / 2;
 	int windowY = (screenHeight - height) / 2;
 	glfwSetWindowPos(window, windowX, windowY);
+	glfwSetFramebufferSizeCallback(window, ResizeCallback);
 	glfwMakeContextCurrent(window);
 
 	if(glewInit()) {
