@@ -11,13 +11,28 @@ int InitializeGPURender() {
 		return error;
 	}
 
-	GLFWwindow* window = glfwCreateWindow(600, 400, "OpenGL Window", NULL, NULL);
+	int width = 600;
+	int height = 400;
+	GLFWwindow* window = glfwCreateWindow(width, height, "OpenGL Window", NULL, NULL);
 
 	if(!window) {
 		MessageBoxW(NULL, L"Window creation failed", L"GLFW Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 		goto terminate;
 	}
 
+	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+
+	if(!monitor) {
+		MessageBoxW(NULL, L"Primary monitor could not be found", L"GLFW Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+		goto terminate;
+	}
+
+	const GLFWvidmode* videoMode = glfwGetVideoMode(monitor);
+	int screenWidth = videoMode->width;
+	int screenHeight = videoMode->height;
+	int windowX = (screenWidth - width) / 2;
+	int windowY = (screenHeight - height) / 2;
+	glfwSetWindowPos(window, windowX, windowY);
 	glfwMakeContextCurrent(window);
 
 	if(glewInit()) {
