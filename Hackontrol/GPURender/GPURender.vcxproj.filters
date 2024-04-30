@@ -21,10 +21,28 @@
     <ClCompile Include="initialize.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="shader.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="GPURender.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shader\vertex.glsl" />
+    <None Include="shader\fragment.glsl" />
   </ItemGroup>
 </Project>

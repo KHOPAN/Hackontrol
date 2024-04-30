@@ -153,6 +153,7 @@
   <ItemGroup>
     <ClCompile Include="initialize.c" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="shader.c" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\KHOPAN Library\KHOPAN Library.vcxproj">
@@ -161,6 +162,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="shader.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="GPURender.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shader\fragment.glsl" />
+    <None Include="shader\vertex.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

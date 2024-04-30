@@ -2,6 +2,13 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include "main.h"
+#include "shader.h"
+#include "resource.h"
+
+static SHADERDATASTRUCT ShaderList[] = {
+	{IDR_RCDATA1, GL_VERTEX_SHADER},
+	{IDR_RCDATA2, GL_FRAGMENT_SHADER}
+};
 
 int InitializeGPURender() {
 	int error = 1;
@@ -52,6 +59,11 @@ int InitializeGPURender() {
 	glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), NULL);
 	glEnableVertexAttribArray(0);
+	int shaderProgram = LoadShaderProgram(ShaderList, sizeof(ShaderList) / sizeof(ShaderList[0]));
+
+	if(!shaderProgram) {
+		goto terminate;
+	}
 
 	while(!glfwWindowShouldClose(window)) {
 		glClear(GL_COLOR_BUFFER_BIT);
