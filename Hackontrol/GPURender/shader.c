@@ -1,26 +1,26 @@
-#include <Windows.h>
 #include <GL/glew.h>
 #include <khopanerror.h>
 #include "shader.h"
+#include "main.h"
 
-static unsigned int compileShader(const SHADERDATASTRUCT shaderData) {
+static unsigned int compileShader(HINSTANCE instance, const SHADERDATASTRUCT shaderData) {
 	unsigned int shaderResource = shaderData.shaderResource;
 	unsigned int shaderType = shaderData.shaderType;
-	HRSRC resourceHandle = FindResourceW(NULL, MAKEINTRESOURCE(shaderResource), RT_RCDATA);
+	HRSRC resourceHandle = FindResourceW(instance, MAKEINTRESOURCE(shaderResource), RT_RCDATA);
 
 	if(!resourceHandle) {
 		KHWin32DialogErrorW(GetLastError(), L"FindResourceW");
 		return 0;
 	}
 
-	DWORD resourceSize = SizeofResource(NULL, resourceHandle);
+	DWORD resourceSize = SizeofResource(instance, resourceHandle);
 
 	if(!resourceSize) {
 		KHWin32DialogErrorW(GetLastError(), L"SizeofResource");
 		return 0;
 	}
 
-	HGLOBAL resource = LoadResource(NULL, resourceHandle);
+	HGLOBAL resource = LoadResource(instance, resourceHandle);
 
 	if(!resource) {
 		KHWin32DialogErrorW(GetLastError(), L"LoadResource");
@@ -77,9 +77,11 @@ int LoadShaderProgram(const SHADERDATASTRUCT* shaders, unsigned long shaderCount
 		return 0;
 	}
 
+	HINSTANCE instance = GetProgramInstance();
+
 	for(unsigned long i = 0; i < shaderCount; i++) {
 		const SHADERDATASTRUCT shaderData = shaders[i];
-		unsigned int shader = compileShader(shaderData);
+		unsigned int shader = compileShader(instance, shaderData);
 
 		if(!shader) {
 			return 0;

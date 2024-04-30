@@ -1,4 +1,3 @@
-#include <Windows.h>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include "main.h"
@@ -6,6 +5,7 @@
 #include "resource.h"
 #include "title.h"
 
+static HINSTANCE globalProgramInstance;
 static SHADERDATASTRUCT ShaderList[] = {
 	{IDR_RCDATA1, GL_VERTEX_SHADER},
 	{IDR_RCDATA2, GL_FRAGMENT_SHADER}
@@ -13,7 +13,11 @@ static SHADERDATASTRUCT ShaderList[] = {
 
 static void ResizeCallback(GLFWwindow*, int, int);
 
-int InitializeGPURender() {
+int InitializeGPURender(HINSTANCE instance) {
+#ifndef DLL
+	globalProgramInstance = instance;
+#endif
+
 	int error = 1;
 
 	if(!glfwInit()) {
@@ -114,4 +118,17 @@ terminate:
 
 static void ResizeCallback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
+}
+
+#ifdef DLL
+
+BOOL WINAPI DllMain(_In_ HINSTANCE instance, _In_ DWORD reason, _In_ LPVOID reserved) {
+	globalProgramInstance = instance;
+	return TRUE;
+}
+
+#endif
+
+HINSTANCE GetProgramInstance() {
+	return globalProgramInstance;
 }

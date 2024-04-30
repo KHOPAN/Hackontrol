@@ -1,3 +1,6 @@
 #pragma once
 
-int InitializeGPURender();
+#include <Windows.h>
+
+int InitializeGPURender(HINSTANCE);
+HINSTANCE GetProgramInstance();

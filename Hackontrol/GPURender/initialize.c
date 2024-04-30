@@ -1,10 +1,9 @@
-#include <Windows.h>
 #include "main.h"
 
 #ifdef DLL
 
 __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LPSTR argument, int command) {
-	InitializeGPURender(instance);
+	InitializeGPURender(NULL);
 }
 
 #else
