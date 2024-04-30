@@ -47,18 +47,28 @@ int InitializeGPURender() {
 		goto terminate;
 	}
 
-	unsigned int buffer;
-	glGenBuffers(1, &buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, buffer);
+	unsigned int positionBuffer;
+	glGenBuffers(1, &positionBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
 	float positions[] = {
 		-0.5f, -0.5f,
-		0.0f, 0.5f,
-		0.5f, -0.5f
+		0.5f, -0.5f,
+		-0.5f, 0.5f,
+		0.5f, 0.5f
 	};
 
 	glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), NULL);
 	glEnableVertexAttribArray(0);
+	unsigned int indexBuffer;
+	glGenBuffers(1, &indexBuffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+	unsigned int indices[] = {
+		2, 0, 1,
+		1, 3, 2
+	};
+
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 	int shaderProgram = LoadShaderProgram(ShaderList, sizeof(ShaderList) / sizeof(ShaderList[0]));
 
 	if(!shaderProgram) {
@@ -69,7 +79,7 @@ int InitializeGPURender() {
 
 	while(!glfwWindowShouldClose(window)) {
 		glClear(GL_COLOR_BUFFER_BIT);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
