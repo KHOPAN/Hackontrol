@@ -12,7 +12,6 @@ static SHADERDATASTRUCT ShaderList[] = {
 };
 
 static void ResizeCallback(GLFWwindow*, int, int);
-static void Render(GLFWwindow*);
 
 int InitializeGPURender() {
 	int error = 1;
@@ -84,9 +83,25 @@ int InitializeGPURender() {
 	}
 
 	glUseProgram(shaderProgram);
+	int inputTimeLocation = glGetUniformLocation(shaderProgram, "inputTime");
+	int inputSizeLocation = glGetUniformLocation(shaderProgram, "inputSize");
 
 	while(!glfwWindowShouldClose(window)) {
-		Render(window);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		if(inputTimeLocation != -1) {
+			glUniform1f(inputTimeLocation, (float) glfwGetTime());
+		}
+
+		glfwGetWindowSize(window, &width, &height);
+
+		if(inputSizeLocation != -1) {
+			glUniform2f(inputSizeLocation, (float) width, (float) height);
+		}
+
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
+		glfwSwapBuffers(window);
+		glfwPollEvents();
 	}
 
 	glDeleteProgram(shaderProgram);
@@ -96,18 +111,6 @@ terminate:
 	return error;
 }
 
-static void Draw() {
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
-}
-
 static void ResizeCallback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
-	Render(window);
-}
-
-static void Render(GLFWwindow* window) {
-	glClear(GL_COLOR_BUFFER_BIT);
-	Draw();
-	glfwSwapBuffers(window);
-	glfwPollEvents();
 }

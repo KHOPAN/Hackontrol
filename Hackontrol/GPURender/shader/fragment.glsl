@@ -2,6 +2,9 @@
 
 layout(location = 0) out vec4 color;
 
+uniform float inputTime;
+uniform vec2 inputSize;
+
 void main() {
-	color = vec4(1.0, 0.0, 0.0, 1.0);
+	color = vec4(abs(sin(inputTime)), abs(sin(inputSize.x)), abs(sin(inputSize.y)), 1.0);
 }
