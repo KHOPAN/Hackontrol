@@ -54,14 +54,15 @@ int InitializeGPURender() {
 	char* title = calculateWindowTitle();
 	glfwSetWindowTitle(window, title);
 	free(title);
+	glfwSwapInterval(1);
 	unsigned int positionBuffer;
 	glGenBuffers(1, &positionBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
 	float positions[] = {
-		-0.5f, -0.5f,
-		0.5f, -0.5f,
-		-0.5f, 0.5f,
-		0.5f, 0.5f
+		-1.0f, -1.0f,
+		1.0f, -1.0f,
+		-1.0f, 1.0f,
+		1.0f, 1.0f
 	};
 
 	glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
