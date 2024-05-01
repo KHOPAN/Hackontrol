@@ -1,13 +1,16 @@
 package com.khopan.hackontrol.channel.command;
 
-import com.khopan.hackontrol.manager.common.sender.sendable.ISendable;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 public class BuiltInCommand {
 	private BuiltInCommand() {}
 
-	public static boolean execute(ISendable sender, String command) {
+	public static boolean execute(TextChannel channel, String command) {
 		if(ChangeDirectoryCommand.test(command)) {
-			ChangeDirectoryCommand.execute(sender, command);
+			ChangeDirectoryCommand.execute(channel, command);
+			return true;
+		} else if(ClearCommand.test(command)) {
+			ClearCommand.execute(channel);
 			return true;
 		}
 
