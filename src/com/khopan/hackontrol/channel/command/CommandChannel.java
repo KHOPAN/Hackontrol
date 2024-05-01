@@ -37,6 +37,11 @@ public class CommandChannel extends HackontrolChannel {
 		}
 
 		String command = Event.getMessage().getContentDisplay().trim();
-		BuiltInCommand.execute(this.channel, command);
+
+		if(BuiltInCommand.execute(this.channel, command)) {
+			return;
+		}
+
+		CommandProcessor.process(command, this.channel);
 	}
 }
