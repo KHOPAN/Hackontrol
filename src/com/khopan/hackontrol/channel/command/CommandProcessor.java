@@ -17,6 +17,7 @@ public class CommandProcessor {
 		try {
 			ProcessBuilder builder = new ProcessBuilder("cmd.exe", "/c", command);
 			builder.redirectErrorStream(true);
+			builder.directory(CommandChannel.CurrentDirectory);
 			Process process = builder.start();
 			InputStream stream = process.getInputStream();
 			byte[] data = stream.readAllBytes();
