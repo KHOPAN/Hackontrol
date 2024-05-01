@@ -1,6 +1,7 @@
 package com.khopan.hackontrol.registration;
 
 import com.khopan.hackontrol.Hackontrol;
+import com.khopan.hackontrol.manager.MessageManager;
 import com.khopan.hackontrol.manager.button.ButtonManager;
 import com.khopan.hackontrol.manager.command.CommandManager;
 import com.khopan.hackontrol.manager.modal.ModalManager;
@@ -11,7 +12,8 @@ public class ManagerRegistry {
 
 	public static void register(Registry registry) {
 		registry.register(Hackontrol.MANAGER_REGISTRY, ButtonManager.class);
-		registry.register(Hackontrol.MANAGER_REGISTRY, ModalManager.class);
 		registry.register(Hackontrol.MANAGER_REGISTRY, CommandManager.class);
+		registry.register(Hackontrol.MANAGER_REGISTRY, MessageManager.class);
+		registry.register(Hackontrol.MANAGER_REGISTRY, ModalManager.class);
 	}
 }
