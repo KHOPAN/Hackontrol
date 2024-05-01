@@ -30,6 +30,9 @@ import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction;
 import net.dv8tion.jda.api.utils.messages.MessageCreateRequest;
 
 public class FileBrowser {
+	static final String MODAL_VIEW = "view";
+	static final String MODAL_GO_INTO = "goInto";
+
 	File file;
 
 	private final List<File> fileList;
@@ -112,13 +115,13 @@ public class FileBrowser {
 	}
 
 	private void buttonView(ButtonContext context) {
-		this.modal(context, FileChannel.MODAL_VIEW, "View", 1, this.fileList.size() + this.folderList.size());
+		this.modal(context, FileBrowser.MODAL_VIEW, "View", 1, this.fileList.size() + this.folderList.size());
 	}
 
 	private void buttonGoInto(ButtonContext context) {
 		this.context = context;
 		int fileSize = this.fileList.size();
-		this.modal(context, FileChannel.MODAL_GO_INTO, "Go Into", fileSize + 1, fileSize + this.folderList.size());
+		this.modal(context, FileBrowser.MODAL_GO_INTO, "Go Into", fileSize + 1, fileSize + this.folderList.size());
 	}
 
 	private void buttonReturn(ButtonContext context) {

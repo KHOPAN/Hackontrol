@@ -28,9 +28,6 @@ public class FileChannel extends HackontrolChannel {
 
 	private static final Button BUTTON_QUERY_FILE = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Query File", "queryFile");
 
-	static final String MODAL_VIEW = "view";
-	static final String MODAL_GO_INTO = "goInto";
-
 	private FileBrowser browser;
 
 	@Override
@@ -46,10 +43,9 @@ public class FileChannel extends HackontrolChannel {
 	@Override
 	public void register(Registry registry) {
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, FileChannel.BUTTON_QUERY_FILE, context -> this.browser = FileBrowser.start(context));
-		registry.register(ModalManager.MODAL_REGISTRY, FileChannel.MODAL_VIEW, context -> this.browser.modalView(context));
-		registry.register(ModalManager.MODAL_REGISTRY, FileChannel.MODAL_GO_INTO, context -> this.browser.modalGoInto(context));
-		registry.register(CommandManager.COMMAND_REGISTRY, Commands.slash("upload", "Upload a file")
-				.addOption(OptionType.ATTACHMENT, "file", "File to upload", true), this :: commandUploadFile);
+		registry.register(ModalManager.MODAL_REGISTRY, FileBrowser.MODAL_VIEW, context -> this.browser.modalView(context));
+		registry.register(ModalManager.MODAL_REGISTRY, FileBrowser.MODAL_GO_INTO, context -> this.browser.modalGoInto(context));
+		registry.register(CommandManager.COMMAND_REGISTRY, Commands.slash("upload", "Upload a file").addOption(OptionType.ATTACHMENT, "file", "File to upload", true), this :: commandUploadFile);
 	}
 
 	private void commandUploadFile(CommandContext context) {
