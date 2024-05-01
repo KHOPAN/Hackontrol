@@ -37,6 +37,7 @@ int InitializeGPURender(HINSTANCE instance) {
 	int screenHeight = videoMode->height;
 	int width = (int) (((double) screenHeight) * 0.648148148);
 	int height = width;
+	glfwWindowHint(GLFW_SAMPLES, 9);
 	GLFWwindow* window = glfwCreateWindow(width, height, "OpenGL Window", NULL, NULL);
 
 	if(!window) {
@@ -55,6 +56,7 @@ int InitializeGPURender(HINSTANCE instance) {
 		goto terminate;
 	}
 
+	glEnable(GL_MULTISAMPLE);
 	char* title = calculateWindowTitle();
 	glfwSetWindowTitle(window, title);
 	free(title);
