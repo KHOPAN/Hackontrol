@@ -19,6 +19,14 @@ public class HackontrolMessage {
 		HackontrolMessage.deletableInternal(sender, HackontrolMessage.limit(message, 2000));
 	}
 
+	public static void boldDeletable(ISendable sender, String message) {
+		if(message == null) {
+			throw new NullPointerException("Message cannot be null");
+		}
+
+		HackontrolMessage.deletableInternal(sender, "**" + HackontrolMessage.limit(message, 1996) + "**");
+	}
+
 	public static void codeblockDeletable(ISendable sender, String message) {
 		if(message == null) {
 			throw new NullPointerException("Message cannot be null");

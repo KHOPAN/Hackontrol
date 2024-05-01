@@ -37,12 +37,6 @@ public class ControlChannel extends HackontrolChannel {
 	private static final Button BUTTON_CONNECT = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Connect", "connect");
 	private static final Button BUTTON_DISCONNECT = ButtonManager.staticButton(ButtonStyle.DANGER, "Disconnect", "disconnect");
 
-	private static final Button BUTTON_ENABLE_KEYLOGGER = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Enable KeyLogger", "enableKeyLogger");
-	private static final Button BUTTON_DISABLE_KEYLOGGER = ButtonManager.staticButton(ButtonStyle.DANGER, "Disable KeyLogger", "disableKeyLogger");
-
-	private static final Button BUTTON_LOCK_KEYBOARD = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Lock Keyboard", "lockKeyboard");
-	private static final Button BUTTON_UNLOCK_KEYBOARD = ButtonManager.staticButton(ButtonStyle.DANGER, "Unlock Keyboard", "unlockKeyboard");
-
 	private AudioManager audioManager;
 	private SendHandler handler;
 
@@ -60,7 +54,6 @@ public class ControlChannel extends HackontrolChannel {
 	public void initialize() {
 		this.channel.sendMessage("**Power Control**").addActionRow(ControlChannel.BUTTON_SLEEP, ControlChannel.BUTTON_HIBERNATE, ControlChannel.BUTTON_RESTART, ControlChannel.BUTTON_SHUTDOWN).queue();
 		this.channel.sendMessage("**Microphone Control**").addActionRow(ControlChannel.BUTTON_CONNECT, ControlChannel.BUTTON_DISCONNECT).queue();
-		this.channel.sendMessage("**KeyLogger Control**").addActionRow(ControlChannel.BUTTON_ENABLE_KEYLOGGER, ControlChannel.BUTTON_DISABLE_KEYLOGGER).addActionRow(ControlChannel.BUTTON_LOCK_KEYBOARD, ControlChannel.BUTTON_UNLOCK_KEYBOARD).queue();
 	}
 
 	@Override
@@ -71,40 +64,24 @@ public class ControlChannel extends HackontrolChannel {
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_SHUTDOWN, context -> this.power(context, PowerAction.SHUTDOWN));
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_CONNECT, context -> this.connect(context, true));
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_DISCONNECT, context -> this.connect(context, false));
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_ENABLE_KEYLOGGER, context -> this.keylogger(context, true));
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_DISABLE_KEYLOGGER, context -> this.keylogger(context, false));
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_LOCK_KEYBOARD, context -> this.lockKeyboard(context, true));
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_UNLOCK_KEYBOARD, context -> this.lockKeyboard(context, false));
-	}
-
-	private void lockKeyboard(ButtonContext context, boolean lock) {
-		NativeLibrary.Block = lock;
-		context.acknowledge();
-	}
-
-	private void keylogger(ButtonContext context, boolean enable) {
-		NativeLibrary.Enable = enable;
-		context.acknowledge();
 	}
 
 	private void power(ButtonContext context, PowerAction powerAction) {
-		Question.create(context.reply(), "Are you sure you want to " + powerAction.lowercase + '?', OptionType.YES_NO, response -> {
-			if(QuestionResponse.POSITIVE_RESPONSE.equals(response)) {
-				int result = switch(powerAction) {
-				case SLEEP -> NativeLibrary.sleep();
-				case HIBERNATE -> NativeLibrary.hibernate();
-				case RESTART -> NativeLibrary.restart();
-				case SHUTDOWN -> NativeLibrary.shutdown();
-				};
+		Question.positive(context.reply(), "Are you sure you want to " + powerAction.lowercase + '?', OptionType.YES_NO, () -> {
+			int result = switch(powerAction) {
+			case SLEEP -> NativeLibrary.sleep();
+			case HIBERNATE -> NativeLibrary.hibernate();
+			case RESTART -> NativeLibrary.restart();
+			case SHUTDOWN -> NativeLibrary.shutdown();
+			};
 
-				if(result < 0) {
-					HackontrolError.message(context.message(), powerAction.uppercase + " is not supported");
-					return;
-				}
+			if(result < 0) {
+				HackontrolError.message(context.message(), powerAction.uppercase + " is not supported");
+				return;
+			}
 
-				if(result > 0) {
-					HackontrolError.message(context.message(), powerAction.uppercase + " operation has failed due to unknown reasons");
-				}
+			if(result > 0) {
+				HackontrolError.message(context.message(), powerAction.uppercase + " operation has failed due to unknown reasons");
 			}
 		});
 	}

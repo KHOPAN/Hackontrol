@@ -22,6 +22,18 @@ public class Question {
 		sender.send(builder.build(), ButtonManager :: dynamicButtonCallback);
 	}
 
+	public static void positive(ISendable sender, String prompt, String positiveResponse, String negativeResponse, Runnable onPositive) {
+		Question.custom(sender, prompt, positiveResponse, negativeResponse, response -> {
+			if(QuestionResponse.POSITIVE_RESPONSE.equals(response)) {
+				onPositive.run();
+			}
+		});
+	}
+
+	public static void positive(ISendable sender, String prompt, OptionType option, Runnable onPositive) {
+		Question.positive(sender, prompt, option.positive, option.negative, onPositive);
+	}
+
 	private static void callback(ButtonContext context, Consumer<QuestionResponse> callback, boolean response) {
 		context.delete();
 		callback.accept(response ? QuestionResponse.POSITIVE_RESPONSE : QuestionResponse.NEGATIVE_RESPONSE);

