@@ -77,11 +77,12 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <CompileAs>CompileAsC</CompileAs>
-      <AdditionalIncludeDirectories>D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\library\libarchive-3.7.4\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>libarchive.lib;libarchive-debug.lib;bzip2-debug.lib;liblzma-debug.lib;libzstd-debug.lib;libz-debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -93,13 +94,14 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <CompileAs>CompileAsC</CompileAs>
-      <AdditionalIncludeDirectories>D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\library\libarchive-3.7.4\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>libarchive.lib;libarchive-release.lib;bzip2-release.lib;liblzma-release.lib;libzstd-release.lib;libz-release.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -109,11 +111,13 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <CompileAs>CompileAsC</CompileAs>
-      <AdditionalIncludeDirectories>D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\library\libarchive-3.7.4\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>D:\library\libz-1.3.1\lib\x64;D:\library\libzstd-1.5.6\lib\x64;D:\library\liblzma-5.4.6\lib\x64;D:\library\libbz2-1.0.7\lib\x64;D:\library\libarchive-3.7.4\lib\x64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libarchive.lib;libarchive-debug.lib;bzip2-debug.lib;liblzma-debug.lib;libzstd-debug.lib;libz-debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -125,13 +129,15 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <CompileAs>CompileAsC</CompileAs>
-      <AdditionalIncludeDirectories>D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\library\libarchive-3.7.4\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>D:\library\libz-1.3.1\lib\x64;D:\library\libzstd-1.5.6\lib\x64;D:\library\liblzma-5.4.6\lib\x64;D:\library\libbz2-1.0.7\lib\x64;D:\library\libarchive-3.7.4\lib\x64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libarchive.lib;libarchive-release.lib;bzip2-release.lib;liblzma-release.lib;libzstd-release.lib;libz-release.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
