@@ -56,13 +56,13 @@ unsigned int KHStandardError(JNIEnv* environment, const char* message) {
 }
 
 unsigned int KHWin32Error(JNIEnv* environment, unsigned long errorCode, const char* functionName) {
-	char* message = KHGetWin32ErrorMessageA(errorCode, functionName);
+	char* message = KHGetWin32ErrorMessageA(errorCode, (const LPSTR) functionName);
 
 	if(!message) {
 		return 7;
 	}
 
 	int status = KHStandardError(environment, message);
-	free(message);
+	LocalFree(message);
 	return status;
 }

@@ -1,187 +1,92 @@
 #include <stdio.h>
-#include <Windows.h>
 #include "khopanerror.h"
 
-char* allocateStringA(const char* input) {
-	size_t length = strlen(input);
-	char* buffer = malloc((length + 1) * sizeof(char));
+#define FORMATA "%s() error ocurred. Error code: %u Message:\n%s"
+#define FORMATW L"%ws() error ocurred. Error code: %u Message:\n%ws"
 
-	if(!buffer) {
-		return NULL;
-	}
-	
-	for(size_t i = 0; i < length; i++) {
-		buffer[i] = input[i];
-	}
-
-	buffer[length] = 0;
-	return buffer;
-}
-
-wchar_t* allocateStringW(const wchar_t* input) {
-	size_t length = wcslen(input);
-	wchar_t* buffer = malloc((length + 1) * sizeof(wchar_t));
+static void* allocate(void* data, size_t size) {
+	BYTE* buffer = LocalAlloc(LMEM_FIXED, size);
 
 	if(!buffer) {
 		return NULL;
 	}
 
-	for(size_t i = 0; i < length; i++) {
-		buffer[i] = input[i];
-	}
-
-	buffer[length] = 0;
+	memcpy_s(buffer, size, data, size);
 	return buffer;
 }
 
-char* KHGetWin32ErrorMessageA(unsigned long errorCode, const char* functionName) {
-	char* messageBuffer = NULL;
+LPSTR KHGetWin32ErrorMessageA(DWORD errorCode, const LPSTR functionName) {
+	LPSTR messageBuffer = NULL;
 	DWORD size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR) &messageBuffer, 0, NULL);
 
 	if(!size) {
-		return allocateStringA("Error while getting the error message text");
+		return allocate("Error while getting the error message text", 43);
 	}
 
-	const char* formatString = "%s() error ocurred. Error code: %u Message:\n%s";
-	size = _scprintf(formatString, functionName, errorCode, messageBuffer);
+	size = _scprintf(FORMATA, functionName, errorCode, messageBuffer);
 
 	if(size == -1) {
-		return allocateStringA("Error while getting the length of the error message");
+		return allocate("Error while getting the length of the error message", 52);
 	}
 
-	size += 1;
-	char* displayMessage = malloc(size * sizeof(char));
+	LPSTR buffer = LocalAlloc(LMEM_FIXED, (size + 1) * sizeof(CHAR));
 
-	if(!displayMessage) {
-		return allocateStringA("Out of memory error. Not enough memory for the error message");
+	if(!buffer) {
+		return allocate("Out of memory error. Not enough memory for the error message", 61);
 	}
 
-	size = sprintf_s(displayMessage, size, formatString, functionName, errorCode, messageBuffer);
-
-	if(size == -1) {
-		free(displayMessage);
-		return allocateStringA("Error while formatting the error message");
-	}
-
-	return displayMessage;
+	sprintf_s(buffer, size + 1, FORMATA, functionName, errorCode, messageBuffer);
+	LocalFree(messageBuffer);
+	return buffer;
 }
 
-wchar_t* KHGetWin32ErrorMessageW(unsigned long errorCode, const wchar_t* functionName) {
-	wchar_t* messageBuffer = NULL;
+LPWSTR KHGetWin32ErrorMessageW(DWORD errorCode, const LPWSTR functionName) {
+	LPWSTR messageBuffer = NULL;
 	DWORD size = FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR) &messageBuffer, 0, NULL);
 
 	if(!size) {
-		return allocateStringW(L"Error while getting the error message text");
+		return allocate(L"Error while getting the error message text", 43);
 	}
 
-	const wchar_t* formatString = L"%ws() error ocurred. Error code: %u Message:\n%ws";
-	size = _scwprintf(formatString, functionName, errorCode, messageBuffer);
+	size = _scwprintf(FORMATW, functionName, errorCode, messageBuffer);
 
 	if(size == -1) {
-		return allocateStringW(L"Error while getting the length of the error message");
+		return allocate(L"Error while getting the length of the error message", 52);
 	}
 
-	size += 1;
-	wchar_t* displayMessage = malloc(size * sizeof(wchar_t));
+	LPWSTR buffer = LocalAlloc(LMEM_FIXED, (size + 1) * sizeof(WCHAR));
 
-	if(!displayMessage) {
-		return allocateStringW(L"Out of memory error. Not enough memory for the error message");
+	if(!buffer) {
+		return allocate(L"Out of memory error. Not enough memory for the error message", 61);
 	}
 
-	size = swprintf_s(displayMessage, size, formatString, functionName, errorCode, messageBuffer);
-
-	if(size == -1) {
-		free(displayMessage);
-		return allocateStringW(L"Error while formatting the error message");
-	}
-
-	return displayMessage;
+	swprintf_s(buffer, size + 1, FORMATW, functionName, errorCode, messageBuffer);
+	LocalFree(messageBuffer);
+	return buffer;
 }
 
-void KHWin32DialogErrorW(unsigned long errorCode, const wchar_t* functionName) {
-	wchar_t* messageBuffer = NULL;
-	DWORD size = FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR) &messageBuffer, 0, NULL);
-
-	if(!size) {
-		MessageBoxW(NULL, L"Error while getting the error message text", L"Fatal Error", MB_OK | MB_DEFBUTTON1 | MB_ICONERROR | MB_SYSTEMMODAL);
-		return;
-	}
-
-	const wchar_t* formatString = L"%ws() error ocurred. Error code: %u Message:\n%ws";
-	size = _scwprintf(formatString, functionName, errorCode, messageBuffer);
-
-	if(size == -1) {
-		MessageBoxW(NULL, L"Error while getting the length of the error message", L"Fatal Error", MB_OK | MB_DEFBUTTON1 | MB_ICONERROR | MB_SYSTEMMODAL);
-		return;
-	}
-
-	size += 1;
-	wchar_t* displayMessage = malloc(size * sizeof(wchar_t));
-
-	if(!displayMessage) {
-		MessageBoxW(NULL, L"Out of memory error. Not enough memory for the error message", L"Memory Error", MB_OK | MB_DEFBUTTON1 | MB_ICONERROR | MB_SYSTEMMODAL);
-		return;
-	}
-
-	size = swprintf_s(displayMessage, size, formatString, functionName, errorCode, messageBuffer);
-
-	if(size == -1) {
-		free(displayMessage);
-		MessageBoxW(NULL, L"Error while formatting the error message", L"Fatal Error", MB_OK | MB_DEFBUTTON1 | MB_ICONERROR | MB_SYSTEMMODAL);
-		return;
-	}
-
-	MessageBoxW(NULL, displayMessage, L"Error", MB_OK | MB_DEFBUTTON1 | MB_ICONERROR | MB_SYSTEMMODAL);
-	free(displayMessage);
+void KHWin32DialogErrorA(DWORD errorCode, const LPSTR functionName) {
+	LPSTR message = KHGetWin32ErrorMessageA(errorCode, functionName);
+	MessageBoxA(NULL, message, "Error", MB_OK | MB_DEFBUTTON1 | MB_ICONERROR | MB_SYSTEMMODAL);
+	LocalFree(message);
 }
 
-void KHWin32DialogErrorA(unsigned long errorCode, const char* functionName) {
-	char* messageBuffer = NULL;
-	DWORD size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR) &messageBuffer, 0, NULL);
-
-	if(!size) {
-		MessageBoxA(NULL, "Error while getting the error message text", "Fatal Error", MB_OK | MB_DEFBUTTON1 | MB_ICONERROR | MB_SYSTEMMODAL);
-		return;
-	}
-
-	const char* formatString = "%s() error ocurred. Error code: %u Message:\n%s";
-	size = _scprintf(formatString, functionName, errorCode, messageBuffer);
-
-	if(size == -1) {
-		MessageBoxA(NULL, "Error while getting the length of the error message", "Fatal Error", MB_OK | MB_DEFBUTTON1 | MB_ICONERROR | MB_SYSTEMMODAL);
-		return;
-	}
-
-	size += 1;
-	char* displayMessage = malloc(size * sizeof(char));
-
-	if(!displayMessage) {
-		MessageBoxA(NULL, "Out of memory error. Not enough memory for the error message", "Memory Error", MB_OK | MB_DEFBUTTON1 | MB_ICONERROR | MB_SYSTEMMODAL);
-		return;
-	}
-
-	size = sprintf_s(displayMessage, size, formatString, functionName, errorCode, messageBuffer);
-
-	if(size == -1) {
-		free(displayMessage);
-		MessageBoxA(NULL, "Error while formatting the error message", "Fatal Error", MB_OK | MB_DEFBUTTON1 | MB_ICONERROR | MB_SYSTEMMODAL);
-		return;
-	}
-
-	MessageBoxA(NULL, displayMessage, "Error", MB_OK | MB_DEFBUTTON1 | MB_ICONERROR | MB_SYSTEMMODAL);
-	free(displayMessage);
+void KHWin32DialogErrorW(DWORD errorCode, const LPWSTR functionName) {
+	LPWSTR message = KHGetWin32ErrorMessageW(errorCode, functionName);
+	MessageBoxW(NULL, message, L"Error", MB_OK | MB_DEFBUTTON1 | MB_ICONERROR | MB_SYSTEMMODAL);
+	LocalFree(message);
 }
 
-void KHWin32ConsoleErrorW(unsigned long errorCode, const wchar_t* functionName) {
-	wchar_t* messageBuffer = NULL;
-	FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR) &messageBuffer, 0, NULL);
-	printf("%ws() error ocurred. Error code: %u Message:\n%ws\n", functionName, errorCode, messageBuffer);
+void KHWin32ConsoleErrorA(DWORD errorCode, const LPSTR functionName) {
+	LPSTR message = KHGetWin32ErrorMessageA(errorCode, functionName);
+	printf("%s\n", message);
+	LocalFree(message);
 }
 
-void KHWin32ConsoleErrorA(unsigned long errorCode, const char* functionName) {
-	char* messageBuffer = NULL;
-	FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR) &messageBuffer, 0, NULL);
-	printf("%s() error ocurred. Error code: %u Message:\n%s\n", functionName, errorCode, messageBuffer);
+void KHWin32ConsoleErrorW(DWORD errorCode, const LPWSTR functionName) {
+	LPWSTR message = KHGetWin32ErrorMessageW(errorCode, functionName);
+	printf("%ws\n", message);
+	LocalFree(message);
 }
 
 unsigned long KHDecodeHRESULTError(HRESULT result) {

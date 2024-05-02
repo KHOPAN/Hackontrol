@@ -1,11 +1,14 @@
 #pragma once
 
-#include <wchar.h>
+#include <Windows.h>
 
-char* KHGetWin32ErrorMessageA(unsigned long, const char*);
-wchar_t* KHGetWin32ErrorMessageW(unsigned long, const wchar_t*);
-void KHWin32DialogErrorW(unsigned long, const wchar_t*);
-void KHWin32DialogErrorA(unsigned long, const char*);
-void KHWin32ConsoleErrorW(unsigned long, const wchar_t*);
-void KHWin32ConsoleErrorA(unsigned long, const char*);
-unsigned long KHDecodeHRESULTError(HRESULT);
+LPSTR KHGetWin32ErrorMessageA(DWORD errorCode, const LPSTR functionName);
+LPWSTR KHGetWin32ErrorMessageW(DWORD errorCode, const LPWSTR functionName);
+
+void KHWin32DialogErrorA(DWORD errorCode, const LPSTR functionName);
+void KHWin32DialogErrorW(DWORD errorCode, const LPWSTR functionName);
+
+void KHWin32ConsoleErrorA(DWORD errorCode, const LPSTR functionName);
+void KHWin32ConsoleErrorW(DWORD errorCode, const LPWSTR functionName);
+
+unsigned long KHDecodeHRESULTError(HRESULT result);
