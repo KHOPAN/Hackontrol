@@ -75,7 +75,7 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 		goto freeJavaDirectoryPath;
 	}
 
-	LPWSTR javaExecutablePath = KHFormatMessageW(L"%ws\\java.exe", javaBinPath);
+	LPWSTR javaExecutablePath = KHFormatMessageW(L"%ws\\javaw.exe", javaBinPath);
 
 	if(!javaExecutablePath) {
 		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
