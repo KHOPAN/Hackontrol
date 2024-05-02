@@ -68,11 +68,18 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 		goto freeJavaDirectoryPath;
 	}
 
-	LPWSTR javaExecutablePath = KHFormatMessageW(L"%ws\\%S\\bin\\java.exe", system32Path, JAVA_PATH_NAME);
+	LPWSTR javaBinPath = KHFormatMessageW(L"%ws\\%S\\bin", system32Path, JAVA_PATH_NAME);
+
+	if(!javaBinPath) {
+		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
+		goto freeJavaDirectoryPath;
+	}
+
+	LPWSTR javaExecutablePath = KHFormatMessageW(L"%ws\\java.exe", javaBinPath);
 
 	if(!javaExecutablePath) {
 		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
-		goto freeJavaDirectoryPath;
+		goto freeJavaBinPath;
 	}
 
 	LPWSTR javaCommandArgument = KHFormatMessageW(L"%ws -jar ..\\..\\" JAR_NAME, javaExecutablePath);
@@ -82,10 +89,12 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 		goto freeJavaExecutablePath;
 	}
 
-	ExecuteJarFile(javaExecutablePath, javaCommandArgument);
+	ExecuteJarFile(javaExecutablePath, javaCommandArgument, javaBinPath);
 	FREE(javaCommandArgument);
 freeJavaExecutablePath:
 	FREE(javaExecutablePath);
+freeJavaBinPath:
+	FREE(javaBinPath);
 freeJavaDirectoryPath:
 	FREE(javaDirectoryPath);
 freeDownloadArgument:

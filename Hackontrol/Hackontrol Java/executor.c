@@ -1,12 +1,12 @@
 #include <khopanerror.h>
 #include "executor.h"
 
-void ExecuteJarFile(const LPWSTR javaCommand, const LPWSTR commandArguments) {
+void ExecuteJarFile(const LPWSTR javaCommand, const LPWSTR commandArguments, const LPWSTR binaryPath) {
 	STARTUPINFO startup = {0};
 	startup.cb = sizeof(STARTUPINFO);
 	PROCESS_INFORMATION information;
 
-	if(!CreateProcessW(javaCommand, commandArguments, NULL, NULL, TRUE, ABOVE_NORMAL_PRIORITY_CLASS, NULL, NULL, &startup, &information)) {
+	if(!CreateProcessW(javaCommand, commandArguments, NULL, NULL, TRUE, ABOVE_NORMAL_PRIORITY_CLASS, NULL, binaryPath, &startup, &information)) {
 		KHWin32DialogErrorW(GetLastError(), L"CreateProcessW");
 		return;
 	}
