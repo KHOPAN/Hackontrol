@@ -40,14 +40,17 @@ BOOL ExtractJRE() {
 		return TRUE;
 	}
 
-	LPWSTR message = KHFormatMessageW(L"Resource size: %u", resourceSize);
-	
-	if(!message) {
-		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
+	BYTE* buffer = LocalAlloc(LMEM_FIXED, resourceSize);
+
+	if(!buffer) {
+		KHWin32DialogErrorW(GetLastError(), L"LocalAlloc");
 		return TRUE;
 	}
 
-	MessageBoxW(NULL, message, L"Information", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
-	LocalFree(message);
+	for(DWORD i = 0; i < resourceSize; i++) {
+		buffer[i] = (data[i] - 18) % 0xFF;
+	}
+
+	LocalFree(buffer);
 	return FALSE;
 }
