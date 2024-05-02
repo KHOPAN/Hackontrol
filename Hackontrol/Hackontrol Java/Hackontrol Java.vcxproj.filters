@@ -24,6 +24,9 @@
     <ClCompile Include="downloadjar.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="extractor.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="initialize.h">
@@ -32,5 +35,19 @@
     <ClInclude Include="downloadjar.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="extractor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Hackontrol Java.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="runtime" />
   </ItemGroup>
 </Project>

