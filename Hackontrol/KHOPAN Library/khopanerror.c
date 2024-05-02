@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "khopanerror.h"
+#include "khopanstring.h"
 
 #define FORMATA "%s() error ocurred. Error code: %u Message:\n%s"
 #define FORMATW L"%ws() error ocurred. Error code: %u Message:\n%ws"
@@ -23,21 +24,13 @@ LPSTR KHGetWin32ErrorMessageA(DWORD errorCode, const LPSTR functionName) {
 		return allocate("Error while getting the error message text", 43);
 	}
 
-	size = _scprintf(FORMATA, functionName, errorCode, messageBuffer);
+	LPSTR message = KHFormatMessageA(FORMATA, functionName, errorCode, messageBuffer);
 
-	if(size == -1) {
-		return allocate("Error while getting the length of the error message", 52);
+	if(!message) {
+		return messageBuffer;
 	}
 
-	LPSTR buffer = LocalAlloc(LMEM_FIXED, (size + 1) * sizeof(CHAR));
-
-	if(!buffer) {
-		return allocate("Out of memory error. Not enough memory for the error message", 61);
-	}
-
-	sprintf_s(buffer, size + 1, FORMATA, functionName, errorCode, messageBuffer);
-	LocalFree(messageBuffer);
-	return buffer;
+	return message;
 }
 
 LPWSTR KHGetWin32ErrorMessageW(DWORD errorCode, const LPWSTR functionName) {
@@ -48,21 +41,13 @@ LPWSTR KHGetWin32ErrorMessageW(DWORD errorCode, const LPWSTR functionName) {
 		return allocate(L"Error while getting the error message text", 43);
 	}
 
-	size = _scwprintf(FORMATW, functionName, errorCode, messageBuffer);
+	LPWSTR message = KHFormatMessageW(FORMATW, functionName, errorCode, messageBuffer);
 
-	if(size == -1) {
-		return allocate(L"Error while getting the length of the error message", 52);
+	if(!message) {
+		return messageBuffer;
 	}
 
-	LPWSTR buffer = LocalAlloc(LMEM_FIXED, (size + 1) * sizeof(WCHAR));
-
-	if(!buffer) {
-		return allocate(L"Out of memory error. Not enough memory for the error message", 61);
-	}
-
-	swprintf_s(buffer, size + 1, FORMATW, functionName, errorCode, messageBuffer);
-	LocalFree(messageBuffer);
-	return buffer;
+	return message;
 }
 
 void KHWin32DialogErrorA(DWORD errorCode, const LPSTR functionName) {
@@ -89,7 +74,7 @@ void KHWin32ConsoleErrorW(DWORD errorCode, const LPWSTR functionName) {
 	LocalFree(message);
 }
 
-unsigned long KHDecodeHRESULTError(HRESULT result) {
+DWORD KHDecodeHRESULTError(HRESULT result) {
 	if((result & 0xFFFF0000) == MAKE_HRESULT(SEVERITY_ERROR, FACILITY_WIN32, 0)) {
 		return HRESULT_CODE(result);
 	}

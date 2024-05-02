@@ -1,14 +1,24 @@
 #include <stdio.h>
-#include <direct.h>
+/*#include <direct.h>
 
 #define LIBARCHIVE_STATIC
 #include <archive.h>
 #include <archive_entry.h>
 
-static int copy_data(struct archive* source, struct archive* destination);
+static int copy_data(struct archive* source, struct archive* destination);*/
+#include <khopanstring.h>
 
 int main(int argc, char** argv) {
-	struct archive* archive = archive_read_new();
+	LPWSTR result = KHFormatMessageW(L"%S, %S!" /* Weird case-sensitive bug */, "Hello", "world");
+
+	if(!result) {
+		printf("Error\n");
+		return 1;
+	}
+
+	printf("%ws\n", result);
+	LocalFree(result);
+	/*struct archive* archive = archive_read_new();
 	archive_read_support_filter_all(archive);
 	archive_read_support_format_all(archive);
 	struct archive* external = archive_write_disk_new();
@@ -75,11 +85,11 @@ int main(int argc, char** argv) {
 	archive_read_close(archive);
 	archive_read_free(archive);
 	archive_write_close(external);
-	archive_write_free(external);
+	archive_write_free(external);*/
 	return 0;
 }
 
-static int copy_data(struct archive* source, struct archive* destination) {
+/*static int copy_data(struct archive* source, struct archive* destination) {
 	const void* buffer;
 	size_t size;
 	la_int64_t offset;
@@ -102,4 +112,4 @@ static int copy_data(struct archive* source, struct archive* destination) {
 			return status;
 		}
 	}
-}
+}*/

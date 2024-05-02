@@ -15,10 +15,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="standardprint.c">
+    <ClCompile Include="khopanjni.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="win32error.c">
+    <ClCompile Include="khopanerror.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="khopanstring.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -27,6 +30,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="khopanerror.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="khopanstring.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
