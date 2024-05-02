@@ -1,13 +1,15 @@
+#include <AccCtrl.h>
+#include <AclAPI.h>
 #include "protect.h"
 
 typedef long (WINAPI* RtlSetProcessIsCritical) (IN BOOLEAN newValue, OUT BOOLEAN* oldValue, IN BOOLEAN criticalBreak);
 
 BOOL ProtectProcess() {
 	if(!EnablePrivilege(SE_DEBUG_NAME)) {
-		return FALSE;
+		//return FALSE;
 	}
 
-	HMODULE handle = LoadLibraryW(L"ntdll.dll");
+	/*HMODULE handle = LoadLibraryW(L"ntdll.dll");
 
 	if(!handle) {
 		return FALSE;
@@ -19,7 +21,19 @@ BOOL ProtectProcess() {
 		return FALSE;
 	}
 
-	SetProcessIsCritical(TRUE, NULL, FALSE);
+	SetProcessIsCritical(TRUE, NULL, FALSE);*/
+	HANDLE process = GetCurrentProcess();
+	PACL list = malloc(sizeof(ACL));
+
+	if(!list) {
+		return FALSE;
+	}
+
+	if(InitializeAcl(list, sizeof(ACL), ACL_REVISION)) {
+		SetSecurityInfo(process, SE_KERNEL_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, list, NULL);
+	}
+
+	free(list);
 	return TRUE;
 }
 
