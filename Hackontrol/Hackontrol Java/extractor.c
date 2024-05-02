@@ -76,7 +76,7 @@ BOOL ExtractJRE(const LPSTR path) {
 		goto closeArchive;
 	}
 
-	archive_write_disk_set_options(external, ARCHIVE_EXTRACT_TIME | ARCHIVE_EXTRACT_PERM | ARCHIVE_EXTRACT_ACL | ARCHIVE_EXTRACT_FFLAGS);
+	archive_write_disk_set_options(external, ARCHIVE_EXTRACT_TIME | ARCHIVE_EXTRACT_PERM | ARCHIVE_EXTRACT_ACL | ARCHIVE_EXTRACT_FFLAGS | ARCHIVE_EXTRACT_NO_OVERWRITE);
 	archive_write_disk_set_standard_lookup(external);
 
 	if(archive_read_open_memory(archive, buffer, resourceSize)) {
