@@ -3,6 +3,7 @@
 #include <khopanstring.h>
 #include "downloadjar.h"
 #include "extractor.h"
+#include "executor.h"
 
 #define FREE(x) if(LocalFree(x)) KHWin32DialogErrorW(GetLastError(), L"LocalFree")
 
@@ -81,7 +82,7 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 		goto freeJavaExecutablePath;
 	}
 
-	MessageBoxW(NULL, javaCommandArgument, javaExecutablePath, MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+	ExecuteJarFile(javaExecutablePath, javaCommandArgument);
 	FREE(javaCommandArgument);
 freeJavaExecutablePath:
 	FREE(javaExecutablePath);

@@ -142,11 +142,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Execute.c" />
+    <ClCompile Include="executor.c" />
     <ClCompile Include="initialize.c" />
     <ClCompile Include="downloadjar.c" />
     <ClCompile Include="extractor.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="executor.h" />
     <ClInclude Include="initialize.h" />
     <ClInclude Include="downloadjar.h" />
     <ClInclude Include="extractor.h" />
