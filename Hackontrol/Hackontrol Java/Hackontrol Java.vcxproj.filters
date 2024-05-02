@@ -21,7 +21,7 @@
     <ClCompile Include="initialize.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="jardownloader.c">
+    <ClCompile Include="downloadjar.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -29,7 +29,7 @@
     <ClInclude Include="initialize.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="jardownloader.h">
+    <ClInclude Include="downloadjar.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
