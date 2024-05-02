@@ -142,11 +142,13 @@
     <ClCompile Include="khopanstring.c" />
     <ClCompile Include="khopanjni.c" />
     <ClCompile Include="khopanerror.c" />
+    <ClCompile Include="khopanwindows.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="khopanjni.h" />
     <ClInclude Include="khopanerror.h" />
     <ClInclude Include="khopanstring.h" />
+    <ClInclude Include="khopanwindows.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

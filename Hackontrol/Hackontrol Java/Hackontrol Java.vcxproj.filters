@@ -15,18 +15,15 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Execute.cpp">
+    <ClCompile Include="Execute.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="HJ_GetSystemDirectory.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="HJ_DisplayError.c">
+    <ClCompile Include="initialize.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="definition.h">
+    <ClInclude Include="initialize.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

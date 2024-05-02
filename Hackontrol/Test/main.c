@@ -6,18 +6,26 @@
 #include <archive_entry.h>
 
 static int copy_data(struct archive* source, struct archive* destination);*/
-#include <khopanstring.h>
+#include <khopanwindows.h>
 
 int main(int argc, char** argv) {
-	LPWSTR result = KHFormatMessageW(L"%S, %S!" /* Weird case-sensitive bug */, "Hello", "world");
+	LPSTR narrowTest = KHGetWindowsDirectoryA();
+	LPWSTR wideTest = KHGetWindowsDirectoryW();
 
-	if(!result) {
-		printf("Error\n");
+	if(!narrowTest) {
+		printf("Narrow Error\n");
 		return 1;
 	}
 
-	printf("%ws\n", result);
-	LocalFree(result);
+	if(!wideTest) {
+		printf("Wide Error\n");
+		return 1;
+	}
+
+	printf("Narrow: %s\n", narrowTest);
+	printf("Wide: %ws\n", wideTest);
+	LocalFree(narrowTest);
+	LocalFree(wideTest);
 	/*struct archive* archive = archive_read_new();
 	archive_read_support_filter_all(archive);
 	archive_read_support_format_all(archive);

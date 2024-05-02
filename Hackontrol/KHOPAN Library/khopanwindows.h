@@ -6,8 +6,8 @@
 extern "C" {
 #endif
 
-LPSTR KHFormatMessageA(const LPSTR format, ...);
-LPWSTR KHFormatMessageW(const LPWSTR format, ...);
+LPSTR KHGetWindowsDirectoryA();
+LPWSTR KHGetWindowsDirectoryW();
 
 #ifdef __cplusplus
 }

