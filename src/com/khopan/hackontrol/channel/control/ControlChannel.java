@@ -61,21 +61,16 @@ public class ControlChannel extends HackontrolChannel {
 	}
 
 	private void buttonPower(ButtonContext context, PowerAction powerAction) {
-		Question.positive(context.reply(), "Are you sure you want to " + powerAction.lowercase + '?', OptionType.YES_NO, () -> {
-			int result = switch(powerAction) {
+		Question.positive(context.reply(), "Are you sure you want to " + powerAction.name().toLowerCase() + '?', OptionType.YES_NO, () -> {
+			String message = switch(powerAction) {
 			case SLEEP -> NativeLibrary.sleep();
 			case HIBERNATE -> NativeLibrary.hibernate();
 			case RESTART -> NativeLibrary.restart();
 			case SHUTDOWN -> NativeLibrary.shutdown();
 			};
 
-			if(result < 0) {
-				HackontrolError.message(context.message(), powerAction.uppercase + " is not supported");
-				return;
-			}
-
-			if(result > 0) {
-				HackontrolError.message(context.message(), powerAction.uppercase + " operation has failed due to unknown reasons");
+			if(message != null) {
+				HackontrolError.multiline(context.message(), message.trim());
 			}
 		});
 	}
@@ -147,17 +142,9 @@ public class ControlChannel extends HackontrolChannel {
 	}
 
 	private static enum PowerAction {
-		SLEEP("Sleep", "sleep"),
-		HIBERNATE("Hibernate", "hibernate"),
-		SHUTDOWN("Shutdown", "shutdown"),
-		RESTART("Restart", "restart");
-
-		private final String uppercase;
-		private final String lowercase;
-
-		PowerAction(String uppercase, String lowercase) {
-			this.uppercase = uppercase;
-			this.lowercase = lowercase;
-		}
+		SLEEP,
+		HIBERNATE,
+		SHUTDOWN,
+		RESTART;
 	}
 }

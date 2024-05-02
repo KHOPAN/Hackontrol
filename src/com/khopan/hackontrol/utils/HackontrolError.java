@@ -41,4 +41,44 @@ public class HackontrolError {
 		message = HackontrolMessage.limit(message, 1991);
 		HackontrolMessage.deletableInternal(sender, "`Error: " + message + '`');
 	}
+
+	public static void multiline(ISendable sender, String message) {
+		if(sender == null) {
+			throw new NullPointerException("Sender cannot be null");
+		}
+
+		if(message == null) {
+			throw new NullPointerException("Message cannot be null");
+		}
+
+		int lines = HackontrolError.count(message, '\n') + 1;
+		int limit = 2000 - lines * 2;
+		message = HackontrolMessage.limit(message, limit);
+		StringBuilder builder = new StringBuilder();
+		String[] parts = message.split("\n");
+
+		for(int i = 0; i < parts.length; i++) {
+			if(i > 0) {
+				builder.append('\n');
+			}
+
+			builder.append('`');
+			builder.append(parts[i]);
+			builder.append('`');
+		}
+
+		HackontrolMessage.deletableInternal(sender, builder.toString());
+	}
+
+	private static int count(String text, char character) {
+		int count = 0;
+
+		for(int i = 0; i < text.length(); i++) {
+			if(text.charAt(i) == character) {
+				count++;
+			}
+		}
+
+		return count;
+	}
 }

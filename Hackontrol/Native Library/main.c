@@ -4,10 +4,10 @@
 #include "keylogger.h"
 
 static JNINativeMethod HackontrolNativeMethods[] = {
-	{"sleep",     "()I", (void*) &NativeLibrary_sleep},
-	{"hibernate", "()I", (void*) &NativeLibrary_hibernate},
-	{"restart",   "()I", (void*) &NativeLibrary_restart},
-	{"shutdown",  "()I", (void*) &NativeLibrary_shutdown}
+	{"sleep",     "()Ljava/lang/String;", (void*) &NativeLibrary_sleep},
+	{"hibernate", "()Ljava/lang/String;", (void*) &NativeLibrary_hibernate},
+	{"restart",   "()Ljava/lang/String;", (void*) &NativeLibrary_restart},
+	{"shutdown",  "()Ljava/lang/String;", (void*) &NativeLibrary_shutdown}
 };
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* virtualMachine, void* reserved) {

@@ -18,10 +18,10 @@ public class NativeLibrary {
 		System.load("D:\\GitHub Repository\\Hackontrol\\Hackontrol\\x64\\Release\\Native Library.dll");
 	}
 
-	public static native int sleep();
-	public static native int hibernate();
-	public static native int restart();
-	public static native int shutdown();
+	public static native String sleep();
+	public static native String hibernate();
+	public static native String restart();
+	public static native String shutdown();
 
 	public static void load() {
 		// Load the class

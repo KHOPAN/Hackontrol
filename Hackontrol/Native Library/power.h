@@ -2,7 +2,7 @@
 
 #include <jni.h>
 
-jint NativeLibrary_sleep(JNIEnv*, jclass);
-jint NativeLibrary_hibernate(JNIEnv*, jclass);
-jint NativeLibrary_restart(JNIEnv*, jclass);
-jint NativeLibrary_shutdown(JNIEnv*, jclass);
+jstring NativeLibrary_sleep(JNIEnv*, jclass);
+jstring NativeLibrary_hibernate(JNIEnv*, jclass);
+jstring NativeLibrary_restart(JNIEnv*, jclass);
+jstring NativeLibrary_shutdown(JNIEnv*, jclass);
