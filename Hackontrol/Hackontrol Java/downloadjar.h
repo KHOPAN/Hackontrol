@@ -2,4 +2,4 @@
 
 #include <Windows.h>
 
-BOOL DownloadJar(LPWSTR system32Path, LPWSTR rundll32Path, LPWSTR downloadArgument);
+BOOL DownloadJar(const LPWSTR system32Path, const LPWSTR rundll32Path, const LPWSTR downloadArgument);

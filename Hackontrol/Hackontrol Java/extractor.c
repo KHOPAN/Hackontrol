@@ -12,7 +12,7 @@
 
 static int copy_data(struct archive*, struct archive*);
 
-BOOL ExtractJRE() {
+BOOL ExtractJRE(const LPSTR path) {
 	HINSTANCE instance = GetProgramInstance();
 
 	if(!instance) {
@@ -84,9 +84,7 @@ BOOL ExtractJRE() {
 		goto closeExternal;
 	}
 
-#define TEST_TARGET "D:\\Temporary"
-
-	if(_chdir(TEST_TARGET)) {
+	if(_chdir(path)) {
 		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"_chdir");
 		goto closeExternal;
 	}
@@ -109,20 +107,33 @@ BOOL ExtractJRE() {
 			goto closeExternal;
 		}
 
-		if(archive_write_header(external, entry) >= ARCHIVE_OK && archive_entry_size(entry) > 0) {
-			if(copy_data(archive, external) < ARCHIVE_WARN) {
+		if(archive_write_header(external, entry) < ARCHIVE_OK) {
+			MessageBoxA(NULL, archive_error_string(external), "libarchive Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+		} else if(archive_entry_size(entry) > 0) {
+			status = copy_data(archive, external);
+
+			if(status < ARCHIVE_OK) {
+				MessageBoxA(NULL, archive_error_string(external), "libarchive Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+			}
+
+			if(status < ARCHIVE_WARN) {
 				KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"copy_data");
 				goto closeExternal;
 			}
 		}
 
-		if(archive_write_finish_entry(external) < ARCHIVE_WARN) {
+		status = archive_write_finish_entry(external);
+
+		if(status < ARCHIVE_OK) {
+			MessageBoxA(NULL, archive_error_string(external), "libarchive Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+		}
+
+		if(status < ARCHIVE_WARN) {
 			KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"archive_write_finish_entry");
 			goto closeExternal;
 		}
 	}
 
-	MessageBoxA(NULL, "Extracted the JRE to " TEST_TARGET, "Information", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 	error = FALSE;
 closeExternal:
 	archive_write_close(external);
@@ -154,6 +165,7 @@ static int copy_data(struct archive* source, struct archive* destination) {
 		status = (int) archive_write_data_block(destination, buffer, size, offset);
 
 		if(status < ARCHIVE_OK) {
+			MessageBoxA(NULL, archive_error_string(destination), "libarchive Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 			return status;
 		}
 	}

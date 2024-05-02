@@ -2,4 +2,4 @@
 
 #include <Windows.h>
 
-BOOL ExtractJRE();
+BOOL ExtractJRE(const LPSTR path);
