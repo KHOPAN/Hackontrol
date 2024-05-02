@@ -183,3 +183,15 @@ void KHWin32ConsoleErrorA(unsigned long errorCode, const char* functionName) {
 	FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR) &messageBuffer, 0, NULL);
 	printf("%s() error ocurred. Error code: %u Message:\n%s\n", functionName, errorCode, messageBuffer);
 }
+
+unsigned long KHDecodeHRESULTError(HRESULT result) {
+	if((result & 0xFFFF0000) == MAKE_HRESULT(SEVERITY_ERROR, FACILITY_WIN32, 0)) {
+		return HRESULT_CODE(result);
+	}
+
+	if(result == S_OK) {
+		return ERROR_SUCCESS;
+	}
+
+	return ERROR_CAN_NOT_COMPLETE;
+}
