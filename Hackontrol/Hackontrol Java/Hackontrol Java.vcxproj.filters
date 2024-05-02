@@ -21,9 +21,15 @@
     <ClCompile Include="initialize.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="jardownloader.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="initialize.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="jardownloader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

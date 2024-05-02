@@ -137,9 +137,11 @@
   <ItemGroup>
     <ClCompile Include="Execute.c" />
     <ClCompile Include="initialize.c" />
+    <ClCompile Include="jardownloader.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="initialize.h" />
+    <ClInclude Include="jardownloader.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\KHOPAN Library\KHOPAN Library.vcxproj">
