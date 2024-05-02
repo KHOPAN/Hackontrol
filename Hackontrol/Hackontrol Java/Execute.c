@@ -25,7 +25,8 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 
 	if(!system32Path) {
 		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
-		goto freeWindowsDirectoryPath;
+		FREE(windowsDirectoryPath);
+		return;
 	}
 
 	LPWSTR rundll32Path = KHFormatMessageW(L"%ws\\" RUNDLL32EXE, system32Path);
@@ -75,8 +76,6 @@ freeRundll32Path:
 	FREE(rundll32Path);
 freeSystem32Path:
 	FREE(system32Path);
-freeWindowsDirectoryPath:
-	FREE(windowsDirectoryPath);
 	/*STARTUPINFO startupInformationExecute = {0};
 	startupInformationExecute.cb = sizeof(STARTUPINFO);
 	PROCESS_INFORMATION processInformtionExecute = {0};
