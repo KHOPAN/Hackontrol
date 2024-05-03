@@ -139,21 +139,13 @@ public class FileBrowser {
 		int fileSize = this.fileList.size();
 		int folderSize = this.folderList.size();
 
-		if(fileSize + folderSize != 1) {
+		if(folderSize != 1) {
 			this.modal(context, FileBrowser.MODAL_GO_INTO, "Go Into", fileSize + 1, fileSize + folderSize);
 			return;
 		}
 
-		File file;
-
-		if(fileSize == 1) {
-			file = this.fileList.get(0);
-		} else {
-			file = this.folderList.get(0);
-		}
-
 		this.stack.push(this.file);
-		this.file = file;
+		this.file = this.folderList.get(0);
 		this.send(context, context);
 
 		if(context != null) {
