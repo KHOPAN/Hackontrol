@@ -160,7 +160,10 @@ public class FileBrowser {
 	private void actionRow(MessageCreateRequest<?> request, boolean isRoot, Object... identifiers) {
 		List<ItemComponent> list = new ArrayList<>();
 		list.add(ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "View", this :: buttonView));
-		list.add(ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "Go Into", this :: buttonGoInto, identifiers));
+
+		if(this.file == null || !this.folderList.isEmpty()) {
+			list.add(ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "Go Into", this :: buttonGoInto, identifiers));
+		}
 
 		if(!isRoot) {
 			list.add(ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "Return", this :: buttonReturn, identifiers));
