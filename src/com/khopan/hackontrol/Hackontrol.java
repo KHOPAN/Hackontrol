@@ -204,7 +204,6 @@ public class Hackontrol {
 		HackontrolLoggerConfig.disableDebug();
 		Hackontrol.LOGGER.info("Initializing");
 		Hackontrol.LOGGER.info("Loading Native Library");
-		NativeLibrary.load();
 		Hackontrol.getInstance();
 	}
 

