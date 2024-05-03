@@ -4,17 +4,14 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import com.khopan.hackontrol.Hackontrol;
-import com.khopan.hackontrol.HackontrolChannel;
-import com.khopan.hackontrol.eventlistener.FilteredEventListener;
+import com.khopan.hackontrol.eventlistener.InteractionEventListener;
 import com.khopan.hackontrol.manager.Manager;
 import com.khopan.hackontrol.registry.RegistrationHandler;
 import com.khopan.hackontrol.registry.RegistrationHandler.RegistrationTypeEntry;
 import com.khopan.hackontrol.registry.RegistryType;
-import com.khopan.hackontrol.utils.DiscordUtils;
 
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 
 public class ModalManager implements Manager {
@@ -24,7 +21,7 @@ public class ModalManager implements Manager {
 
 	@Override
 	public void configureBuilder(JDABuilder builder) {
-		builder.addEventListeners(FilteredEventListener.create(ModalInteractionEvent.class, this :: modalEvent));
+		builder.addEventListeners(InteractionEventListener.create(ModalInteractionEvent.class, this :: modalEvent));
 	}
 
 	@Override
@@ -33,16 +30,9 @@ public class ModalManager implements Manager {
 	}
 
 	private void modalEvent(ModalInteractionEvent Event) {
-		MessageChannelUnion channel = Event.getChannel();
-
-		if(!DiscordUtils.checkCategory(channel)) {
-			return;
-		}
-
 		String identifier = Event.getModalId();
 		Hackontrol.LOGGER.info("Processing modal: {}", identifier);
-		HackontrolChannel hackontrolChannel = Hackontrol.getInstance().getChannel((TextChannel) channel);
-		Consumer<ModalContext> action = RegistrationTypeEntry.filter(this.modalList, hackontrolChannel, identifier);
+		Consumer<ModalContext> action = RegistrationTypeEntry.filter(this.modalList, Hackontrol.getInstance().getChannel((TextChannel) Event.getChannel()), identifier);
 
 		if(action == null) {
 			Hackontrol.LOGGER.warn("Modal {} has null action", identifier);

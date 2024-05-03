@@ -7,6 +7,7 @@ import com.khopan.hackontrol.Hackontrol;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageHistory;
 import net.dv8tion.jda.api.entities.channel.Channel;
+import net.dv8tion.jda.api.entities.channel.attribute.ICategorizableChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
@@ -52,18 +53,12 @@ public class DiscordUtils {
 	}
 
 	public static boolean checkCategory(Channel channel) {
-		if(!(channel instanceof TextChannel)) {
+		if(!(channel instanceof ICategorizableChannel)) {
 			return false;
 		}
 
-		TextChannel textChannel = (TextChannel) channel;
-		Category category = textChannel.getParentCategory();
+		Category category = ((ICategorizableChannel) channel).getParentCategory();
 		Hackontrol hackontrol = Hackontrol.getInstance();
-
-		if(!hackontrol.getCategory().equals(category)) {
-			return false;
-		}
-
-		return true;
+		return hackontrol.getCategory().equals(category);
 	}
 }

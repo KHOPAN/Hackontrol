@@ -7,17 +7,15 @@ import java.util.function.Consumer;
 
 import com.khopan.hackontrol.Hackontrol;
 import com.khopan.hackontrol.HackontrolChannel;
-import com.khopan.hackontrol.eventlistener.FilteredEventListener;
+import com.khopan.hackontrol.eventlistener.InteractionEventListener;
 import com.khopan.hackontrol.manager.Manager;
 import com.khopan.hackontrol.registry.RegistrationHandler;
 import com.khopan.hackontrol.registry.RegistrationHandler.RegistrationTypeEntry;
 import com.khopan.hackontrol.registry.RegistryType;
-import com.khopan.hackontrol.utils.DiscordUtils;
 
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
@@ -29,7 +27,7 @@ public class CommandManager implements Manager {
 
 	@Override
 	public void configureBuilder(JDABuilder builder) {
-		builder.addEventListeners(FilteredEventListener.create(SlashCommandInteractionEvent.class, this :: commandEvent));
+		builder.addEventListeners(InteractionEventListener.create(SlashCommandInteractionEvent.class, this :: commandEvent));
 	}
 
 	@Override
@@ -52,12 +50,6 @@ public class CommandManager implements Manager {
 	}
 
 	private void commandEvent(SlashCommandInteractionEvent Event) {
-		MessageChannelUnion channel = Event.getChannel();
-
-		if(!DiscordUtils.checkCategory(channel)) {
-			return;
-		}
-
 		long identifier = Event.getCommandIdLong();
 		CommandEntry entry = this.commandMap.get(identifier);
 
@@ -66,21 +58,16 @@ public class CommandManager implements Manager {
 			return;
 		}
 
-		Hackontrol hackontrol = Hackontrol.getInstance();
-		HackontrolChannel hackontrolChannel = hackontrol.getChannel((TextChannel) channel);
-
-		if(!hackontrolChannel.equals(entry.channel)) {
+		if(!Hackontrol.getInstance().getChannel((TextChannel) Event.getChannel()).equals(entry.channel)) {
 			return;
 		}
 
-		Consumer<CommandContext> action = entry.action;
-
-		if(action == null) {
+		if(entry.action == null) {
 			Hackontrol.LOGGER.warn("Command identifier {} has null action", identifier);
 			return;
 		}
 
-		action.accept(new CommandContextImplementation(Event, entry.command));
+		entry.action.accept(new CommandContextImplementation(Event, entry.command));
 	}
 
 	private class CommandEntry {

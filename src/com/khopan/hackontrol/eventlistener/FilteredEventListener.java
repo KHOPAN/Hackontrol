@@ -18,8 +18,12 @@ public class FilteredEventListener implements EventListener {
 
 	@Override
 	public void onEvent(GenericEvent Event) {
+		if(this.action == null) {
+			return;
+		}
+
 		try {
-			if(this.eventClass.isAssignableFrom(Event.getClass())) {
+			if(this.eventClass == null || this.eventClass.isAssignableFrom(Event.getClass())) {
 				this.action.onEvent(Event);
 			}
 		} catch(Throwable Errors) {
@@ -34,11 +38,7 @@ public class FilteredEventListener implements EventListener {
 		}
 	}
 
-	public static <T extends GenericEvent> FilteredEventListener create(Class<T> eventClass, ThrowableAction<T> action) {
-		if(eventClass == null || action == null) {
-			return null;
-		}
-
+	public static <T extends GenericEvent> EventListener create(Class<T> eventClass, ThrowableAction<T> action) {
 		return new FilteredEventListener(eventClass, action);
 	}
 }

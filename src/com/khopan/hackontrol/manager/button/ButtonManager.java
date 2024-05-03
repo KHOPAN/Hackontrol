@@ -7,6 +7,7 @@ import java.util.function.Consumer;
 import com.khopan.hackontrol.Hackontrol;
 import com.khopan.hackontrol.HackontrolChannel;
 import com.khopan.hackontrol.eventlistener.FilteredEventListener;
+import com.khopan.hackontrol.eventlistener.InteractionEventListener;
 import com.khopan.hackontrol.manager.Manager;
 import com.khopan.hackontrol.registry.RegistrationHandler;
 import com.khopan.hackontrol.registry.RegistrationHandler.RegistrationTypeEntry;
@@ -31,7 +32,7 @@ public class ButtonManager implements Manager {
 
 	@Override
 	public void configureBuilder(JDABuilder builder) {
-		builder.addEventListeners(FilteredEventListener.create(ButtonInteractionEvent.class, this :: buttonEvent));
+		builder.addEventListeners(InteractionEventListener.create(ButtonInteractionEvent.class, this :: buttonEvent));
 		builder.addEventListeners(FilteredEventListener.create(MessageDeleteEvent.class, this :: deleteEvent));
 	}
 
@@ -41,20 +42,13 @@ public class ButtonManager implements Manager {
 	}
 
 	private void buttonEvent(ButtonInteractionEvent Event) {
-		MessageChannelUnion channel = Event.getChannel();
-
-		if(!DiscordUtils.checkCategory(channel)) {
-			return;
-		}
-
-		Button button = Event.getButton();
-		String identifier = button.getId();
+		String identifier = Event.getButton().getId();
 		DynamicButtonSession session = DynamicButtonSession.decodeSession(identifier);
 		Hackontrol.LOGGER.info("Processing button: {}", identifier);
 		Consumer<ButtonContext> action;
 
 		if(session == null) {
-			HackontrolChannel hackontrolChannel = Hackontrol.getInstance().getChannel((TextChannel) channel);
+			HackontrolChannel hackontrolChannel = Hackontrol.getInstance().getChannel((TextChannel) Event.getChannel());
 			Consumer<ButtonContext> consumer = null;
 
 			for(int i = 0; i < this.staticCallbackList.size(); i++) {
