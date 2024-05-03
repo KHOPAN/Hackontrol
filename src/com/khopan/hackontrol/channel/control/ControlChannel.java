@@ -45,19 +45,19 @@ public class ControlChannel extends HackontrolChannel {
 	}
 
 	@Override
-	public void initialize() {
-		this.channel.sendMessage("**Power Control**").addActionRow(ControlChannel.BUTTON_SLEEP, ControlChannel.BUTTON_HIBERNATE, ControlChannel.BUTTON_RESTART, ControlChannel.BUTTON_SHUTDOWN).queue();
-		this.channel.sendMessage("**Microphone Control**").addActionRow(ControlChannel.BUTTON_CONNECT, ControlChannel.BUTTON_DISCONNECT).queue();
-	}
-
-	@Override
-	public void register(Registry registry) {
+	public void preInitialize(Registry registry) {
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_SLEEP, context -> this.buttonPower(context, PowerAction.SLEEP));
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_HIBERNATE, context -> this.buttonPower(context, PowerAction.HIBERNATE));
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_RESTART, context -> this.buttonPower(context, PowerAction.RESTART));
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_SHUTDOWN, context -> this.buttonPower(context, PowerAction.SHUTDOWN));
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_CONNECT, context -> this.buttonConnect(context, true));
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_DISCONNECT, context -> this.buttonConnect(context, false));
+	}
+
+	@Override
+	public void initialize() {
+		this.channel.sendMessage("**Power Control**").addActionRow(ControlChannel.BUTTON_SLEEP, ControlChannel.BUTTON_HIBERNATE, ControlChannel.BUTTON_RESTART, ControlChannel.BUTTON_SHUTDOWN).queue();
+		this.channel.sendMessage("**Microphone Control**").addActionRow(ControlChannel.BUTTON_CONNECT, ControlChannel.BUTTON_DISCONNECT).queue();
 	}
 
 	private void buttonPower(ButtonContext context, PowerAction powerAction) {

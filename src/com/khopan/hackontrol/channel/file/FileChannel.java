@@ -36,16 +36,16 @@ public class FileChannel extends HackontrolChannel {
 	}
 
 	@Override
-	public void initialize() {
-		this.channel.sendMessageComponents(ActionRow.of(FileChannel.BUTTON_QUERY_FILE)).queue();
-	}
-
-	@Override
-	public void register(Registry registry) {
+	public void preInitialize(Registry registry) {
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, FileChannel.BUTTON_QUERY_FILE, context -> this.browser = FileBrowser.start(context));
 		registry.register(ModalManager.MODAL_REGISTRY, FileBrowser.MODAL_VIEW, context -> this.browser.modalView(context));
 		registry.register(ModalManager.MODAL_REGISTRY, FileBrowser.MODAL_GO_INTO, context -> this.browser.modalGoInto(context));
 		registry.register(CommandManager.COMMAND_REGISTRY, Commands.slash("upload", "Upload a file").addOption(OptionType.ATTACHMENT, "file", "File to upload", true), this :: commandUploadFile);
+	}
+
+	@Override
+	public void initialize() {
+		this.channel.sendMessageComponents(ActionRow.of(FileChannel.BUTTON_QUERY_FILE)).queue();
 	}
 
 	private void commandUploadFile(CommandContext context) {

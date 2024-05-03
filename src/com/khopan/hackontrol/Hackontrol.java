@@ -80,15 +80,18 @@ public class Hackontrol {
 
 		for(int i = 0; i < this.channelList.size(); i++) {
 			HackontrolChannel channel = this.channelList.get(i);
-			String channelName = channel.getName();
-			TextChannel textChannel = DiscordUtils.getOrCreateTextChannelInCategory(this.category, channelName);
+			TextChannel textChannel = DiscordUtils.getOrCreateTextChannelInCategory(this.category, channel.getName());
+			channel.hackontrol = this;
+			channel.category = this.category;
 			channel.channel = textChannel;
-			channel.register(this.registrationHandler.createRegistry(channel));
+			channel.preInitialize(this.registrationHandler.createRegistry(channel));
 
 			if(DiscordUtils.isChannelEmpty(textChannel)) {
 				Hackontrol.LOGGER.info("Channel #{} empty", textChannel.getName());
 				channel.initialize();
 			}
+
+			channel.postInitialize();
 		}
 
 		for(int i = 0; i < this.managerList.size(); i++) {

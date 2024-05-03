@@ -27,7 +27,7 @@ public class CommandChannel extends HackontrolChannel {
 	}
 
 	@Override
-	public void register(Registry registry) {
+	public void preInitialize(Registry registry) {
 		registry.register(MessageManager.MESSAGE_RECEIVED_EVENT_REGISTRY, this :: messageReceived);
 	}
 

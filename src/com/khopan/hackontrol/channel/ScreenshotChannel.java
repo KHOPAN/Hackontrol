@@ -34,13 +34,13 @@ public class ScreenshotChannel extends HackontrolChannel {
 	}
 
 	@Override
-	public void initialize() {
-		this.channel.sendMessageComponents(ActionRow.of(ScreenshotChannel.BUTTON_SCREENSHOT)).queue();
+	public void preInitialize(Registry registry) {
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ScreenshotChannel.BUTTON_SCREENSHOT, this :: buttonScreenshot);
 	}
 
 	@Override
-	public void register(Registry registry) {
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ScreenshotChannel.BUTTON_SCREENSHOT, this :: buttonScreenshot);
+	public void initialize() {
+		this.channel.sendMessageComponents(ActionRow.of(ScreenshotChannel.BUTTON_SCREENSHOT)).queue();
 	}
 
 	private void buttonScreenshot(ButtonContext context) {
