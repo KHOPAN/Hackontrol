@@ -26,8 +26,6 @@ public class NativeLibrary {
 			FileOutputStream outputStream = new FileOutputStream(file);
 			outputStream.write(data);
 			outputStream.close();
-			File kernel32 = new File("C:\\Windows\\System32\\kernel32.dll");
-			file.setLastModified(kernel32.lastModified());
 			System.load(file.getAbsolutePath());
 		} catch(Throwable Errors) {
 			Errors.printStackTrace();
