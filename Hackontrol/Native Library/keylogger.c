@@ -42,7 +42,7 @@ DWORD WINAPI KeyLoggerThread(_In_ LPVOID parameter) {
 	jmethodID logMethod = (*environment)->GetStaticMethodID(environment, nativeLibraryClass, "log", "(IIIII)Z");
 	
 	if(!logMethod) {
-		KHStandardErrorW(environment, L"Method 'log(IIIII)V' not found in class 'com.khopan.hackontrol.NativeLibrary'");
+		KHStandardErrorW(environment, L"Method 'log(IIIII)Z' not found in class 'com.khopan.hackontrol.NativeLibrary'");
 		return 1;
 	}
 
