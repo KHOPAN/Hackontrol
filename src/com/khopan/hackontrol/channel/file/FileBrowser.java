@@ -115,13 +115,51 @@ public class FileBrowser {
 	}
 
 	private void buttonView(ButtonContext context) {
-		this.modal(context, FileBrowser.MODAL_VIEW, "View", 1, this.fileList.size() + this.folderList.size());
+		int fileSize = this.fileList.size();
+		int folderSize = this.folderList.size();
+
+		if(fileSize + folderSize != 1) {
+			this.modal(context, FileBrowser.MODAL_VIEW, "View", 1, fileSize + folderSize);
+			return;
+		}
+
+		File file;
+
+		if(fileSize == 1) {
+			file = this.fileList.get(0);
+		} else {
+			file = this.folderList.get(0);
+		}
+
+		FileEmbedSender.reply(file, context);
 	}
 
 	private void buttonGoInto(ButtonContext context) {
 		this.context = context;
 		int fileSize = this.fileList.size();
-		this.modal(context, FileBrowser.MODAL_GO_INTO, "Go Into", fileSize + 1, fileSize + this.folderList.size());
+		int folderSize = this.folderList.size();
+
+		if(fileSize + folderSize != 1) {
+			this.modal(context, FileBrowser.MODAL_GO_INTO, "Go Into", fileSize + 1, fileSize + folderSize);
+			return;
+		}
+
+		File file;
+
+		if(fileSize == 1) {
+			file = this.fileList.get(0);
+		} else {
+			file = this.folderList.get(0);
+		}
+
+		this.stack.push(this.file);
+		this.file = file;
+		this.send(context, context);
+
+		if(context != null) {
+			HackontrolMessage.delete(context);
+			ButtonManager.deleteMessagesInParameters(context);
+		}
 	}
 
 	private void buttonReturn(ButtonContext context) {
