@@ -25,12 +25,19 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
 public class Hackontrol {
-	public static final RegistryType<Void, Class<? extends Manager>> MANAGER_REGISTRY = RegistryType.create();
-	public static final RegistryType<Void, Class<? extends HackontrolChannel>> CHANNEL_REGISTRY = RegistryType.create();
+	public static final RegistryType<Void, Class<? extends Manager>> MANAGER_REGISTRY;
+	public static final RegistryType<Void, Class<? extends HackontrolChannel>> CHANNEL_REGISTRY;
 
-	public static final Logger LOGGER = LoggerFactory.getLogger("Hackontrol");
+	public static final Logger LOGGER;
 
 	private static Hackontrol INSTANCE;
+
+	static {
+		NativeLibrary.load();
+		MANAGER_REGISTRY = RegistryType.create();
+		CHANNEL_REGISTRY = RegistryType.create();
+		LOGGER = LoggerFactory.getLogger("Hackontrol");
+	}
 
 	private final UncaughtExceptionHandler defaultHandler;
 	private final List<Manager> managerList;
