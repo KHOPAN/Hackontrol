@@ -41,8 +41,8 @@ public class HackontrolFile {
 
 		File[] list = root.listFiles();
 
-		if(list == null) {
-			return true;
+		if(list == null || list.length == 0) {
+			return root.delete();
 		}
 
 		boolean success = true;
@@ -50,11 +50,10 @@ public class HackontrolFile {
 		for(int i = 0; i < list.length; i++) {
 			if(!HackontrolFile.delete(list[i])) {
 				success = false;
-				break;
 			}
 		}
 
-		return success;
+		return success && root.delete();
 	}
 
 	public static FileUpload upload(File input) {
