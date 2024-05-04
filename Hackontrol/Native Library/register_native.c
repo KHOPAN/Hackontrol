@@ -3,14 +3,16 @@
 #include "native_power.h"
 #include "native_critical.h"
 #include "native_dialog.h"
+#include "native_camera.h"
 
 static JNINativeMethod HackontrolNativeMethods[] = {
-	{"sleep",     "()Ljava/lang/String;",                     (void*) &NativeLibrary_sleep},
-	{"hibernate", "()Ljava/lang/String;",                     (void*) &NativeLibrary_hibernate},
-	{"restart",   "()Ljava/lang/String;",                     (void*) &NativeLibrary_restart},
-	{"shutdown",  "()Ljava/lang/String;",                     (void*) &NativeLibrary_shutdown},
-	{"critical",  "(Z)Z",                                     (void*) &NativeLibrary_critical},
-	{"dialog",    "(Ljava/lang/String;Ljava/lang/String;I)I", (void*) &NativeLibrary_dialog}
+	{"sleep",      "()Ljava/lang/String;",                     (void*) &NativeLibrary_sleep},
+	{"hibernate",  "()Ljava/lang/String;",                     (void*) &NativeLibrary_hibernate},
+	{"restart",    "()Ljava/lang/String;",                     (void*) &NativeLibrary_restart},
+	{"shutdown",   "()Ljava/lang/String;",                     (void*) &NativeLibrary_shutdown},
+	{"critical",   "(Z)Z",                                     (void*) &NativeLibrary_critical},
+	{"dialog",     "(Ljava/lang/String;Ljava/lang/String;I)I", (void*) &NativeLibrary_dialog},
+	{"cameraList", "()Ljava/lang/Object;",                     (void*) &NativeLibrary_cameraList}
 };
 
 void RegisterHackontrolNative(JNIEnv* environment) {

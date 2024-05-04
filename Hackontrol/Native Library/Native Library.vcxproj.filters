@@ -36,6 +36,12 @@
     <ClCompile Include="native_dialog.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="camera_internal.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="native_camera.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="privilege.h">
@@ -54,6 +60,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="native_dialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="native_camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="camera_internal.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

