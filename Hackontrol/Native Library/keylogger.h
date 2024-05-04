@@ -2,4 +2,4 @@
 
 #include <jni.h>
 
-void startKeyLogger(JNIEnv*, JavaVM*);
+void KeyLoggerInitialize(JNIEnv* environment, JavaVM* virtualMachine);

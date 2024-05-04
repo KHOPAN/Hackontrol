@@ -203,7 +203,6 @@ public class Hackontrol {
 	public static void main(String[] args) throws Throwable {
 		HackontrolLoggerConfig.disableDebug();
 		Hackontrol.LOGGER.info("Initializing");
-		Hackontrol.LOGGER.info("Loading Native Library");
 		Hackontrol.getInstance();
 	}
 

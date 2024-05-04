@@ -1,5 +1,5 @@
-#include "protect.h"
-#include "power.h"
+#include "privilege.h"
+#include "native_power.h"
 #include <powrprof.h>
 #include <khopanerror.h>
 

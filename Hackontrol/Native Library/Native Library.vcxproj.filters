@@ -18,24 +18,36 @@
     <ClCompile Include="main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="protect.c">
+    <ClCompile Include="privilege.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="power.c">
+    <ClCompile Include="native_power.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="keylogger.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="register_native.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="native_critical.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="protect.h">
+    <ClInclude Include="privilege.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="power.h">
+    <ClInclude Include="native_power.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="keylogger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="register_native.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="native_critical.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

