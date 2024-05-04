@@ -34,6 +34,10 @@ public class MessageManager implements Manager {
 	private void receivedEvent(MessageReceivedEvent Event) {
 		MessageChannelUnion channel = Event.getChannel();
 
+		if("hackontrol_global_status".equalsIgnoreCase(Event.getMessage().getContentDisplay().trim())) {
+			channel.sendMessage("**" + Hackontrol.getInstance().getMachineIdentifier() + ": Ok**").queue();
+		}
+
 		if(!DiscordUtils.checkCategory(channel)) {
 			return;
 		}
