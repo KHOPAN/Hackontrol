@@ -208,7 +208,19 @@ public class Hackontrol {
 		/*HackontrolLoggerConfig.disableDebug();
 		Hackontrol.LOGGER.info("Initializing");
 		Hackontrol.getInstance();*/
-		NativeLibrary.cameraList();
+		CameraDevice[] devices = NativeLibrary.cameraList();
+
+		if(devices == null) {
+			System.out.println("null");
+			return;
+		}
+
+		System.out.println(devices.length);
+
+		for(int i = 0; i < devices.length; i++) {
+			CameraDevice device = devices[i];
+			System.out.println("Name: " + device.deviceName + " Symbolic Link: " + device.symbolicLink);
+		}
 	}
 
 	public static Hackontrol getInstance() {

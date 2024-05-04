@@ -12,7 +12,7 @@ static JNINativeMethod HackontrolNativeMethods[] = {
 	{"shutdown",   "()Ljava/lang/String;",                     (void*) &NativeLibrary_shutdown},
 	{"critical",   "(Z)Z",                                     (void*) &NativeLibrary_critical},
 	{"dialog",     "(Ljava/lang/String;Ljava/lang/String;I)I", (void*) &NativeLibrary_dialog},
-	{"cameraList", "()Ljava/lang/Object;",                     (void*) &NativeLibrary_cameraList}
+	{"cameraList", "()[Lcom/khopan/hackontrol/CameraDevice;",  (void*) &NativeLibrary_cameraList}
 };
 
 void RegisterHackontrolNative(JNIEnv* environment) {

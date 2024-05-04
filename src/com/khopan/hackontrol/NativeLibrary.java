@@ -41,7 +41,7 @@ public class NativeLibrary {
 	public static native String shutdown();
 	public static native boolean critical(boolean critical);
 	public static native int dialog(String title, String content, int flags);
-	public static native Object cameraList();
+	public static native CameraDevice[] cameraList();
 
 	public static void load() {
 		// Load the class
