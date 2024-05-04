@@ -19,7 +19,10 @@ jobjectArray NativeLibrary_cameraList(JNIEnv* environment, jclass nativeLibraryC
 		return NULL;
 	}
 
-	InitializeCamera(environment);
+	if(!InitializeCamera(environment)) {
+		return NULL;
+	}
+
 	IMFAttributes* attributes;
 	HRESULT result = MFCreateAttributes(&attributes, 1);
 	jobjectArray returnResult = NULL;

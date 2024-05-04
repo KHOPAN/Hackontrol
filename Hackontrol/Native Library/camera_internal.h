@@ -2,5 +2,5 @@
 
 #include <jni.h>
 
-void InitializeCamera(JNIEnv* environment);
-void UninitializeCamera(JNIEnv* environment);
+BOOL InitializeCamera(JNIEnv* environment);
+BOOL UninitializeCamera(JNIEnv* environment);
