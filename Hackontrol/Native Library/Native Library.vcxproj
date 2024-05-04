@@ -154,7 +154,8 @@
     <ClCompile Include="camera_internal.c" />
     <ClCompile Include="keylogger.c" />
     <ClCompile Include="main.c" />
-    <ClCompile Include="native_camera.c" />
+    <ClCompile Include="native_camera_list.c" />
+    <ClCompile Include="native_camera_capture.c" />
     <ClCompile Include="native_critical.c" />
     <ClCompile Include="native_dialog.c" />
     <ClCompile Include="native_power.c" />

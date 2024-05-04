@@ -39,7 +39,10 @@
     <ClCompile Include="camera_internal.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="native_camera.c">
+    <ClCompile Include="native_camera_list.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="native_camera_capture.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
