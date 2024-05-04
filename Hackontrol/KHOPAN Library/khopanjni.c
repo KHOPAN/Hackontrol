@@ -89,3 +89,53 @@ void KHWin32ErrorW(JNIEnv* environment, DWORD errorCode, const LPWSTR functionNa
 	KHStandardErrorW(environment, message);
 	LocalFree(message);
 }
+
+LPSTR KHJavaToNativeStringA(JNIEnv* environment, jstring string) {
+	if(!string) {
+		return NULL;
+	}
+
+	size_t size = ((*environment)->GetStringUTFLength(environment, string) + 1) * sizeof(CHAR);
+	LPSTR buffer = LocalAlloc(LMEM_FIXED, size);
+
+	if(!buffer) {
+		return NULL;
+	}
+
+	if(size > 0) {
+		const char* javaString = (*environment)->GetStringUTFChars(environment, string, NULL);
+
+		if(javaString) {
+			memcpy_s(buffer, size, javaString, size);
+			(*environment)->ReleaseStringUTFChars(environment, string, javaString);
+		}
+	}
+
+	buffer[size - 1] = 0;
+	return buffer;
+}
+
+LPWSTR KHJavaToNativeStringW(JNIEnv* environment, jstring string) {
+	if(!string) {
+		return NULL;
+	}
+
+	size_t size = ((*environment)->GetStringLength(environment, string) + 1) * sizeof(WCHAR);
+	LPWSTR buffer = LocalAlloc(LMEM_FIXED, size);
+
+	if(!buffer) {
+		return NULL;
+	}
+
+	if(size > 0) {
+		const wchar_t* javaString = (*environment)->GetStringChars(environment, string, NULL);
+
+		if(javaString) {
+			memcpy_s(buffer, size, javaString, size);
+			(*environment)->ReleaseStringChars(environment, string, javaString);
+		}
+	}
+
+	buffer[size - 1] = 0;
+	return buffer;
+}

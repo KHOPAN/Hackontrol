@@ -16,6 +16,9 @@ void KHStandardErrorW(JNIEnv* environment, const LPWSTR message);
 void KHWin32ErrorA(JNIEnv* environment, DWORD errorCode, const LPSTR functionName);
 void KHWin32ErrorW(JNIEnv* environment, DWORD errorCode, const LPWSTR functionName);
 
+LPSTR KHJavaToNativeStringA(JNIEnv* environment, jstring string);
+LPWSTR KHJavaToNativeStringW(JNIEnv* environment, jstring string);
+
 #ifdef __cplusplus
 }
 #endif

@@ -154,6 +154,7 @@
     <ClCompile Include="keylogger.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="native_critical.c" />
+    <ClCompile Include="native_dialog.c" />
     <ClCompile Include="native_power.c" />
     <ClCompile Include="privilege.c" />
     <ClCompile Include="register_native.c" />
@@ -161,6 +162,7 @@
   <ItemGroup>
     <ClInclude Include="keylogger.h" />
     <ClInclude Include="native_critical.h" />
+    <ClInclude Include="native_dialog.h" />
     <ClInclude Include="privilege.h" />
     <ClInclude Include="native_power.h" />
     <ClInclude Include="register_native.h" />

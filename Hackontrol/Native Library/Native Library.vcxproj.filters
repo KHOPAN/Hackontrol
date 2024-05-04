@@ -33,6 +33,9 @@
     <ClCompile Include="native_critical.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="native_dialog.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="privilege.h">
@@ -48,6 +51,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="native_critical.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="native_dialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -40,6 +40,7 @@ public class NativeLibrary {
 	public static native String restart();
 	public static native String shutdown();
 	public static native boolean critical(boolean critical);
+	public static native int dialog(String title, String content, int flags);
 
 	public static void load() {
 		// Load the class

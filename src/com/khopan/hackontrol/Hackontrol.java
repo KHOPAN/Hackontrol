@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.khopan.hackontrol.errorhandling.ErrorHandler;
-import com.khopan.hackontrol.logger.HackontrolLoggerConfig;
 import com.khopan.hackontrol.manager.Manager;
 import com.khopan.hackontrol.registration.ChannelRegistry;
 import com.khopan.hackontrol.registration.ManagerRegistry;
@@ -16,6 +15,7 @@ import com.khopan.hackontrol.registry.RegistrationHandler;
 import com.khopan.hackontrol.registry.RegistryType;
 import com.khopan.hackontrol.registry.implementation.StrictClassValueOnlyRegistryImplementation;
 import com.khopan.hackontrol.utils.DiscordUtils;
+import com.khopan.hackontrol.win32.WinUser;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -201,9 +201,10 @@ public class Hackontrol {
 	}
 
 	public static void main(String[] args) throws Throwable {
-		HackontrolLoggerConfig.disableDebug();
+		/*HackontrolLoggerConfig.disableDebug();
 		Hackontrol.LOGGER.info("Initializing");
-		Hackontrol.getInstance();
+		Hackontrol.getInstance();*/
+		NativeLibrary.dialog("Dialog", "Hello, world!", WinUser.MB_OK | WinUser.MB_ICONINFORMATION | WinUser.MB_DEFBUTTON1 | WinUser.MB_SYSTEMMODAL);
 	}
 
 	public static Hackontrol getInstance() {
