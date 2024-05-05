@@ -69,6 +69,21 @@ public class CameraChannel extends HackontrolChannel {
 			this.sendCameraList(context.reply());
 			HackontrolMessage.delete(context);
 			return;
+		} else if(this.devices.length == 2) {
+			CameraDevice newSelected = null;
+
+			if(this.devices[0].equals(this.selectedCamera)) {
+				newSelected = this.devices[1];
+			} else if(this.devices[1].equals(this.selectedCamera)) {
+				newSelected = this.devices[0];
+			}
+
+			if(newSelected != null) {
+				this.selectedCamera = newSelected;
+				this.sendCameraList(context.reply());
+				HackontrolMessage.delete(context);
+				return;
+			}
 		}
 
 		TextInput textInput = TextInput.create("cameraIndex", "Camera Index", TextInputStyle.SHORT)
