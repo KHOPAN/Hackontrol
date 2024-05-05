@@ -26,6 +26,7 @@ public class CameraChannel extends HackontrolChannel {
 	private static final String CHANNEL_NAME = "camera";
 
 	private static final Button BUTTON_CAMERA_LIST = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Camera List", "cameraList");
+	private static final Button BUTTON_SELECT = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Select", "selectCamera");
 
 	private static final String MODAL_SELECT_CAMERA = "selectCamera";
 
@@ -41,6 +42,7 @@ public class CameraChannel extends HackontrolChannel {
 	@Override
 	public void preInitialize(Registry registry) {
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, CameraChannel.BUTTON_CAMERA_LIST, this :: buttonCameraList);
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, CameraChannel.BUTTON_SELECT, this :: buttonSelect);
 		registry.register(ModalManager.MODAL_REGISTRY, CameraChannel.MODAL_SELECT_CAMERA, this :: modalSelectCamera);
 	}
 
@@ -146,6 +148,6 @@ public class CameraChannel extends HackontrolChannel {
 			}
 		}
 
-		sender.send(new MessageCreateBuilder().setContent(builder.toString()).addActionRow(ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "Select", this :: buttonSelect), HackontrolButton.delete()).build(), ButtonManager :: dynamicButtonCallback);
+		sender.send(new MessageCreateBuilder().setContent(builder.toString()).addActionRow(CameraChannel.BUTTON_SELECT, HackontrolButton.delete()).build(), ButtonManager :: dynamicButtonCallback);
 	}
 }
