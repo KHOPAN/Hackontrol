@@ -27,6 +27,7 @@ public class CameraChannel extends HackontrolChannel {
 
 	private static final Button BUTTON_CAMERA_LIST = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Camera List", "cameraList");
 	private static final Button BUTTON_SELECT = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Select", "selectCamera");
+	private static final Button BUTTON_REFRESH = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Refresh", "refreshCameraList");
 
 	private static final String MODAL_SELECT_CAMERA = "selectCamera";
 
@@ -43,6 +44,7 @@ public class CameraChannel extends HackontrolChannel {
 	public void preInitialize(Registry registry) {
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, CameraChannel.BUTTON_CAMERA_LIST, this :: buttonCameraList);
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, CameraChannel.BUTTON_SELECT, this :: buttonSelect);
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, CameraChannel.BUTTON_REFRESH, this :: buttonRefresh);
 		registry.register(ModalManager.MODAL_REGISTRY, CameraChannel.MODAL_SELECT_CAMERA, this :: modalSelectCamera);
 	}
 
@@ -82,6 +84,11 @@ public class CameraChannel extends HackontrolChannel {
 
 		this.selectContext = context;
 		context.replyModal(modal).queue();
+	}
+
+	private void buttonRefresh(ButtonContext context) {
+		this.buttonCameraList(context);
+		HackontrolMessage.delete(context);
 	}
 
 	private void modalSelectCamera(ModalContext context) {
@@ -148,6 +155,6 @@ public class CameraChannel extends HackontrolChannel {
 			}
 		}
 
-		sender.send(new MessageCreateBuilder().setContent(builder.toString()).addActionRow(CameraChannel.BUTTON_SELECT, HackontrolButton.delete()).build(), ButtonManager :: dynamicButtonCallback);
+		sender.send(new MessageCreateBuilder().setContent(builder.toString()).addActionRow(CameraChannel.BUTTON_SELECT, CameraChannel.BUTTON_REFRESH, HackontrolButton.delete()).build(), ButtonManager :: dynamicButtonCallback);
 	}
 }
