@@ -53,9 +53,7 @@ public class ScreenshotChannel extends HackontrolChannel {
 			}
 
 			BufferedImage image = this.robot.createScreenCapture(new Rectangle(Toolkit.getDefaultToolkit().getScreenSize()));
-			ByteArrayOutputStream stream = new ByteArrayOutputStream();
-			ImageIO.write(image, "png", stream);
-			context.replyFiles(FileUpload.fromData(stream.toByteArray(), ScreenshotChannel.getScreenshotFileName())).addActionRow(ScreenshotChannel.BUTTON_SCREENSHOT, ScreenshotChannel.BUTTON_REFRESH, HackontrolButton.delete()).queue(ButtonManager :: dynamicButtonCallback);
+			context.replyFiles(ScreenshotChannel.uploadImage(image, "screenshot")).addActionRow(ScreenshotChannel.BUTTON_SCREENSHOT, ScreenshotChannel.BUTTON_REFRESH, HackontrolButton.delete()).queue(ButtonManager :: dynamicButtonCallback);
 		} catch(Throwable Errors) {
 			HackontrolError.throwable(context.reply(), Errors);
 			return;
@@ -67,12 +65,18 @@ public class ScreenshotChannel extends HackontrolChannel {
 		HackontrolMessage.delete(context);
 	}
 
-	private static String getScreenshotFileName() {
+	static FileUpload uploadImage(BufferedImage image, String baseName) throws Throwable {
+		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+		ImageIO.write(image, "png", stream);
+		return FileUpload.fromData(stream.toByteArray(), ScreenshotChannel.getFileName(baseName));
+	}
+
+	static String getFileName(String baseName) {
 		try {
 			Calendar calendar = Calendar.getInstance();
-			return String.format("screenshot-%04d_%02d_%02d-%02d_%02d_%02d_%03d.png", calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH) + 1, calendar.get(Calendar.DAY_OF_MONTH), calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), calendar.get(Calendar.SECOND), calendar.get(Calendar.MILLISECOND));
+			return String.format("%s-%04d_%02d_%02d-%02d_%02d_%02d_%03d.png", baseName, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH) + 1, calendar.get(Calendar.DAY_OF_MONTH), calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), calendar.get(Calendar.SECOND), calendar.get(Calendar.MILLISECOND));
 		} catch(Throwable Errors) {
-			return "screenshot.png";
+			return baseName + ".png";
 		}
 	}
 }

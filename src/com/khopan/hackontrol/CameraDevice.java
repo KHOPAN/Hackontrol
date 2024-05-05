@@ -34,7 +34,9 @@ public class CameraDevice {
 			stream.readNBytes(8);
 			return ImageIO.read(stream);
 		} catch(Throwable Errors) {
-
+			if(!(Errors instanceof UnsupportedOperationException)) {
+				throw new RuntimeException(Errors);
+			}
 		}
 
 		byte[] data;
@@ -45,8 +47,8 @@ public class CameraDevice {
 			if(data == null || data.length == 0) {
 				return null;
 			}
-		} catch(UnsupportedOperationException Exception) {
-			return null;
+		} catch(Throwable Errors) {
+			throw new RuntimeException(Errors);
 		}
 
 		int width;
@@ -58,7 +60,7 @@ public class CameraDevice {
 			height = this.byteToInt(stream.readNBytes(4));
 			data = stream.readAllBytes();
 		} catch(Throwable Errors) {
-			return null;
+			throw new RuntimeException(Errors);
 		}
 
 		BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);

