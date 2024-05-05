@@ -5,7 +5,7 @@
 #include "native_camera.h"
 #include "camera_internal.h"
 
-jbyteArray NativeLibrary_capture(JNIEnv* environment, jclass nativeLibraryClass, jobject cameraDeviceInstance) {
+jbyteArray NativeLibrary_capture(JNIEnv* environment, jclass nativeLibraryClass, jobject cameraDeviceInstance, jboolean useMjpg) {
 	if(!cameraDeviceInstance) {
 		return NULL;
 	}
@@ -109,7 +109,7 @@ jbyteArray NativeLibrary_capture(JNIEnv* environment, jclass nativeLibraryClass,
 		goto releaseReader;
 	}
 
-	result = mediaType->lpVtbl->SetGUID(mediaType, &MF_MT_SUBTYPE, &MFVideoFormat_YUY2);
+	result = mediaType->lpVtbl->SetGUID(mediaType, &MF_MT_SUBTYPE, useMjpg ? &MFVideoFormat_MJPG : &MFVideoFormat_YUY2);
 
 	if(FAILED(result)) {
 		KHWin32ErrorW(environment, result, L"IMFMediaType::SetGUID");
@@ -125,7 +125,18 @@ jbyteArray NativeLibrary_capture(JNIEnv* environment, jclass nativeLibraryClass,
 	result = reader->lpVtbl->SetCurrentMediaType(reader, MF_SOURCE_READER_FIRST_VIDEO_STREAM, NULL, mediaType);
 
 	if(FAILED(result)) {
-		KHWin32ErrorW(environment, result, L"IMFSourceReader::SetCurrentMediaType");
+		if(result == 0xC00D5212) {
+			jclass exceptionClass = (*environment)->FindClass(environment, "java/lang/UnsupportedOperationException");
+			
+			if(!exceptionClass) {
+				KHStandardErrorW(environment, L"Toolchain broken, class 'java.lang.UnsupportedOperationException' not found");
+			} else {
+				(*environment)->ThrowNew(environment, exceptionClass, "Unsupported format");
+			}
+		} else {
+			KHWin32ErrorW(environment, result, L"IMFSourceReader::SetCurrentMediaType");
+		}
+
 		result = mediaType->lpVtbl->Release(mediaType);
 
 		if(FAILED(result)) {
@@ -142,6 +153,11 @@ jbyteArray NativeLibrary_capture(JNIEnv* environment, jclass nativeLibraryClass,
 		goto releaseReader;
 	}
 
+	UINT64 frameSize;
+	reader->lpVtbl->GetCurrentMediaType(reader, MF_SOURCE_READER_FIRST_VIDEO_STREAM, &mediaType);
+	mediaType->lpVtbl->GetUINT64(mediaType, &MF_MT_FRAME_SIZE, &frameSize);
+	UINT32 width = (UINT32) (frameSize >> 32);
+	UINT32 height = (UINT32) frameSize;
 	DWORD stream;
 	DWORD flags;
 	LONGLONG timestamp;
@@ -179,13 +195,19 @@ jbyteArray NativeLibrary_capture(JNIEnv* environment, jclass nativeLibraryClass,
 		goto releaseMediaBuffer;
 	}
 
-	jbyteArray byteArray = (*environment)->NewByteArray(environment, (jint) size);
+	jsize dataSize = (jsize) size;
+	jsize byteArraySize = dataSize + 2 * sizeof(unsigned long);
+	jbyteArray byteArray = (*environment)->NewByteArray(environment, byteArraySize);
 
 	if(!byteArray) {
 		goto unlockMediaBuffer;
 	}
 
-	(*environment)->SetByteArrayRegion(environment, byteArray, 0, (jint) size, data);
+	unsigned long widthJava = htonl(width);
+	unsigned long heightJava = htonl(height);
+	(*environment)->SetByteArrayRegion(environment, byteArray, 0, sizeof(unsigned long), (jbyte*) &widthJava);
+	(*environment)->SetByteArrayRegion(environment, byteArray, sizeof(unsigned long), sizeof(unsigned long), (jbyte*) &heightJava);
+	(*environment)->SetByteArrayRegion(environment, byteArray, 2 * sizeof(unsigned long), dataSize, data);
 	returnResult = byteArray;
 unlockMediaBuffer:
 	result = mediaBuffer->lpVtbl->Unlock(mediaBuffer);

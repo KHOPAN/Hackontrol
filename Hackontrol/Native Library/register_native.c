@@ -6,14 +6,14 @@
 #include "native_camera.h"
 
 static JNINativeMethod HackontrolNativeMethods[] = {
-	{"sleep",      "()Ljava/lang/String;",                     (void*) &NativeLibrary_sleep},
-	{"hibernate",  "()Ljava/lang/String;",                     (void*) &NativeLibrary_hibernate},
-	{"restart",    "()Ljava/lang/String;",                     (void*) &NativeLibrary_restart},
-	{"shutdown",   "()Ljava/lang/String;",                     (void*) &NativeLibrary_shutdown},
-	{"critical",   "(Z)Z",                                     (void*) &NativeLibrary_critical},
-	{"dialog",     "(Ljava/lang/String;Ljava/lang/String;I)I", (void*) &NativeLibrary_dialog},
-	{"cameraList", "()[Lcom/khopan/hackontrol/CameraDevice;",  (void*) &NativeLibrary_cameraList},
-	{"capture",    "(Lcom/khopan/hackontrol/CameraDevice;)[B", (void*) &NativeLibrary_capture},
+	{"sleep",      "()Ljava/lang/String;",                      (void*) &NativeLibrary_sleep},
+	{"hibernate",  "()Ljava/lang/String;",                      (void*) &NativeLibrary_hibernate},
+	{"restart",    "()Ljava/lang/String;",                      (void*) &NativeLibrary_restart},
+	{"shutdown",   "()Ljava/lang/String;",                      (void*) &NativeLibrary_shutdown},
+	{"critical",   "(Z)Z",                                      (void*) &NativeLibrary_critical},
+	{"dialog",     "(Ljava/lang/String;Ljava/lang/String;I)I",  (void*) &NativeLibrary_dialog},
+	{"cameraList", "()[Lcom/khopan/hackontrol/CameraDevice;",   (void*) &NativeLibrary_cameraList},
+	{"capture",    "(Lcom/khopan/hackontrol/CameraDevice;Z)[B", (void*) &NativeLibrary_capture},
 };
 
 void RegisterHackontrolNative(JNIEnv* environment) {
