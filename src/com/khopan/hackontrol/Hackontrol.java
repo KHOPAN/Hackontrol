@@ -1,17 +1,14 @@
 package com.khopan.hackontrol;
 
-import java.awt.image.BufferedImage;
-import java.io.File;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.Collections;
 import java.util.List;
-
-import javax.imageio.ImageIO;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.khopan.hackontrol.errorhandling.ErrorHandler;
+import com.khopan.hackontrol.logger.HackontrolLoggerConfig;
 import com.khopan.hackontrol.manager.Manager;
 import com.khopan.hackontrol.registration.ChannelRegistry;
 import com.khopan.hackontrol.registration.ManagerRegistry;
@@ -209,14 +206,9 @@ public class Hackontrol {
 	}
 
 	public static void main(String[] args) throws Throwable {
-		/*HackontrolLoggerConfig.disableDebug();
+		HackontrolLoggerConfig.disableDebug();
 		Hackontrol.LOGGER.info("Initializing");
-		Hackontrol.getInstance();*/
-		CameraDevice[] devices = NativeLibrary.cameraList();
-		CameraDevice device = devices[0];
-		System.out.println(device);
-		BufferedImage image = device.capture();
-		ImageIO.write(image, "png", new File("C:\\Users\\puthi\\Downloads\\capture.png"));
+		Hackontrol.getInstance();
 	}
 
 	public static Hackontrol getInstance() {

