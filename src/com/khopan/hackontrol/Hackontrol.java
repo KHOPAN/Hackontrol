@@ -1,5 +1,7 @@
 package com.khopan.hackontrol;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.Collections;
 import java.util.List;
@@ -211,7 +213,13 @@ public class Hackontrol {
 		CameraDevice[] devices = NativeLibrary.cameraList();
 		CameraDevice device = devices[0];
 		System.out.println(device);
-		NativeLibrary.capture(device);
+		byte[] data = NativeLibrary.capture(device);
+		System.out.println(data + (data == null ? "" : " " + data.length));
+		//BufferedImage image = ImageIO.read(new ByteArrayInputStream(data));
+		//ImageIO.write(image, "png", new File("C:\\Users\\puthi\\Downloads\\capture.png"));
+		FileOutputStream stream = new FileOutputStream(new File("C:\\Users\\puthi\\Downloads\\yuy2"));
+		stream.write(data);
+		stream.close();
 	}
 
 	public static Hackontrol getInstance() {

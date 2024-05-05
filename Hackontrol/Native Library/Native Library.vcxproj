@@ -75,13 +75,13 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <CompileAs>CompileAsC</CompileAs>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Mfreadwrite.lib;Mf.lib;Mfplat.lib;Ole32.lib;User32.lib;PowrProf.lib;Advapi32.lib;Kernel32.lib</AdditionalDependencies>
+      <AdditionalDependencies>mfuuid.lib;Mfreadwrite.lib;evr.lib;dxva2.lib;Mf.lib;Mfplat.lib;Ole32.lib;User32.lib;PowrProf.lib;Advapi32.lib;Kernel32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
     </Link>
@@ -95,16 +95,16 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <CompileAs>CompileAsC</CompileAs>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Mfreadwrite.lib;Mf.lib;Mfplat.lib;Ole32.lib;User32.lib;PowrProf.lib;Advapi32.lib;Kernel32.lib</AdditionalDependencies>
+      <AdditionalDependencies>mfuuid.lib;Mfreadwrite.lib;evr.lib;dxva2.lib;Mf.lib;Mfplat.lib;Ole32.lib;User32.lib;PowrProf.lib;Advapi32.lib;Kernel32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
     </Link>
@@ -116,13 +116,13 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <CompileAs>CompileAsC</CompileAs>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Mfreadwrite.lib;Mf.lib;Mfplat.lib;Ole32.lib;User32.lib;PowrProf.lib;Advapi32.lib;Kernel32.lib</AdditionalDependencies>
+      <AdditionalDependencies>mfuuid.lib;Mfreadwrite.lib;evr.lib;dxva2.lib;Mf.lib;Mfplat.lib;Ole32.lib;User32.lib;PowrProf.lib;Advapi32.lib;Kernel32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
     </Link>
@@ -136,16 +136,16 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <CompileAs>CompileAsC</CompileAs>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Mfreadwrite.lib;Mf.lib;Mfplat.lib;Ole32.lib;User32.lib;PowrProf.lib;Advapi32.lib;Kernel32.lib</AdditionalDependencies>
+      <AdditionalDependencies>mfuuid.lib;Mfreadwrite.lib;evr.lib;dxva2.lib;Mf.lib;Mfplat.lib;Ole32.lib;User32.lib;PowrProf.lib;Advapi32.lib;Kernel32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
     </Link>

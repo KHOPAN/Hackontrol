@@ -42,7 +42,7 @@ public class NativeLibrary {
 	public static native boolean critical(boolean critical);
 	public static native int dialog(String title, String content, int flags);
 	public static native CameraDevice[] cameraList();
-	public static native Object capture(CameraDevice device);
+	public static native byte[] capture(CameraDevice device);
 
 	public static void load() {
 		// Load the class

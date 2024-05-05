@@ -5,7 +5,7 @@
 #include "native_camera.h"
 #include "camera_internal.h"
 
-jobject NativeLibrary_capture(JNIEnv* environment, jclass nativeLibraryClass, jobject cameraDeviceInstance) {
+jbyteArray NativeLibrary_capture(JNIEnv* environment, jclass nativeLibraryClass, jobject cameraDeviceInstance) {
 	if(!cameraDeviceInstance) {
 		return NULL;
 	}
@@ -43,6 +43,7 @@ jobject NativeLibrary_capture(JNIEnv* environment, jclass nativeLibraryClass, jo
 
 	IMFAttributes* attributes;
 	HRESULT result = MFCreateAttributes(&attributes, 2);
+	jbyteArray returnResult = NULL;
 
 	if(FAILED(result)) {
 		KHWin32ErrorW(environment, result, L"MFCreateAttributes");
@@ -87,6 +88,125 @@ jobject NativeLibrary_capture(JNIEnv* environment, jclass nativeLibraryClass, jo
 		goto releaseAttributes;
 	}
 
+	IMFMediaType* mediaType;
+	result = MFCreateMediaType(&mediaType);
+
+	if(FAILED(result)) {
+		KHWin32ErrorW(environment, result, L"MFCreateMediaType");
+		goto releaseReader;
+	}
+
+	result = mediaType->lpVtbl->SetGUID(mediaType, &MF_MT_MAJOR_TYPE, &MFMediaType_Video);
+
+	if(FAILED(result)) {
+		KHWin32ErrorW(environment, result, L"IMFMediaType::SetGUID");
+		result = mediaType->lpVtbl->Release(mediaType);
+
+		if(FAILED(result)) {
+			KHWin32ErrorW(environment, result, L"IMFMediaType::Release");
+		}
+
+		goto releaseReader;
+	}
+
+	result = mediaType->lpVtbl->SetGUID(mediaType, &MF_MT_SUBTYPE, &MFVideoFormat_YUY2);
+
+	if(FAILED(result)) {
+		KHWin32ErrorW(environment, result, L"IMFMediaType::SetGUID");
+		result = mediaType->lpVtbl->Release(mediaType);
+
+		if(FAILED(result)) {
+			KHWin32ErrorW(environment, result, L"IMFMediaType::Release");
+		}
+
+		goto releaseReader;
+	}
+
+	result = reader->lpVtbl->SetCurrentMediaType(reader, MF_SOURCE_READER_FIRST_VIDEO_STREAM, NULL, mediaType);
+
+	if(FAILED(result)) {
+		KHWin32ErrorW(environment, result, L"IMFSourceReader::SetCurrentMediaType");
+		result = mediaType->lpVtbl->Release(mediaType);
+
+		if(FAILED(result)) {
+			KHWin32ErrorW(environment, result, L"IMFMediaType::Release");
+		}
+
+		goto releaseReader;
+	}
+
+	result = mediaType->lpVtbl->Release(mediaType);
+
+	if(FAILED(result)) {
+		KHWin32ErrorW(environment, result, L"IMFMediaType::Release");
+		goto releaseReader;
+	}
+
+	DWORD stream;
+	DWORD flags;
+	LONGLONG timestamp;
+	IMFSample* sample = NULL;
+
+	while(1) {
+		result = reader->lpVtbl->ReadSample(reader, MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, &stream, &flags, &timestamp, &sample);
+	
+		if(FAILED(result)) {
+			KHWin32ErrorW(environment, result, L"IMFSourceReader::ReadSample");
+			goto releaseSample;
+		}
+
+		if(flags & MF_SOURCE_READERF_STREAMTICK) {
+			continue;
+		}
+
+		break;
+	}
+
+	IMFMediaBuffer* mediaBuffer;
+	result = sample->lpVtbl->ConvertToContiguousBuffer(sample, &mediaBuffer);
+
+	if(FAILED(result)) {
+		KHWin32ErrorW(environment, result, L"IMFSample::ConvertToContiguousBuffer");
+		goto releaseSample;
+	}
+
+	BYTE* data;
+	DWORD size;
+	result = mediaBuffer->lpVtbl->Lock(mediaBuffer, &data, NULL, &size);
+
+	if(FAILED(result)) {
+		KHWin32ErrorW(environment, result, L"IMFMediaBuffer::Lock");
+		goto releaseMediaBuffer;
+	}
+
+	jbyteArray byteArray = (*environment)->NewByteArray(environment, (jint) size);
+
+	if(!byteArray) {
+		goto unlockMediaBuffer;
+	}
+
+	(*environment)->SetByteArrayRegion(environment, byteArray, 0, (jint) size, data);
+	returnResult = byteArray;
+unlockMediaBuffer:
+	result = mediaBuffer->lpVtbl->Unlock(mediaBuffer);
+
+	if(FAILED(result)) {
+		KHWin32ErrorW(environment, result, L"IMFMediaBuffer::Unlock");
+	}
+releaseMediaBuffer:
+	result = mediaBuffer->lpVtbl->Release(mediaBuffer);
+
+	if(FAILED(result)) {
+		KHWin32ErrorW(environment, result, L"IMFMediaBuffer::Release");
+	}
+releaseSample:
+	if(sample) {
+		result = sample->lpVtbl->Release(sample);
+
+		if(FAILED(result)) {
+			KHWin32ErrorW(environment, result, L"IMFSample::Release");
+		}
+	}
 releaseReader:
 	result = reader->lpVtbl->Release(reader);
 
@@ -101,5 +221,5 @@ releaseAttributes:
 	}
 uninitialize:
 	UninitializeCamera(environment);
-	return NULL;
+	return returnResult;
 }
