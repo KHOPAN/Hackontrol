@@ -9,7 +9,7 @@ public class CameraDevice {
 	public final String deviceName;
 	public final String symbolicLink;
 
-	public CameraDevice(String deviceName, String symbolicLink) {
+	private CameraDevice(String deviceName, String symbolicLink) {
 		this.deviceName = deviceName;
 		this.symbolicLink = symbolicLink;
 	}
