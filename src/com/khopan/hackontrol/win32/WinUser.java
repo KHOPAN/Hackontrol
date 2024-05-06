@@ -38,4 +38,14 @@ public interface WinUser {
 	public static final int MB_DEFMASK                   = 0x00000F00;
 	public static final int MB_MODEMASK                  = 0x00003000;
 	public static final int MB_MISCMASK                  = 0x0000C000;
+
+	public static final int IDOK       = 0x01;
+	public static final int IDCANCEL   = 0x02;
+	public static final int IDABORT    = 0x03;
+	public static final int IDRETRY    = 0x04;
+	public static final int IDIGNORE   = 0x05;
+	public static final int IDYES      = 0x06;
+	public static final int IDNO       = 0x07;
+	public static final int IDCONTINUE = 0x0B;
+	public static final int IDTRYAGAIN = 0x0A;
 }

