@@ -30,7 +30,7 @@ public class InteractionManager implements Manager {
 	@Override
 	public void configureBuilder(JDABuilder builder) {
 		builder.addEventListeners(InteractionEventListener.create(ButtonInteractionEvent.class, Event -> ButtonManager.buttonEvent(Event, this.buttonList)));
-		builder.addEventListeners(InteractionEventListener.create(ModalInteractionEvent.class, Event -> ModalInteractionManager.modalEvent(Event, this.modalList)));
+		builder.addEventListeners(InteractionEventListener.create(ModalInteractionEvent.class, Event -> ModalManager.modalEvent(Event, this.modalList)));
 		builder.addEventListeners(FilteredEventListener.create(MessageDeleteEvent.class, this :: deleteEvent));
 	}
 

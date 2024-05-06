@@ -6,6 +6,7 @@ import com.khopan.hackontrol.manager.interaction.ButtonManager;
 import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.manager.interaction.InteractionManager;
 import com.khopan.hackontrol.manager.interaction.ModalContext;
+import com.khopan.hackontrol.manager.interaction.ModalManager;
 import com.khopan.hackontrol.registry.Registry;
 
 import net.dv8tion.jda.api.interactions.callbacks.IModalCallback;
@@ -78,7 +79,7 @@ public class DialogChannel extends HackontrolChannel {
 				.setValue(messageContent)
 				.build();
 
-		Modal modal = Modal.create(edit ? DialogChannel.MODAL_EDIT_DIALOG : DialogChannel.MODAL_NEW_DIALOG, edit ? "Edit Dialog" : "New Dialog")
+		Modal modal = ModalManager.staticModal(edit ? "Edit Dialog" : "New Dialog", edit ? DialogChannel.MODAL_EDIT_DIALOG : DialogChannel.MODAL_NEW_DIALOG)
 				.addActionRow(titleInput)
 				.addActionRow(messageInput)
 				.build();
