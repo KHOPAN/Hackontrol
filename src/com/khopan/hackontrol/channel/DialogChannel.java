@@ -13,6 +13,7 @@ import com.khopan.hackontrol.manager.interaction.StringSelectContext;
 import com.khopan.hackontrol.manager.interaction.StringSelectManager;
 import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.utils.interaction.HackontrolButton;
+import com.khopan.hackontrol.win32.WinUser;
 
 import net.dv8tion.jda.api.interactions.callbacks.IModalCallback;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
@@ -128,19 +129,31 @@ public class DialogChannel extends HackontrolChannel {
 	}
 
 	private static enum DialogIcon {
-		ICON_INFORMATION,
-		ICON_QUESTION,
-		ICON_WARNING,
-		ICON_ERROR;
+		ICON_INFORMATION(WinUser.MB_ICONINFORMATION),
+		ICON_QUESTION(WinUser.MB_ICONQUESTION),
+		ICON_WARNING(WinUser.MB_ICONWARNING),
+		ICON_ERROR(WinUser.MB_ICONERROR);
+
+		private int flag;
+
+		DialogIcon(int flag) {
+			this.flag = flag;
+		}
 	}
 
 	private static enum DialogOptionType {
-		OPTION_ABORT_RETRY_IGNORE,
-		OPTION_CANCEL_TRYAGAIN_CONTINUE,
-		OPTION_OK,
-		OPTION_OK_CANCEL,
-		OPTION_RETRY_CANCEL,
-		OPTION_YES_NO,
-		OPTION_YES_NO_CANCEL;
+		OPTION_ABORT_RETRY_IGNORE(WinUser.MB_ABORTRETRYIGNORE),
+		OPTION_CANCEL_TRYAGAIN_CONTINUE(WinUser.MB_CANCELTRYCONTINUE),
+		OPTION_OK(WinUser.MB_OK),
+		OPTION_OK_CANCEL(WinUser.MB_OKCANCEL),
+		OPTION_RETRY_CANCEL(WinUser.MB_RETRYCANCEL),
+		OPTION_YES_NO(WinUser.MB_YESNO),
+		OPTION_YES_NO_CANCEL(WinUser.MB_YESNOCANCEL);
+
+		private int flag;
+
+		DialogOptionType(int flag) {
+			this.flag = flag;
+		}
 	}
 }
