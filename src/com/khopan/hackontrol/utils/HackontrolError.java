@@ -3,7 +3,7 @@ package com.khopan.hackontrol.utils;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import com.khopan.hackontrol.manager.common.sender.sendable.ISendable;
+import com.khopan.hackontrol.utils.sendable.ISendable;
 
 public class HackontrolError {
 	private HackontrolError() {}

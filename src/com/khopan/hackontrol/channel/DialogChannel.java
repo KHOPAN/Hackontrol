@@ -1,16 +1,16 @@
 package com.khopan.hackontrol.channel;
 
 import com.khopan.hackontrol.HackontrolChannel;
-import com.khopan.hackontrol.manager.button.ButtonContext;
-import com.khopan.hackontrol.manager.button.ButtonManager;
-import com.khopan.hackontrol.manager.modal.ModalContext;
-import com.khopan.hackontrol.manager.modal.ModalManager;
+import com.khopan.hackontrol.manager.interaction.ButtonContext;
+import com.khopan.hackontrol.manager.interaction.ButtonManager;
+import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
+import com.khopan.hackontrol.manager.interaction.InteractionManager;
+import com.khopan.hackontrol.manager.interaction.ModalContext;
 import com.khopan.hackontrol.registry.Registry;
 
 import net.dv8tion.jda.api.interactions.callbacks.IModalCallback;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
@@ -19,9 +19,9 @@ import net.dv8tion.jda.api.interactions.modals.Modal;
 public class DialogChannel extends HackontrolChannel {
 	private static final String CHANNEL_NAME = "dialog";
 
-	private static Button BUTTON_NEW_DIALOG = ButtonManager.staticButton(ButtonStyle.SUCCESS, "New Dialog", "newDialog");
+	private static Button BUTTON_NEW_DIALOG = ButtonManager.staticButton(ButtonType.SUCCESS, "New Dialog", "newDialog");
 
-	private static String MODAL_NEW_DIALOG = "modalNewDialog";
+	private static String MODAL_NEW_DIALOG  = "modalNewDialog";
 	private static String MODAL_EDIT_DIALOG = "modalEditDialog";
 
 	@Override
@@ -31,9 +31,9 @@ public class DialogChannel extends HackontrolChannel {
 
 	@Override
 	public void preInitialize(Registry registry) {
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, DialogChannel.BUTTON_NEW_DIALOG, this :: buttonNewDialog);
-		registry.register(ModalManager.MODAL_REGISTRY, DialogChannel.MODAL_NEW_DIALOG, this :: modalNewDialog);
-		registry.register(ModalManager.MODAL_REGISTRY, DialogChannel.MODAL_EDIT_DIALOG, this :: modalEditDialog);
+		registry.register(InteractionManager.BUTTON_REGISTRY, DialogChannel.BUTTON_NEW_DIALOG, this :: buttonNewDialog);
+		registry.register(InteractionManager.MODAL_REGISTRY,  DialogChannel.MODAL_NEW_DIALOG,  this :: modalNewDialog);
+		registry.register(InteractionManager.MODAL_REGISTRY,  DialogChannel.MODAL_EDIT_DIALOG, this :: modalEditDialog);
 	}
 
 	@Override
@@ -42,7 +42,7 @@ public class DialogChannel extends HackontrolChannel {
 	}
 
 	private void buttonNewDialog(ButtonContext context) {
-		this.newEditDialogModal(context.getEvent(), false, null, null);
+		this.newEditDialogModal(context, false, null, null);
 	}
 
 	private void modalNewDialog(ModalContext context) {
@@ -58,7 +58,7 @@ public class DialogChannel extends HackontrolChannel {
 	}
 
 	private void modalEditDialog(ModalContext context) {
-		context.acknowledge();
+		context.deferEdit().queue();
 	}
 
 	private void newEditDialogModal(IModalCallback callback, boolean edit, String title, String messageContent) {

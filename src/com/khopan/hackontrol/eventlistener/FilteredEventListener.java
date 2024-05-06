@@ -1,7 +1,7 @@
 package com.khopan.hackontrol.eventlistener;
 
 import com.khopan.hackontrol.Hackontrol;
-import com.khopan.hackontrol.errorhandling.ErrorHandler;
+import com.khopan.hackontrol.utils.ErrorHandler;
 
 import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.hooks.EventListener;

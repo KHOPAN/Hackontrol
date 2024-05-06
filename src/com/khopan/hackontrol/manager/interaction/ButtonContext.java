@@ -1,4 +1,4 @@
-package com.khopan.hackontrol.manager.command;
+package com.khopan.hackontrol.manager.interaction;
 
 import com.khopan.hackontrol.utils.sendable.ISendable;
 import com.khopan.hackontrol.utils.sendable.ISendableMessage;
@@ -6,15 +6,14 @@ import com.khopan.hackontrol.utils.sendable.ISendableReply;
 import com.khopan.hackontrol.utils.sendable.sender.MessageChannelSendable;
 import com.khopan.hackontrol.utils.sendable.sender.ReplyCallbackSendable;
 
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.commands.Command;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 
-public class CommandContext extends SlashCommandInteractionEvent implements ISendableMessage, ISendableReply {
-	private final Command command;
+public class ButtonContext extends ButtonInteractionEvent implements IParameterized, ISendableMessage, ISendableReply {
+	private final Object[] parameters;
 
-	public CommandContext(SlashCommandInteractionEvent Event, Command command) {
+	public ButtonContext(ButtonInteractionEvent Event, Object[] parameters) {
 		super(Event.getJDA(), Event.getResponseNumber(), Event.getInteraction());
-		this.command = command;
+		this.parameters = parameters;
 	}
 
 	@Override
@@ -27,7 +26,13 @@ public class CommandContext extends SlashCommandInteractionEvent implements ISen
 		return MessageChannelSendable.of(this.getChannel());
 	}
 
-	public Command getCommand() {
-		return this.command;
+	@Override
+	public boolean hasParameter() {
+		return this.parameters == null || this.parameters.length == 0;
+	}
+
+	@Override
+	public Object[] getParameters() {
+		return this.parameters;
 	}
 }

@@ -1,15 +1,17 @@
-package com.khopan.hackontrol.manager.common.sender.sendable;
+package com.khopan.hackontrol.utils.sendable.sender;
 
 import java.util.function.Consumer;
+
+import com.khopan.hackontrol.utils.sendable.ISendable;
 
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
-public class MessageCreateDataSendableListener implements ISendable {
+public class ConsumerMessageCreateDataSendable implements ISendable {
 	private final Consumer<MessageCreateData> consumer;
 	private final Consumer<Consumer<Message>> callback;
 
-	private MessageCreateDataSendableListener(Consumer<MessageCreateData> consumer, Consumer<Consumer<Message>> callback) {
+	private ConsumerMessageCreateDataSendable(Consumer<MessageCreateData> consumer, Consumer<Consumer<Message>> callback) {
 		this.consumer = consumer;
 		this.callback = callback;
 	}
@@ -24,10 +26,10 @@ public class MessageCreateDataSendableListener implements ISendable {
 	}
 
 	public static ISendable of(Consumer<MessageCreateData> consumer, Consumer<Consumer<Message>> callback) {
-		return new MessageCreateDataSendableListener(consumer, callback);
+		return new ConsumerMessageCreateDataSendable(consumer, callback);
 	}
 
 	public static ISendable of(Consumer<MessageCreateData> consumer) {
-		return MessageCreateDataSendableListener.of(consumer, null);
+		return ConsumerMessageCreateDataSendable.of(consumer, null);
 	}
 }

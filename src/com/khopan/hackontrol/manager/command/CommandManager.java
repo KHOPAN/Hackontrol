@@ -67,7 +67,7 @@ public class CommandManager implements Manager {
 			return;
 		}
 
-		entry.action.accept(new CommandContextImplementation(Event, entry.command));
+		entry.action.accept(new CommandContext(Event, entry.command));
 	}
 
 	private class CommandEntry {

@@ -9,7 +9,7 @@ import com.khopan.hackontrol.eventlistener.FilteredEventListener;
 import com.khopan.hackontrol.registry.RegistrationHandler;
 import com.khopan.hackontrol.registry.RegistrationHandler.RegistrationTypeEntry;
 import com.khopan.hackontrol.registry.RegistryType;
-import com.khopan.hackontrol.utils.DiscordUtils;
+import com.khopan.hackontrol.utils.HackontrolMessage;
 
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -38,7 +38,7 @@ public class MessageManager implements Manager {
 			channel.sendMessage("**" + Hackontrol.getInstance().getMachineIdentifier() + ": Ok**").queue();
 		}
 
-		if(!DiscordUtils.checkCategory(channel)) {
+		if(!HackontrolMessage.checkCategory(channel)) {
 			return;
 		}
 

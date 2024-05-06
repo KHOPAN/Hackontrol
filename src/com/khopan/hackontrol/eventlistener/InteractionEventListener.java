@@ -1,8 +1,8 @@
 package com.khopan.hackontrol.eventlistener;
 
 import com.khopan.hackontrol.Hackontrol;
-import com.khopan.hackontrol.errorhandling.ErrorHandler;
-import com.khopan.hackontrol.utils.DiscordUtils;
+import com.khopan.hackontrol.utils.ErrorHandler;
+import com.khopan.hackontrol.utils.HackontrolMessage;
 
 import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
@@ -29,7 +29,7 @@ public class InteractionEventListener<T extends GenericEvent & Interaction> impl
 				this.action.onEvent((T) Event);
 			}
 
-			if(!(Event instanceof Interaction interaction && DiscordUtils.checkCategory(interaction.getChannel()))) {
+			if(!(Event instanceof Interaction interaction && HackontrolMessage.checkCategory(interaction.getChannel()))) {
 				return;
 			}
 

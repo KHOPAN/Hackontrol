@@ -1,15 +1,17 @@
-package com.khopan.hackontrol.manager.common.sender.sendable;
+package com.khopan.hackontrol.utils.sendable.sender;
 
 import java.util.function.Consumer;
+
+import com.khopan.hackontrol.utils.sendable.ISendable;
 
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
-public class ChannelSendable implements ISendable {
+public class MessageChannelSendable implements ISendable {
 	private final MessageChannel channel;
 
-	private ChannelSendable(MessageChannel channel) {
+	private MessageChannelSendable(MessageChannel channel) {
 		this.channel = channel;
 	}
 
@@ -19,6 +21,6 @@ public class ChannelSendable implements ISendable {
 	}
 
 	public static ISendable of(MessageChannel channel) {
-		return new ChannelSendable(channel);
+		return new MessageChannelSendable(channel);
 	}
 }

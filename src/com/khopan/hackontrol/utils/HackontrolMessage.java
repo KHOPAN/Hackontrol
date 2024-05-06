@@ -1,11 +1,13 @@
 package com.khopan.hackontrol.utils;
 
-import com.khopan.hackontrol.manager.button.ButtonManager;
-import com.khopan.hackontrol.manager.common.ICommonGetter;
-import com.khopan.hackontrol.manager.common.IEventGetter;
-import com.khopan.hackontrol.manager.common.sender.sendable.ISendable;
+import com.khopan.hackontrol.Hackontrol;
+import com.khopan.hackontrol.manager.interaction.InteractionManager;
+import com.khopan.hackontrol.utils.sendable.ISendable;
 
-import net.dv8tion.jda.api.events.interaction.component.GenericComponentInteractionCreateEvent;
+import net.dv8tion.jda.api.entities.channel.Channel;
+import net.dv8tion.jda.api.entities.channel.attribute.ICategorizableChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.Category;
+import net.dv8tion.jda.api.interactions.components.ComponentInteraction;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 
 public class HackontrolMessage {
@@ -35,8 +37,8 @@ public class HackontrolMessage {
 		HackontrolMessage.deletableInternal(sender, HackontrolMessage.limitBlock(message));
 	}
 
-	public static <T extends ICommonGetter & IEventGetter<? extends GenericComponentInteractionCreateEvent>> void delete(T getter) {
-		getter.getChannel().deleteMessageById(getter.getEvent().getMessageIdLong()).queue();
+	public static void delete(ComponentInteraction interaction) {
+		interaction.getChannel().deleteMessageById(interaction.getMessageIdLong()).queue();
 	}
 
 	static void deletableInternal(ISendable sender, String message) {
@@ -47,7 +49,7 @@ public class HackontrolMessage {
 		MessageCreateBuilder builder = new MessageCreateBuilder();
 		builder.setContent(message);
 		builder.addActionRow(HackontrolButton.delete());
-		sender.send(builder.build(), ButtonManager :: dynamicButtonCallback);
+		sender.send(builder.build(), InteractionManager :: callback);
 	}
 
 	private static String limitBlock(String text) {
@@ -60,5 +62,15 @@ public class HackontrolMessage {
 		}
 
 		return text;
+	}
+
+	public static boolean checkCategory(Channel channel) {
+		if(!(channel instanceof ICategorizableChannel)) {
+			return false;
+		}
+
+		Category category = ((ICategorizableChannel) channel).getParentCategory();
+		Hackontrol hackontrol = Hackontrol.getInstance();
+		return hackontrol.getCategory().equals(category);
 	}
 }

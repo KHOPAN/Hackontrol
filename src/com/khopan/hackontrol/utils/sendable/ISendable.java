@@ -1,4 +1,4 @@
-package com.khopan.hackontrol.manager.common.sender.sendable;
+package com.khopan.hackontrol.utils.sendable;
 
 import java.util.function.Consumer;
 

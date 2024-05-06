@@ -2,31 +2,33 @@ package com.khopan.hackontrol.utils;
 
 import java.util.function.Consumer;
 
-import com.khopan.hackontrol.manager.button.ButtonManager;
-import com.khopan.hackontrol.manager.common.IThinkable;
-import com.khopan.hackontrol.manager.common.sender.IRepliable;
+import com.khopan.hackontrol.manager.interaction.InteractionManager;
 
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.interactions.InteractionHook;
+import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
 public class TimeSafeReplyHandler {
 	private static int Count;
 
-	private final IRepliable repliable;
+	private final IReplyCallback callback;
 	private final Consumer<Message> consumer;
 
 	private volatile MessageCreateData message;
 	private volatile InteractionHook hook;
 	private volatile boolean processed;
+	private volatile boolean defer;
 
-	private boolean defer;
-
-	private TimeSafeReplyHandler(IThinkable thinkable, IRepliable repliable, long timeout, Consumer<Consumer<MessageCreateData>> action, Consumer<Message> consumer) {
+	private TimeSafeReplyHandler(IReplyCallback callback, long timeout, Consumer<Consumer<MessageCreateData>> action, Consumer<Message> consumer) {
 		long start = System.currentTimeMillis();
-		this.repliable = repliable;
+		this.callback = callback;
 		this.consumer = consumer;
-		Thread thread = new Thread(() -> action.accept(this :: callback));
+		Thread thread = new Thread(() -> {
+			action.accept(this :: callback);
+			TimeSafeReplyHandler.Count--;
+		});
+
 		thread.setName("Hackontrol Time-Safe Reply Handler #" + (++TimeSafeReplyHandler.Count));
 		thread.start();
 
@@ -38,7 +40,7 @@ public class TimeSafeReplyHandler {
 
 		if(this.message == null) {
 			this.defer = true;
-			thinkable.thinking(this :: hook);
+			callback.deferReply().queue(this :: hook);
 		}
 	}
 
@@ -68,7 +70,7 @@ public class TimeSafeReplyHandler {
 		}
 
 		if(!this.defer) {
-			this.repliable.reply(this.message).queue(this :: consumeReply);
+			this.callback.reply(this.message).queue(this :: consumeReply);
 			this.processed = true;
 			return;
 		}
@@ -93,19 +95,11 @@ public class TimeSafeReplyHandler {
 		this.consumer.accept(message);
 	}
 
-	public static void start(IThinkable thinkable, IRepliable repliable, long timeout, Consumer<Consumer<MessageCreateData>> action, Consumer<Message> consumer) {
-		new TimeSafeReplyHandler(thinkable, repliable, timeout, action, consumer);
+	public static void start(IReplyCallback callback, long timeout, Consumer<Consumer<MessageCreateData>> action, Consumer<Message> consumer) {
+		new TimeSafeReplyHandler(callback, timeout, action, consumer);
 	}
 
-	public static <T extends IThinkable & IRepliable> void start(T thinkableRepliable, long timeout, Consumer<Consumer<MessageCreateData>> action, Consumer<Message> consumer) {
-		TimeSafeReplyHandler.start(thinkableRepliable, thinkableRepliable, timeout, action, consumer);
-	}
-
-	public static void start(IThinkable thinkable, IRepliable repliable, Consumer<Consumer<MessageCreateData>> action) {
-		TimeSafeReplyHandler.start(thinkable, repliable, 1500 /* Safety factor: 2x */, action, ButtonManager :: dynamicButtonCallback);
-	}
-
-	public static <T extends IThinkable & IRepliable> void start(T thinkableRepliable, Consumer<Consumer<MessageCreateData>> action) {
-		TimeSafeReplyHandler.start(thinkableRepliable, thinkableRepliable, action);
+	public static void start(IReplyCallback callback, Consumer<Consumer<MessageCreateData>> action) {
+		TimeSafeReplyHandler.start(callback, 1500 /* Safety factor: 2x */, action, InteractionManager :: callback);
 	}
 }
