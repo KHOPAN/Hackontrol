@@ -16,6 +16,7 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
@@ -23,14 +24,17 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 public class InteractionManager implements Manager {
 	public static final RegistryType<Button, Consumer<ButtonContext>> BUTTON_REGISTRY = RegistryType.create();
 	public static final RegistryType<String, Consumer<ModalContext>> MODAL_REGISTRY = RegistryType.create();
+	public static final RegistryType<String, Consumer<StringSelectContext>> STRING_SELECT_MENU_REGISTRY = RegistryType.create();
 
 	private List<RegistrationTypeEntry<Button, Consumer<ButtonContext>>> buttonList;
 	private List<RegistrationTypeEntry<String, Consumer<ModalContext>>> modalList;
+	private List<RegistrationTypeEntry<String, Consumer<StringSelectContext>>> stringSelectMenuList;
 
 	@Override
 	public void configureBuilder(JDABuilder builder) {
 		builder.addEventListeners(InteractionEventListener.create(ButtonInteractionEvent.class, Event -> ButtonManager.buttonEvent(Event, this.buttonList)));
 		builder.addEventListeners(InteractionEventListener.create(ModalInteractionEvent.class, Event -> ModalManager.modalEvent(Event, this.modalList)));
+		builder.addEventListeners(InteractionEventListener.create(StringSelectInteractionEvent.class, Event -> StringSelectManager.stringSelectInteractionEvent(Event, this.stringSelectMenuList)));
 		builder.addEventListeners(FilteredEventListener.create(MessageDeleteEvent.class, this :: deleteEvent));
 	}
 
@@ -38,6 +42,7 @@ public class InteractionManager implements Manager {
 	public void initialize(RegistrationHandler handler) {
 		this.buttonList = handler.filterType(InteractionManager.BUTTON_REGISTRY);
 		this.modalList = handler.filterType(InteractionManager.MODAL_REGISTRY);
+		this.stringSelectMenuList = handler.filterType(InteractionManager.STRING_SELECT_MENU_REGISTRY);
 	}
 
 	private void deleteEvent(MessageDeleteEvent Event) {
@@ -61,6 +66,7 @@ public class InteractionManager implements Manager {
 
 	public static void callback(Message message) {
 		ButtonManager.assignIdentifier(message);
+		StringSelectManager.assignIdentifier(message);
 	}
 
 	public static void callback(InteractionHook hook) {

@@ -2,6 +2,7 @@ package com.khopan.hackontrol.utils;
 
 import com.khopan.hackontrol.Hackontrol;
 import com.khopan.hackontrol.manager.interaction.InteractionManager;
+import com.khopan.hackontrol.utils.interaction.HackontrolButton;
 import com.khopan.hackontrol.utils.sendable.ISendable;
 
 import net.dv8tion.jda.api.entities.channel.Channel;

@@ -17,7 +17,7 @@ import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 public final class ButtonManager {
 	private ButtonManager() {}
 
-	public static Button dynamicButton(ButtonType type, String label, Consumer<ButtonContext> action, Object... paramters) {
+	public static Button dynamicButton(ButtonType type, String label, Consumer<ButtonContext> action, Object... parameters) {
 		if(type == null) {
 			throw new NullPointerException("Button type cannot be null");
 		}
@@ -30,7 +30,7 @@ public final class ButtonManager {
 		Button button = ButtonManager.staticButton(type, label, InteractionSession.prefix(identifier));
 		InteractionSession session = new InteractionSession();
 		session.sessionIdentifier = identifier;
-		session.paramters = paramters;
+		session.paramters = parameters;
 		session.action = action;
 		session.type = InteractionType.BUTTON;
 		InteractionSession.SESSION_LIST.add(session);

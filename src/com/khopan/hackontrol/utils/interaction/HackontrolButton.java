@@ -1,4 +1,4 @@
-package com.khopan.hackontrol.utils;
+package com.khopan.hackontrol.utils.interaction;
 
 import com.khopan.hackontrol.manager.interaction.ButtonContext;
 import com.khopan.hackontrol.manager.interaction.ButtonManager;

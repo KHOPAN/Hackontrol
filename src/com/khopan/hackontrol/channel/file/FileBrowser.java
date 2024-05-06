@@ -13,9 +13,9 @@ import com.khopan.hackontrol.manager.interaction.ButtonManager;
 import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.manager.interaction.InteractionManager;
 import com.khopan.hackontrol.manager.interaction.ModalContext;
-import com.khopan.hackontrol.utils.HackontrolButton;
 import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.HackontrolMessage;
+import com.khopan.hackontrol.utils.interaction.HackontrolButton;
 import com.khopan.hackontrol.utils.sendable.ISendable;
 import com.khopan.hackontrol.utils.sendable.sender.ReplyCallbackSendable;
 
