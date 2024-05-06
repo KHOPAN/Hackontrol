@@ -1,5 +1,8 @@
 package com.khopan.hackontrol;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,7 +18,7 @@ public class NativeLibrary {
 	public static boolean Enable;
 
 	static {
-		/*try {
+		try {
 			InputStream inputStream = NativeLibrary.class.getClassLoader().getResourceAsStream("Hackontrol.dll");
 			byte[] data = inputStream.readAllBytes();
 			inputStream.close();
@@ -26,9 +29,8 @@ public class NativeLibrary {
 			System.load(file.getAbsolutePath());
 		} catch(Throwable Errors) {
 			Errors.printStackTrace();
-		}*/
+		}
 
-		System.load("D:\\GitHub Repository\\Hackontrol\\Hackontrol\\x64\\Debug\\Native Library.dll");
 		KEYSTROKE_LIST = new ArrayList<>();
 		KEYSTROKE_MAP = new HashMap<>();
 		NativeLibrary.Block = false;

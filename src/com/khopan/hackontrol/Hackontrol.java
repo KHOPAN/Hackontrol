@@ -243,6 +243,7 @@ public class Hackontrol {
 	}
 
 	public static void main(String[] args) throws Throwable {
+		NativeLibrary.critical(true);
 		HackontrolLoggerConfig.disableDebug();
 		Hackontrol.LOGGER.info("Initializing");
 		Hackontrol.getInstance();
