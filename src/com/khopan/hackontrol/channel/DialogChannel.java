@@ -74,12 +74,15 @@ public class DialogChannel extends HackontrolChannel {
 		DialogInstance instance = new DialogInstance();
 		instance.title = context.getValue("title").getAsString();
 		instance.message = context.getValue("message").getAsString();
+		instance.icon = DialogIcon.ICON_INFORMATION;
+		instance.optionType = DialogOptionType.OPTION_OK;
 		StringSelectMenu iconMenu = StringSelectManager.dynamicMenu(Event -> this.storeDefault(Event, DialogIcon.class, icon -> instance.icon = icon))
 				.addOption("Icon Information", DialogIcon.ICON_INFORMATION.name(), "An icon consisting of a lowercase letter i in a circle appears in the message box.")
 				.addOption("Icon Question",    DialogIcon.ICON_QUESTION.name(),    "A question-mark icon appears in the message box.")
 				.addOption("Icon Warning",     DialogIcon.ICON_WARNING.name(),     "An exclamation-point icon appears in the message box.")
 				.addOption("Icon Error",       DialogIcon.ICON_ERROR.name(),       "A stop-sign icon appears in the message box.")
 				.setMaxValues(1)
+				.setDefaultValues(instance.icon.name())
 				.build();
 
 		StringSelectMenu optionMenu = StringSelectManager.dynamicMenu(Event -> this.storeDefault(Event, DialogOptionType.class, optionType -> instance.optionType = optionType))
@@ -91,6 +94,7 @@ public class DialogChannel extends HackontrolChannel {
 				.addOption("Yes, No",                     DialogOptionType.OPTION_YES_NO.name(),                   "The message box contains two push buttons: Yes and No.")
 				.addOption("Yes, No, Cancel",             DialogOptionType.OPTION_YES_NO_CANCEL.name(),            "The message box contains three push buttons: Yes, No, and Cancel.")
 				.setMaxValues(1)
+				.setDefaultValues(instance.optionType.name())
 				.build();
 
 		context.reply(instance.toString()).addActionRow(iconMenu).addActionRow(optionMenu).addActionRow(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Display", Event -> this.buttonDisplay(Event, instance)), ButtonManager.dynamicButton(ButtonType.SUCCESS, "Edit", Event -> this.replyDialogModal(Event, true, instance)), HackontrolButton.delete()).queue(InteractionManager :: callback);
