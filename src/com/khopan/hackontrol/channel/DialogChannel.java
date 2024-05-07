@@ -27,6 +27,8 @@ import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 public class DialogChannel extends HackontrolChannel {
 	private static final String CHANNEL_NAME = "dialog";
 
+	private static int ThreadCount;
+
 	private static Button BUTTON_NEW_DIALOG = ButtonManager.staticButton(ButtonType.SUCCESS, "New Dialog", "newDialog");
 
 	@Override
@@ -112,33 +114,37 @@ public class DialogChannel extends HackontrolChannel {
 
 	private void buttonDisplay(ButtonContext context, DialogInstance instance) {
 		context.deferEdit().queue();
-		String title = instance.title;
-		String message = instance.message;
-		int flags = WinUser.MB_DEFBUTTON1 | WinUser.MB_SYSTEMMODAL;
+		Thread thread = new Thread(() -> {
+			int flags = WinUser.MB_DEFBUTTON1 | WinUser.MB_SYSTEMMODAL;
 
-		if(instance.icon != null) {
-			flags |= instance.icon.flag;
-		}
+			if(instance.icon != null) {
+				flags |= instance.icon.flag;
+			}
 
-		if(instance.optionType != null) {
-			flags |= instance.optionType.flag;
-		}
+			if(instance.optionType != null) {
+				flags |= instance.optionType.flag;
+			}
 
-		int response = NativeLibrary.dialog(title, message, flags);
-		String buttonName = switch(response) {
-		case WinUser.IDOK       -> "Ok";
-		case WinUser.IDCANCEL   -> "Cancel";
-		case WinUser.IDABORT    -> "Abort";
-		case WinUser.IDRETRY    -> "Retry";
-		case WinUser.IDIGNORE   -> "Ignore";
-		case WinUser.IDYES      -> "Yes";
-		case WinUser.IDNO       -> "No";
-		case WinUser.IDCONTINUE -> "Continue";
-		case WinUser.IDTRYAGAIN -> "Try Again";
-		default                 -> "Unknown " + response;
-		};
+			int response = NativeLibrary.dialog(instance.title, instance.message, flags);
+			String buttonName = switch(response) {
+			case WinUser.IDOK       -> "Ok";
+			case WinUser.IDCANCEL   -> "Cancel";
+			case WinUser.IDABORT    -> "Abort";
+			case WinUser.IDRETRY    -> "Retry";
+			case WinUser.IDIGNORE   -> "Ignore";
+			case WinUser.IDYES      -> "Yes";
+			case WinUser.IDNO       -> "No";
+			case WinUser.IDCONTINUE -> "Continue";
+			case WinUser.IDTRYAGAIN -> "Try Again";
+			default                 -> "Unknown " + response;
+			};
 
-		context.getChannel().sendMessage("**Button: " + buttonName + "**").addActionRow(HackontrolButton.delete()).queue();
+			context.getChannel().sendMessage("**Button: " + buttonName + "**").addActionRow(HackontrolButton.delete()).queue();
+			DialogChannel.ThreadCount--;
+		});
+
+		thread.setName("Hackontrol Dialog Thread #" + (++DialogChannel.ThreadCount));
+		thread.start();
 	}
 
 	private static class DialogInstance {
