@@ -1,7 +1,6 @@
-#include <stdio.h>
-#include "khopanwindows.h"
+#include "khopanwin32.h"
 
-LPSTR KHGetWindowsDirectoryA() {
+LPSTR KHWin32GetWindowsDirectoryA() {
 	UINT size = GetSystemWindowsDirectoryA(NULL, 0);
 
 	if(!size) {
@@ -21,7 +20,7 @@ LPSTR KHGetWindowsDirectoryA() {
 	return buffer;
 }
 
-LPWSTR KHGetWindowsDirectoryW() {
+LPWSTR KHWin32GetWindowsDirectoryW() {
 	UINT size = GetSystemWindowsDirectoryW(NULL, 0);
 
 	if(!size) {

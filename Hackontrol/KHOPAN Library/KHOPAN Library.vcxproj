@@ -140,15 +140,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="khopanstring.c" />
-    <ClCompile Include="khopanjni.c" />
-    <ClCompile Include="khopanerror.c" />
-    <ClCompile Include="khopanwindows.c" />
+    <ClCompile Include="khopanjava.c" />
+    <ClCompile Include="khopanwin32_error.c" />
+    <ClCompile Include="khopanwin32.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="khopanjni.h" />
-    <ClInclude Include="khopanerror.h" />
+    <ClInclude Include="khopanjava.h" />
     <ClInclude Include="khopanstring.h" />
-    <ClInclude Include="khopanwindows.h" />
+    <ClInclude Include="khopanwin32.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

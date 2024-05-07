@@ -1,7 +1,7 @@
-#include "khopanjni.h"
-#include "khopanerror.h"
+#include "khopanjava.h"
+#include "khopanwin32.h"
 
-void print(JNIEnv* environment, const LPVOID message, const LPSTR fieldName, BOOL wide) {
+static void print(JNIEnv* environment, const LPVOID message, const LPSTR fieldName, BOOL wide) {
 	jclass systemClass = (*environment)->FindClass(environment, "java/lang/System");
 
 	if(!systemClass) {
@@ -52,41 +52,41 @@ void print(JNIEnv* environment, const LPVOID message, const LPSTR fieldName, BOO
 	(*environment)->CallVoidMethod(environment, output, printlnMethod, string);
 }
 
-void KHStandardOutputA(JNIEnv* environment, const LPSTR message) {
+void KHJavaStandardOutputA(JNIEnv* environment, const LPSTR message) {
 	print(environment, message, "out", FALSE);
 }
 
-void KHStandardOutputW(JNIEnv* environment, const LPWSTR message) {
+void KHJavaStandardOutputW(JNIEnv* environment, const LPWSTR message) {
 	print(environment, message, "out", TRUE);
 }
 
-void KHStandardErrorA(JNIEnv* environment, const LPSTR message) {
+void KHJavaStandardErrorA(JNIEnv* environment, const LPSTR message) {
 	print(environment, message, "err", FALSE);
 }
 
-void KHStandardErrorW(JNIEnv* environment, const LPWSTR message) {
+void KHJavaStandardErrorW(JNIEnv* environment, const LPWSTR message) {
 	print(environment, message, "err", TRUE);
 }
 
-void KHWin32ErrorA(JNIEnv* environment, DWORD errorCode, const LPSTR functionName) {
-	LPSTR message = KHGetWin32ErrorMessageA(errorCode, functionName);
+void KHJavaWin32ErrorA(JNIEnv* environment, DWORD errorCode, const LPSTR functionName) {
+	LPSTR message = KHWin32GetErrorMessageA(errorCode, functionName);
 
 	if(!message) {
 		return;
 	}
 
-	KHStandardErrorA(environment, message);
+	KHJavaStandardErrorA(environment, message);
 	LocalFree(message);
 }
 
-void KHWin32ErrorW(JNIEnv* environment, DWORD errorCode, const LPWSTR functionName) {
-	LPWSTR message = KHGetWin32ErrorMessageW(errorCode, functionName);
+void KHJavaWin32ErrorW(JNIEnv* environment, DWORD errorCode, const LPWSTR functionName) {
+	LPWSTR message = KHWin32GetErrorMessageW(errorCode, functionName);
 
 	if(!message) {
 		return;
 	}
 
-	KHStandardErrorW(environment, message);
+	KHJavaStandardErrorW(environment, message);
 	LocalFree(message);
 }
 
@@ -95,7 +95,7 @@ LPSTR KHJavaToNativeStringA(JNIEnv* environment, jstring string) {
 		return NULL;
 	}
 
-	size_t size = ((*environment)->GetStringUTFLength(environment, string) + 1) * sizeof(CHAR);
+	size_t size = (((size_t) (*environment)->GetStringUTFLength(environment, string)) + 1) * sizeof(CHAR);
 	LPSTR buffer = LocalAlloc(LMEM_FIXED, size);
 
 	if(!buffer) {
@@ -120,7 +120,7 @@ LPWSTR KHJavaToNativeStringW(JNIEnv* environment, jstring string) {
 		return NULL;
 	}
 
-	size_t size = ((*environment)->GetStringLength(environment, string) + 1) * sizeof(WCHAR);
+	size_t size = (((size_t) (*environment)->GetStringLength(environment, string)) + 1) * sizeof(WCHAR);
 	LPWSTR buffer = LocalAlloc(LMEM_FIXED, size);
 
 	if(!buffer) {

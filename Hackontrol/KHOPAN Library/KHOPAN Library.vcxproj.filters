@@ -15,30 +15,27 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="khopanjni.c">
+    <ClCompile Include="khopanjava.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="khopanerror.c">
+    <ClCompile Include="khopanwin32_error.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="khopanstring.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="khopanwindows.c">
+    <ClCompile Include="khopanwin32.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="khopanjni.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="khopanerror.h">
+    <ClInclude Include="khopanjava.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="khopanstring.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="khopanwindows.h">
+    <ClInclude Include="khopanwin32.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
