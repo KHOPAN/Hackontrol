@@ -139,6 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="khopanjava_jni.c" />
     <ClCompile Include="khopanstring.c" />
     <ClCompile Include="khopanjava.c" />
     <ClCompile Include="khopanwin32_error.c" />

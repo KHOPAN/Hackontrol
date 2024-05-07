@@ -27,6 +27,9 @@
     <ClCompile Include="khopanwin32.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="khopanjava_jni.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="khopanjava.h">
