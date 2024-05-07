@@ -5,28 +5,24 @@ static void print(JNIEnv* environment, const LPVOID message, const LPSTR fieldNa
 	jclass systemClass = (*environment)->FindClass(environment, "java/lang/System");
 
 	if(!systemClass) {
-		(*environment)->ExceptionClear(environment);
 		return;
 	}
 
 	jclass printStreamClass = (*environment)->FindClass(environment, "java/io/PrintStream");
 
 	if(!printStreamClass) {
-		(*environment)->ExceptionClear(environment);
 		return;
 	}
 
 	jfieldID outputField = (*environment)->GetStaticFieldID(environment, systemClass, fieldName, "Ljava/io/PrintStream;");
 
 	if(!outputField) {
-		(*environment)->ExceptionClear(environment);
 		return;
 	}
 
 	jmethodID printlnMethod = (*environment)->GetMethodID(environment, printStreamClass, "println", "(Ljava/lang/String;)V");
 
 	if(!printlnMethod) {
-		(*environment)->ExceptionClear(environment);
 		return;
 	}
 
@@ -36,14 +32,7 @@ static void print(JNIEnv* environment, const LPVOID message, const LPSTR fieldNa
 		return;
 	}
 
-	jstring string;
-
-	if(wide) {
-		LPWSTR wideString = (LPWSTR) message;
-		string = (*environment)->NewString(environment, wideString, (jsize) wcslen(wideString));
-	} else {
-		string = (*environment)->NewStringUTF(environment, (LPSTR) message);
-	}
+	jstring string = wide ? KHJavaFromNativeStringW(environment, (LPWSTR) message) : KHJavaFromNativeStringA(environment, (LPSTR) message);
 
 	if(!string) {
 		return;
@@ -138,4 +127,13 @@ LPWSTR KHJavaToNativeStringW(JNIEnv* environment, jstring string) {
 
 	buffer[size - 1] = 0;
 	return buffer;
+}
+
+jstring KHJavaFromNativeStringA(JNIEnv* environment, const LPSTR string) {
+	return (*environment)->NewStringUTF(environment, string);
+}
+
+jstring KHJavaFromNativeStringW(JNIEnv* environment, const LPWSTR string) {
+	size_t length = wcslen(string);
+	return (*environment)->NewString(environment, string, (jsize) length);
 }
