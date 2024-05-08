@@ -19,5 +19,6 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="D:/GitHub Repository/Hackontrol/release/hackontrol-logger.jar"/>
+	<classpathentry kind="lib" path="D:/library/camera-1.0.0/bin/camera-1.0.0.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

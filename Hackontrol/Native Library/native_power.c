@@ -1,7 +1,7 @@
 #include "privilege.h"
 #include "native_power.h"
 #include <powrprof.h>
-#include <khopanerror.h>
+#include <khopanwin32.h>
 
 jstring NativeLibrary_sleep(JNIEnv* environment, jclass nativeLibraryClass) {
 	if(!EnablePrivilege(SE_SHUTDOWN_NAME)) {
@@ -16,7 +16,7 @@ jstring NativeLibrary_sleep(JNIEnv* environment, jclass nativeLibraryClass) {
 		return NULL;
 	}
 
-	LPWSTR message = KHGetWin32ErrorMessageW(GetLastError(), L"SetSuspendState");
+	LPWSTR message = KHWin32GetErrorMessageW(GetLastError(), L"SetSuspendState");
 	jstring string = (*environment)->NewString(environment, message, (jsize) wcslen(message));
 	LocalFree(message);
 	return string;
@@ -35,7 +35,7 @@ jstring NativeLibrary_hibernate(JNIEnv* environment, jclass nativeLibraryClass) 
 		return NULL;
 	}
 
-	LPWSTR message = KHGetWin32ErrorMessageW(GetLastError(), L"SetSuspendState");
+	LPWSTR message = KHWin32GetErrorMessageW(GetLastError(), L"SetSuspendState");
 	jstring string = (*environment)->NewString(environment, message, (jsize) wcslen(message));
 	LocalFree(message);
 	return string;
@@ -54,7 +54,7 @@ jstring NativeLibrary_restart(JNIEnv* environment, jclass nativeLibraryClass) {
 		return NULL;
 	}
 
-	LPWSTR message = KHGetWin32ErrorMessageW(GetLastError(), L"ExitWindowsEx");
+	LPWSTR message = KHWin32GetErrorMessageW(GetLastError(), L"ExitWindowsEx");
 	jstring string = (*environment)->NewString(environment, message, (jsize) wcslen(message));
 	LocalFree(message);
 	return string;
@@ -73,7 +73,7 @@ jstring NativeLibrary_shutdown(JNIEnv* environment, jclass nativeLibraryClass) {
 		return NULL;
 	}
 
-	LPWSTR message = KHGetWin32ErrorMessageW(GetLastError(), L"ExitWindowsEx");
+	LPWSTR message = KHWin32GetErrorMessageW(GetLastError(), L"ExitWindowsEx");
 	jstring string = (*environment)->NewString(environment, message, (jsize) wcslen(message));
 	LocalFree(message);
 	return string;
