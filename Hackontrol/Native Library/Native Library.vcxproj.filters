@@ -36,12 +36,12 @@
     <ClCompile Include="native_dialog.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="native_listprocess.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="privilege.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="native_power.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="keylogger.h">
@@ -50,10 +50,7 @@
     <ClInclude Include="register_native.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="native_critical.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="native_dialog.h">
+    <ClInclude Include="native.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

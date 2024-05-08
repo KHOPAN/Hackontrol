@@ -1,7 +1,7 @@
-#include "privilege.h"
-#include "native_power.h"
-#include <powrprof.h>
 #include <khopanwin32.h>
+#include <powrprof.h>
+#include "privilege.h"
+#include "native.h"
 
 jstring NativeLibrary_sleep(JNIEnv* environment, jclass nativeLibraryClass) {
 	if(!EnablePrivilege(SE_SHUTDOWN_NAME)) {

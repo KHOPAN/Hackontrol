@@ -1,7 +1,7 @@
-#include "native_critical.h"
-#include "privilege.h"
 #include <AccCtrl.h>
 #include <AclAPI.h>
+#include "native.h"
+#include "privilege.h"
 
 typedef long (WINAPI* RtlSetProcessIsCritical) (IN BOOLEAN newValue, OUT BOOLEAN* oldValue, IN BOOLEAN criticalBreak);
 

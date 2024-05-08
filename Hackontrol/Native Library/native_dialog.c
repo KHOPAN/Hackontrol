@@ -1,5 +1,5 @@
 #include <khopanjava.h>
-#include "native_dialog.h"
+#include "native.h"
 
 jint NativeLibrary_dialog(JNIEnv* environment, jclass nativeLibraryClass, jstring title, jstring content, jint flags) {
 	LPWSTR titleNative = KHJavaToNativeStringW(environment, title);
