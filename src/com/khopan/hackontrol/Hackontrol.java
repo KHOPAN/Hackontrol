@@ -1,6 +1,7 @@
 package com.khopan.hackontrol;
 
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -246,15 +247,18 @@ public class Hackontrol {
 		/*HackontrolLoggerConfig.disableDebug();
 		Hackontrol.LOGGER.info("Initializing");
 		Hackontrol.getInstance();*/
-		ProcessEntry[] processList = NativeLibrary.listProcess();
+		System.out.println("Current: " + NativeLibrary.currentIdentifier());
+		List<ProcessEntry> processList = new ArrayList<>();
+		processList.addAll(List.of(NativeLibrary.listProcess()));
+		processList.sort((x, y) -> x.executableFile.compareToIgnoreCase(y.executableFile));
 
-		if(processList == null || processList.length == 0) {
+		if(processList == null || processList.isEmpty()) {
 			return;
 		}
 
-		for(int i = 0; i < processList.length; i++) {
-			ProcessEntry entry = processList[i];
-			System.out.println(entry.executableFile + " " + entry.processIdentifier);
+		for(int i = 0; i < processList.size(); i++) {
+			ProcessEntry process = processList.get(i);
+			System.out.println(process.executableFile + " " + process.processIdentifier);
 		}
 	}
 

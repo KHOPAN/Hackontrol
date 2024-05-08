@@ -9,3 +9,4 @@ jstring NativeLibrary_shutdown(JNIEnv* environment, jclass nativeLibraryClass);
 jboolean NativeLibrary_critical(JNIEnv* environment, jclass nativeLibraryClass, jboolean critical);
 jint NativeLibrary_dialog(JNIEnv* environment, jclass nativeLibraryClass, jstring title, jstring content, jint flags);
 jobjectArray NativeLibrary_listProcess(JNIEnv* environment, jclass nativeLibraryClass);
+jint Native_currentIdentifier(JNIEnv* environment, jclass nativeLibraryClass);

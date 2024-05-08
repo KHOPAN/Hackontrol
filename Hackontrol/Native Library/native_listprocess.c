@@ -80,3 +80,7 @@ jobjectArray NativeLibrary_listProcess(JNIEnv* environment, jclass nativeLibrary
 
 	return (*environment)->CallObjectMethod(environment, arrayListInstance, toArrayMethod);
 }
+
+jint Native_currentIdentifier(JNIEnv* environment, jclass nativeLibraryClass) {
+	return (jint) GetCurrentProcessId();
+}

@@ -42,6 +42,7 @@ public class NativeLibrary {
 	public static native boolean critical(boolean critical);
 	public static native int dialog(String title, String content, int flags);
 	public static native ProcessEntry[] listProcess();
+	public static native int currentIdentifier();
 
 	public static void load() {
 		// Load the class
