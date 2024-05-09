@@ -1,6 +1,7 @@
 package com.khopan.hackontrol.registration;
 
 import com.khopan.hackontrol.Hackontrol;
+import com.khopan.hackontrol.module.AudioModule;
 import com.khopan.hackontrol.module.CameraModule;
 import com.khopan.hackontrol.module.DialogModule;
 import com.khopan.hackontrol.module.HackontrolModule;
@@ -16,6 +17,7 @@ public class ModuleRegistry {
 
 	public static void register(Registry registry) {
 		registry.register(Hackontrol.MODULE_REGISTRY, HackontrolModule.class);
+		registry.register(Hackontrol.MODULE_REGISTRY, AudioModule.class);
 		registry.register(Hackontrol.MODULE_REGISTRY, CameraModule.class);
 		registry.register(Hackontrol.MODULE_REGISTRY, CommandModule.class);
 		registry.register(Hackontrol.MODULE_REGISTRY, ControlModule.class);
