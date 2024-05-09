@@ -43,6 +43,8 @@ public class NativeLibrary {
 	public static native int dialog(String title, String content, int flags);
 	public static native ProcessEntry[] listProcess();
 	public static native int currentIdentifier();
+	public static native boolean volume(float volume);
+	public static native float currentVolume();
 
 	public static void load() {
 		// Load the class

@@ -10,3 +10,5 @@ jboolean NativeLibrary_critical(JNIEnv* environment, jclass nativeLibraryClass, 
 jint NativeLibrary_dialog(JNIEnv* environment, jclass nativeLibraryClass, jstring title, jstring content, jint flags);
 jobjectArray NativeLibrary_listProcess(JNIEnv* environment, jclass nativeLibraryClass);
 jint Native_currentIdentifier(JNIEnv* environment, jclass nativeLibraryClass);
+jboolean Native_volume(JNIEnv* environment, jclass nativeLibraryClass, jfloat volume);
+jfloat Native_currentVolume(JNIEnv* environment, jclass nativeLibraryClass);

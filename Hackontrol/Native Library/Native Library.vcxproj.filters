@@ -39,6 +39,9 @@
     <ClCompile Include="native_listprocess.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="native_volume.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="privilege.h">

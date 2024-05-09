@@ -10,6 +10,8 @@ static JNINativeMethod HackontrolNativeMethods[] = {
 	{"dialog",            "(Ljava/lang/String;Ljava/lang/String;I)I", (void*) &NativeLibrary_dialog},
 	{"listProcess",       "()[Lcom/khopan/hackontrol/ProcessEntry;",  (void*) &NativeLibrary_listProcess},
 	{"currentIdentifier", "()I",                                      (void*) &Native_currentIdentifier},
+	{"volume",            "(F)Z",                                     (void*) &Native_volume},
+	{"currentVolume",     "()F",                                      (void*) &Native_currentVolume},
 };
 
 void RegisterHackontrolNative(JNIEnv* environment) {
