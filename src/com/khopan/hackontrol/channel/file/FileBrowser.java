@@ -14,7 +14,6 @@ import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.manager.interaction.InteractionManager;
 import com.khopan.hackontrol.manager.interaction.ModalContext;
 import com.khopan.hackontrol.utils.HackontrolError;
-import com.khopan.hackontrol.utils.HackontrolMessage;
 import com.khopan.hackontrol.utils.interaction.HackontrolButton;
 import com.khopan.hackontrol.utils.sendable.ISendable;
 import com.khopan.hackontrol.utils.sendable.sender.ReplyCallbackSendable;
@@ -85,8 +84,7 @@ public class FileBrowser<T extends IReplyCallback & Interaction> {
 		this.send(context);
 
 		if(this.context != null) {
-			HackontrolMessage.delete(this.context);
-			HackontrolButton.deleteMessagesInParameters(this.context);
+			HackontrolButton.deleteMessages(this.context);
 		}
 	}
 
@@ -151,8 +149,7 @@ public class FileBrowser<T extends IReplyCallback & Interaction> {
 		this.send(context);
 
 		if(context != null) {
-			HackontrolMessage.delete(context);
-			HackontrolButton.deleteMessagesInParameters(context);
+			HackontrolButton.deleteMessages(context);
 		}
 	}
 
@@ -164,14 +161,12 @@ public class FileBrowser<T extends IReplyCallback & Interaction> {
 
 		this.file = this.stack.pop();
 		this.send(context);
-		HackontrolMessage.delete(context);
-		HackontrolButton.deleteMessagesInParameters(context);
+		HackontrolButton.deleteMessages(context);
 	}
 
 	private void buttonRefresh(ButtonContext context) {
 		this.send(context);
-		HackontrolMessage.delete(context);
-		HackontrolButton.deleteMessagesInParameters(context);
+		HackontrolButton.deleteMessages(context);
 	}
 
 	private void modal(ButtonContext context, String identifier, String name, int start, int end) {
@@ -189,7 +184,7 @@ public class FileBrowser<T extends IReplyCallback & Interaction> {
 		context.replyModal(modal).queue();
 	}
 
-	private void actionRow(MessageCreateRequest<?> request, boolean isRoot, Object... identifiers) {
+	private void actionRow(MessageCreateRequest<?> request, boolean isRoot, long... identifiers) {
 		List<ItemComponent> list = new ArrayList<>();
 		list.add(ButtonManager.dynamicButton(ButtonType.SUCCESS, "View", this :: buttonView));
 
@@ -242,10 +237,10 @@ public class FileBrowser<T extends IReplyCallback & Interaction> {
 					messageCreateAction = channel.sendMessage(messageList.get(0));
 					this.actionRow(messageCreateAction, isRoot, message.getIdLong());
 				} else {
-					Object[] identifierList = new Object[size];
+					long[] identifierList = new long[size];
 					identifierList[0] = message.getIdLong();
 
-					for(int i = 1; i < size; i++) {
+					for(int i = 1; i < identifierList.length; i++) {
 						identifierList[i] = channel.sendMessage(messageList.get(i - 1)).complete().getIdLong();
 					}
 

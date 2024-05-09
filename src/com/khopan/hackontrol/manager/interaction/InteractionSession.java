@@ -34,7 +34,7 @@ public class InteractionSession {
 	}
 
 	static InteractionSession decodeSession(String identifier) {
-		if(!identifier.startsWith(InteractionSession.PREFIX)) {
+		if(identifier.startsWith("imsd") || !identifier.startsWith(InteractionSession.PREFIX)) {
 			return null;
 		}
 
