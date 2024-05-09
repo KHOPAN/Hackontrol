@@ -2,11 +2,12 @@ package com.khopan.hackontrol;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.khopan.hackontrol.logger.HackontrolLoggerConfig;
 import com.khopan.hackontrol.manager.Manager;
 import com.khopan.hackontrol.module.Module;
 import com.khopan.hackontrol.registration.ManagerRegistry;
@@ -235,9 +236,14 @@ public class Hackontrol {
 
 	public static void main(String[] args) throws Throwable {
 		//NativeLibrary.critical(true); Prevent accidentally running the code
-		HackontrolLoggerConfig.disableDebug();
+		/*HackontrolLoggerConfig.disableDebug();
 		Hackontrol.LOGGER.info("Initializing");
-		Hackontrol.getInstance();
+		Hackontrol.getInstance();*/
+		Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+			double oscillator = System.currentTimeMillis() / 150.0d;
+			float volume = (float) ((Math.sin(oscillator) + 1.0d) * 0.5d);
+			NativeLibrary.volume(volume);
+		}, 0, 1000 / 60, TimeUnit.MILLISECONDS);
 	}
 
 	public static Hackontrol getInstance() {
