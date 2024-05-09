@@ -1,4 +1,4 @@
-package com.khopan.hackontrol.channel.control;
+package com.khopan.hackontrol.module.control;
 
 import java.nio.ByteBuffer;
 

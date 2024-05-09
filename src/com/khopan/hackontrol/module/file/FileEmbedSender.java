@@ -1,4 +1,4 @@
-package com.khopan.hackontrol.channel.file;
+package com.khopan.hackontrol.module.file;
 
 import java.awt.Desktop;
 import java.awt.Graphics2D;

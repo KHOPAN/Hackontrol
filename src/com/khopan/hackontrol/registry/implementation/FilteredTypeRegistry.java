@@ -1,15 +1,15 @@
 package com.khopan.hackontrol.registry.implementation;
 
-import com.khopan.hackontrol.HackontrolChannel;
+import com.khopan.hackontrol.module.Module;
 import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.registry.RegistryType;
 
 public class FilteredTypeRegistry implements Registry {
-	private final HackontrolChannel channel;
+	private final Module module;
 	private final RegistryType<?, ?> allowedType;
 
-	private FilteredTypeRegistry(HackontrolChannel channel, RegistryType<?, ?> allowedType) {
-		this.channel = channel;
+	private FilteredTypeRegistry(Module module, RegistryType<?, ?> allowedType) {
+		this.module = module;
 		this.allowedType = allowedType;
 	}
 
@@ -23,7 +23,7 @@ public class FilteredTypeRegistry implements Registry {
 			throw new IllegalArgumentException("Registry type '" + type.getClass().getName() + "' is not allowed");
 		}
 
-		type.register(this.channel, identifier, value);
+		type.register(this.module, identifier, value);
 	}
 
 	@Override
@@ -31,7 +31,7 @@ public class FilteredTypeRegistry implements Registry {
 		this.register(type, null, value);
 	}
 
-	public static FilteredTypeRegistry of(HackontrolChannel channel, RegistryType<?, ?> allowedType) {
-		return new FilteredTypeRegistry(channel, allowedType);
+	public static FilteredTypeRegistry of(Module module, RegistryType<?, ?> allowedType) {
+		return new FilteredTypeRegistry(module, allowedType);
 	}
 }

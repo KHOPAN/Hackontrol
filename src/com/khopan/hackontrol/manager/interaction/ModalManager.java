@@ -3,7 +3,7 @@ package com.khopan.hackontrol.manager.interaction;
 import java.util.function.Consumer;
 
 import com.khopan.hackontrol.Hackontrol;
-import com.khopan.hackontrol.HackontrolChannel;
+import com.khopan.hackontrol.module.Module;
 import com.khopan.hackontrol.utils.MultiConsumer;
 
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -41,8 +41,8 @@ public class ModalManager {
 		MultiConsumer<ModalContext> consumer = new MultiConsumer<>();
 
 		if(session == null) {
-			HackontrolChannel hackontrolChannel = Hackontrol.getInstance().getChannel((TextChannel) Event.getChannel());
-			consumer.addAll(InteractionManager.MODAL_REGISTRY.filter(hackontrolChannel, identifier));
+			Module module = Hackontrol.getInstance().getModule((TextChannel) Event.getChannel());
+			consumer.addAll(InteractionManager.MODAL_REGISTRY.filter(module, identifier));
 		} else {
 			if(!InteractionType.MODAL.equals(session.type)) {
 				Hackontrol.LOGGER.warn("Mismatch modal interaction type: {}", identifier);

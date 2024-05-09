@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import com.khopan.hackontrol.Hackontrol;
-import com.khopan.hackontrol.HackontrolChannel;
 import com.khopan.hackontrol.eventlistener.FilteredEventListener;
+import com.khopan.hackontrol.module.Module;
 import com.khopan.hackontrol.registry.RegistryType;
 import com.khopan.hackontrol.utils.HackontrolMessage;
 
@@ -33,8 +33,8 @@ public class MessageManager implements Manager {
 			return;
 		}
 
-		HackontrolChannel hackontrolChannel = Hackontrol.getInstance().getChannel((TextChannel) channel);
-		List<Consumer<MessageReceivedEvent>> list = MessageManager.MESSAGE_RECEIVED_EVENT_REGISTRY.filter(hackontrolChannel, null);
+		Module module = Hackontrol.getInstance().getModule((TextChannel) channel);
+		List<Consumer<MessageReceivedEvent>> list = MessageManager.MESSAGE_RECEIVED_EVENT_REGISTRY.filter(module, null);
 
 		for(int i = 0; i < list.size(); i++) {
 			Consumer<MessageReceivedEvent> action = list.get(i);

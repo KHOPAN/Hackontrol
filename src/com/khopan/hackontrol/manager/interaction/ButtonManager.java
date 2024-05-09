@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import com.khopan.hackontrol.Hackontrol;
-import com.khopan.hackontrol.HackontrolChannel;
+import com.khopan.hackontrol.module.Module;
 import com.khopan.hackontrol.registry.TypeEntry;
 import com.khopan.hackontrol.utils.MultiConsumer;
 import com.khopan.hackontrol.utils.interaction.HackontrolButton;
@@ -71,8 +71,8 @@ public final class ButtonManager {
 		MultiConsumer<ButtonContext> consumer = new MultiConsumer<>();
 
 		if(session == null) {
-			HackontrolChannel hackontrolChannel = Hackontrol.getInstance().getChannel(channel);
-			List<TypeEntry<Button, Consumer<ButtonContext>>> buttonList = InteractionManager.BUTTON_REGISTRY.list(hackontrolChannel);
+			Module module = Hackontrol.getInstance().getModule(channel);
+			List<TypeEntry<Button, Consumer<ButtonContext>>> buttonList = InteractionManager.BUTTON_REGISTRY.list(module);
 
 			for(int i = 0; i < buttonList.size(); i++) {
 				TypeEntry<Button, Consumer<ButtonContext>> entry = buttonList.get(i);

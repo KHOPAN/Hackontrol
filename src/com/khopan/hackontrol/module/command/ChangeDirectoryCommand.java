@@ -1,4 +1,4 @@
-package com.khopan.hackontrol.channel.command;
+package com.khopan.hackontrol.module.command;
 
 import java.io.File;
 
@@ -13,7 +13,7 @@ public class ChangeDirectoryCommand {
 
 	public static void execute(MessageChannel channel, String command) {
 		if(command.length() == 2) {
-			String directory = CommandChannel.CurrentDirectory == null ? "SYSTEMROOT" : CommandChannel.CurrentDirectory.getAbsolutePath();
+			String directory = CommandModule.CurrentDirectory == null ? "SYSTEMROOT" : CommandModule.CurrentDirectory.getAbsolutePath();
 			channel.sendMessage('`' + directory + '`').queue();
 			return;
 		}
@@ -37,7 +37,7 @@ public class ChangeDirectoryCommand {
 			return;
 		}
 
-		CommandChannel.CurrentDirectory = file;
+		CommandModule.CurrentDirectory = file;
 		channel.sendMessage('`' + file.getAbsolutePath() + '`').queue();
 	}
 }

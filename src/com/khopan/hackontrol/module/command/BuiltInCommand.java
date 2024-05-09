@@ -1,4 +1,4 @@
-package com.khopan.hackontrol.channel.command;
+package com.khopan.hackontrol.module.command;
 
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
