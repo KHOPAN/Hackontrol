@@ -22,7 +22,7 @@ public class ModalManager {
 		Modal.Builder builder = ModalManager.staticModal(title, InteractionSession.prefix(identifier));
 		InteractionSession session = new InteractionSession();
 		session.sessionIdentifier = identifier;
-		session.paramters = parameters;
+		session.parameters = parameters;
 		session.action = action;
 		session.type = InteractionType.MODAL;
 		InteractionSession.SESSION_LIST.add(session);
@@ -52,7 +52,7 @@ public class ModalManager {
 		}
 
 		if(action != null) {
-			action.accept(new ModalContext(Event, session == null ? null : session.paramters));
+			action.accept(new ModalContext(Event, session == null ? null : session.parameters));
 		}
 	}
 }

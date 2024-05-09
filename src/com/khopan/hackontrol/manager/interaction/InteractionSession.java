@@ -13,7 +13,7 @@ public class InteractionSession {
 
 	long sessionIdentifier;
 	long messageIdentifier;
-	Object[] paramters;
+	Object[] parameters;
 	Consumer<?> action;
 	InteractionType type;
 

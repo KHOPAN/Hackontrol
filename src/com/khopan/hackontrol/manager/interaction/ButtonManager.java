@@ -30,7 +30,7 @@ public final class ButtonManager {
 		Button button = ButtonManager.staticButton(type, label, InteractionSession.prefix(identifier));
 		InteractionSession session = new InteractionSession();
 		session.sessionIdentifier = identifier;
-		session.paramters = parameters;
+		session.parameters = parameters;
 		session.action = action;
 		session.type = InteractionType.BUTTON;
 		InteractionSession.SESSION_LIST.add(session);
@@ -81,7 +81,7 @@ public final class ButtonManager {
 		}
 
 		if(action != null) {
-			action.accept(new ButtonContext(Event, session == null ? null : session.paramters));
+			action.accept(new ButtonContext(Event, session == null ? null : session.parameters));
 		}
 	}
 

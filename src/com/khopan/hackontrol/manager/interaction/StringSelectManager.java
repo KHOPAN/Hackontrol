@@ -21,7 +21,7 @@ public class StringSelectManager {
 		StringSelectMenu.Builder builder = StringSelectManager.staticMenu(InteractionSession.prefix(identifier));
 		InteractionSession session = new InteractionSession();
 		session.sessionIdentifier = identifier;
-		session.paramters = parameters;
+		session.parameters = parameters;
 		session.action = action;
 		session.type = InteractionType.STRING_SELECT_MENU;
 		InteractionSession.SESSION_LIST.add(session);
