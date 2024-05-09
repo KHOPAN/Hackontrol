@@ -7,8 +7,6 @@ import java.util.function.Consumer;
 import com.khopan.hackontrol.eventlistener.FilteredEventListener;
 import com.khopan.hackontrol.eventlistener.InteractionEventListener;
 import com.khopan.hackontrol.manager.Manager;
-import com.khopan.hackontrol.registry.RegistrationHandler;
-import com.khopan.hackontrol.registry.RegistrationHandler.RegistrationTypeEntry;
 import com.khopan.hackontrol.registry.RegistryType;
 import com.khopan.hackontrol.utils.HackontrolMessage;
 
@@ -26,23 +24,12 @@ public class InteractionManager implements Manager {
 	public static final RegistryType<String, Consumer<ModalContext>> MODAL_REGISTRY = RegistryType.create();
 	public static final RegistryType<String, Consumer<StringSelectContext>> STRING_SELECT_MENU_REGISTRY = RegistryType.create();
 
-	private List<RegistrationTypeEntry<Button, Consumer<ButtonContext>>> buttonList;
-	private List<RegistrationTypeEntry<String, Consumer<ModalContext>>> modalList;
-	private List<RegistrationTypeEntry<String, Consumer<StringSelectContext>>> stringSelectMenuList;
-
 	@Override
 	public void configureBuilder(JDABuilder builder) {
-		builder.addEventListeners(InteractionEventListener.create(ButtonInteractionEvent.class, Event -> ButtonManager.buttonEvent(Event, this.buttonList)));
-		builder.addEventListeners(InteractionEventListener.create(ModalInteractionEvent.class, Event -> ModalManager.modalEvent(Event, this.modalList)));
-		builder.addEventListeners(InteractionEventListener.create(StringSelectInteractionEvent.class, Event -> StringSelectManager.stringSelectInteractionEvent(Event, this.stringSelectMenuList)));
+		builder.addEventListeners(InteractionEventListener.create(ButtonInteractionEvent.class, Event -> ButtonManager.buttonEvent(Event)));
+		builder.addEventListeners(InteractionEventListener.create(ModalInteractionEvent.class, Event -> ModalManager.modalEvent(Event)));
+		builder.addEventListeners(InteractionEventListener.create(StringSelectInteractionEvent.class, Event -> StringSelectManager.stringSelectInteractionEvent(Event)));
 		builder.addEventListeners(FilteredEventListener.create(MessageDeleteEvent.class, this :: deleteEvent));
-	}
-
-	@Override
-	public void initialize(RegistrationHandler handler) {
-		this.buttonList = handler.filterType(InteractionManager.BUTTON_REGISTRY);
-		this.modalList = handler.filterType(InteractionManager.MODAL_REGISTRY);
-		this.stringSelectMenuList = handler.filterType(InteractionManager.STRING_SELECT_MENU_REGISTRY);
 	}
 
 	private void deleteEvent(MessageDeleteEvent Event) {

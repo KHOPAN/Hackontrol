@@ -1,7 +1,6 @@
 package com.khopan.hackontrol.registry;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +23,29 @@ public class RegistryType<T, U> {
 	}
 
 	public List<TypeEntry<T, U>> list(HackontrolChannel channel) {
-		return Collections.unmodifiableList(this.map.get(channel));
+		List<TypeEntry<T, U>> list = this.map.get(channel);
+
+		if(list == null) {
+			return new ArrayList<>();
+		}
+
+		return list;
+	}
+
+	public List<U> filter(HackontrolChannel channel, T identifier) {
+		List<TypeEntry<T, U>> list = this.list(channel);
+		List<U> result = new ArrayList<>();
+
+		for(int i = 0; i< list.size(); i++) {
+			TypeEntry<T, U> entry = list.get(i);
+			T entryIdentifier = entry.getIdentifier();
+
+			if(entryIdentifier == identifier || (entryIdentifier != null && entryIdentifier.equals(identifier))) {
+				result.add(entry.getValue());
+			}
+		}
+
+		return result;
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })

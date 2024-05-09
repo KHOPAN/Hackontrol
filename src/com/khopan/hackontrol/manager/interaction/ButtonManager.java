@@ -5,7 +5,8 @@ import java.util.function.Consumer;
 
 import com.khopan.hackontrol.Hackontrol;
 import com.khopan.hackontrol.HackontrolChannel;
-import com.khopan.hackontrol.registry.RegistrationHandler.RegistrationTypeEntry;
+import com.khopan.hackontrol.registry.TypeEntry;
+import com.khopan.hackontrol.utils.MultiConsumer;
 
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -55,21 +56,21 @@ public final class ButtonManager {
 	}
 
 	@SuppressWarnings("unchecked")
-	static void buttonEvent(ButtonInteractionEvent Event, List<RegistrationTypeEntry<Button, Consumer<ButtonContext>>> buttonList) {
+	static void buttonEvent(ButtonInteractionEvent Event) {
 		String identifier = Event.getButton().getId();
 		InteractionSession session = InteractionSession.decodeSession(identifier);
 		Hackontrol.LOGGER.info("Processing button: {}", identifier);
-		Consumer<ButtonContext> action = null;
+		MultiConsumer<ButtonContext> consumer = new MultiConsumer<>();
 
 		if(session == null) {
 			HackontrolChannel hackontrolChannel = Hackontrol.getInstance().getChannel((TextChannel) Event.getChannel());
+			List<TypeEntry<Button, Consumer<ButtonContext>>> buttonList = InteractionManager.BUTTON_REGISTRY.list(hackontrolChannel);
 
 			for(int i = 0; i < buttonList.size(); i++) {
-				RegistrationTypeEntry<Button, Consumer<ButtonContext>> entry = buttonList.get(i);
+				TypeEntry<Button, Consumer<ButtonContext>> entry = buttonList.get(i);
 
-				if(hackontrolChannel.equals(entry.channel) && identifier.equals(entry.identifier.getId())) {
-					action = entry.value;
-					break;
+				if(identifier.equals(entry.getIdentifier().getId())) {
+					consumer.add(entry.getValue());
 				}
 			}
 		} else {
@@ -77,12 +78,10 @@ public final class ButtonManager {
 				Hackontrol.LOGGER.warn("Mismatch button interaction type: {}", identifier);
 			}
 
-			action = (Consumer<ButtonContext>) session.action;
+			consumer.add((Consumer<ButtonContext>) session.action);
 		}
 
-		if(action != null) {
-			action.accept(new ButtonContext(Event, session == null ? null : session.parameters));
-		}
+		consumer.accept(new ButtonContext(Event, session == null ? null : session.parameters));
 	}
 
 	static void assignIdentifier(Message message) {

@@ -37,7 +37,11 @@ public class ControlChannel extends HackontrolChannel {
 	private MicrophoneSendHandler sendHandler;
 
 	public ControlChannel() {
-		Hackontrol.getInstance().setErrorHandler((thread, Errors) -> HackontrolError.throwable(MessageChannelSendable.of(this.channel), Errors));
+		Hackontrol.getInstance().setErrorHandler((thread, Errors) -> {
+			if(this.channel != null) {
+				HackontrolError.throwable(MessageChannelSendable.of(this.channel), Errors);
+			}
+		});
 	}
 
 	@Override

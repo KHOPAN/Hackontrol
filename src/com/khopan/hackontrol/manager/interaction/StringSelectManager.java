@@ -4,7 +4,8 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import com.khopan.hackontrol.Hackontrol;
-import com.khopan.hackontrol.registry.RegistrationHandler.RegistrationTypeEntry;
+import com.khopan.hackontrol.HackontrolChannel;
+import com.khopan.hackontrol.utils.MultiConsumer;
 
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -33,25 +34,24 @@ public class StringSelectManager {
 	}
 
 	@SuppressWarnings("unchecked")
-	static void stringSelectInteractionEvent(StringSelectInteractionEvent Event, List<RegistrationTypeEntry<String, Consumer<StringSelectContext>>> stringSelectMenuList) {
+	static void stringSelectInteractionEvent(StringSelectInteractionEvent Event) {
 		String identifier = Event.getInteraction().getSelectMenu().getId();
 		InteractionSession session = InteractionSession.decodeSession(identifier);
 		Hackontrol.LOGGER.info("Processing string select menu: {}", identifier);
-		Consumer<StringSelectContext> action = null;
+		MultiConsumer<StringSelectContext> consumer = new MultiConsumer<>();
 
 		if(session == null) {
-			action = RegistrationTypeEntry.filter(stringSelectMenuList, Hackontrol.getInstance().getChannel((TextChannel) Event.getChannel()), identifier);
+			HackontrolChannel hackontrolChannel = Hackontrol.getInstance().getChannel((TextChannel) Event.getChannel());
+			consumer.addAll(InteractionManager.STRING_SELECT_MENU_REGISTRY.filter(hackontrolChannel, identifier));
 		} else {
 			if(!InteractionType.STRING_SELECT_MENU.equals(session.type)) {
 				Hackontrol.LOGGER.warn("Mismatch string select menu interaction type: {}", identifier);
 			}
 
-			action = (Consumer<StringSelectContext>) session.action;
+			consumer.add((Consumer<StringSelectContext>) session.action);
 		}
 
-		if(action != null) {
-			action.accept(new StringSelectContext(Event));
-		}
+		consumer.accept(new StringSelectContext(Event));
 	}
 
 	static void assignIdentifier(Message message) {
