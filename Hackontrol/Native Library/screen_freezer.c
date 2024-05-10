@@ -54,7 +54,7 @@ static DWORD WINAPI ScreenFreezerThread(_In_ LPVOID parameter) {
 	windowClass.style = CS_VREDRAW | CS_HREDRAW;
 	windowClass.lpfnWndProc = WindowProcedure;
 	windowClass.hInstance = instance;
-	windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
+	windowClass.hCursor = NULL;
 	windowClass.lpszClassName = CLASS_NAME;
 
 	if(!RegisterClassW(&windowClass)) {
@@ -110,6 +110,9 @@ static LRESULT CALLBACK WindowProcedure(HWND window, UINT message, WPARAM wparam
 		SelectObject(memoryContext, oldBitmap);
 		DeleteDC(memoryContext);
 		EndPaint(window, &paintStruct);
+		return 0;
+	case WM_SETCURSOR:
+		SetCursor(NULL);
 		return 0;
 	}
 
