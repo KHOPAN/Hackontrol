@@ -51,7 +51,7 @@ public class StringSelectManager {
 			consumer.add((Consumer<StringSelectContext>) session.action);
 		}
 
-		consumer.accept(new StringSelectContext(Event));
+		consumer.accept(new StringSelectContext(Event, session == null ? null : session.parameters));
 	}
 
 	static void assignIdentifier(Message message) {

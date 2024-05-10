@@ -10,6 +10,8 @@ import com.khopan.hackontrol.manager.interaction.ButtonContext;
 import com.khopan.hackontrol.manager.interaction.ButtonManager;
 import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.manager.interaction.InteractionManager;
+import com.khopan.hackontrol.manager.interaction.StringSelectContext;
+import com.khopan.hackontrol.manager.interaction.StringSelectManager;
 import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.utils.LargeMessage;
 import com.khopan.hackontrol.utils.interaction.HackontrolButton;
@@ -17,13 +19,16 @@ import com.khopan.hackontrol.utils.interaction.HackontrolButton;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
+import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.utils.messages.MessageCreateRequest;
 
 public class ProcessModule extends Module {
 	private static final String MODULE_NAME = "process";
 
 	private static final Button BUTTON_SNAPSHOT = ButtonManager.staticButton(ButtonType.SUCCESS, "Snapshot", "processSnapshot");
-	private static final Button BUTTON_REFRESH  = ButtonManager.staticButton(ButtonType.SUCCESS, "Refresh", "refreshSnapshot");
+	private static final Button BUTTON_REFRESH  = ButtonManager.staticButton(ButtonType.SUCCESS, "Refresh",  "refreshSnapshot");
+	private static final Button BUTTON_SORT     = ButtonManager.staticButton(ButtonType.SUCCESS, "Sort",     "sortSnapshot");
 
 	private SortRule sortRule;
 
@@ -38,8 +43,9 @@ public class ProcessModule extends Module {
 
 	@Override
 	public void preInitialize(Registry registry) {
-		registry.register(InteractionManager.BUTTON_REGISTRY, ProcessModule.BUTTON_SNAPSHOT, this :: buttonSnapshot);
+		registry.register(InteractionManager.BUTTON_REGISTRY, ProcessModule.BUTTON_SNAPSHOT, this :: send);
 		registry.register(InteractionManager.BUTTON_REGISTRY, ProcessModule.BUTTON_REFRESH,  this :: buttonRefresh);
+		registry.register(InteractionManager.BUTTON_REGISTRY, ProcessModule.BUTTON_SORT,     this :: buttonSort);
 	}
 
 	@Override
@@ -47,17 +53,34 @@ public class ProcessModule extends Module {
 		this.channel.sendMessageComponents(ActionRow.of(ProcessModule.BUTTON_SNAPSHOT)).queue();
 	}
 
-	private void buttonSnapshot(ButtonContext context) {
-		this.send(context);
-	}
-
 	private void buttonRefresh(ButtonContext context) {
 		HackontrolButton.deleteMessages(context);
 		this.send(context);
 	}
 
+	private void buttonSort(ButtonContext context) {
+		StringSelectMenu.Builder builder = StringSelectManager.dynamicMenu(this :: selectMenuSortType, context);
+		builder.setMaxValues(1);
+		SortRule[] rules = SortRule.values();
+
+		for(int i = 0; i < rules.length; i++) {
+			builder.addOption(rules[i].label, rules[i].name(), rules[i].description);
+		}
+
+		builder.setDefaultValues(this.sortRule.name());
+		context.replyComponents(ActionRow.of(builder.build())).queue();
+	}
+
+	private void selectMenuSortType(StringSelectContext context) {
+		SelectOption option = context.getSelectedOptions().get(0);
+		this.sortRule = Enum.valueOf(SortRule.class, option.getValue());
+		context.getMessage().delete().queue();
+		HackontrolButton.deleteMessages((ButtonContext) context.getParameters()[0]);
+		this.send(context);
+	}
+
 	private void actionRow(MessageCreateRequest<?> request, long... identifiers) {
-		request.addActionRow(ProcessModule.BUTTON_REFRESH, HackontrolButton.delete(identifiers));
+		request.addActionRow(ProcessModule.BUTTON_REFRESH, ProcessModule.BUTTON_SORT, HackontrolButton.delete(identifiers));
 	}
 
 	private void send(IReplyCallback callback) {
@@ -102,12 +125,16 @@ public class ProcessModule extends Module {
 	}
 
 	private static enum SortRule {
-		SORT_BY_NAME((x, y) -> x.executableFile.compareToIgnoreCase(y.executableFile)),
-		SORT_BY_PID(Comparator.comparingInt(x -> x.processIdentifier));
+		SORT_BY_NAME("Name", "Sort by process name", (x, y) -> x.executableFile.compareToIgnoreCase(y.executableFile)),
+		SORT_BY_PID("Process Identifier", "Sort by process identifier", Comparator.comparingInt(x -> x.processIdentifier));
 
+		private final String label;
+		private final String description;
 		private final Comparator<? super ProcessEntry> comparator;
 
-		SortRule(Comparator<? super ProcessEntry> comparator) {
+		SortRule(String label, String description, Comparator<? super ProcessEntry> comparator) {
+			this.label = label;
+			this.description = description;
 			this.comparator = comparator;
 		}
 	}
