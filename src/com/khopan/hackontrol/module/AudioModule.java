@@ -40,7 +40,7 @@ public class AudioModule extends Module {
 	}
 
 	private void buttonChangeVolume(ButtonContext context) {
-		String volumeLevel = Integer.toString(Math.min(Math.max((int) Math.round(((double) NativeLibrary.currentVolume()) * 100.0d), 0), 100));
+		String volumeLevel = Integer.toString(Math.min(Math.max((int) Math.round(((double) NativeLibrary.volume()) * 100.0d), 0), 100));
 		TextInput textInput = TextInput.create("volume", "Volume", TextInputStyle.SHORT)
 				.setRequired(true)
 				.setMinLength(1)

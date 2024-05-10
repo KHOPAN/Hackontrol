@@ -47,7 +47,7 @@ uninitialize:
 	return returnValue;
 }
 
-jboolean Native_volume(JNIEnv* environment, jclass nativeLibraryClass, jfloat volume) {
+jboolean Native_setVolume(JNIEnv* environment, jclass nativeLibraryClass, jfloat volume) {
 	IAudioEndpointVolume* endpoint;
 
 	if(!GetAudioEndpointVolume(environment, &endpoint)) {
@@ -55,6 +55,7 @@ jboolean Native_volume(JNIEnv* environment, jclass nativeLibraryClass, jfloat vo
 	}
 
 	HRESULT result = endpoint->lpVtbl->SetMasterVolumeLevelScalar(endpoint, volume, NULL);
+	endpoint->lpVtbl->Release(endpoint);
 	CoUninitialize();
 
 	if(FAILED(result)) {
@@ -65,7 +66,7 @@ jboolean Native_volume(JNIEnv* environment, jclass nativeLibraryClass, jfloat vo
 	return TRUE;
 }
 
-jfloat Native_currentVolume(JNIEnv* environment, jclass nativeLibraryClass) {
+jfloat Native_getVolume(JNIEnv* environment, jclass nativeLibraryClass) {
 	IAudioEndpointVolume* endpoint;
 
 	if(!GetAudioEndpointVolume(environment, &endpoint)) {
@@ -74,6 +75,7 @@ jfloat Native_currentVolume(JNIEnv* environment, jclass nativeLibraryClass) {
 
 	float volume;
 	HRESULT result = endpoint->lpVtbl->GetMasterVolumeLevelScalar(endpoint, &volume);
+	endpoint->lpVtbl->Release(endpoint);
 	CoUninitialize();
 
 	if(FAILED(result)) {
@@ -82,4 +84,43 @@ jfloat Native_currentVolume(JNIEnv* environment, jclass nativeLibraryClass) {
 	}
 
 	return volume;
+}
+
+jboolean Native_setMute(JNIEnv* environment, jclass nativeLibraryClass, jboolean mute) {
+	IAudioEndpointVolume* endpoint;
+
+	if(!GetAudioEndpointVolume(environment, &endpoint)) {
+		return FALSE;
+	}
+
+	HRESULT result = endpoint->lpVtbl->SetMute(endpoint, mute, NULL);
+	endpoint->lpVtbl->Release(endpoint);
+	CoUninitialize();
+
+	if(FAILED(result)) {
+		KHJavaWin32ErrorW(environment, result, L"IAudioEndpointVolume::SetMute");
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+jboolean Native_getMute(JNIEnv* environment, jclass nativeLibraryClass) {
+	IAudioEndpointVolume* endpoint;
+
+	if(!GetAudioEndpointVolume(environment, &endpoint)) {
+		return FALSE;
+	}
+
+	BOOL mute;
+	HRESULT result = endpoint->lpVtbl->GetMute(endpoint, &mute);
+	endpoint->lpVtbl->Release(endpoint);
+	CoUninitialize();
+
+	if(FAILED(result)) {
+		KHJavaWin32ErrorW(environment, result, L"IAudioEndpointVolume::GetMute");
+		return FALSE;
+	}
+
+	return (jboolean) mute;
 }

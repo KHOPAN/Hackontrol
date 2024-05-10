@@ -237,9 +237,7 @@ public class Hackontrol {
 		/*HackontrolLoggerConfig.disableDebug();
 		Hackontrol.LOGGER.info("Initializing");
 		Hackontrol.getInstance();*/
-		System.out.println("Volume: " + NativeLibrary.currentVolume());
-		boolean success = NativeLibrary.volume(0.75f);
-		System.out.println(success);
+		NativeLibrary.mute(!NativeLibrary.mute());
 	}
 
 	public static Hackontrol getInstance() {

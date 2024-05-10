@@ -10,6 +10,8 @@ jboolean NativeLibrary_critical(JNIEnv* environment, jclass nativeLibraryClass, 
 jint NativeLibrary_dialog(JNIEnv* environment, jclass nativeLibraryClass, jstring title, jstring content, jint flags);
 jobjectArray NativeLibrary_listProcess(JNIEnv* environment, jclass nativeLibraryClass);
 jint Native_currentIdentifier(JNIEnv* environment, jclass nativeLibraryClass);
-jboolean Native_volume(JNIEnv* environment, jclass nativeLibraryClass, jfloat volume);
-jfloat Native_currentVolume(JNIEnv* environment, jclass nativeLibraryClass);
 jboolean Native_hasUIAccess(JNIEnv* environment, jclass nativeLibraryClass);
+jboolean Native_setVolume(JNIEnv* environment, jclass nativeLibraryClass, jfloat volume);
+jfloat Native_getVolume(JNIEnv* environment, jclass nativeLibraryClass);
+jboolean Native_setMute(JNIEnv* environment, jclass nativeLibraryClass, jboolean mute);
+jboolean Native_getMute(JNIEnv* environment, jclass nativeLibraryClass);
