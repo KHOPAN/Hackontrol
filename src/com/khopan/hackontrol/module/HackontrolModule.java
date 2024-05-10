@@ -1,6 +1,7 @@
 package com.khopan.hackontrol.module;
 
 import com.khopan.hackontrol.Hackontrol;
+import com.khopan.hackontrol.NativeLibrary;
 import com.khopan.hackontrol.manager.interaction.ButtonContext;
 import com.khopan.hackontrol.manager.interaction.ButtonManager;
 import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
@@ -43,7 +44,7 @@ public class HackontrolModule extends Module {
 	@Override
 	public void postInitialize() {
 		long time = Hackontrol.STARTUP_TIME / 1000L;
-		this.channel.sendMessage("**Online: <t:" + time + ":f> (<t:" + time + ":R>)**").queue();
+		this.channel.sendMessage("**Online: <t:" + time + ":f> (<t:" + time + ":R>) (" + (NativeLibrary.hasUIAccess() ? "" : "No ") + "UI Access)**").queue();
 	}
 
 	private void buttonRename(ButtonContext context) {
