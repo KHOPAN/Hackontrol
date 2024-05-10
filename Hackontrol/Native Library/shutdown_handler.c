@@ -2,10 +2,12 @@
 #include <khopanjava.h>
 #include "shutdown_handler.h"
 #include "initialize.h"
+#include "native.h"
 
 #define CLASS_NAME L"HackontrolDummyWindow"
 
 static JavaVM* globalVirtualMachine;
+static JNIEnv* globalEnvironment;
 
 static DWORD WINAPI ShutdownHandlerThread(_In_ LPVOID parameter);
 static LRESULT CALLBACK WindowProcedure(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
@@ -30,6 +32,7 @@ static DWORD WINAPI ShutdownHandlerThread(_In_ LPVOID parameter) {
 		return 1;
 	}
 
+	globalEnvironment = environment;
 	WNDCLASSW windowClass = {0};
 	windowClass.style = CS_VREDRAW | CS_HREDRAW;
 	windowClass.lpfnWndProc = WindowProcedure;
@@ -74,12 +77,12 @@ static LRESULT CALLBACK WindowProcedure(HWND window, UINT message, WPARAM wparam
 		PostQuitMessage(0);
 		return 0;
 	case WM_QUERYENDSESSION:
-		if(!ShutdownBlockReasonCreate(window, L"You cannot shutdown")) {
-			KHWin32DialogErrorW(GetLastError(), L"ShutdownBlockReasonCreate");
+		if(lparam != 0 && !(lparam & ENDSESSION_CRITICAL)) {
 			return TRUE;
 		}
 
-		return FALSE;
+		NativeLibrary_critical(globalEnvironment, NULL, FALSE);
+		return TRUE;
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
