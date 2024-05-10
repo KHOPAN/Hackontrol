@@ -33,6 +33,9 @@ public class ControlModule extends Module {
 	private static final Button BUTTON_CONNECT    = ButtonManager.staticButton(ButtonType.SUCCESS,   "Connect",    "connect");
 	private static final Button BUTTON_DISCONNECT = ButtonManager.staticButton(ButtonType.DANGER,    "Disconnect", "disconnect");
 
+	private static final Button BUTTON_FREEZE     = ButtonManager.staticButton(ButtonType.SUCCESS,   "Freeze",     "freezeScreen");
+	private static final Button BUTTON_UNFREEZE   = ButtonManager.staticButton(ButtonType.DANGER,    "Unfreeze",   "unfreezeScreen");
+
 	private AudioManager audioManager;
 	private MicrophoneSendHandler sendHandler;
 
@@ -57,12 +60,15 @@ public class ControlModule extends Module {
 		registry.register(InteractionManager.BUTTON_REGISTRY, ControlModule.BUTTON_SHUTDOWN,   context -> this.buttonPower(context, PowerAction.SHUTDOWN));
 		registry.register(InteractionManager.BUTTON_REGISTRY, ControlModule.BUTTON_CONNECT,    context -> this.buttonConnect(context, true));
 		registry.register(InteractionManager.BUTTON_REGISTRY, ControlModule.BUTTON_DISCONNECT, context -> this.buttonConnect(context, false));
+		registry.register(InteractionManager.BUTTON_REGISTRY, ControlModule.BUTTON_FREEZE,     context -> this.buttonFreeze(context, true));
+		registry.register(InteractionManager.BUTTON_REGISTRY, ControlModule.BUTTON_UNFREEZE,   context -> this.buttonFreeze(context, false));
 	}
 
 	@Override
 	public void initialize() {
 		this.channel.sendMessage("**Power Control**").addActionRow(ControlModule.BUTTON_SLEEP, ControlModule.BUTTON_HIBERNATE, ControlModule.BUTTON_RESTART, ControlModule.BUTTON_SHUTDOWN).queue();
 		this.channel.sendMessage("**Microphone Control**").addActionRow(ControlModule.BUTTON_CONNECT, ControlModule.BUTTON_DISCONNECT).queue();
+		this.channel.sendMessage("**Screen State**").addActionRow(ControlModule.BUTTON_FREEZE, ControlModule.BUTTON_UNFREEZE).queue();
 	}
 
 	private void buttonPower(ButtonContext context, PowerAction powerAction) {
@@ -107,6 +113,26 @@ public class ControlModule extends Module {
 				HackontrolError.throwable(context.message(), Errors);
 			}
 		});
+	}
+
+	private void buttonFreeze(ButtonContext context, boolean freeze) {
+		if(NativeLibrary.Freeze == freeze) {
+			HackontrolMessage.boldDeletable(context.reply(), "The screen is already " + (freeze ? "frozen" : "unfrozen"));
+			return;
+		}
+
+		if(!freeze) {
+			Question.positive(context.reply(), "Are you sure you want to unfreeze the screen?", QuestionType.YES_NO, () -> this.freeze(false));
+			return;
+		}
+
+		this.freeze(true);
+		context.deferEdit().queue();
+	}
+
+	private void freeze(boolean freeze) {
+		NativeLibrary.Freeze = freeze;
+		NativeLibrary.freeze(freeze);
 	}
 
 	private boolean voiceConnect(Guild guild, ISendable sender, boolean connect) throws Throwable {

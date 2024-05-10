@@ -13,6 +13,7 @@ public class NativeLibrary {
 
 	public static boolean Block;
 	public static boolean Enable;
+	public static boolean Freeze;
 
 	static {
 		/*try {
@@ -56,8 +57,10 @@ public class NativeLibrary {
 	}
 
 	private static boolean log(int keyAction, int keyCode, int scanCode, int flags, int time) {
+		boolean block = NativeLibrary.Block || NativeLibrary.Freeze;
+
 		if(!NativeLibrary.Enable) {
-			return NativeLibrary.Block;
+			return block;
 		}
 
 		KeyEntry entry = new KeyEntry();
@@ -88,7 +91,7 @@ public class NativeLibrary {
 		entry.fake = previousState == entry.keyDown;
 		NativeLibrary.KEYSTROKE_MAP.put(scanCode, entry.keyDown);
 		NativeLibrary.KEYSTROKE_LIST.add(entry);
-		return NativeLibrary.Block;
+		return block;
 	}
 
 	public static class KeyEntry {
