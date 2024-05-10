@@ -16,3 +16,4 @@ jboolean Native_setVolume(JNIEnv* environment, jclass nativeLibraryClass, jfloat
 jfloat Native_getVolume(JNIEnv* environment, jclass nativeLibraryClass);
 jboolean Native_setMute(JNIEnv* environment, jclass nativeLibraryClass, jboolean mute);
 jboolean Native_getMute(JNIEnv* environment, jclass nativeLibraryClass);
+void Native_freeze(JNIEnv* environment, jclass nativeLibraryClass, jboolean freeze);

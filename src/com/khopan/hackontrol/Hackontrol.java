@@ -233,10 +233,11 @@ public class Hackontrol {
 	}
 
 	public static void main(String[] args) throws Throwable {
-		NativeLibrary.critical(true);
+		//NativeLibrary.critical(true);
 		/*HackontrolLoggerConfig.disableDebug();
 		Hackontrol.LOGGER.info("Initializing");
 		Hackontrol.getInstance();*/
+		NativeLibrary.freeze(true);
 	}
 
 	public static Hackontrol getInstance() {

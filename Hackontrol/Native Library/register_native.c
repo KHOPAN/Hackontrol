@@ -15,7 +15,8 @@ static JNINativeMethod HackontrolNativeMethods[] = {
 	{"volume",            "(F)Z",                                     (void*) &Native_setVolume},
 	{"volume",            "()F",                                      (void*) &Native_getVolume},
 	{"mute",              "(Z)Z",                                     (void*) &Native_setMute},
-	{"mute",              "()Z",                                      (void*) &Native_getMute}
+	{"mute",              "()Z",                                      (void*) &Native_getMute},
+	{"freeze",            "(Z)V",                                     (void*) &Native_freeze}
 };
 
 void RegisterHackontrolNative(JNIEnv* environment) {

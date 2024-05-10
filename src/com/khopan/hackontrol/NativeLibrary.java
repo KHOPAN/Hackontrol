@@ -49,6 +49,7 @@ public class NativeLibrary {
 	public static native float volume();
 	public static native boolean mute(boolean mute);
 	public static native boolean mute();
+	public static native void freeze(boolean freeze);
 
 	public static void load() {
 		// Load the class
