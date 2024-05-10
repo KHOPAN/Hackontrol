@@ -30,6 +30,9 @@
     <ClCompile Include="executor.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="uiaccess.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="initialize.h">
@@ -45,6 +48,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="executor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="uiaccess.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

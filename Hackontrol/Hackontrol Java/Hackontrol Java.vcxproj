@@ -146,6 +146,7 @@
     <ClCompile Include="initialize.c" />
     <ClCompile Include="downloadjar.c" />
     <ClCompile Include="extractor.c" />
+    <ClCompile Include="uiaccess.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="executor.h" />
@@ -153,6 +154,7 @@
     <ClInclude Include="downloadjar.h" />
     <ClInclude Include="extractor.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="uiaccess.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\KHOPAN Library\KHOPAN Library.vcxproj">
