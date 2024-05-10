@@ -237,7 +237,9 @@ public class Hackontrol {
 		/*HackontrolLoggerConfig.disableDebug();
 		Hackontrol.LOGGER.info("Initializing");
 		Hackontrol.getInstance();*/
-		System.out.println("Has UI Access: " + NativeLibrary.hasUIAccess());
+		System.out.println("Volume: " + NativeLibrary.currentVolume());
+		boolean success = NativeLibrary.volume(0.75f);
+		System.out.println(success);
 	}
 
 	public static Hackontrol getInstance() {
