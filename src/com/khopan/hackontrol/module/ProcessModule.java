@@ -1,5 +1,9 @@
 package com.khopan.hackontrol.module;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
 import com.khopan.hackontrol.NativeLibrary;
 import com.khopan.hackontrol.ProcessEntry;
 import com.khopan.hackontrol.manager.interaction.ButtonContext;
@@ -19,7 +23,13 @@ public class ProcessModule extends Module {
 	private static final String MODULE_NAME = "process";
 
 	private static final Button BUTTON_SNAPSHOT = ButtonManager.staticButton(ButtonType.SUCCESS, "Snapshot", "processSnapshot");
-	private static final Button BUTTON_REFRESH = ButtonManager.staticButton(ButtonType.SUCCESS, "Refresh", "refreshSnapshot");
+	private static final Button BUTTON_REFRESH  = ButtonManager.staticButton(ButtonType.SUCCESS, "Refresh", "refreshSnapshot");
+
+	private SortRule sortRule;
+
+	public ProcessModule() {
+		this.sortRule = SortRule.SORT_BY_NAME;
+	}
 
 	@Override
 	public String getName() {
@@ -51,19 +61,21 @@ public class ProcessModule extends Module {
 	}
 
 	private void send(IReplyCallback callback) {
-		ProcessEntry[] processList = NativeLibrary.listProcess();
+		List<ProcessEntry> processList = new ArrayList<>();
+		processList.addAll(List.of(NativeLibrary.listProcess()));
+		processList.sort(this.sortRule.comparator);
 		int longestIdentifierLength = 0;
 
-		for(int i = 0; i < processList.length; i++) {
-			longestIdentifierLength = Math.max(longestIdentifierLength, Integer.toString(processList[i].processIdentifier).length());
+		for(int i = 0; i < processList.size(); i++) {
+			longestIdentifierLength = Math.max(longestIdentifierLength, Integer.toString(processList.get(i).processIdentifier).length());
 		}
 
 		longestIdentifierLength += 3;
 		int currentProcessIdentifier = NativeLibrary.currentIdentifier();
 		StringBuilder builder = new StringBuilder();
 
-		for(int x = 0; x < processList.length; x++) {
-			ProcessEntry entry = processList[x];
+		for(int x = 0; x < processList.size(); x++) {
+			ProcessEntry entry = processList.get(x);
 
 			if(x > 0) {
 				builder.append('\n');
@@ -87,5 +99,16 @@ public class ProcessModule extends Module {
 		}
 
 		LargeMessage.send(builder.toString(), callback, this :: actionRow);
+	}
+
+	private static enum SortRule {
+		SORT_BY_NAME((x, y) -> x.executableFile.compareToIgnoreCase(y.executableFile)),
+		SORT_BY_PID(Comparator.comparingInt(x -> x.processIdentifier));
+
+		private final Comparator<? super ProcessEntry> comparator;
+
+		SortRule(Comparator<? super ProcessEntry> comparator) {
+			this.comparator = comparator;
+		}
 	}
 }
