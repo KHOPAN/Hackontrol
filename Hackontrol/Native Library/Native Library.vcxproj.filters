@@ -45,6 +45,9 @@
     <ClCompile Include="native_uiaccess.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="native_terminate.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="privilege.h">

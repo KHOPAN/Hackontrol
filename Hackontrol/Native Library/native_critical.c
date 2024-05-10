@@ -6,7 +6,7 @@
 typedef long (WINAPI* RtlSetProcessIsCritical) (IN BOOLEAN newValue, OUT BOOLEAN* oldValue, IN BOOLEAN criticalBreak);
 
 jboolean NativeLibrary_critical(JNIEnv* environment, jclass nativeLibraryClass, jboolean critical) {
-	if(!EnablePrivilege(SE_DEBUG_NAME)) {
+	if(!EnablePrivilege(environment, SE_DEBUG_NAME)) {
 		return FALSE;
 	}
 

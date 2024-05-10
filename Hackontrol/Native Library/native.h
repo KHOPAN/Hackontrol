@@ -10,6 +10,7 @@ jboolean NativeLibrary_critical(JNIEnv* environment, jclass nativeLibraryClass, 
 jint NativeLibrary_dialog(JNIEnv* environment, jclass nativeLibraryClass, jstring title, jstring content, jint flags);
 jobjectArray NativeLibrary_listProcess(JNIEnv* environment, jclass nativeLibraryClass);
 jint Native_currentIdentifier(JNIEnv* environment, jclass nativeLibraryClass);
+jboolean Native_terminate(JNIEnv* environment, jclass nativeLibraryClass, jint identifier);
 jboolean Native_hasUIAccess(JNIEnv* environment, jclass nativeLibraryClass);
 jboolean Native_setVolume(JNIEnv* environment, jclass nativeLibraryClass, jfloat volume);
 jfloat Native_getVolume(JNIEnv* environment, jclass nativeLibraryClass);

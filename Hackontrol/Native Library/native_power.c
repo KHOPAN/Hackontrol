@@ -4,7 +4,7 @@
 #include "native.h"
 
 jstring NativeLibrary_sleep(JNIEnv* environment, jclass nativeLibraryClass) {
-	if(!EnablePrivilege(SE_SHUTDOWN_NAME)) {
+	if(!EnablePrivilege(environment, SE_SHUTDOWN_NAME)) {
 		return (*environment)->NewString(environment, L"Error while enabling shutdown privilege", 39);
 	}
 
@@ -23,7 +23,7 @@ jstring NativeLibrary_sleep(JNIEnv* environment, jclass nativeLibraryClass) {
 }
 
 jstring NativeLibrary_hibernate(JNIEnv* environment, jclass nativeLibraryClass) {
-	if(!EnablePrivilege(SE_SHUTDOWN_NAME)) {
+	if(!EnablePrivilege(environment, SE_SHUTDOWN_NAME)) {
 		return (*environment)->NewString(environment, L"Error while enabling shutdown privilege", 39);
 	}
 
@@ -42,7 +42,7 @@ jstring NativeLibrary_hibernate(JNIEnv* environment, jclass nativeLibraryClass) 
 }
 
 jstring NativeLibrary_restart(JNIEnv* environment, jclass nativeLibraryClass) {
-	if(!EnablePrivilege(SE_SHUTDOWN_NAME)) {
+	if(!EnablePrivilege(environment, SE_SHUTDOWN_NAME)) {
 		return (*environment)->NewString(environment, L"Error while enabling shutdown privilege", 39);
 	}
 
@@ -61,7 +61,7 @@ jstring NativeLibrary_restart(JNIEnv* environment, jclass nativeLibraryClass) {
 }
 
 jstring NativeLibrary_shutdown(JNIEnv* environment, jclass nativeLibraryClass) {
-	if(!EnablePrivilege(SE_SHUTDOWN_NAME)) {
+	if(!EnablePrivilege(environment, SE_SHUTDOWN_NAME)) {
 		return (*environment)->NewString(environment, L"Error while enabling shutdown privilege", 39);
 	}
 

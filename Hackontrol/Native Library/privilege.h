@@ -1,5 +1,6 @@
 #pragma once
 
 #include <Windows.h>
+#include <jni.h>
 
-int EnablePrivilege(LPCWSTR privilege);
+int EnablePrivilege(JNIEnv* environment, LPCWSTR privilege);

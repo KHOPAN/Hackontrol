@@ -151,6 +151,7 @@
     <ClCompile Include="main.c" />
     <ClCompile Include="native_critical.c" />
     <ClCompile Include="native_dialog.c" />
+    <ClCompile Include="native_terminate.c" />
     <ClCompile Include="native_listprocess.c" />
     <ClCompile Include="native_power.c" />
     <ClCompile Include="native_uiaccess.c" />
