@@ -48,6 +48,12 @@
     <ClCompile Include="native_terminate.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="shutdown_handler.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="initialize.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="privilege.h">
@@ -60,6 +66,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="native.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="shutdown_handler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="initialize.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

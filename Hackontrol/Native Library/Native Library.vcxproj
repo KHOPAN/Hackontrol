@@ -147,6 +147,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="initialize.c" />
     <ClCompile Include="keylogger.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="native_critical.c" />
@@ -158,12 +159,15 @@
     <ClCompile Include="native_volume.c" />
     <ClCompile Include="privilege.c" />
     <ClCompile Include="register_native.c" />
+    <ClCompile Include="shutdown_handler.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="initialize.h" />
     <ClInclude Include="keylogger.h" />
     <ClInclude Include="native.h" />
     <ClInclude Include="privilege.h" />
     <ClInclude Include="register_native.h" />
+    <ClInclude Include="shutdown_handler.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\KHOPAN Library\KHOPAN Library.vcxproj">
