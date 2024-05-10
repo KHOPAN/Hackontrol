@@ -57,10 +57,6 @@ public class FilePersistentStorage implements PersistentStorage {
 			throw new NullPointerException("Persistent key cannot be null");
 		}
 
-		if(this.map.containsKey(key)) {
-			throw new IllegalArgumentException("Duplicate persistent storage key: " + key);
-		}
-
 		if(persistentClass == null) {
 			throw new NullPointerException("Persistent class cannot be null");
 		}

