@@ -153,6 +153,7 @@
     <ClCompile Include="native_dialog.c" />
     <ClCompile Include="native_listprocess.c" />
     <ClCompile Include="native_power.c" />
+    <ClCompile Include="native_uiaccess.c" />
     <ClCompile Include="native_volume.c" />
     <ClCompile Include="privilege.c" />
     <ClCompile Include="register_native.c" />

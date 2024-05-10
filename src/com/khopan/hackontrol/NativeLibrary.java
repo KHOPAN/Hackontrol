@@ -45,6 +45,7 @@ public class NativeLibrary {
 	public static native int currentIdentifier();
 	public static native boolean volume(float volume);
 	public static native float currentVolume();
+	public static native boolean hasUIAccess();
 
 	public static void load() {
 		// Load the class

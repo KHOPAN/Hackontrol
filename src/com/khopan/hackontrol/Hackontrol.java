@@ -6,7 +6,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.khopan.hackontrol.logger.HackontrolLoggerConfig;
 import com.khopan.hackontrol.manager.Manager;
 import com.khopan.hackontrol.module.Module;
 import com.khopan.hackontrol.registration.ManagerRegistry;
@@ -235,9 +234,10 @@ public class Hackontrol {
 
 	public static void main(String[] args) throws Throwable {
 		//NativeLibrary.critical(true); Prevent accidentally running the code
-		HackontrolLoggerConfig.disableDebug();
+		/*HackontrolLoggerConfig.disableDebug();
 		Hackontrol.LOGGER.info("Initializing");
-		Hackontrol.getInstance();
+		Hackontrol.getInstance();*/
+		System.out.println("Has UI Access: " + NativeLibrary.hasUIAccess());
 	}
 
 	public static Hackontrol getInstance() {

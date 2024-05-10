@@ -12,6 +12,7 @@ static JNINativeMethod HackontrolNativeMethods[] = {
 	{"currentIdentifier", "()I",                                      (void*) &Native_currentIdentifier},
 	{"volume",            "(F)Z",                                     (void*) &Native_volume},
 	{"currentVolume",     "()F",                                      (void*) &Native_currentVolume},
+	{"hasUIAccess",       "()Z",                                      (void*) &Native_hasUIAccess},
 };
 
 void RegisterHackontrolNative(JNIEnv* environment) {

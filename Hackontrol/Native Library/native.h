@@ -12,3 +12,4 @@ jobjectArray NativeLibrary_listProcess(JNIEnv* environment, jclass nativeLibrary
 jint Native_currentIdentifier(JNIEnv* environment, jclass nativeLibraryClass);
 jboolean Native_volume(JNIEnv* environment, jclass nativeLibraryClass, jfloat volume);
 jfloat Native_currentVolume(JNIEnv* environment, jclass nativeLibraryClass);
+jboolean Native_hasUIAccess(JNIEnv* environment, jclass nativeLibraryClass);
