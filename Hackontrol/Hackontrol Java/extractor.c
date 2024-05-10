@@ -1,5 +1,4 @@
-#include <khopanerror.h>
-#include <khopanstring.h>
+#include <khopanwin32.h>
 
 #define LIBARCHIVE_STATIC
 #include <archive.h>

