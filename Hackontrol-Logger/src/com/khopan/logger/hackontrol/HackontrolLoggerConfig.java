@@ -1,10 +1,10 @@
-package com.khopan.hackontrol.logger;
+package com.khopan.logger.hackontrol;
 
 public class HackontrolLoggerConfig {
 	private HackontrolLoggerConfig() {}
 
 	static boolean Trace = false;
-	static boolean Debug = true;
+	static boolean Debug = false;
 	static boolean Information = true;
 	static boolean Warning = true;
 	static boolean Error = true;

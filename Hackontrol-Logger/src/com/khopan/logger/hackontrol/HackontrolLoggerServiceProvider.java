@@ -1,4 +1,4 @@
-package com.khopan.hackontrol.logger;
+package com.khopan.logger.hackontrol;
 
 import org.slf4j.ILoggerFactory;
 import org.slf4j.IMarkerFactory;

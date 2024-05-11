@@ -2,8 +2,8 @@ package com.khopan.hackontrol.module.file;
 
 import com.khopan.hackontrol.manager.interaction.ButtonManager;
 import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
-import com.khopan.hackontrol.module.Module;
 import com.khopan.hackontrol.manager.interaction.InteractionManager;
+import com.khopan.hackontrol.module.Module;
 import com.khopan.hackontrol.registry.Registry;
 
 import net.dv8tion.jda.api.interactions.components.ActionRow;

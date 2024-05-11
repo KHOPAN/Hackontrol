@@ -1,4 +1,4 @@
-package com.khopan.hackontrol.logger;
+package com.khopan.logger.hackontrol;
 
 import java.io.OutputStream;
 import java.io.PrintStream;

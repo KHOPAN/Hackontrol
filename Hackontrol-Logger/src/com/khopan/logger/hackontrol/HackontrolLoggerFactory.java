@@ -1,4 +1,4 @@
-package com.khopan.hackontrol.logger;
+package com.khopan.logger.hackontrol;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;

