@@ -1,6 +1,9 @@
-#include "errorLog.h"
+#include <khopanwin32.h>
+#include <khopancurl.h>
 
-size_t indexOfComma(const char* text, size_t length) {
+#define FREE(x) if(LocalFree(x)) KHWin32DialogErrorW(GetLastError(), L"LocalFree")
+
+static size_t indexOfComma(const char* text, size_t length) {
 	for(size_t i = 0; i < length; i++) {
 		if(text[i] == ',') {
 			return i;
@@ -23,18 +26,18 @@ __declspec(dllexport) void __stdcall DownloadFile(HWND window, HINSTANCE instanc
 		return;
 	}
 
-	char* url = malloc((index + 1) * sizeof(char));
+	LPSTR url = LocalAlloc(LMEM_FIXED, (index + 1) * sizeof(CHAR));
 
 	if(!url) {
-		dialogError(ERROR_OUTOFMEMORY, L"malloc");
+		KHWin32DialogErrorW(GetLastError(), L"LocalAlloc");
 		return;
 	}
 
 	size_t outputLength = length - index - 1;
-	char* outputFile = malloc((outputLength + 1) * sizeof(char));
+	LPSTR outputFile = LocalAlloc(LMEM_FIXED, (outputLength + 1) * sizeof(CHAR));
 
 	if(!outputFile) {
-		dialogError(ERROR_OUTOFMEMORY, L"malloc");
+		KHWin32DialogErrorW(GetLastError(), L"LocalAlloc");
 		goto freeURL;
 	}
 
@@ -51,28 +54,28 @@ __declspec(dllexport) void __stdcall DownloadFile(HWND window, HINSTANCE instanc
 	CURLcode code = curl_global_init(CURL_GLOBAL_ALL);
 
 	if(code != CURLE_OK) {
-		curlError(code, L"curl_global_init");
+		KHCURLDialogErrorW(code, L"curl_global_init");
 		goto freeOutputFile;
 	}
 
 	CURL* curl = curl_easy_init();
 
 	if(!curl) {
-		curlError(code, L"curl_easy_init");
+		KHCURLDialogErrorW(code, L"curl_easy_init");
 		goto globalCleanup;
 	}
 
 	code = curl_easy_setopt(curl, CURLOPT_URL, url);
 
 	if(code != CURLE_OK) {
-		curlError(code, L"curl_easy_setopt");
+		KHCURLDialogErrorW(code, L"curl_easy_setopt");
 		goto easyCleanup;
 	}
 
 	code = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
 
 	if(code != CURLE_OK) {
-		curlError(code, L"curl_easy_setopt");
+		KHCURLDialogErrorW(code, L"curl_easy_setopt");
 		goto easyCleanup;
 	}
 
@@ -80,23 +83,22 @@ __declspec(dllexport) void __stdcall DownloadFile(HWND window, HINSTANCE instanc
 	errno_t errorCode = fopen_s(&file, outputFile, "wb");
 
 	if(errorCode != 0 || !file) {
-		dialogError(errorCode, L"fopen_s");
+		KHWin32DialogErrorW(ERROR_CANNOT_MAKE, L"fopen_s");
 		goto easyCleanup;
 	}
 
 	code = curl_easy_setopt(curl, CURLOPT_WRITEDATA, file);
 
 	if(code != CURLE_OK) {
-		curlError(code, L"curl_easy_setopt");
+		KHCURLDialogErrorW(code, L"curl_easy_setopt");
 		goto closeFile;
 	}
 
 	code = curl_easy_perform(curl);
 
 	if(code != CURLE_OK) {
-		curlError(code, L"curl_easy_perform");
+		KHCURLDialogErrorW(code, L"curl_easy_perform");
 	}
-
 closeFile:
 	fclose(file);
 easyCleanup:
@@ -104,7 +106,7 @@ easyCleanup:
 globalCleanup:
 	curl_global_cleanup();
 freeOutputFile:
-	free(outputFile);
+	FREE(outputFile);
 freeURL:
-	free(url);
+	FREE(url);
 }

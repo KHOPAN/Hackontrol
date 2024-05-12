@@ -76,15 +76,15 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\cJSON\include;D:\libcurl\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\library\libcurl-8.7.1\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;D:\cJSON\include</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>cJSON-debug.lib;libcurl_a.lib;Ws2_32.lib;Crypt32.lib;Wldap32.lib;Normaliz.lib;Taskschd.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\cJSON\bin\x86;D:\libcurl\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Taskschd.lib;Ws2_32.lib;Crypt32.lib;Wldap32.lib;Normaliz.lib;cJSON-debug.lib;libcurl-debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\library\libcurl-8.7.1\lib;D:\cJSON\bin\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -95,7 +95,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\cJSON\include;D:\libcurl\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\library\libcurl-8.7.1\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;D:\cJSON\include</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
@@ -104,8 +104,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>cJSON-release.lib;libcurl_a.lib;Ws2_32.lib;Crypt32.lib;Wldap32.lib;Normaliz.lib;Taskschd.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\cJSON\bin\x86;D:\libcurl\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Taskschd.lib;Ws2_32.lib;Crypt32.lib;Wldap32.lib;Normaliz.lib;cJSON-release.lib;libcurl-release.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\library\libcurl-8.7.1\lib;D:\cJSON\bin\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -114,15 +114,15 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\cJSON\include;D:\libcurl\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\library\libcurl-8.7.1\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;D:\cJSON\include</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>cJSON-debug.lib;libcurl_a.lib;Ws2_32.lib;Crypt32.lib;Wldap32.lib;Normaliz.lib;Taskschd.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\cJSON\bin\x64;D:\libcurl\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Taskschd.lib;Ws2_32.lib;Crypt32.lib;Wldap32.lib;Normaliz.lib;cJSON-debug.lib;libcurl-debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\library\libcurl-8.7.1\lib;D:\cJSON\bin\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -133,7 +133,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\cJSON\include;D:\libcurl\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\library\libcurl-8.7.1\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;D:\cJSON\include</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
@@ -142,8 +142,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>cJSON-release.lib;libcurl_a.lib;Ws2_32.lib;Crypt32.lib;Wldap32.lib;Normaliz.lib;Taskschd.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\cJSON\bin\x64;D:\libcurl\builds\libcurl-vc-x64-release-static-ipv6-sspi-schannel\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Taskschd.lib;Ws2_32.lib;Crypt32.lib;Wldap32.lib;Normaliz.lib;cJSON-release.lib;libcurl-release.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\library\libcurl-8.7.1\lib;D:\cJSON\bin\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -157,6 +157,11 @@
   <ItemGroup>
     <ClInclude Include="errorLog.h" />
     <ClInclude Include="sha512.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\KHOPAN Library\KHOPAN Library.vcxproj">
+      <Project>{8c1e7669-d899-4b10-8d65-557b98a620b5}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
