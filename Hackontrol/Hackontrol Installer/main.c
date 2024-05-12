@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
 	BYTE* buffer = LocalAlloc(LMEM_FIXED, resourceSize);
 
 	if(!buffer) {
-		KHWin32ConsoleErrorW(ERROR_OUTOFMEMORY, L"malloc");
+		KHWin32ConsoleErrorW(GetLastError(), L"LocalAlloc");
 		return 1;
 	}
 
