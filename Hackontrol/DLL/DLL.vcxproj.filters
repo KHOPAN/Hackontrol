@@ -14,12 +14,6 @@
     <ClCompile Include="Execute.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="curlError.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dialogError.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="sha512.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -31,9 +25,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="errorLog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="sha512.h">
       <Filter>Header Files</Filter>
     </ClInclude>

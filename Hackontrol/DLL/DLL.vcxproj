@@ -148,14 +148,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DownloadFile.c" />
-    <ClCompile Include="curlError.c" />
-    <ClCompile Include="dialogError.c" />
     <ClCompile Include="sha512.c" />
     <ClCompile Include="Execute.c" />
     <ClCompile Include="Install.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="errorLog.h" />
     <ClInclude Include="sha512.h" />
   </ItemGroup>
   <ItemGroup>
