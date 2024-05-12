@@ -169,25 +169,15 @@ __declspec(dllexport) void __stdcall Install(HWND window, HINSTANCE instance, LP
 	}
 
 	result = executeAction->lpVtbl->put_Path(executeAction, pathFileRundll32);
+	FREE(pathFileRundll32);
 
 	if(FAILED(result)) {
 		KHWin32DialogErrorW(result, L"IExecAction::put_Path");
-		FREE(pathFileRundll32);
 		executeAction->lpVtbl->Release(executeAction);
 		goto releaseTaskDefinition;
 	}
 
-	LPWSTR argumentFileRundll32 = KHFormatMessageW(L"%ws " FILE_LIBDLL32 L"," FUNCTION_LIBDLL32, pathFileRundll32);
-	FREE(pathFileRundll32);
-
-	if(!argumentFileRundll32) {
-		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
-		executeAction->lpVtbl->Release(executeAction);
-		goto releaseTaskDefinition;
-	}
-
-	result = executeAction->lpVtbl->put_Arguments(executeAction, argumentFileRundll32);
-	FREE(argumentFileRundll32);
+	result = executeAction->lpVtbl->put_Arguments(executeAction, FILE_RUNDLL32 L" " FILE_LIBDLL32 L"," FUNCTION_LIBDLL32);
 	executeAction->lpVtbl->Release(executeAction);
 
 	if(FAILED(result)) {
