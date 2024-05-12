@@ -150,6 +150,7 @@
     <ClCompile Include="DownloadFile.c" />
     <ClCompile Include="Execute.c" />
     <ClCompile Include="Install.c" />
+    <ClCompile Include="SimpleWindow.c" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\KHOPAN Library\KHOPAN Library.vcxproj">

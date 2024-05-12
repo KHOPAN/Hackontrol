@@ -20,5 +20,8 @@
     <ClCompile Include="Install.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SimpleWindow.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
