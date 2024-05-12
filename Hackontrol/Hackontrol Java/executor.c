@@ -9,7 +9,7 @@ void ExecuteJarFile(const LPWSTR javaCommand, const LPWSTR commandArguments, con
 	HANDLE accessToken;
 
 	if(!CreateUIAccessToken(&accessToken)) {
-		return;
+		accessToken = NULL;
 	}
 
 	if(accessToken) {
@@ -26,9 +26,8 @@ void ExecuteJarFile(const LPWSTR javaCommand, const LPWSTR commandArguments, con
 
 	if(WaitForSingleObject(processInformation.hProcess, INFINITE) == WAIT_FAILED) {
 		KHWin32DialogErrorW(GetLastError(), L"WaitForSingleObject");
-		goto closeHandles;
 	}
-closeHandles:
+
 	CloseHandle(processInformation.hProcess);
 	CloseHandle(processInformation.hThread);
 }
