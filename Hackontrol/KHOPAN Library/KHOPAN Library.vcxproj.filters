@@ -30,6 +30,9 @@
     <ClCompile Include="khopanjava_jni.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="khopancurl_error.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="khopanjava.h">
@@ -39,6 +42,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="khopanwin32.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="khopancurl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
