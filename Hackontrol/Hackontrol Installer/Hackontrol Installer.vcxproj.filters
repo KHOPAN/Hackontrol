@@ -18,20 +18,8 @@
     <ClCompile Include="main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="consoleError.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="system32.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mergePath.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="installer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>

