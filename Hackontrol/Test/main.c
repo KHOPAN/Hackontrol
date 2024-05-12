@@ -1,67 +1,39 @@
-#include <stdlib.h>
 #include <khopanwin32.h>
-#include <endpointvolume.h>
-#include <mmdeviceapi.h>
+#include <khopanstring.h>
+#include <stdio.h>
 
-EXTERN_GUID(CLSID_MMDeviceEnumerator, 0xBCDE0395, 0xE52F, 0x467C, 0x8E, 0x3D, 0xC4, 0x57, 0x92, 0x91, 0x69, 0x2E);
-EXTERN_GUID(IID_IMMDeviceEnumerator,  0xA95664D2, 0x9614, 0x4F35, 0xA7, 0x46, 0xDE, 0x8D, 0xB6, 0x36, 0x17, 0xE6);
-EXTERN_GUID(IID_IAudioEndpointVolume, 0x5CDF2C82, 0x841E, 0x4546, 0x97, 0x22, 0x0C, 0xF7, 0x40, 0x78, 0x22, 0x9A);
+#define CLOSE_HANDLE(x) if(!CloseHandle(x)) KHWin32DialogErrorW(GetLastError(), L"CloseHandle")
+#define MESSAGE_BOX(x) MessageBoxW(NULL, x, L"Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL)
+#define FREE(x) if(LocalFree(x)) KHWin32DialogErrorW(GetLastError(), L"LocalFree")
+
+#define FUNCTION_NAME  L"Execute"
+#define FILE_NAME      L"ctrl32.dll"
+#define FILE_NAME_PATH L"System32\\" FILE_NAME
+
+#define RUNDLL32PATH   L"System32\\rundll32.exe"
+#define URL_VERSION_FILE "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/version.json"
+
+#define FILE_CTRL32       L"ctrl32.dll"
+#define FILE_RUNDLL32     L"rundll32.exe"
+#define FOLDER_SYSTEM32   L"System32"
+#define FUNCTION_CTRL32   L"Execute"
 
 int main(int argc, char** argv) {
-	HRESULT result = CoInitialize(NULL);
+	LPWSTR pathFolderWindows = KHWin32GetWindowsDirectoryW();
 
-	if(FAILED(result)) {
-		KHWin32ConsoleErrorW(result, L"CoInitialize");
-		return 1;
+	if(!pathFolderWindows) {
+		KHWin32DialogErrorW(GetLastError(), L"KHWin32GetWindowsDirectoryW");
+		return;
 	}
 
-	IMMDeviceEnumerator* enumerator;
-	result = CoCreateInstance(&CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL, &IID_IMMDeviceEnumerator, &enumerator);
-	int returnValue = 1;
+	LPWSTR pathFileRundll32 = KHFormatMessageW(L"%ws\\" FOLDER_SYSTEM32 L"\\" FILE_RUNDLL32, pathFolderWindows);
+	FREE(pathFolderWindows);
 
-	if(FAILED(result)) {
-		KHWin32ConsoleErrorW(result, L"CoCreateInstance");
-		goto uninitialize;
+	if(!pathFileRundll32) {
+		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
+		return;
 	}
 
-	IMMDevice* device;
-	result = enumerator->lpVtbl->GetDefaultAudioEndpoint(enumerator, eRender, eConsole, &device);
-	enumerator->lpVtbl->Release(enumerator);
-
-	if(FAILED(result)) {
-		KHWin32ConsoleErrorW(result, L"IMMDeviceEnumerator::GetDefaultAudioEndpoint");
-		goto uninitialize;
-	}
-
-	IAudioEndpointVolume* volume;
-	result = device->lpVtbl->Activate(device, &IID_IAudioEndpointVolume, CLSCTX_ALL, NULL, &volume);
-	device->lpVtbl->Release(device);
-
-	if(FAILED(result)) {
-		KHWin32ConsoleErrorW(result, L"IMMDevice::Activate");
-		goto uninitialize;
-	}
-
-	srand((unsigned int) GetTickCount64());
-	unsigned long long count = 1000;
-
-	while(count > 1) {
-		float percentage = rand() / ((float) RAND_MAX);
-		result = volume->lpVtbl->SetMasterVolumeLevelScalar(volume, percentage, NULL);
-
-		if(FAILED(result)) {
-			KHWin32ConsoleErrorW(result, L"IAudioEndpointVolume::SetMasterVolumeLevel");
-			goto releaseVolume;
-		}
-
-		Sleep(10);
-		count--;
-	}
-
-	returnValue = 0;
-releaseVolume:
-	volume->lpVtbl->Release(volume);
-uninitialize:
-	CoUninitialize();
-	return returnValue;
+	printf("Rundll32: %ws\nArgument: %ws\n", pathFileRundll32, FILE_RUNDLL32 L" " FILE_CTRL32 L"," FUNCTION_CTRL32);
+	FREE(pathFileRundll32);
 }

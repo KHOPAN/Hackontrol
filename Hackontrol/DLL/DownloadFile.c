@@ -3,19 +3,8 @@
 
 #define FREE(x) if(LocalFree(x)) KHWin32DialogErrorW(GetLastError(), L"LocalFree")
 
-static size_t indexOfComma(const char* text, size_t length) {
-	for(size_t i = 0; i < length; i++) {
-		if(text[i] == ',') {
-			return i;
-		}
-	}
-
-	return -1;
-}
-
-static size_t write_data(void* data, size_t size, size_t count, FILE* stream) {
-	return fwrite(data, size, count, stream);
-}
+static size_t indexOfComma(const char* text, size_t length);
+static size_t write_data(void* data, size_t size, size_t count, FILE* stream);
 
 __declspec(dllexport) void __stdcall DownloadFile(HWND window, HINSTANCE instance, LPSTR argument, int command) {
 	size_t length = strlen(argument);
@@ -109,4 +98,18 @@ freeOutputFile:
 	FREE(outputFile);
 freeURL:
 	FREE(url);
+}
+
+static size_t indexOfComma(const char* text, size_t length) {
+	for(size_t i = 0; i < length; i++) {
+		if(text[i] == ',') {
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+static size_t write_data(void* data, size_t size, size_t count, FILE* stream) {
+	return fwrite(data, size, count, stream);
 }

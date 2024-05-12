@@ -14,19 +14,11 @@
     <ClCompile Include="Execute.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sha512.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="DownloadFile.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Install.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="sha512.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
