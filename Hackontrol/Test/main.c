@@ -12,30 +12,32 @@ EXTERN_GUID(IID_IAudioCaptureClient,  0xC8ADBD64, 0xE71E, 0x48a0, 0xA4, 0xDE, 0x
 EXTERN_GUID(IID_IAudioRenderClient,   0xF294ACFC, 0x3146, 0x4483, 0xA7, 0xBF, 0xAD, 0xDC, 0xA7, 0xC2, 0x60, 0xE2);*/
 
 int main(int argc, char** argv) {
-	DynamicArray dynamicArray;
+	ArrayList list;
 	
-	if(!KHArrayInitialize(&dynamicArray, sizeof(UINT32))) {
+	if(!KHArrayInitialize(&list, sizeof(UINT32))) {
 		KHWin32ConsoleErrorW(GetLastError(), L"KHArrayInitialize");
 		return 1;
 	}
 
 	size_t size;
 
-	if(!KHArraySize(&dynamicArray, &size)) {
+	if(!KHArraySize(&list, &size)) {
 		KHWin32ConsoleErrorW(GetLastError(), L"KHArraySize");
 		return 1;
 	}
 
 	printf("Size: %llu\n", size);
 
-	for(UINT32 i = 26; i <= 400; i++) {
-		if(!KHArrayAdd(&dynamicArray, &i)) {
+	for(size_t i = 0; i < 1000; i++) {
+		UINT32 value = rand();
+
+		if(!KHArrayAdd(&list, &value)) {
 			KHWin32ConsoleErrorW(GetLastError(), L"KHArrayAdd");
 			return 1;
 		}
 	}
 
-	if(!KHArraySize(&dynamicArray, &size)) {
+	if(!KHArraySize(&list, &size)) {
 		KHWin32ConsoleErrorW(GetLastError(), L"KHArraySize");
 		return 1;
 	}
@@ -44,7 +46,7 @@ int main(int argc, char** argv) {
 	PUINT32 data;
 
 	for(size_t i = 0; i < size; i++) {
-		if(!KHArrayGet(&dynamicArray, i, &data)) {
+		if(!KHArrayGet(&list, i, &data)) {
 			KHWin32ConsoleErrorW(GetLastError(), L"KHArraySize");
 			return 1;
 		}
@@ -53,7 +55,7 @@ int main(int argc, char** argv) {
 		printf("Index: %llu Data: %lu\n", i, integer);
 	}
 
-	if(!KHArrayFree(&dynamicArray)) {
+	if(!KHArrayFree(&list)) {
 		KHWin32ConsoleErrorW(GetLastError(), L"KHArrayFree");
 		return 1;
 	}

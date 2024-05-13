@@ -1,92 +1,92 @@
 #include <stdio.h>
 #include "khopanarray.h"
 
-BOOL KHArrayInitialize(DynamicArray* dynamicArray, size_t elementSize) {
-	if(!dynamicArray) {
+BOOL KHArrayInitialize(ArrayList* list, size_t elementSize) {
+	if(!list) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
 	}
 
-	BYTE* buffer = LocalAlloc(LMEM_FIXED, elementSize * DYNAMIC_ARRAY_INITIAL_CAPACITY);
+	BYTE* buffer = LocalAlloc(LMEM_FIXED, elementSize * ARRAY_LIST_INITIAL_CAPACITY);
 
 	if(!buffer) {
 		return FALSE;
 	}
 
-	dynamicArray->data = buffer;
-	dynamicArray->elementSize = elementSize;
-	dynamicArray->elementCount = 0;
-	dynamicArray->capacity = DYNAMIC_ARRAY_INITIAL_CAPACITY;
+	list->data = buffer;
+	list->elementSize = elementSize;
+	list->elementCount = 0;
+	list->capacity = ARRAY_LIST_INITIAL_CAPACITY;
 	return TRUE;
 }
 
-BOOL KHArraySize(DynamicArray* dynamicArray, size_t* arraySize) {
-	if(!dynamicArray || !arraySize) {
+BOOL KHArraySize(ArrayList* list, size_t* arraySize) {
+	if(!list || !arraySize) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
 	}
 
-	(*arraySize) = dynamicArray->elementCount;
+	(*arraySize) = list->elementCount;
 	return TRUE;
 }
-BOOL KHArrayIsEmpty(DynamicArray* dynamicArray, LPBOOL isEmpty) {
-	if(!dynamicArray || !isEmpty) {
+BOOL KHArrayIsEmpty(ArrayList* list, LPBOOL isEmpty) {
+	if(!list || !isEmpty) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
 	}
 
-	(*isEmpty) = dynamicArray->elementCount == 0;
+	(*isEmpty) = list->elementCount == 0;
 	return TRUE;
 }
 
-BOOL KHArrayAdd(DynamicArray* dynamicArray, void* data) {
-	if(!dynamicArray) {
+BOOL KHArrayAdd(ArrayList* list, void* data) {
+	if(!list) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
 	}
 
-	if(dynamicArray->elementCount >= dynamicArray->capacity) {
-		size_t dataSizeInBytes = dynamicArray->elementSize * dynamicArray->capacity;
-		size_t newSize = dataSizeInBytes * DYNAMIC_ARRAY_SCALE_FACTOR;
+	if(list->elementCount >= list->capacity) {
+		size_t dataSizeInBytes = list->elementSize * list->capacity;
+		size_t newSize = dataSizeInBytes * ARRAY_LIST_SCALE_FACTOR;
 		BYTE* buffer = LocalAlloc(LMEM_FIXED, newSize);
 
 		if(!buffer) {
 			return FALSE;
 		}
 
-		memcpy(buffer, dynamicArray->data, dataSizeInBytes);
-		LocalFree(dynamicArray->data);
-		dynamicArray->data = buffer;
-		dynamicArray->capacity *= DYNAMIC_ARRAY_SCALE_FACTOR;
+		memcpy(buffer, list->data, dataSizeInBytes);
+		LocalFree(list->data);
+		list->data = buffer;
+		list->capacity *= ARRAY_LIST_SCALE_FACTOR;
 	}
 
-	memcpy((void*) (((size_t) (*dynamicArray).data) + dynamicArray->elementCount * dynamicArray->elementSize), data, dynamicArray->elementSize);
-	dynamicArray->elementCount++;
+	memcpy((void*) (((size_t) (*list).data) + list->elementCount * list->elementSize), data, list->elementSize);
+	list->elementCount++;
 	return TRUE;
 }
 
-BOOL KHArrayGet(DynamicArray* dynamicArray, size_t index, void** data) {
-	if(!dynamicArray || !data) {
+BOOL KHArrayGet(ArrayList* list, size_t index, void** data) {
+	if(!list || !data) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
 	}
 
-	if(index < 0 || index >= dynamicArray->elementCount) {
+	if(index < 0 || index >= list->elementCount) {
 		SetLastError(ERROR_INDEX_OUT_OF_BOUNDS);
 		return FALSE;
 	}
 
-	(*data) = (void*) (((size_t) (*dynamicArray).data) + index * dynamicArray->elementSize);
+	(*data) = (void*) (((size_t) (*list).data) + index * list->elementSize);
 	return TRUE;
 }
 
-BOOL KHArrayFree(DynamicArray* dynamicArray) {
-	if(!dynamicArray) {
+BOOL KHArrayFree(ArrayList* list) {
+	if(!list) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
 	}
 
-	if(dynamicArray->data && LocalFree(dynamicArray->data)) {
+	if(list->data && LocalFree(list->data)) {
 		return FALSE;
 	}
 
