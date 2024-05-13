@@ -27,7 +27,6 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageHistory;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
 public class Hackontrol {
@@ -99,7 +98,7 @@ public class Hackontrol {
 			module.channel = textChannel;
 			module.preInitialize(RegistryImplementation.of(module));
 
-			if(this.isChannelEmpty(textChannel)) {
+			if(MessageHistory.getHistoryFromBeginning(textChannel).complete().getRetrievedHistory().isEmpty()) {
 				module.initialize();
 			}
 
@@ -151,11 +150,6 @@ public class Hackontrol {
 		}
 
 		return category.createTextChannel(name).complete();
-	}
-
-	private boolean isChannelEmpty(MessageChannel channel) {
-		MessageHistory history = MessageHistory.getHistoryFromBeginning(channel).complete();
-		return history.getRetrievedHistory().isEmpty();
 	}
 
 	private void handleError(Thread thread, Throwable Errors) {
@@ -251,8 +245,7 @@ public class Hackontrol {
 	}
 
 	public String getNickname() {
-		StringPresistent persistent = this.persistentStorage.load(Hackontrol.PERSISTENT_NICKNAME, StringPresistent.class);
-		return persistent.value;
+		return this.persistentStorage.load(Hackontrol.PERSISTENT_NICKNAME, StringPresistent.class).value;
 	}
 
 	public void setErrorHandler(ErrorHandler handler) {
