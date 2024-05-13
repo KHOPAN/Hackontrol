@@ -139,6 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="khopanarray.c" />
     <ClCompile Include="khopancurl_error.c" />
     <ClCompile Include="khopanjava_jni.c" />
     <ClCompile Include="khopanstring.c" />
@@ -147,6 +148,7 @@
     <ClCompile Include="khopanwin32.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="khopanarray.h" />
     <ClInclude Include="khopancurl.h" />
     <ClInclude Include="khopanjava.h" />
     <ClInclude Include="khopanstring.h" />
