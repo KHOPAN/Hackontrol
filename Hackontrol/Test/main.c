@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <khopanarray.h>
 #include <khopanwin32.h>
@@ -12,7 +13,11 @@ EXTERN_GUID(IID_IAudioCaptureClient,  0xC8ADBD64, 0xE71E, 0x48a0, 0xA4, 0xDE, 0x
 EXTERN_GUID(IID_IAudioRenderClient,   0xF294ACFC, 0x3146, 0x4483, 0xA7, 0xBF, 0xAD, 0xDC, 0xA7, 0xC2, 0x60, 0xE2);*/
 
 int main(int argc, char** argv) {
-	ArrayList list;
+	FILE* file;
+	errno_t error = fopen_s(&file, "imnotexistpleasedontletmeexist", "r");
+	char* value = strerror(error);
+	printf("Data: %s\n", value);
+	/*ArrayList list;
 	
 	if(!KHArrayInitialize(&list, sizeof(UINT32))) {
 		KHWin32ConsoleErrorW(GetLastError(), L"KHArrayInitialize");
@@ -58,7 +63,7 @@ int main(int argc, char** argv) {
 	if(!KHArrayFree(&list)) {
 		KHWin32ConsoleErrorW(GetLastError(), L"KHArrayFree");
 		return 1;
-	}
+	}*/
 
 	/*HRESULT result = CoInitialize(NULL);
 
