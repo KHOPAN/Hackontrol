@@ -10,11 +10,11 @@
 #define MESSAGE_BOX(x) MessageBoxW(NULL, x, L"Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL)
 #define FREE(x) if(LocalFree(x)) KHWin32DialogErrorW(GetLastError(), L"LocalFree")
 
-#define FILE_CTRL32       L"ctrl32.dll"
-#define FILE_RUNDLL32     L"rundll32.exe"
-#define FOLDER_SYSTEM32   L"System32"
-#define FUNCTION_CTRL32   L"Execute"
-#define URL_VERSION_FILE  "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/version.json"
+#define FILE_CTRL32      L"ctrl32.dll"
+#define FILE_RUNDLL32    L"rundll32.exe"
+#define FOLDER_SYSTEM32  L"System32"
+#define FUNCTION_CTRL32  L"Execute"
+#define URL_VERSION_FILE "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/version.json"
 
 static size_t data_write(BYTE* data, size_t size, size_t count, void** output);
 static size_t file_write(void* data, size_t size, size_t count, FILE* stream);
