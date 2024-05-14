@@ -142,17 +142,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Execute.c" />
-    <ClCompile Include="executor.c" />
     <ClCompile Include="initialize.c" />
-    <ClCompile Include="downloadjar.c" />
-    <ClCompile Include="extractor.c" />
+    <ClCompile Include="extract.c" />
     <ClCompile Include="uiaccess.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="executor.h" />
     <ClInclude Include="initialize.h" />
-    <ClInclude Include="downloadjar.h" />
-    <ClInclude Include="extractor.h" />
+    <ClInclude Include="extract.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="uiaccess.h" />
   </ItemGroup>

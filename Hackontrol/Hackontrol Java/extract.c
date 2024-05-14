@@ -5,7 +5,7 @@
 #include <archive_entry.h>
 
 #include <direct.h>
-#include "extractor.h"
+#include "extract.h"
 #include "initialize.h"
 #include "resource.h"
 

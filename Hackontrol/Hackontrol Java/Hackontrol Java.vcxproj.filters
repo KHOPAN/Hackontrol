@@ -21,13 +21,7 @@
     <ClCompile Include="initialize.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="downloadjar.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="extractor.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="executor.c">
+    <ClCompile Include="extract.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="uiaccess.c">
@@ -38,16 +32,10 @@
     <ClInclude Include="initialize.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="downloadjar.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="extractor.h">
+    <ClInclude Include="extract.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="executor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="uiaccess.h">
