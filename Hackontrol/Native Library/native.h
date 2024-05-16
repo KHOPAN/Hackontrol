@@ -2,6 +2,7 @@
 
 #include <jni.h>
 
+jstring NativeLibrary_machineName(JNIEnv* environment, jclass nativeLibraryClass);
 jstring NativeLibrary_sleep(JNIEnv* environment, jclass nativeLibraryClass);
 jstring NativeLibrary_hibernate(JNIEnv* environment, jclass nativeLibraryClass);
 jstring NativeLibrary_restart(JNIEnv* environment, jclass nativeLibraryClass);

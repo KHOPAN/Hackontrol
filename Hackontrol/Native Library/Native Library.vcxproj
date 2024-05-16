@@ -74,15 +74,15 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\library\camera-1.0.0\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\library\openssl-3.3.0\x64\include;D:\library\camera-1.0.0\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>D:\library\camera-1.0.0\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>camera.lib;PowrProf.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\library\openssl-3.3.0\x64\lib;D:\library\camera-1.0.0\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libcrypto.lib;camera.lib;PowrProf.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -93,7 +93,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\library\camera-1.0.0\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\library\openssl-3.3.0\x64\include;D:\library\camera-1.0.0\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <CompileAs>CompileAsC</CompileAs>
@@ -103,8 +103,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>D:\library\camera-1.0.0\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>camera.lib;PowrProf.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\library\openssl-3.3.0\x64\lib;D:\library\camera-1.0.0\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libcrypto.lib;camera.lib;PowrProf.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -113,15 +113,15 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\library\camera-1.0.0\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\library\openssl-3.3.0\x64\include;D:\library\camera-1.0.0\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>D:\library\camera-1.0.0\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>camera.lib;PowrProf.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\library\openssl-3.3.0\x64\lib;D:\library\camera-1.0.0\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libcrypto.lib;camera.lib;PowrProf.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -132,7 +132,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\library\camera-1.0.0\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\library\openssl-3.3.0\x64\include;D:\library\camera-1.0.0\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <CompileAs>CompileAsC</CompileAs>
@@ -142,8 +142,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>D:\library\camera-1.0.0\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>camera.lib;PowrProf.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\library\openssl-3.3.0\x64\lib;D:\library\camera-1.0.0\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libcrypto.lib;camera.lib;PowrProf.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -152,6 +152,7 @@
     <ClCompile Include="main.c" />
     <ClCompile Include="native_critical.c" />
     <ClCompile Include="native_dialog.c" />
+    <ClCompile Include="native_machine_name.c" />
     <ClCompile Include="native_terminate.c" />
     <ClCompile Include="native_listprocess.c" />
     <ClCompile Include="native_power.c" />

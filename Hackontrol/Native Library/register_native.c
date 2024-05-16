@@ -2,6 +2,7 @@
 #include "native.h"
 
 static JNINativeMethod HackontrolNativeMethods[] = {
+	{"machineName",       "()Ljava/lang/String;",                     (void*) &NativeLibrary_machineName},
 	{"sleep",             "()Ljava/lang/String;",                     (void*) &NativeLibrary_sleep},
 	{"hibernate",         "()Ljava/lang/String;",                     (void*) &NativeLibrary_hibernate},
 	{"restart",           "()Ljava/lang/String;",                     (void*) &NativeLibrary_restart},

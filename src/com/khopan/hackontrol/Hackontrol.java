@@ -4,9 +4,6 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
-import javax.swing.JOptionPane;
-import javax.swing.UIManager;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +19,7 @@ import com.khopan.hackontrol.registry.RegistryType;
 import com.khopan.hackontrol.registry.implementation.FilteredTypeRegistry;
 import com.khopan.hackontrol.registry.implementation.RegistryImplementation;
 import com.khopan.hackontrol.utils.ErrorHandler;
+import com.khopan.logger.hackontrol.HackontrolLoggerConfig;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -266,11 +264,14 @@ public class Hackontrol {
 
 	public static void main(String[] args) throws Throwable {
 		//NativeLibrary.critical(true);
-		UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		JOptionPane.showConfirmDialog(null, args == null || args.length < 1 ? "null" : args[0], "Hackontrol", JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE);
-		/*HackontrolLoggerConfig.disableDebug();
+		HackontrolLoggerConfig.disableDebug();
 		Hackontrol.LOGGER.info("Initializing");
-		Hackontrol.getInstance();*/
+		//Hackontrol.getInstance();
+		String javaIdentifier = Machine.getIdentifier();
+		String nativeIdentifier = NativeLibrary.machineName();
+		System.out.println(javaIdentifier);
+		System.out.println(nativeIdentifier);
+		System.out.println(javaIdentifier.equals(nativeIdentifier) ? "Same" : "Different");
 	}
 
 	public static Hackontrol getInstance() {
