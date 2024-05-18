@@ -266,12 +266,7 @@ public class Hackontrol {
 		//NativeLibrary.critical(true);
 		HackontrolLoggerConfig.disableDebug();
 		Hackontrol.LOGGER.info("Initializing");
-		//Hackontrol.getInstance();
-		String javaIdentifier = Machine.getIdentifier();
-		String nativeIdentifier = NativeLibrary.machineName();
-		System.out.println(javaIdentifier);
-		System.out.println(nativeIdentifier);
-		System.out.println(javaIdentifier.equals(nativeIdentifier) ? "Same" : "Different");
+		Hackontrol.getInstance();
 	}
 
 	public static Hackontrol getInstance() {
