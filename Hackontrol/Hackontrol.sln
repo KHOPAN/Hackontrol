@@ -5,7 +5,7 @@ VisualStudioVersion = 17.7.34031.279
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Hackontrol", "Hackontrol\Hackontrol.vcxproj", "{0DA1DA34-C493-4E74-9BC5-087D16BE4509}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DLL", "DLL\DLL.vcxproj", "{66C59002-919D-45DE-94B4-8C76ED45D873}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libdll32", "libdll32\libdll32.vcxproj", "{66C59002-919D-45DE-94B4-8C76ED45D873}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Hackontrol Installer", "Hackontrol Installer\Hackontrol Installer.vcxproj", "{9CA978FC-474A-472B-A087-84FEB8BE74C1}"
 EndProject
