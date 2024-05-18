@@ -1,0 +1,14 @@
+{
+	"self": {
+		"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/libdll32.dll",
+		"sha512": ""
+	},
+
+	"files": [
+		{
+			"file": "ctrl32.dll",
+			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/ctrl32.dll",
+			"sha512": ""
+		}
+	]
+}
