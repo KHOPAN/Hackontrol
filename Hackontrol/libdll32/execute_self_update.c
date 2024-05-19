@@ -29,9 +29,10 @@ BOOL CheckAndProcessSelfUpdate(cJSON* root) {
 	LocalFree(pathFileLibdll32);
 
 	if(result) {
+		MessageBoxW(NULL, L"Hash match", L"libdll32", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 		return TRUE;
 	}
 
-	MessageBoxW(NULL, L"Hash not match", L"libdll32", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+	MessageBoxW(NULL, L"Hash not match", L"libdll32", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 	return TRUE;
 }

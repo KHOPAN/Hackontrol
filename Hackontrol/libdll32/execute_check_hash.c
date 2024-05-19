@@ -51,7 +51,17 @@ static BOOL SHA512Check(const cJSON* stringNode, const BYTE* buffer, size_t size
 		return FALSE;
 	}
 
-	char* string = cJSON_GetStringValue(stringNode);
-	MessageBoxA(NULL, string, "libdll32", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
-	return TRUE;
+	unsigned char hash[SHA512_DIGEST_LENGTH];
+	SHA512(buffer, size, hash);
+	char hashString[SHA512_DIGEST_LENGTH * 2 + 1];
+	const char* hexadecimal = "0123456789abcdef";
+
+	for(unsigned char i = 0; i < SHA512_DIGEST_LENGTH; i++) {
+		unsigned char index = i * 2;
+		hashString[index] = hexadecimal[(hash[i] >> 4) & 0xF];
+		hashString[index + 1] = hexadecimal[hash[i] & 0xF];
+	}
+
+	hashString[SHA512_DIGEST_LENGTH * 2] = 0;
+	return !strcmp(hashString, cJSON_GetStringValue(stringNode));
 }
