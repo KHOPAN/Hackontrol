@@ -1,6 +1,7 @@
 #include "execute.h"
 #include <khopanstring.h>
 #include <openssl/sha.h>
+#include <openssl/md5.h>
 
 #define HASH_CHECK(x,y) do{if(cJSON_HasObjectItem(root,x)){cJSON*object=cJSON_GetObjectItem(root,x);if(!cJSON_IsString(object)){goto freeBuffer;}match=y(object,buffer,fileSize.QuadPart);goto freeBuffer;}}while(0)
 
@@ -9,6 +10,7 @@ static BOOL SHA384Check(const cJSON* stringNode, const BYTE* buffer, size_t size
 static BOOL SHA256Check(const cJSON * stringNode, const BYTE * buffer, size_t size);
 static BOOL SHA224Check(const cJSON * stringNode, const BYTE * buffer, size_t size);
 static BOOL SHA1Check(const cJSON * stringNode, const BYTE * buffer, size_t size);
+static BOOL MD5Check(const cJSON * stringNode, const BYTE * buffer, size_t size);
 
 BOOL CheckFileHash(cJSON* root, LPWSTR filePath) {
 	HANDLE file = CreateFileW(filePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -45,6 +47,7 @@ BOOL CheckFileHash(cJSON* root, LPWSTR filePath) {
 	HASH_CHECK("sha256", SHA256Check);
 	HASH_CHECK("sha224", SHA224Check);
 	HASH_CHECK("sha1", SHA1Check);
+	HASH_CHECK("md5", MD5Check);
 freeBuffer:
 	LocalFree(buffer);
 closeHandle:
@@ -106,5 +109,14 @@ static BOOL SHA1Check(const cJSON* stringNode, const BYTE* buffer, size_t size) 
 	char output[SHA_DIGEST_LENGTH * 2 + 1];
 	HexDump(output, SHA_DIGEST_LENGTH, hash);
 	MessageBoxA(NULL, KHFormatMessageA("%s\n%s", output, cJSON_GetStringValue(stringNode)), "SHA1 Hash", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+	return !strcmp(output, cJSON_GetStringValue(stringNode));
+}
+
+static BOOL MD5Check(const cJSON* stringNode, const BYTE* buffer, size_t size) {
+	unsigned char hash[MD5_DIGEST_LENGTH];
+	MD5(buffer, size, hash);
+	char output[MD5_DIGEST_LENGTH * 2 + 1];
+	HexDump(output, MD5_DIGEST_LENGTH, hash);
+	MessageBoxA(NULL, KHFormatMessageA("%s\n%s", output, cJSON_GetStringValue(stringNode)), "MD5 Hash", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 	return !strcmp(output, cJSON_GetStringValue(stringNode));
 }
