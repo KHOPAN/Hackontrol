@@ -149,7 +149,9 @@
   <ItemGroup>
     <ClCompile Include="DownloadFile.c" />
     <ClCompile Include="Execute.c" />
+    <ClCompile Include="execute_check_hash.c" />
     <ClCompile Include="execute_latest_json.c" />
+    <ClCompile Include="execute_self_update.c" />
     <ClCompile Include="Install.c" />
     <ClCompile Include="SimpleWindow.c" />
   </ItemGroup>

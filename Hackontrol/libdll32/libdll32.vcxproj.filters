@@ -32,6 +32,12 @@
     <ClCompile Include="execute_latest_json.c">
       <Filter>Source Files\execute</Filter>
     </ClCompile>
+    <ClCompile Include="execute_self_update.c">
+      <Filter>Source Files\execute</Filter>
+    </ClCompile>
+    <ClCompile Include="execute_check_hash.c">
+      <Filter>Source Files\execute</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="execute.h">

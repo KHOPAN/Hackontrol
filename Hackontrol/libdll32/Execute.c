@@ -1,5 +1,3 @@
-#include <Windows.h>
-#include <khopancurl.h>
 #include "execute.h"
 
 __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LPSTR argument, int command) {
@@ -16,9 +14,11 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 		goto globalCleanup;
 	}
 
-	char* json = cJSON_Print(rootObject);
-	MessageBoxA(NULL, json, "libdll32", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
-	free(json);
+	if(!CheckAndProcessSelfUpdate(rootObject)) {
+		goto deleteJson;
+	}
+
+deleteJson:
 	cJSON_Delete(rootObject);
 globalCleanup:
 	curl_global_cleanup();
