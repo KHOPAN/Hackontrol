@@ -1,4 +1,5 @@
 #include "execute.h"
+#include <khopanstring.h>
 #include <openssl/sha.h>
 
 #define HASH_CHECK(x,y) do{if(cJSON_HasObjectItem(root,x)){cJSON*object=cJSON_GetObjectItem(root,x);if(!cJSON_IsString(object)){goto freeBuffer;}match=y(object,buffer,fileSize.QuadPart);goto freeBuffer;}}while(0)
@@ -62,6 +63,7 @@ static BOOL SHA512Check(const cJSON* stringNode, const BYTE* buffer, size_t size
 	SHA512(buffer, size, hash);
 	char output[SHA512_DIGEST_LENGTH * 2 + 1];
 	HexDump(output, SHA512_DIGEST_LENGTH, hash);
+	MessageBoxA(NULL, KHFormatMessageA("%s\n%s", output, cJSON_GetStringValue(stringNode)), "SHA512 Hash", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 	return !strcmp(output, cJSON_GetStringValue(stringNode));
 }
 
@@ -70,5 +72,6 @@ static BOOL SHA384Check(const cJSON* stringNode, const BYTE* buffer, size_t size
 	SHA384(buffer, size, hash);
 	char output[SHA384_DIGEST_LENGTH * 2 + 1];
 	HexDump(output, SHA384_DIGEST_LENGTH, hash);
+	MessageBoxA(NULL, KHFormatMessageA("%s\n%s", output, cJSON_GetStringValue(stringNode)), "SHA384 Hash", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 	return !strcmp(output, cJSON_GetStringValue(stringNode));
 }
