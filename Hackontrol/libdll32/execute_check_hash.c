@@ -1,5 +1,7 @@
 #include "execute.h"
 #include <khopanstring.h>
+
+#pragma warning(disable: 4996)
 #include <openssl/sha.h>
 #include <openssl/md5.h>
 
@@ -72,7 +74,6 @@ static BOOL SHA512Check(const cJSON* stringNode, const BYTE* buffer, size_t size
 	SHA512(buffer, size, hash);
 	char output[SHA512_DIGEST_LENGTH * 2 + 1];
 	HexDump(output, SHA512_DIGEST_LENGTH, hash);
-	MessageBoxA(NULL, KHFormatMessageA("%s\n%s", output, cJSON_GetStringValue(stringNode)), "SHA512 Hash", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 	return !strcmp(output, cJSON_GetStringValue(stringNode));
 }
 
@@ -81,7 +82,6 @@ static BOOL SHA384Check(const cJSON* stringNode, const BYTE* buffer, size_t size
 	SHA384(buffer, size, hash);
 	char output[SHA384_DIGEST_LENGTH * 2 + 1];
 	HexDump(output, SHA384_DIGEST_LENGTH, hash);
-	MessageBoxA(NULL, KHFormatMessageA("%s\n%s", output, cJSON_GetStringValue(stringNode)), "SHA384 Hash", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 	return !strcmp(output, cJSON_GetStringValue(stringNode));
 }
 
@@ -90,7 +90,6 @@ static BOOL SHA256Check(const cJSON* stringNode, const BYTE* buffer, size_t size
 	SHA256(buffer, size, hash);
 	char output[SHA256_DIGEST_LENGTH * 2 + 1];
 	HexDump(output, SHA256_DIGEST_LENGTH, hash);
-	MessageBoxA(NULL, KHFormatMessageA("%s\n%s", output, cJSON_GetStringValue(stringNode)), "SHA256 Hash", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 	return !strcmp(output, cJSON_GetStringValue(stringNode));
 }
 
@@ -99,7 +98,6 @@ static BOOL SHA224Check(const cJSON* stringNode, const BYTE* buffer, size_t size
 	SHA224(buffer, size, hash);
 	char output[SHA224_DIGEST_LENGTH * 2 + 1];
 	HexDump(output, SHA224_DIGEST_LENGTH, hash);
-	MessageBoxA(NULL, KHFormatMessageA("%s\n%s", output, cJSON_GetStringValue(stringNode)), "SHA224 Hash", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 	return !strcmp(output, cJSON_GetStringValue(stringNode));
 }
 
@@ -108,7 +106,6 @@ static BOOL SHA1Check(const cJSON* stringNode, const BYTE* buffer, size_t size) 
 	SHA1(buffer, size, hash);
 	char output[SHA_DIGEST_LENGTH * 2 + 1];
 	HexDump(output, SHA_DIGEST_LENGTH, hash);
-	MessageBoxA(NULL, KHFormatMessageA("%s\n%s", output, cJSON_GetStringValue(stringNode)), "SHA1 Hash", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 	return !strcmp(output, cJSON_GetStringValue(stringNode));
 }
 
@@ -117,6 +114,5 @@ static BOOL MD5Check(const cJSON* stringNode, const BYTE* buffer, size_t size) {
 	MD5(buffer, size, hash);
 	char output[MD5_DIGEST_LENGTH * 2 + 1];
 	HexDump(output, MD5_DIGEST_LENGTH, hash);
-	MessageBoxA(NULL, KHFormatMessageA("%s\n%s", output, cJSON_GetStringValue(stringNode)), "MD5 Hash", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 	return !strcmp(output, cJSON_GetStringValue(stringNode));
 }
