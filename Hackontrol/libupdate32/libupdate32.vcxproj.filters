@@ -18,5 +18,13 @@
     <ClCompile Include="Update.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="waiter.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="update.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
