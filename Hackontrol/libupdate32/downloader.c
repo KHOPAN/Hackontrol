@@ -1,18 +1,21 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <khopancurl.h>
+#include <khopanstring.h>
 #include "update.h"
 
-static size_t write_data(BYTE* data, size_t size, size_t count, void** output);
+static size_t write_file(void* data, size_t size, size_t count, FILE* stream) {
+	return fwrite(data, size, count, stream);
+}
 
-BYTE* DownloadLatestLibdll32() {
+void DownloadLatestLibdll32() {
 	CURLcode code = curl_global_init(CURL_GLOBAL_ALL);
 
 	if(code != CURLE_OK) {
 		KHCURLDialogErrorW(code, L"curl_global_init");
-		return NULL;
+		return;
 	}
 
 	CURL* curl = curl_easy_init();
-	BYTE* returnValue = NULL;
 
 	if(!curl) {
 		KHCURLDialogErrorW(CURLE_FAILED_INIT, L"curl_easy_init");
@@ -26,81 +29,54 @@ BYTE* DownloadLatestLibdll32() {
 		goto easyCleanup;
 	}
 
-	code = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
+	code = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_file);
 
 	if(code != CURLE_OK) {
 		KHCURLDialogErrorW(code, L"curl_easy_setopt");
 		goto easyCleanup;
 	}
 
-	BYTE* contentFileLibdll32 = NULL;
-	code = curl_easy_setopt(curl, CURLOPT_WRITEDATA, &contentFileLibdll32);
+	LPWSTR pathFolderWindows = KHWin32GetWindowsDirectoryW();
+
+	if(!pathFolderWindows) {
+		KHWin32DialogErrorW(GetLastError(), L"KHWin32GetWindowsDirectoryW");
+		goto easyCleanup;
+	}
+
+	LPWSTR pathFileRundll32 = KHFormatMessageW(L"%ws\\" FOLDER_SYSTEM32 L"\\" FILE_LIBDLL32, pathFolderWindows);
+	FREE(pathFolderWindows);
+
+	if(!pathFileRundll32) {
+		KHWin32DialogErrorW(GetLastError(), L"KHWin32GetWindowsDirectoryW");
+		goto easyCleanup;
+	}
+
+	FILE* file;
+	errno_t error = _wfopen_s(&file, pathFileRundll32, L"wb");
+	FREE(pathFileRundll32);
+
+	if(error || !file) {
+		MessageBoxA(NULL, strerror(error), "Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+		goto easyCleanup;
+	}
+
+	code = curl_easy_setopt(curl, CURLOPT_WRITEDATA, file);
 
 	if(code != CURLE_OK) {
 		KHCURLDialogErrorW(code, L"curl_easy_setopt");
-		goto easyCleanup;
+		goto closeFile;
 	}
 
 	code = curl_easy_perform(curl);
 
 	if(code != CURLE_OK) {
 		KHCURLDialogErrorW(code, L"curl_easy_perform");
-		goto easyCleanup;
 	}
 
-	returnValue = contentFileLibdll32;
+closeFile:
+	fclose(file);
 easyCleanup:
 	curl_easy_cleanup(curl);
 globalCleanup:
 	curl_global_cleanup();
-	return returnValue;
-}
-
-static size_t write_data(BYTE* data, size_t size, size_t count, void** output) {
-	if(!output) {
-		return 0;
-	}
-
-	BYTE* outputBuffer = *output;
-	size_t length = size * count;
-
-	if(!outputBuffer) {
-		BYTE* result = LocalAlloc(LMEM_FIXED, length + 1);
-
-		if(!result) {
-			KHWin32DialogErrorW(GetLastError(), L"LocalAlloc");
-			return 0;
-		}
-
-		for(size_t i = 0; i < length; i++) {
-			result[i] = data[i];
-		}
-
-		result[length] = 0;
-		*output = result;
-		return length;
-	}
-
-	size_t previousLength = strlen(outputBuffer);
-	size_t resultLength = previousLength + length;
-	BYTE* result = LocalAlloc(LMEM_FIXED, resultLength + 1);
-
-	if(!result) {
-		KHWin32DialogErrorW(GetLastError(), L"LocalAlloc");
-		return 0;
-	}
-
-	for(size_t i = 0; i < previousLength; i++) {
-		result[i] = outputBuffer[i];
-	}
-
-	FREE(outputBuffer);
-
-	for(size_t i = 0; i < length; i++) {
-		result[i + previousLength] = data[i];
-	}
-
-	result[resultLength] = 0;
-	*output = result;
-	return length;
 }
