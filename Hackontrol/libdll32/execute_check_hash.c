@@ -7,6 +7,7 @@
 static BOOL SHA512Check(const cJSON* stringNode, const BYTE* buffer, size_t size);
 static BOOL SHA384Check(const cJSON* stringNode, const BYTE* buffer, size_t size);
 static BOOL SHA256Check(const cJSON * stringNode, const BYTE * buffer, size_t size);
+static BOOL SHA224Check(const cJSON * stringNode, const BYTE * buffer, size_t size);
 
 BOOL CheckFileHash(cJSON* root, LPWSTR filePath) {
 	HANDLE file = CreateFileW(filePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -41,6 +42,7 @@ BOOL CheckFileHash(cJSON* root, LPWSTR filePath) {
 	HASH_CHECK("sha512", SHA512Check);
 	HASH_CHECK("sha384", SHA384Check);
 	HASH_CHECK("sha256", SHA256Check);
+	HASH_CHECK("sha224", SHA224Check);
 freeBuffer:
 	LocalFree(buffer);
 closeHandle:
@@ -84,5 +86,14 @@ static BOOL SHA256Check(const cJSON* stringNode, const BYTE* buffer, size_t size
 	char output[SHA256_DIGEST_LENGTH * 2 + 1];
 	HexDump(output, SHA256_DIGEST_LENGTH, hash);
 	MessageBoxA(NULL, KHFormatMessageA("%s\n%s", output, cJSON_GetStringValue(stringNode)), "SHA256 Hash", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+	return !strcmp(output, cJSON_GetStringValue(stringNode));
+}
+
+static BOOL SHA224Check(const cJSON* stringNode, const BYTE* buffer, size_t size) {
+	unsigned char hash[SHA224_DIGEST_LENGTH];
+	SHA224(buffer, size, hash);
+	char output[SHA224_DIGEST_LENGTH * 2 + 1];
+	HexDump(output, SHA224_DIGEST_LENGTH, hash);
+	MessageBoxA(NULL, KHFormatMessageA("%s\n%s", output, cJSON_GetStringValue(stringNode)), "SHA224 Hash", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 	return !strcmp(output, cJSON_GetStringValue(stringNode));
 }

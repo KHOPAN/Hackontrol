@@ -1,7 +1,7 @@
 {
 	"self": {
 		"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/libdll32.dll",
-		"sha256": "488220cbd84168482f6d276b42c87cc14ed4cd97123e87f0d1b44661e66e5f0b"
+		"sha224": "68a569f2dcaf7b118843d828e20582cc83b000bb9aa1fb151190a82c"
 	},
 
 	"files": [
