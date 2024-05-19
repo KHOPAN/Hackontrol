@@ -21,6 +21,9 @@
     <ClCompile Include="waiter.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="downloader.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="update.h">
