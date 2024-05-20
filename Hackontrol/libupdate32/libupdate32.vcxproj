@@ -140,6 +140,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="downloader.c" />
+    <ClCompile Include="execute.c" />
     <ClCompile Include="Update.c" />
     <ClCompile Include="waiter.c" />
   </ItemGroup>
