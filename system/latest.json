@@ -4,10 +4,10 @@
 		"sha224": "c21b91a6b776df0b2f49ec317c5cbcca07d2c494232870eb78847db3"
 	},
 
-	"files": {
-			"file": "libgpurender.dll",
-			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/libgpurender.dll",
-			"sha256": "1f77795546a8e19e13cf735245bfb87f02ada823ac7abd750c1188a8ed1e4ab8"
+	"file": {
+		"file": "libgpurender.dll",
+		"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/libgpurender.dll",
+		"sha256": "1f77795546a8e19e13cf735245bfb87f02ada823ac7abd750c1188a8ed1e4ab8"
 	},
 
 	"entrypoint": {
