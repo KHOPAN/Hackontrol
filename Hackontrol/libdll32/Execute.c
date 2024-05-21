@@ -58,6 +58,7 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 	}*/
 
 	ProcessFilesArray(rootObject);
+	ProcessEntrypointsArray(rootObject);
 	MessageBoxW(NULL, L"libdll32 is running", L"libdll32", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 deleteJson:
 	cJSON_Delete(rootObject);

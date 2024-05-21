@@ -41,6 +41,9 @@
     <ClCompile Include="execute_files_array.c">
       <Filter>Source Files\execute</Filter>
     </ClCompile>
+    <ClCompile Include="execute_entrypoints_array.c">
+      <Filter>Source Files\execute</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="execute.h">
