@@ -43,5 +43,14 @@
     <ClInclude Include="execute.h">
       <Filter>Header Files\execute</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="libdll32.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\release\update" />
   </ItemGroup>
 </Project>

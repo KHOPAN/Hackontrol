@@ -162,6 +162,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="execute.h" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="libdll32.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\release\update" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
