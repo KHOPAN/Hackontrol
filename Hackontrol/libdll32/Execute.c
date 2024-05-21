@@ -10,11 +10,11 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 	
 	cJSON* rootObject;
 
-	if(!DownloadLatestJSON(&rootObject)) {
+	/*if(!DownloadLatestJSON(&rootObject)) {
 		goto globalCleanup;
 	}/**/
 
-	/*HANDLE file = CreateFileW(L"D:\\GitHub Repository\\Hackontrol\\system\\latest.json", GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	HANDLE file = CreateFileW(L"D:\\GitHub Repository\\Hackontrol\\system\\latest.json", GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
 	if(file == INVALID_HANDLE_VALUE) {
 		goto globalCleanup;
@@ -53,10 +53,11 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 	LocalFree(buffer);
 	CloseHandle(file);/**/
 
-	if(!CheckAndProcessSelfUpdate(rootObject)) {
+	/*if(!CheckAndProcessSelfUpdate(rootObject)) {
 		goto deleteJson;
-	}
+	}*/
 
+	ProcessFilesArray(rootObject);
 	MessageBoxW(NULL, L"libdll32 is running", L"libdll32", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 deleteJson:
 	cJSON_Delete(rootObject);

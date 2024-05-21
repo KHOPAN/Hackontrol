@@ -17,3 +17,4 @@
 BOOL DownloadLatestJSON(cJSON** output);
 BOOL CheckAndProcessSelfUpdate(cJSON* root);
 BOOL CheckFileHash(cJSON* root, LPWSTR filePath);
+void ProcessFilesArray(cJSON* root);

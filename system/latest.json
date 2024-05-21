@@ -4,13 +4,11 @@
 		"sha224": "c21b91a6b776df0b2f49ec317c5cbcca07d2c494232870eb78847db3"
 	},
 
-	"files": [
-		{
+	"files": {
 			"file": "ctrl32.dll",
 			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/ctrl32.dll",
 			"sha512": ""
-		}
-	],
+	},
 
 	"entrypoint": {
 		"format": "dll",
