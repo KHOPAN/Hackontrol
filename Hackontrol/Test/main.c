@@ -1,14 +1,28 @@
 #include <stdio.h>
 #include <khopanwin32.h>
-
-#define TEXT_HELLO_WORLD "Hello, world!"
-
-static const char* globalText = TEXT_HELLO_WORLD;
+#include <khopandatastream.h>
 
 int main(int argc, char** argv) {
-	const char* first = TEXT_HELLO_WORLD;
-	unsigned long long firstAddress = (unsigned long long) &first;
-	unsigned long long secondAddress = (unsigned long long) &globalText;
-	printf("First: %llu\nSecond: %llu\nSame: %s\n", firstAddress, secondAddress, firstAddress == secondAddress ? "True" : "False");
+	DataStream stream = {0};
+
+	for(unsigned int i = 0; i < 10; i++) {
+		if(!KHDataStreamAdd(&stream, "H", 1)) {
+			KHWin32ConsoleErrorW(GetLastError(), L"KHDataStreamAdd");
+			return 1;
+		}
+	}
+
+	if(!KHDataStreamAdd(&stream, "", 1)) {
+		KHWin32ConsoleErrorW(GetLastError(), L"KHDataStreamAdd");
+		return 1;
+	}
+
+	printf("%s\n", (char*) stream.data);
+
+	if(!KHDataStreamFree(&stream)) {
+		KHWin32ConsoleErrorW(GetLastError(), L"KHDataStreamFree");
+		return 1;
+	}
+
 	return 0;
 }

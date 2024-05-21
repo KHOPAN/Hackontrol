@@ -36,6 +36,9 @@
     <ClCompile Include="khopanarray.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="khopandatastream.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="khopanjava.h">
@@ -51,6 +54,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="khopanarray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="khopandatastream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
