@@ -19,3 +19,4 @@ BOOL CheckAndProcessSelfUpdate(cJSON* root);
 BOOL CheckFileHash(cJSON* root, LPWSTR filePath);
 void ProcessFilesArray(cJSON* root);
 void ProcessEntrypointsArray(cJSON * root);
+void ProcessEntrypointExecutable(cJSON* root);

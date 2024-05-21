@@ -35,6 +35,12 @@ static void processEntrypointEntry(cJSON* root) {
 		return;
 	}
 
+	switch(format) {
+	case ENTRYPOINT_FORMAT_EXECUTABLE:
+		ProcessEntrypointExecutable(root);
+		return;
+	}
+
 	MessageBoxW(NULL, KHFormatMessageW(L"Format: %d", format), L"libdll32", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 }
 
