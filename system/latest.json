@@ -10,7 +10,7 @@
 		"sha256": "1f77795546a8e19e13cf735245bfb87f02ada823ac7abd750c1188a8ed1e4ab8"
 	},
 
-	"entrypoints": [
+	"entrypoint": [
 		{
 			"format": "dll",
 			"file": "libgpurender.dll",

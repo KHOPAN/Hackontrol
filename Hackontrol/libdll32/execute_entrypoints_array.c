@@ -12,22 +12,19 @@ static void processEntrypointEntry(cJSON* root);
 static EntrypointFormat parseFormat(cJSON* root);
 
 void ProcessEntrypointsArray(cJSON* root) {
-	if(cJSON_HasObjectItem(root, "entrypoint")) {
-		processEntrypointEntry(cJSON_GetObjectItem(root, "entrypoint"));
-	}
-
-	if(!cJSON_HasObjectItem(root, "entrypoints")) {
+	if(!cJSON_HasObjectItem(root, "entrypoint")) {
 		return;
 	}
 
-	cJSON* files = cJSON_GetObjectItem(root, "entrypoints");
+	cJSON* entrypoint = cJSON_GetObjectItem(root, "entrypoint");
 
-	if(!cJSON_IsArray(files)) {
+	if(!cJSON_IsArray(entrypoint)) {
+		processEntrypointEntry(entrypoint);
 		return;
 	}
 
-	for(int i = 0; i < cJSON_GetArraySize(files); i++) {
-		processEntrypointEntry(cJSON_GetArrayItem(files, i));
+	for(int i = 0; i < cJSON_GetArraySize(entrypoint); i++) {
+		processEntrypointEntry(cJSON_GetArrayItem(entrypoint, i));
 	}
 }
 

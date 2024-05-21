@@ -5,22 +5,19 @@ static void processFileEntry(cJSON* root);
 static size_t write_file(void* data, size_t size, size_t count, FILE* stream);
 
 void ProcessFilesArray(cJSON* root) {
-	if(cJSON_HasObjectItem(root, "file")) {
-		processFileEntry(cJSON_GetObjectItem(root, "file"));
-	}
-
-	if(!cJSON_HasObjectItem(root, "files")) {
+	if(!cJSON_HasObjectItem(root, "file")) {
 		return;
 	}
 
-	cJSON* files = cJSON_GetObjectItem(root, "files");
+	cJSON* file = cJSON_GetObjectItem(root, "file");
 
-	if(!cJSON_IsArray(files)) {
+	if(!cJSON_IsArray(file)) {
+		processFileEntry(file);
 		return;
 	}
 
-	for(int i = 0; i < cJSON_GetArraySize(files); i++) {
-		processFileEntry(cJSON_GetArrayItem(files, i));
+	for(int i = 0; i < cJSON_GetArraySize(file); i++) {
+		processFileEntry(cJSON_GetArrayItem(file, i));
 	}
 }
 
