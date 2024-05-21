@@ -27,6 +27,9 @@
     <ClCompile Include="execute.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="writer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="update.h">

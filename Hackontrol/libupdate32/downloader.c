@@ -1,21 +1,26 @@
-#define _CRT_SECURE_NO_WARNINGS
 #include <khopancurl.h>
-#include <khopanstring.h>
 #include "update.h"
 
-static size_t write_file(void* data, size_t size, size_t count, FILE* stream) {
-	return fwrite(data, size, count, stream);
+static size_t write_data_stream(void* data, size_t size, size_t count, DataStream* stream) {
+	size_t dataSize = size * count;
+
+	if(!KHDataStreamAdd(stream, data, dataSize)) {
+		return 0;
+	}
+
+	return dataSize;
 }
 
-void DownloadLatestLibdll32() {
+BOOL DownloadLatestLibdll32(DataStream* stream) {
 	CURLcode code = curl_global_init(CURL_GLOBAL_ALL);
 
 	if(code != CURLE_OK) {
 		KHCURLDialogErrorW(code, L"curl_global_init");
-		return;
+		return FALSE;
 	}
 
 	CURL* curl = curl_easy_init();
+	BOOL returnValue = FALSE;
 
 	if(!curl) {
 		KHCURLDialogErrorW(CURLE_FAILED_INIT, L"curl_easy_init");
@@ -29,42 +34,18 @@ void DownloadLatestLibdll32() {
 		goto easyCleanup;
 	}
 
-	code = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_file);
+	code = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data_stream);
 
 	if(code != CURLE_OK) {
 		KHCURLDialogErrorW(code, L"curl_easy_setopt");
 		goto easyCleanup;
 	}
 
-	LPWSTR pathFolderWindows = KHWin32GetWindowsDirectoryW();
-
-	if(!pathFolderWindows) {
-		KHWin32DialogErrorW(GetLastError(), L"KHWin32GetWindowsDirectoryW");
-		goto easyCleanup;
-	}
-
-	LPWSTR pathFileRundll32 = KHFormatMessageW(L"%ws\\" FOLDER_SYSTEM32 L"\\" FILE_LIBDLL32, pathFolderWindows);
-	FREE(pathFolderWindows);
-
-	if(!pathFileRundll32) {
-		KHWin32DialogErrorW(GetLastError(), L"KHWin32GetWindowsDirectoryW");
-		goto easyCleanup;
-	}
-
-	FILE* file;
-	errno_t error = _wfopen_s(&file, pathFileRundll32, L"wb");
-	FREE(pathFileRundll32);
-
-	if(error || !file) {
-		MessageBoxA(NULL, strerror(error), "Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
-		goto easyCleanup;
-	}
-
-	code = curl_easy_setopt(curl, CURLOPT_WRITEDATA, file);
+	code = curl_easy_setopt(curl, CURLOPT_WRITEDATA, stream);
 
 	if(code != CURLE_OK) {
 		KHCURLDialogErrorW(code, L"curl_easy_setopt");
-		goto closeFile;
+		goto easyCleanup;
 	}
 
 	code = curl_easy_perform(curl);
@@ -73,10 +54,10 @@ void DownloadLatestLibdll32() {
 		KHCURLDialogErrorW(code, L"curl_easy_perform");
 	}
 
-closeFile:
-	fclose(file);
+	returnValue = TRUE;
 easyCleanup:
 	curl_easy_cleanup(curl);
 globalCleanup:
 	curl_global_cleanup();
+	return returnValue;
 }

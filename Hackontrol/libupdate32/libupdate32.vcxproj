@@ -139,6 +139,7 @@
     <ClCompile Include="execute.c" />
     <ClCompile Include="Update.c" />
     <ClCompile Include="waiter.c" />
+    <ClCompile Include="writer.c" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\KHOPAN Library\KHOPAN Library.vcxproj">
