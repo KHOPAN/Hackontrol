@@ -7,7 +7,7 @@
 	"file": {
 		"file": "libctrl32.dll",
 		"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/libctrl32.dll",
-		"sha512": "6ec8205113d0d7fc5f8dc758c1e80c7196413b4022ea80f35ae15cc01787dca6f783295fa934e6eace4748e3c7f7178b2a1ad7bca321c28ae4250509cbad57ba"
+		"sha512": "35ece4871d5c361db3ba39d2d76052bc497a66f8cbfb002819cca937a8f86c30278863d2dc5f7e699ed87929ad505954ec41b516c85a4907af014fbcaf6da4a3"
 	},
 
 	"entrypoint": {

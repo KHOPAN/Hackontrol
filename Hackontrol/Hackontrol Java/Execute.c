@@ -7,10 +7,8 @@
 
 #define FILE_JAVAW        L"javaw.exe"
 #define FILE_LIBDLL32     L"libdll32.dll"
-#define FILE_RUNDLL32     L"rundll32.exe"
 #define FILE_HACKONTROL   L"hackontrol.jar"
 #define FILE_WINSERVICE32 L"winservice32.jar"
-#define FOLDER_SYSTEM32   L"System32"
 #define FOLDER_JAVA       L"jn"
 #define FUNCTION_LIBDLL32 L"DownloadFile"
 #define URL_HACKONTROL    L"https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/release/"
