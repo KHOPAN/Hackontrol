@@ -11,26 +11,13 @@ void ProcessEntrypointExecutable(cJSON* root) {
 	}
 
 	LPWSTR argument = getArgument(root, filePath);
-	STARTUPINFO startupInformation = {0};
-	startupInformation.cb = sizeof(startupInformation);
-	PROCESS_INFORMATION processInformation;
-	BOOL result = CreateProcessW(filePath, argument, NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, NULL, NULL, &startupInformation, &processInformation);
-	
+	StartProcess(filePath, argument);
+
 	if(argument) {
 		LocalFree(argument);
 	}
 
 	LocalFree(filePath);
-	
-	if(!result) {
-		return;
-	}
-
-	if(!CloseHandle(processInformation.hProcess)) {
-		return;
-	}
-
-	CloseHandle(processInformation.hThread);
 }
 
 static LPWSTR getArgument(cJSON* root, LPWSTR filePath) {

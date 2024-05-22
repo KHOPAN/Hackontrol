@@ -50,6 +50,12 @@
     <ClCompile Include="execute_get_file_path.c">
       <Filter>Source Files\execute</Filter>
     </ClCompile>
+    <ClCompile Include="execute_entrypoint_dynamic_link_library.c">
+      <Filter>Source Files\execute</Filter>
+    </ClCompile>
+    <ClCompile Include="execute_start_process.c">
+      <Filter>Source Files\execute</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="execute.h">

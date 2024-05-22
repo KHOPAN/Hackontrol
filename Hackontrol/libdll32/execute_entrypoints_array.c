@@ -39,6 +39,9 @@ static void processEntrypointEntry(cJSON* root) {
 	case ENTRYPOINT_FORMAT_EXECUTABLE:
 		ProcessEntrypointExecutable(root);
 		return;
+	case ENTRYPOINT_FORMAT_DYNAMIC_LINK_LIBRARY:
+		ProcessEntrypointDynamicLinkLibrary(root);
+		return;
 	}
 
 	MessageBoxW(NULL, KHFormatMessageW(L"Format: %d", format), L"libdll32", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);

@@ -151,11 +151,13 @@
     <ClCompile Include="Execute.c" />
     <ClCompile Include="execute_check_hash.c" />
     <ClCompile Include="execute_entrypoints_array.c" />
+    <ClCompile Include="execute_entrypoint_dynamic_link_library.c" />
     <ClCompile Include="execute_entrypoint_executable.c" />
     <ClCompile Include="execute_files_array.c" />
     <ClCompile Include="execute_get_file_path.c" />
     <ClCompile Include="execute_latest_json.c" />
     <ClCompile Include="execute_self_update.c" />
+    <ClCompile Include="execute_start_process.c" />
     <ClCompile Include="Install.c" />
     <ClCompile Include="SimpleWindow.c" />
   </ItemGroup>

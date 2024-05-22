@@ -21,3 +21,6 @@ void ProcessFilesArray(cJSON* root);
 LPWSTR GetFilePath(cJSON* root);
 void ProcessEntrypointsArray(cJSON * root);
 void ProcessEntrypointExecutable(cJSON* root);
+void ProcessEntrypointDynamicLinkLibrary(cJSON * root);
+void StartProcess(LPWSTR filePath, LPWSTR argument);
+void StartRundll32(LPWSTR filePath, LPWSTR functionName, LPWSTR argument);
