@@ -35,7 +35,7 @@ BOOL DownloadLatestJSON(cJSON** output) {
 	}
 
 	DataStream stream = {0};
-	code = curl_easy_setopt(curl, CURLOPT_WRITEDATA, stream);
+	code = curl_easy_setopt(curl, CURLOPT_WRITEDATA, &stream);
 
 	if(code != CURLE_OK) {
 		KHCURLDialogErrorW(code, L"curl_easy_setopt");
