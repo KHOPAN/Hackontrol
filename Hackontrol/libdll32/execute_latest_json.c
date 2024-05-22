@@ -49,6 +49,7 @@ BOOL DownloadLatestJSON(cJSON** output) {
 		goto easyCleanup;
 	}
 
+	KHDataStreamAdd(&stream, "", sizeof(CHAR));
 	cJSON* root = cJSON_Parse(stream.data);
 	KHDataStreamFree(&stream);
 
