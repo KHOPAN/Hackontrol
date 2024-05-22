@@ -136,3 +136,27 @@ BOOL KHWin32StartDynamicLibraryW(const LPWSTR filePath, const LPWSTR functionNam
 	LocalFree(pathFileRundll32);
 	return result;
 }
+
+LPSTR KHWin32GetCmdFileA() {
+	LPSTR pathFolderWindows = KHWin32GetWindowsDirectoryA();
+
+	if(!pathFolderWindows) {
+		return NULL;
+	}
+
+	LPSTR pathFileCmd = KHFormatMessageA("%s\\%ws\\%ws", pathFolderWindows, FOLDER_SYSTEM32, FILE_CMD);
+	LocalFree(pathFolderWindows);
+	return pathFileCmd;
+}
+
+LPWSTR KHWin32GetCmdFileW() {
+	LPWSTR pathFolderWindows = KHWin32GetWindowsDirectoryW();
+
+	if(!pathFolderWindows) {
+		return NULL;
+	}
+
+	LPWSTR pathFileCmd = KHFormatMessageW(L"%ws\\" FOLDER_SYSTEM32 L"\\" FILE_CMD, pathFolderWindows);
+	LocalFree(pathFolderWindows);
+	return pathFileCmd;
+}

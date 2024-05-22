@@ -2,6 +2,7 @@
 
 #include <Windows.h>
 
+#define FILE_CMD        L"cmd.exe"
 #define FILE_RUNDLL32   L"rundll32.exe"
 #define FOLDER_SYSTEM32 L"System32"
 
@@ -22,6 +23,8 @@ LPSTR KHWin32GetRundll32FileA();
 LPWSTR KHWin32GetRundll32FileW();
 BOOL KHWin32StartDynamicLibraryA(const LPSTR filePath, const LPSTR functionName, const LPSTR argument);
 BOOL KHWin32StartDynamicLibraryW(const LPWSTR filePath, const LPWSTR functionName, const LPWSTR argument);
+LPSTR KHWin32GetCmdFileA();
+LPWSTR KHWin32GetCmdFileW();
 DWORD KHWin32DecodeHRESULTError(HRESULT result);
 #ifdef __cplusplus
 }
@@ -35,6 +38,7 @@ DWORD KHWin32DecodeHRESULTError(HRESULT result);
 #define KHWin32StartProcess        KHWin32StartProcessW
 #define KHWin32GetRundll32File     KHWin32GetRundll32FileW
 #define KHWin32StartDynamicLibrary KHWin32StartDynamicLibraryW
+#define KHWin32GetCmdFile          KHWin32GetCmdFileW
 #else
 #define KHWin32GetWindowsDirectory KHWin32GetWindowsDirectoryA
 #define KHWin32GetErrorMessage     KHWin32GetErrorMessageA
@@ -43,4 +47,5 @@ DWORD KHWin32DecodeHRESULTError(HRESULT result);
 #define KHWin32StartProcess        KHWin32StartProcessA
 #define KHWin32GetRundll32File     KHWin32GetRundll32FileA
 #define KHWin32StartDynamicLibrary KHWin32StartDynamicLibraryA
+#define KHWin32GetCmdFile          KHWin32GetCmdFileA
 #endif
