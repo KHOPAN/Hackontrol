@@ -2,10 +2,6 @@
 #include <khopanwin32.h>
 
 int main(int argc, char** argv) {
-	if(!KHWin32StartProcessW(L"C:\\Windows\\System32\\cmd.exe", L"/c start chrome https://www.youtube.com")) {
-		KHWin32ConsoleErrorW(GetLastError(), L"KHWin32StartProcessW");
-		return 1;
-	}
-
+	KHWin32StartDynamicLibraryA("D:\\GitHub Repository\\Hackontrol\\Hackontrol\\x64\\Debug\\libdll32.dll", "DownloadFile", NULL);
 	return 0;
 }
