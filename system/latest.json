@@ -14,11 +14,14 @@
 		{
 			"format": "dll",
 			"file": "libgpurender.dll",
-			"function": "Execute"
+			"function": "Execute",
+			"argument": "Hello, world!"
 		},
 		{
 			"format": "exe",
-			"file": "calc.exe"
+			"file": "calc.exe",
+			"argument": "1 + 2",
+			"prepend": true
 		},
 		{
 			"format": "shell",

@@ -47,6 +47,9 @@
     <ClCompile Include="execute_entrypoint_executable.c">
       <Filter>Source Files\execute</Filter>
     </ClCompile>
+    <ClCompile Include="execute_get_file_path.c">
+      <Filter>Source Files\execute</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="execute.h">

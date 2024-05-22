@@ -26,24 +26,7 @@ static void processFileEntry(cJSON* root) {
 		return;
 	}
 
-	if(!cJSON_HasObjectItem(root, "file")) {
-		return;
-	}
-
-	cJSON* fileField = cJSON_GetObjectItem(root, "file");
-
-	if(!cJSON_IsString(fileField)) {
-		return;
-	}
-
-	LPWSTR pathFolderWindows = KHWin32GetWindowsDirectoryW();
-
-	if(!pathFolderWindows) {
-		return;
-	}
-
-	LPWSTR filePath = KHFormatMessageW(L"%ws\\" FOLDER_SYSTEM32 L"\\%S", pathFolderWindows, cJSON_GetStringValue(fileField));
-	LocalFree(pathFolderWindows);
+	LPWSTR filePath = GetFilePath(root);
 
 	if(!filePath) {
 		return;
