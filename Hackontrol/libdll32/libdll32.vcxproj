@@ -158,7 +158,6 @@
     <ClCompile Include="execute_get_file_path.c" />
     <ClCompile Include="execute_latest_json.c" />
     <ClCompile Include="execute_self_update.c" />
-    <ClCompile Include="execute_start_process.c" />
     <ClCompile Include="Install.c" />
     <ClCompile Include="SimpleWindow.c" />
   </ItemGroup>

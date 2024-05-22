@@ -5,8 +5,6 @@
 #define FREE(x) if(LocalFree(x)) KHWin32DialogErrorW(GetLastError(), L"LocalFree")
 
 #define FILE_LIBDLL32     L"libdll32.dll"
-#define FILE_RUNDLL32     L"rundll32.exe"
-#define FOLDER_SYSTEM32   L"System32"
 #define FUNCTION_LIBDLL32 L"Execute"
 #define TASK_FILE         L"Startup"
 #define TASK_FOLDER       L"Microsoft\\Windows\\Registry"

@@ -53,9 +53,6 @@
     <ClCompile Include="execute_entrypoint_dynamic_link_library.c">
       <Filter>Source Files\execute</Filter>
     </ClCompile>
-    <ClCompile Include="execute_start_process.c">
-      <Filter>Source Files\execute</Filter>
-    </ClCompile>
     <ClCompile Include="execute_entrypoint_shell.c">
       <Filter>Source Files\execute</Filter>
     </ClCompile>

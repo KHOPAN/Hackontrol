@@ -84,19 +84,18 @@ BOOL CheckAndProcessSelfUpdate(cJSON* root) {
 	}
 
 	LPWSTR pathFileLibupdate32 = KHFormatMessageW(L"%ws\\" FILE_LIBUPDATE32, pathFolderSystem32);
+	LocalFree(pathFolderSystem32);
 
 	if(!pathFileLibupdate32) {
 		LocalFree(buffer);
-		LocalFree(pathFolderSystem32);
 		return TRUE;
 	}
 
 	HANDLE file = CreateFileW(pathFileLibupdate32, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-	LocalFree(pathFileLibupdate32);
 
 	if(file == INVALID_HANDLE_VALUE) {
+		LocalFree(pathFileLibupdate32);
 		LocalFree(buffer);
-		LocalFree(pathFolderSystem32);
 		return TRUE;
 	}
 
@@ -105,45 +104,25 @@ BOOL CheckAndProcessSelfUpdate(cJSON* root) {
 	LocalFree(buffer);
 
 	if(!result) {
-		LocalFree(pathFolderSystem32);
+		LocalFree(pathFileLibupdate32);
 		return TRUE;
 	}
 
 	if(!CloseHandle(file)) {
-		LocalFree(pathFolderSystem32);
+		LocalFree(pathFileLibupdate32);
 		return TRUE;
 	}
 
-	LPWSTR pathFileRundll32 = KHFormatMessageW(L"%ws\\" FILE_RUNDLL32, pathFolderSystem32);
-	LocalFree(pathFolderSystem32);
-
-	if(!pathFileRundll32) {
-		return TRUE;
-	}
-
-	LPWSTR argumentFileLibupdate32 = KHFormatMessageW(FILE_RUNDLL32 L" " FILE_LIBUPDATE32 L"," FUNCTION_LIBUPDATE32 L" %lu", GetCurrentProcessId());
+	LPWSTR argumentFileLibupdate32 = KHFormatMessageW(L"%lu", GetCurrentProcessId());
 
 	if(!argumentFileLibupdate32) {
-		LocalFree(pathFileRundll32);
+		LocalFree(pathFileLibupdate32);
 		return TRUE;
 	}
 
-	STARTUPINFO startupInformation = {0};
-	startupInformation.cb = sizeof(startupInformation);
-	PROCESS_INFORMATION processInformation;
-	result = CreateProcessW(pathFileRundll32, argumentFileLibupdate32, NULL, NULL, TRUE, 0, NULL, NULL, &startupInformation, &processInformation);
+	KHWin32StartDynamicLibraryW(pathFileLibupdate32, FUNCTION_LIBUPDATE32, argumentFileLibupdate32);
 	LocalFree(argumentFileLibupdate32);
-	LocalFree(pathFileRundll32);
-
-	if(!result) {
-		return TRUE;
-	}
-
-	if(!CloseHandle(processInformation.hProcess)) {
-		return TRUE;
-	}
-
-	CloseHandle(processInformation.hThread);
+	LocalFree(pathFileLibupdate32);
 	MessageBoxW(NULL, L"Hash not match", L"libdll32", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 	return FALSE;
 }

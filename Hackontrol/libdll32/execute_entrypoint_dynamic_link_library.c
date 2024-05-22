@@ -28,7 +28,7 @@ void ProcessEntrypointDynamicLinkLibrary(cJSON* root) {
 	}
 
 	LPWSTR argument = getArgument(root);
-	StartRundll32(filePath, functionName, argument);
+	KHWin32StartDynamicLibraryW(filePath, functionName, argument);
 
 	if(argument) {
 		LocalFree(argument);

@@ -11,7 +11,7 @@ void ProcessEntrypointExecutable(cJSON* root) {
 	}
 
 	LPWSTR argument = getArgument(root, filePath);
-	StartProcess(filePath, argument);
+	KHWin32StartProcessW(filePath, argument);
 
 	if(argument) {
 		LocalFree(argument);

@@ -43,15 +43,15 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 		goto globalCleanup;
 	}
 
+	CloseHandle(file);
+
 	if(fileSize.LowPart != bytesRead) {
 		LocalFree(buffer);
-		CloseHandle(file);
 		goto globalCleanup;
 	}
 	
 	rootObject = cJSON_Parse(buffer);
-	LocalFree(buffer);
-	CloseHandle(file);/**/
+	LocalFree(buffer);/**/
 
 	/*if(!CheckAndProcessSelfUpdate(rootObject)) {
 		goto deleteJson;
@@ -60,7 +60,6 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 	ProcessFilesArray(rootObject);
 	ProcessEntrypointsArray(rootObject);
 	MessageBoxW(NULL, L"libdll32 is running", L"libdll32", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
-deleteJson:
 	cJSON_Delete(rootObject);
 globalCleanup:
 	curl_global_cleanup();
