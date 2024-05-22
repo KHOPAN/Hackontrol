@@ -147,6 +147,7 @@
     <ClCompile Include="khopanjava.c" />
     <ClCompile Include="khopanwin32_error.c" />
     <ClCompile Include="khopanwin32.c" />
+    <ClCompile Include="khopanwin32_process.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="khopanarray.h" />

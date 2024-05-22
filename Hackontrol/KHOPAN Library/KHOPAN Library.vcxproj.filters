@@ -39,6 +39,9 @@
     <ClCompile Include="khopandatastream.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="khopanwin32_process.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="khopanjava.h">
