@@ -7,6 +7,7 @@
 #define MESSAGE_BOX(x) MessageBoxW(NULL, x, L"Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL)
 #define FREE(x) if(LocalFree(x)) KHWin32DialogErrorW(GetLastError(), L"LocalFree")
 
+#define FILE_CMD             L"cmd.exe"
 #define FILE_LIBDLL32        L"libdll32.dll"
 #define FILE_RUNDLL32        L"rundll32.exe"
 #define FILE_LIBUPDATE32     L"libupdate32.dll"
@@ -22,5 +23,6 @@ LPWSTR GetFilePath(cJSON* root);
 void ProcessEntrypointsArray(cJSON * root);
 void ProcessEntrypointExecutable(cJSON* root);
 void ProcessEntrypointDynamicLinkLibrary(cJSON * root);
+void ProcessEntrypointShell(cJSON * root);
 void StartProcess(LPWSTR filePath, LPWSTR argument);
 void StartRundll32(LPWSTR filePath, LPWSTR functionName, LPWSTR argument);
