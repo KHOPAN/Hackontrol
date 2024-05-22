@@ -39,7 +39,6 @@ BOOL CheckAndProcessSelfUpdate(cJSON* root) {
 	LocalFree(pathFileLibdll32);
 
 	if(result) {
-		MessageBoxW(NULL, L"Hash match", L"libdll32", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 		LocalFree(pathFolderSystem32);
 		return TRUE;
 	}
@@ -123,7 +122,6 @@ BOOL CheckAndProcessSelfUpdate(cJSON* root) {
 	KHWin32StartDynamicLibraryW(pathFileLibupdate32, FUNCTION_LIBUPDATE32, argumentFileLibupdate32);
 	LocalFree(argumentFileLibupdate32);
 	LocalFree(pathFileLibupdate32);
-	MessageBoxW(NULL, L"Hash not match", L"libdll32", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 	return FALSE;
 }
 
