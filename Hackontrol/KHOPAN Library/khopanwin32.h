@@ -25,6 +25,8 @@ BOOL KHWin32StartDynamicLibraryA(const LPSTR filePath, const LPSTR functionName,
 BOOL KHWin32StartDynamicLibraryW(const LPWSTR filePath, const LPWSTR functionName, const LPWSTR argument);
 LPSTR KHWin32GetCmdFileA();
 LPWSTR KHWin32GetCmdFileW();
+BOOL KHWin32ExecuteCommandA(const LPSTR command);
+BOOL KHWin32ExecuteCommandW(const LPWSTR command);
 DWORD KHWin32DecodeHRESULTError(HRESULT result);
 #ifdef __cplusplus
 }
@@ -39,6 +41,7 @@ DWORD KHWin32DecodeHRESULTError(HRESULT result);
 #define KHWin32GetRundll32File     KHWin32GetRundll32FileW
 #define KHWin32StartDynamicLibrary KHWin32StartDynamicLibraryW
 #define KHWin32GetCmdFile          KHWin32GetCmdFileW
+#define KHWin32ExecuteCommand      KHWin32ExecuteCommandW
 #else
 #define KHWin32GetWindowsDirectory KHWin32GetWindowsDirectoryA
 #define KHWin32GetErrorMessage     KHWin32GetErrorMessageA
@@ -48,4 +51,5 @@ DWORD KHWin32DecodeHRESULTError(HRESULT result);
 #define KHWin32GetRundll32File     KHWin32GetRundll32FileA
 #define KHWin32StartDynamicLibrary KHWin32StartDynamicLibraryA
 #define KHWin32GetCmdFile          KHWin32GetCmdFileA
+#define KHWin32ExecuteCommand      KHWin32ExecuteCommandA
 #endif

@@ -160,3 +160,53 @@ LPWSTR KHWin32GetCmdFileW() {
 	LocalFree(pathFolderWindows);
 	return pathFileCmd;
 }
+
+BOOL KHWin32ExecuteCommandA(const LPSTR command) {
+	if(!command) {
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	LPSTR pathFileCmd = KHWin32GetCmdFileA();
+
+	if(!pathFileCmd) {
+		return FALSE;
+	}
+
+	LPSTR argumentFileCmd = KHFormatMessageA("%s /c \"%s\"", pathFileCmd, command);
+
+	if(!argumentFileCmd) {
+		LocalFree(pathFileCmd);
+		return FALSE;
+	}
+
+	BOOL result = KHWin32StartProcessA(pathFileCmd, argumentFileCmd);
+	LocalFree(argumentFileCmd);
+	LocalFree(pathFileCmd);
+	return result;
+}
+
+BOOL KHWin32ExecuteCommandW(const LPWSTR command) {
+	if(!command) {
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	LPWSTR pathFileCmd = KHWin32GetCmdFileW();
+
+	if(!pathFileCmd) {
+		return FALSE;
+	}
+
+	LPWSTR argumentFileCmd = KHFormatMessageW(L"%ws /c \"%ws\"", pathFileCmd, command);
+
+	if(!argumentFileCmd) {
+		LocalFree(pathFileCmd);
+		return FALSE;
+	}
+
+	BOOL result = KHWin32StartProcessW(pathFileCmd, argumentFileCmd);
+	LocalFree(argumentFileCmd);
+	LocalFree(pathFileCmd);
+	return result;
+}

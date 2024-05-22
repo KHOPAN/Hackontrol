@@ -2,13 +2,10 @@
 #include <khopanwin32.h>
 
 int main(int argc, char** argv) {
-	LPSTR pathFileCmd = KHWin32GetCmdFileA();
-
-	if(!pathFileCmd) {
-		KHWin32ConsoleErrorW(GetLastError(), L"KHWin32GetCmdFileW");
+	if(!KHWin32ExecuteCommandA("start chrome https://www.youtube.com")) {
+		KHWin32ConsoleErrorW(GetLastError(), L"KHWin32ExecuteCommandW");
 		return 1;
 	}
 
-	printf("Command: %s\n", pathFileCmd);
 	return 0;
 }
