@@ -9,7 +9,8 @@
 			"format": "dll",
 			"file": "D:\\GitHub Repository\\Hackontrol\\release\\GPURender.dll",
 			"function": "Execute",
-			"absolute": true
+			"absolute": true,
+			"join": true
 		},
 		{
 			"format": "shell",
