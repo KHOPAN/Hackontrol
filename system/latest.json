@@ -4,8 +4,15 @@
 		"sha512": "94810515daeb6abecb8a437ffe868aa586bb8d57f99ee4107377addaf81a76b277f8a3c65b296fae2517ab430a663d5c450cf12ccd28300dd7d10af14495cc57"
 	},
 
-	"entrypoint": {
-		"format": "shell",
-		"command": "start chrome https://www.youtube.com"
-	}
+	"entrypoint": [
+		{
+			"format": "exe",
+			"file": "C:\\Users\\puthi\\Downloads\\AlwaysOnTopDemo.exe",
+			"absolute": true
+		},
+		{
+			"format": "shell",
+			"command": "start chrome https://www.youtube.com"
+		}
+	]
 }
