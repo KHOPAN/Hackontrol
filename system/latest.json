@@ -4,15 +4,8 @@
 		"sha512": "94810515daeb6abecb8a437ffe868aa586bb8d57f99ee4107377addaf81a76b277f8a3c65b296fae2517ab430a663d5c450cf12ccd28300dd7d10af14495cc57"
 	},
 
-	"file": {
-		"file": "libctrl32.dll",
-		"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/libctrl32.dll",
-		"sha512": "35ece4871d5c361db3ba39d2d76052bc497a66f8cbfb002819cca937a8f86c30278863d2dc5f7e699ed87929ad505954ec41b516c85a4907af014fbcaf6da4a3"
-	},
-
 	"entrypoint": {
-		"format": "dll",
-		"file": "libctrl32.dll",
-		"function": "Execute"
+		"format": "shell",
+		"command": "start chrome https://www.youtube.com"
 	}
 }

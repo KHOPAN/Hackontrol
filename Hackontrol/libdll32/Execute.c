@@ -10,13 +10,52 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 	
 	cJSON* rootObject;
 
-	if(!DownloadLatestJSON(&rootObject)) {
+	/*if(!DownloadLatestJSON(&rootObject)) {
+		goto globalCleanup;
+	}/**/
+
+	HANDLE file = CreateFileW(L"D:\\GitHub Repository\\Hackontrol\\system\\latest.json", GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+
+	if(file == INVALID_HANDLE_VALUE) {
 		goto globalCleanup;
 	}
 
-	if(!CheckAndProcessSelfUpdate(rootObject)) {
-		goto deleteJson;
+	LARGE_INTEGER fileSize;
+	BOOL match = FALSE;
+
+	if(!GetFileSizeEx(file, &fileSize)) {
+		CloseHandle(file);
+		goto globalCleanup;
 	}
+
+	BYTE* buffer = LocalAlloc(LMEM_FIXED, fileSize.QuadPart);
+
+	if(!buffer) {
+		CloseHandle(file);
+		goto globalCleanup;
+	}
+
+	DWORD bytesRead;
+
+	if(!ReadFile(file, buffer, fileSize.LowPart, &bytesRead, NULL)) {
+		LocalFree(buffer);
+		CloseHandle(file);
+		goto globalCleanup;
+	}
+
+	CloseHandle(file);
+
+	if(fileSize.LowPart != bytesRead) {
+		LocalFree(buffer);
+		goto globalCleanup;
+	}
+
+	rootObject = cJSON_Parse(buffer);
+	LocalFree(buffer);/**/
+
+	/*if(!CheckAndProcessSelfUpdate(rootObject)) {
+		goto deleteJson;
+	}/**/
 
 	ProcessFilesArray(rootObject);
 	ProcessEntrypointsArray(rootObject);
