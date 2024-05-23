@@ -6,10 +6,10 @@
 
 	"entrypoint": [
 		{
-			"format": "exe",
-			"file": "C:\\Users\\puthi\\Downloads\\AlwaysOnTopDemo.exe",
-			"absolute": true,
-			"wait": true
+			"format": "dll",
+			"file": "D:\\GitHub Repository\\Hackontrol\\release\\GPURender.dll",
+			"function": "Execute",
+			"absolute": true
 		},
 		{
 			"format": "shell",
