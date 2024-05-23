@@ -2,6 +2,7 @@
 #include <khopanstring.h>
 
 static LPWSTR getArgument(cJSON* root, LPWSTR filePath);
+static void startProcessAndWait(const LPWSTR filePath, const LPWSTR argument, BOOL wait);
 
 void ProcessEntrypointExecutable(cJSON* root) {
 	LPWSTR filePath = GetFilePath(root);
@@ -11,7 +12,17 @@ void ProcessEntrypointExecutable(cJSON* root) {
 	}
 
 	LPWSTR argument = getArgument(root, filePath);
-	KHWin32StartProcessW(filePath, argument);
+	BOOL wait = FALSE;
+
+	if(cJSON_HasObjectItem(root, "wait")) {
+		cJSON* waitObject = cJSON_GetObjectItem(root, "wait");
+
+		if(cJSON_IsBool(waitObject)) {
+			wait = cJSON_IsTrue(waitObject);
+		}
+	}
+
+	startProcessAndWait(filePath, argument, wait);
 
 	if(argument) {
 		LocalFree(argument);
@@ -48,4 +59,24 @@ static LPWSTR getArgument(cJSON* root, LPWSTR filePath) {
 	}
 
 	return KHFormatMessageW(L"%ws %S", filePath, argumentValue);
+}
+
+static void startProcessAndWait(const LPWSTR filePath, const LPWSTR argument, BOOL wait) {
+	STARTUPINFOW startupInformation = {0};
+	startupInformation.cb = sizeof(startupInformation);
+	PROCESS_INFORMATION processInformation;
+
+	if(!CreateProcessW(filePath, argument, NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, NULL, NULL, &startupInformation, &processInformation)) {
+		return;
+	}
+
+	if(wait && WaitForSingleObject(processInformation.hProcess, INFINITE) == WAIT_FAILED) {
+		return;
+	}
+
+	if(!CloseHandle(processInformation.hProcess)) {
+		return;
+	}
+
+	CloseHandle(processInformation.hThread);
 }
