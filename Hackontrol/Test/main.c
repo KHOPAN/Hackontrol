@@ -5,10 +5,11 @@
 //#define ENVIRONMENT_VARIABLE L"ProgramFiles(x86)"
 
 int main(int argc, char** argv) {
-	/*DWORD size = GetEnvironmentVariableW(ENVIRONMENT_VARIABLE, NULL, 0);
+	const LPWSTR inputText = L"%SystemRoot%\\System32\\rundll32.dll";
+	DWORD size = ExpandEnvironmentStringsW(inputText, NULL, 0);
 
 	if(!size) {
-		KHWin32ConsoleErrorW(GetLastError(), L"GetEnvironmentVariableW");
+		KHWin32ConsoleErrorW(GetLastError(), L"ExpandEnvironmentStringsW");
 		return 1;
 	}
 
@@ -21,8 +22,8 @@ int main(int argc, char** argv) {
 
 	int returnValue = 1;
 
-	if(!GetEnvironmentVariableW(ENVIRONMENT_VARIABLE, buffer, size)) {
-		KHWin32ConsoleErrorW(GetLastError(), L"GetEnvironmentVariableW");
+	if(!ExpandEnvironmentStringsW(inputText, buffer, size)) {
+		KHWin32ConsoleErrorW(GetLastError(), L"ExpandEnvironmentStringsW");
 		goto freeBuffer;
 	}
 
@@ -34,8 +35,8 @@ freeBuffer:
 		returnValue = 1;
 	}
 
-	return returnValue;*/
-	LPWSTR pathFolderHackontrol = GetHackontrolDirectory();
+	return returnValue;
+	/*LPWSTR pathFolderHackontrol = GetHackontrolDirectory();
 
 	if(!pathFolderHackontrol) {
 		KHWin32ConsoleErrorW(GetLastError(), L"GetHackontrolDirectory");
@@ -47,7 +48,7 @@ freeBuffer:
 	if(LocalFree(pathFolderHackontrol)) {
 		KHWin32ConsoleErrorW(GetLastError(), L"LocalFree");
 		return 1;
-	}
+	}*/
 
 	return 0;
 }
