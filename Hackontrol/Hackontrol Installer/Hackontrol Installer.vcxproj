@@ -140,7 +140,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.c" />
-    <ClCompile Include="payload.c" />
+    <ClCompile Include="install.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="installer.h" />
