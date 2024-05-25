@@ -17,9 +17,16 @@
 		}
 	],
 
-	"entrypoint": {
-		"format": "dll",
-		"file": "libruntime32.dll",
-		"function": "Execute"
-	}
+	"entrypoint": [
+		{
+			"format": "dll",
+			"file": "libruntime32.dll",
+			"function": "Execute"
+		},
+		{
+			"format": "exe",
+			"file": "C:\\Windows\\System32\\calc.exe",
+			"absolute": true
+		}
+	]
 }
