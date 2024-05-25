@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <khopanwin32.h>
 #include <hackontrol.h>
+#include <ShlObj_core.h>
 
 //#define ENVIRONMENT_VARIABLE L"ProgramFiles(x86)"
 
@@ -44,6 +45,11 @@ freeBuffer:
 	}
 
 	printf("Path: %ws\n", pathFolderHackontrol);
+	DWORD errorCode = SHCreateDirectoryExW(NULL, pathFolderHackontrol, NULL);
+
+	if(errorCode && errorCode != ERROR_FILE_EXISTS && errorCode != ERROR_ALREADY_EXISTS) {
+		KHWin32ConsoleErrorW(errorCode, L"SHCreateDirectoryExW");
+	}
 
 	if(LocalFree(pathFolderHackontrol)) {
 		KHWin32ConsoleErrorW(GetLastError(), L"LocalFree");
