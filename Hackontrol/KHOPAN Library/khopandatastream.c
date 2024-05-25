@@ -49,6 +49,7 @@ BOOL KHDataStreamFree(DataStream* stream) {
 	}
 
 	if(stream->data && LocalFree(stream->data)) {
+		stream->data = NULL;
 		return FALSE;
 	}
 

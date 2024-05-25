@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <khopanwin32.h>
 #include <hackontrol.h>
-#include <ShlObj_core.h>
 
 //#define ENVIRONMENT_VARIABLE L"ProgramFiles(x86)"
 
@@ -37,24 +36,34 @@ freeBuffer:
 	}
 
 	return returnValue;*/
-	LPWSTR pathFolderHackontrol = GetHackontrolDirectory();
+	DataStream stream = {0};
+	CURLcode code;
 
-	if(!pathFolderHackontrol) {
-		KHWin32ConsoleErrorW(GetLastError(), L"GetHackontrolDirectory");
+	if(!HackontrolDownloadData(&stream, "https://www.google.com/", FALSE, &code)) {
+		KHCURLConsoleErrorW(code, L"HackontrolDownloadData");
 		return 1;
 	}
 
-	printf("Path: %ws\n", pathFolderHackontrol);
-	DWORD errorCode = SHCreateDirectoryExW(NULL, pathFolderHackontrol, NULL);
+	HANDLE file = CreateFileW(L"C:\\Users\\puthi\\Downloads\\google.html", GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
-	if(errorCode && errorCode != ERROR_FILE_EXISTS && errorCode != ERROR_ALREADY_EXISTS) {
-		KHWin32ConsoleErrorW(errorCode, L"SHCreateDirectoryExW");
+	if(file == INVALID_HANDLE_VALUE) {
+		KHWin32ConsoleErrorW(GetLastError(), L"CreateFileW");
+		goto freeStream;
 	}
 
-	if(LocalFree(pathFolderHackontrol)) {
-		KHWin32ConsoleErrorW(GetLastError(), L"LocalFree");
-		return 1;
+	DWORD bytesWritten;
+
+	if(!WriteFile(file, stream.data, (DWORD) stream.size, &bytesWritten, NULL)) {
+		KHWin32ConsoleErrorW(GetLastError(), L"WriteFile");
+		goto closeFile;
 	}
 
+	if(stream.size != bytesWritten) {
+		KHWin32ConsoleErrorW(ERROR_FUNCTION_FAILED, L"WriteFile");
+	}
+closeFile:
+	CloseHandle(file);
+freeStream:
+	KHDataStreamFree(&stream);
 	return 0;
 }
