@@ -1,4 +1,4 @@
-#include "hackontrol.h"
+#include "hackontrolcurl.h"
 #include <khopancurl.h>
 
 #define SET_CODE if(outputCode)*outputCode=code

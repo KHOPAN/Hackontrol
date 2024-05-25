@@ -18,6 +18,9 @@
     <ClInclude Include="hackontrol.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="hackontrolcurl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="hackontrol_get_directory.c">

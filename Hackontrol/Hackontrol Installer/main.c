@@ -1,5 +1,4 @@
-#include <stdio.h>
-#include <khopanwin32.h>
+#include <Windows.h>
 #include "installer.h"
 
 #define RTL_MAX_DRIVE_LETTERS    32

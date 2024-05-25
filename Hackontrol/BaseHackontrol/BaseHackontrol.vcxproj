@@ -148,6 +148,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="hackontrol.h" />
+    <ClInclude Include="hackontrolcurl.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="hackontrol_get_directory.c" />

@@ -1,4 +1,4 @@
-#include "hackontrol.h"
+#include "hackontrolcurl.h"
 
 BOOL HackontrolWriteFile(LPCWSTR const filePath, const DataStream* const stream) {
 	if(!filePath || !stream) {

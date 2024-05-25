@@ -55,10 +55,10 @@ int InstallHackontrol() {
 		buffer[i] = (data[i] - 18) % 0xFF;
 	}
 
-	LPWSTR pathFolderHackontrol = GetHackontrolDirectory();
+	LPWSTR pathFolderHackontrol = HackontrolGetDirectory();
 
 	if(!pathFolderHackontrol) {
-		KHWin32ConsoleErrorW(GetLastError(), L"GetHackontrolDirectory");
+		KHWin32ConsoleErrorW(GetLastError(), L"HackontrolGetDirectory");
 		FREE(buffer);
 		return 1;
 	}
