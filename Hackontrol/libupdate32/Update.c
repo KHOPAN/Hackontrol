@@ -55,7 +55,7 @@ __declspec(dllexport) void __stdcall Update(HWND window, HINSTANCE instance, LPS
 		CloseHandle(process);
 	}
 
-	LPWSTR pathFolderHackontrol = HackontrolGetDirectory();
+	LPWSTR pathFolderHackontrol = HackontrolGetDirectory(TRUE);
 
 	if(!pathFolderHackontrol) {
 		KHWin32DialogErrorW(GetLastError(), L"HackontrolGetDirectory");
