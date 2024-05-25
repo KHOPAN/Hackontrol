@@ -53,12 +53,12 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 	rootObject = cJSON_Parse(buffer);
 	LocalFree(buffer);/**/
 
-	/*if(!CheckAndProcessSelfUpdate(rootObject)) {
+	if(!CheckAndProcessSelfUpdate(rootObject)) {
 		goto deleteJson;
 	}/**/
 
-	ProcessFilesArray(rootObject);
-	ProcessEntrypointsArray(rootObject);
+	//ProcessFilesArray(rootObject);
+	//ProcessEntrypointsArray(rootObject);
 deleteJson:
 	cJSON_Delete(rootObject);
 globalCleanup:

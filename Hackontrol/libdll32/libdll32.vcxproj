@@ -76,7 +76,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\library\openssl-3.3.0\x64\include;D:\library\libcurl-8.7.1\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;D:\cJSON\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\cJSON\include;D:\library\libcurl-8.7.1\include;D:\library\openssl-3.3.0\x64\include;D:\GitHub Repository\Hackontrol\Hackontrol\BaseHackontrol;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
@@ -95,7 +95,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\library\openssl-3.3.0\x64\include;D:\library\libcurl-8.7.1\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;D:\cJSON\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\cJSON\include;D:\library\libcurl-8.7.1\include;D:\library\openssl-3.3.0\x64\include;D:\GitHub Repository\Hackontrol\Hackontrol\BaseHackontrol;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
@@ -114,7 +114,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\library\openssl-3.3.0\x64\include;D:\library\libcurl-8.7.1\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;D:\cJSON\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\cJSON\include;D:\library\libcurl-8.7.1\include;D:\library\openssl-3.3.0\x64\include;D:\GitHub Repository\Hackontrol\Hackontrol\BaseHackontrol;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
@@ -133,7 +133,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\library\openssl-3.3.0\x64\include;D:\library\libcurl-8.7.1\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;D:\cJSON\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\cJSON\include;D:\library\libcurl-8.7.1\include;D:\library\openssl-3.3.0\x64\include;D:\GitHub Repository\Hackontrol\Hackontrol\BaseHackontrol;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
@@ -162,11 +162,6 @@
     <ClCompile Include="SimpleWindow.c" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\KHOPAN Library\KHOPAN Library.vcxproj">
-      <Project>{8c1e7669-d899-4b10-8d65-557b98a620b5}</Project>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="execute.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
@@ -175,6 +170,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\release\update" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BaseHackontrol\BaseHackontrol.vcxproj">
+      <Project>{7ad64c41-0110-4779-bdaa-7f2017f2692f}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
