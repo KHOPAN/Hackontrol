@@ -44,7 +44,12 @@ freeBuffer:
 		return 1;
 	}
 
-	HANDLE file = CreateFileW(L"C:\\Users\\puthi\\Downloads\\google.html", GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	if(!HackontrolWriteFile(L"C:\\Users\\puthi\\Downloads\\google.html", &stream)) {
+		KHWin32ConsoleErrorW(GetLastError(), L"HackontrolWriteFile");
+		goto freeStream;
+	}
+
+	/*HANDLE file = CreateFileW(L"C:\\Users\\puthi\\Downloads\\google.html", GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
 	if(file == INVALID_HANDLE_VALUE) {
 		KHWin32ConsoleErrorW(GetLastError(), L"CreateFileW");
@@ -62,7 +67,7 @@ freeBuffer:
 		KHWin32ConsoleErrorW(ERROR_FUNCTION_FAILED, L"WriteFile");
 	}
 closeFile:
-	CloseHandle(file);
+	CloseHandle(file);*/
 freeStream:
 	KHDataStreamFree(&stream);
 	return 0;

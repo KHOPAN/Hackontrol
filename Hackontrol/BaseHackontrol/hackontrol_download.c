@@ -5,13 +5,15 @@
 
 static size_t write_data_stream(void* const data, size_t size, size_t count, DataStream* const stream);
 
-BOOL HackontrolDownloadData(DataStream* const stream, LPCSTR url, BOOL curlInitialized, CURLcode* const outputCode) {
+BOOL HackontrolDownloadData(DataStream* const stream, LPCSTR const url, const BOOL curlInitialized, CURLcode* const outputCode) {
+	CURLcode code = CURLE_OK;
+
 	if(!stream || !url) {
-		SetLastError(ERROR_INVALID_PARAMETER);
+		code = CURLE_BAD_FUNCTION_ARGUMENT;
+		SET_CODE;
 		return FALSE;
 	}
 
-	CURLcode code = CURLE_OK;
 	BOOL returnValue = FALSE;
 
 	if(!curlInitialized) {

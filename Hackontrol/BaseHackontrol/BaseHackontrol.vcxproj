@@ -152,6 +152,7 @@
   <ItemGroup>
     <ClCompile Include="hackontrol.c" />
     <ClCompile Include="hackontrol_download.c" />
+    <ClCompile Include="hackontrol_write_file.c" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\KHOPAN Library\KHOPAN Library.vcxproj">
