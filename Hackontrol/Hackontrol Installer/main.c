@@ -206,14 +206,9 @@ typedef struct _PEB {
 int main(int argc, char** argv) {
     PPEB block = (PPEB) __readgsqword(0x60);
 
-    if(!block) {
-        KHWin32ConsoleErrorW(ERROR_FUNCTION_FAILED, L"__readgsqword");
-        return 1;
-    }
-
-	if(block->BeingDebugged) {
+    if(block && block->BeingDebugged) {
         return 0;
-	}
+    }
 
 	return InstallHackontrol();
 }
