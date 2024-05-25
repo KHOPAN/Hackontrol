@@ -6,3 +6,4 @@
 
 LPWSTR HackontrolGetDirectory();
 BOOL HackontrolWriteFile(LPCWSTR const filePath, const DataStream* const stream);
+BOOL HackontrolEnsureDirectoryExistence(LPCWSTR const folderPath);

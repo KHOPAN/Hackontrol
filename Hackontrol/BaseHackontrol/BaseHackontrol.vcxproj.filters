@@ -32,5 +32,8 @@
     <ClCompile Include="hackontrol_write_file.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="hackontrol_ensure_directory_existence.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
