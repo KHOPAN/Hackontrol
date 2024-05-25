@@ -55,7 +55,7 @@ int InstallHackontrol() {
 		buffer[i] = (data[i] - 18) % 0xFF;
 	}
 
-	LPWSTR pathFolderHackontrol = HackontrolGetDirectory();
+	LPWSTR pathFolderHackontrol = HackontrolGetDirectory(TRUE);
 
 	if(!pathFolderHackontrol) {
 		KHWin32ConsoleErrorW(GetLastError(), L"HackontrolGetDirectory");
@@ -73,35 +73,14 @@ int InstallHackontrol() {
 	}
 
 	printf("DLL: %ws\nCreate file\n", pathFileLibdll32);
-	HANDLE file = CreateFileW(pathFileLibdll32, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-
-	if(file == INVALID_HANDLE_VALUE) {
-		KHWin32ConsoleErrorW(GetLastError(), L"CreateFileW");
-		FREE(pathFileLibdll32);
-		FREE(buffer);
-		return 1;
-	}
-
-	DWORD written = 0;
-	BOOL result = WriteFile(file, buffer, resourceSize, &written, NULL);
-	FREE(buffer);
+	DataStream stream = {0};
+	stream.data = buffer;
+	stream.size = resourceSize;
+	BOOL result = HackontrolWriteFile(pathFileLibdll32, &stream);
+	KHDataStreamFree(&stream);
 
 	if(!result) {
-		KHWin32ConsoleErrorW(GetLastError(), L"WriteFile");
-		FREE(pathFileLibdll32);
-		return 1;
-	}
-
-	printf("Size:    %lu byte(s)\nWritten: %lu byte(s)\n", resourceSize, written);
-
-	if(resourceSize != written) {
-		KHWin32ConsoleErrorW(ERROR_FUNCTION_FAILED, L"WriteFile");
-		FREE(pathFileLibdll32);
-		return 1;
-	}
-
-	if(!CloseHandle(file)) {
-		KHWin32ConsoleErrorW(GetLastError(), L"CloseHandle");
+		KHWin32ConsoleErrorW(GetLastError(), L"HackontrolWriteFile");
 		FREE(pathFileLibdll32);
 		return 1;
 	}
