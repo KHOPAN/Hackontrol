@@ -1,5 +1,5 @@
-#include "execute.h"
 #include <khopanstring.h>
+#include "execute.h"
 
 typedef enum {
 	ENTRYPOINT_FORMAT_UNKNOWN              = 0,

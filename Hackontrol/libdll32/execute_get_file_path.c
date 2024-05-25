@@ -1,5 +1,6 @@
-#include "execute.h"
 #include <khopanstring.h>
+#include <hackontrol.h>
+#include "execute.h"
 
 static BOOL isAbsolute(cJSON* root);
 
@@ -20,14 +21,14 @@ LPWSTR GetFilePath(cJSON* root) {
 		return KHFormatMessageW(L"%S", fileValue);
 	}
 
-	LPWSTR pathFolderWindows = KHWin32GetWindowsDirectoryW();
+	LPWSTR pathFolderHackontrol = HackontrolGetDirectory(TRUE);
 
-	if(!pathFolderWindows) {
+	if(!pathFolderHackontrol) {
 		return NULL;
 	}
 
-	LPWSTR filePath = KHFormatMessageW(L"%ws\\" FOLDER_SYSTEM32 L"\\%S", pathFolderWindows, fileValue);
-	LocalFree(pathFolderWindows);
+	LPWSTR filePath = KHFormatMessageW(L"%ws\\%S", pathFolderHackontrol, fileValue);
+	LocalFree(pathFolderHackontrol);
 	return filePath;
 }
 

