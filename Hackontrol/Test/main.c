@@ -3,10 +3,14 @@
 #include <hackontrol.h>
 
 int main(int argc, char** argv) {
-	if(!HackontrolEnsureDirectoryExistence(L"C:\\ProgramData\\Microsoft\\DeviceSync")) {
-		KHWin32ConsoleErrorW(GetLastError(), L"HackontrolEnsureDirectoryExistence");
+	LPWSTR pathFolderHackontrol = HackontrolGetDirectory(TRUE);
+
+	if(!pathFolderHackontrol) {
+		KHWin32ConsoleErrorW(GetLastError(), L"HackontrolGetDirectory");
 		return 1;
 	}
 
+	printf("Path: %ws\n", pathFolderHackontrol);
+	LocalFree(pathFolderHackontrol);
 	return 0;
 }

@@ -2,7 +2,7 @@
 
 #define HACKONTROL_DIRECTORY L"%ProgramData%\\Microsoft\\DeviceSync"
 
-LPWSTR HackontrolGetDirectory() {
+LPWSTR HackontrolGetDirectory(BOOL createIfNotExist) {
 	DWORD size = ExpandEnvironmentStringsW(HACKONTROL_DIRECTORY, NULL, 0);
 
 	if(!size) {
@@ -18,6 +18,10 @@ LPWSTR HackontrolGetDirectory() {
 	if(!ExpandEnvironmentStringsW(HACKONTROL_DIRECTORY, buffer, size)) {
 		LocalFree(buffer);
 		return NULL;
+	}
+
+	if(createIfNotExist) {
+		HackontrolEnsureDirectoryExistence(buffer);
 	}
 
 	return buffer;
