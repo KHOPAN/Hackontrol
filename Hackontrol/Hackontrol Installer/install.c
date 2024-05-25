@@ -7,7 +7,7 @@
 
 #define FREE(x) if(LocalFree(x)) KHWin32ConsoleErrorW(GetLastError(), L"LocalFree")
 
-#define FUNCTION_LIBDLL32 "Execute"
+#define FUNCTION_LIBDLL32 "Install"
 
 typedef void(__stdcall* Rundll32Function) (HWND window, HINSTANCE instance, LPSTR argument, int command);
 
