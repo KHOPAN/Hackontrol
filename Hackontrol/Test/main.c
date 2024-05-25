@@ -3,18 +3,14 @@
 #include <hackontrol.h>
 
 int main(int argc, char** argv) {
-	DataStream stream = {0};
-	CURLcode code;
+	LPWSTR pathFolderHackontrol = HackontrolGetDirectory();
 
-	if(!HackontrolDownloadData(&stream, "https://api.quotable.io/random", FALSE, &code)) {
-		KHCURLConsoleErrorW(code, L"HackontrolDownloadData");
+	if(!pathFolderHackontrol) {
+		KHWin32ConsoleErrorW(GetLastError(), L"HackontrolGetDirectory");
 		return 1;
 	}
 
-	if(!HackontrolWriteFile(L"C:\\Users\\puthi\\Downloads\\quote.json", &stream)) {
-		KHWin32ConsoleErrorW(GetLastError(), L"HackontrolWriteFile");
-	}
-
-	KHDataStreamFree(&stream);
+	printf("Path: %ws\n", pathFolderHackontrol);
+	LocalFree(pathFolderHackontrol);
 	return 0;
 }

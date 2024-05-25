@@ -150,7 +150,7 @@
     <ClInclude Include="hackontrol.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="hackontrol.c" />
+    <ClCompile Include="hackontrol_get_directory.c" />
     <ClCompile Include="hackontrol_download.c" />
     <ClCompile Include="hackontrol_write_file.c" />
   </ItemGroup>

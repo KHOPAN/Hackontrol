@@ -20,7 +20,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="hackontrol.c">
+    <ClCompile Include="hackontrol_get_directory.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="hackontrol_download.c">
