@@ -6,6 +6,11 @@
 
 	"file": [
 		{
+			"file": "libcrypto-3.dll",
+			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/libcrypto-3.dll",
+			"sha384": "6153e92402d4f1d23135ad2f59db3f95d15b35b3fc93a03d1a56fdd6c77bef8c3882508beab323334cc7d4066b5d6ea5"
+		},
+		{
 			"file": "libruntime32.dll",
 			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/libruntime32.dll",
 			"sha384": "79bd9ba35b43494385c5d78c50090e95ee48a534dc371131575e5b109a38a37309448b89aae5f04543f1fda22ec05aea"
