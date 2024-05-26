@@ -74,7 +74,7 @@ public class Hackontrol {
 		}
 
 		this.guild = this.bot.getGuildById(1173967259304198154L);
-		this.machineIdentifier = Machine.getIdentifier();
+		this.machineIdentifier = NativeLibrary.machineName();
 		this.category = this.getOrCreateCategory(this.guild, this.machineIdentifier);
 
 		for(int i = 0; i < this.moduleList.size(); i++) {
