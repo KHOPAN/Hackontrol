@@ -104,13 +104,13 @@ public class Hackontrol {
 	}
 
 	private Category getOrCreateCategory(Guild guild, String name) {
-		List<Category> list = guild.getCategoriesByName(name, true);
-
-		if(list.isEmpty()) {
-			return guild.createCategory(name).complete();
+		for(Category category : guild.getCategories()) {
+			if(category.getName().toLowerCase().contains(name.toLowerCase())) {
+				return category;
+			}
 		}
 
-		return list.get(0);
+		return guild.createCategory(name).complete();
 	}
 
 	private TextChannel getOrCreateTextChannelInCategory(Category category, String name) {
