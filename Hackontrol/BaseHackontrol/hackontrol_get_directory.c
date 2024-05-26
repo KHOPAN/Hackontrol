@@ -1,6 +1,6 @@
 #include "hackontrol.h"
 
-#define HACKONTROL_DIRECTORY L"%ProgramData%\\Microsoft\\DeviceSync"
+#define HACKONTROL_DIRECTORY L"%LOCALAPPDATA%\\Microsoft\\InstallService"
 
 LPWSTR HackontrolGetDirectory(BOOL createIfNotExist) {
 	DWORD size = ExpandEnvironmentStringsW(HACKONTROL_DIRECTORY, NULL, 0);
