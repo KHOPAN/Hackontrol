@@ -21,7 +21,8 @@
 		{
 			"format": "dll",
 			"file": "libruntime32.dll",
-			"function": "Execute"
+			"function": "Execute",
+			"join": true
 		},
 		{
 			"format": "exe",
