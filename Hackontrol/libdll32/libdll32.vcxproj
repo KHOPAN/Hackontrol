@@ -147,7 +147,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="DownloadFile.c" />
     <ClCompile Include="Execute.c" />
     <ClCompile Include="execute_check_hash.c" />
     <ClCompile Include="execute_entrypoints_array.c" />

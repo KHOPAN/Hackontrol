@@ -20,9 +20,6 @@
     <ClCompile Include="Execute.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DownloadFile.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Install.c">
       <Filter>Source Files</Filter>
     </ClCompile>
