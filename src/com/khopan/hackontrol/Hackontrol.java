@@ -20,7 +20,6 @@ import com.khopan.hackontrol.registry.implementation.FilteredTypeRegistry;
 import com.khopan.hackontrol.registry.implementation.RegistryImplementation;
 import com.khopan.hackontrol.utils.ErrorHandler;
 import com.khopan.hackontrol.utils.HackontrolError;
-import com.khopan.logger.hackontrol.HackontrolLoggerConfig;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -259,7 +258,6 @@ public class Hackontrol {
 			return;
 		}
 
-		HackontrolLoggerConfig.disableDebug();
 		Hackontrol.LOGGER.info("Initializing");
 		Hackontrol.getInstance();
 	}
