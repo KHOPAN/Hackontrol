@@ -5,13 +5,12 @@
 #include <archive_entry.h>
 
 #include <direct.h>
-#include "extract.h"
-#include "initialize.h"
+#include "execute.h"
 #include "resource.h"
 
 static int copy_data(struct archive*, struct archive*);
 
-BOOL ExtractJRE(const LPSTR path) {
+BOOL ExtractJRE(LPCSTR const path) {
 	HINSTANCE instance = GetProgramInstance();
 
 	if(!instance) {

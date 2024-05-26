@@ -147,10 +147,8 @@
     <ClCompile Include="uiaccess.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="initialize.h" />
-    <ClInclude Include="extract.h" />
+    <ClInclude Include="execute.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="uiaccess.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Hackontrol Java.rc" />

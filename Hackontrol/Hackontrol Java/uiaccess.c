@@ -1,6 +1,6 @@
 #include <khopanwin32.h>
-#include "uiaccess.h"
 #include <TlHelp32.h>
+#include "execute.h"
 
 static BOOL DuplicateWinlogonToken(DWORD sessionIdentifier, DWORD desiredAccess, LPHANDLE token) {
 	PRIVILEGE_SET privileges;
@@ -90,7 +90,7 @@ closeSnapshot:
 	return returnValue;
 }
 
-BOOL CreateUIAccessToken(LPHANDLE token) {
+BOOL CreateUIAccessToken(const LPHANDLE token) {
 	HANDLE currentToken;
 
 	if(!OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY | TOKEN_DUPLICATE, &currentToken)) {

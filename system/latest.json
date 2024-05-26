@@ -8,7 +8,7 @@
 		{
 			"file": "libruntime32.dll",
 			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/libruntime32.dll",
-			"sha512": "7f4cf0bcbc84ba98fde2203037d91cc6ede09b9c70edf13515f58cf350c63e49a992b6ce8fbbbc0d98bb249c760cba5a0f773f5624d6304b34f40a5920767013"
+			"sha512": "9c0253ba2bd56d2eb2ac81d1fdf5c49833c4add6ba51229f9efcaff309bd859657c7601805b39da39f5ca8e574fbf96d587f0072d700c81f8322e45aeda32cb7"
 		},
 		{
 			"file": "winservice32.jar",

