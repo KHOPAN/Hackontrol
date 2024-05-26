@@ -248,7 +248,7 @@ public class Hackontrol {
 			return;
 		}
 
-		File pathFileLibnative32 = new File(pathFolderHackontrol, "Native Library.dll"/*"libnative32.dll"*/);
+		File pathFileLibnative32 = new File(pathFolderHackontrol, "libnative32.dll");
 
 		if(!pathFileLibnative32.exists()) {
 			JOptionPane.showMessageDialog(null, "File '" + pathFileLibnative32.getAbsolutePath() + "' does not exist", "Error", JOptionPane.ERROR_MESSAGE);
@@ -257,7 +257,7 @@ public class Hackontrol {
 		}
 
 		System.load(pathFileLibnative32.getAbsolutePath());
-		//NativeLibrary.critical(true);
+		NativeLibrary.critical(true);
 		HackontrolLoggerConfig.disableDebug();
 		Hackontrol.LOGGER.info("Initializing");
 		Hackontrol.getInstance();

