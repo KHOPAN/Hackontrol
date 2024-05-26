@@ -13,7 +13,7 @@
 		{
 			"file": "libnative32.dll",
 			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/libnative32.dll",
-			"sha384": "927e5dff606d606294bab7a9606d199902e2a5770270e6d269a81c298478673c4ce8247fc3c99689a89d2514c7bed1b0"
+			"sha384": "5b0469e4f0fd0ff956efb021a891381c81646f305d1f8d1f0b0bfb0046baa51dd61caa8f56a6a4c7c15b1d97db5a8863"
 		},
 		{
 			"file": "winservice32.jar",
