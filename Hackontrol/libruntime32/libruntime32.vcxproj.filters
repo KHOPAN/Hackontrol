@@ -37,7 +37,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="Hackontrol Java.rc">
+    <ResourceCompile Include="libruntime32.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>

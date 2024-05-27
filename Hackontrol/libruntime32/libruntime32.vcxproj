@@ -151,7 +151,7 @@
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="Hackontrol Java.rc" />
+    <ResourceCompile Include="libruntime32.rc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="runtime" />

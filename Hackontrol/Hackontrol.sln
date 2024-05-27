@@ -9,7 +9,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libdll32", "libdll32\libdll
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Hackontrol Installer", "Hackontrol Installer\Hackontrol Installer.vcxproj", "{9CA978FC-474A-472B-A087-84FEB8BE74C1}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Hackontrol Java", "Hackontrol Java\Hackontrol Java.vcxproj", "{6F875087-C42F-4977-95C0-68CF4364B53F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libruntime32", "libruntime32\libruntime32.vcxproj", "{6F875087-C42F-4977-95C0-68CF4364B53F}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libnative32", "libnative32\libnative32.vcxproj", "{4AD18A76-B0FC-4590-86B0-447610879A32}"
 EndProject
