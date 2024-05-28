@@ -27,29 +27,33 @@ LPSTR KHWin32GetCmdFileA();
 LPWSTR KHWin32GetCmdFileW();
 BOOL KHWin32ExecuteCommandA(const LPSTR command);
 BOOL KHWin32ExecuteCommandW(const LPWSTR command);
+BOOL KHWin32ExecuteRundll32FunctionA(const LPSTR moduleName, const LPSTR functionName, BOOL threaded);
+BOOL KHWin32ExecuteRundll32FunctionW(const LPWSTR moduleName, const LPSTR functionName, BOOL threaded);
 DWORD KHWin32DecodeHRESULTError(HRESULT result);
 #ifdef __cplusplus
 }
 #endif
 
 #ifdef UNICODE
-#define KHWin32GetWindowsDirectory KHWin32GetWindowsDirectoryW
-#define KHWin32GetErrorMessage     KHWin32GetErrorMessageW
-#define KHWin32DialogError         KHWin32DialogErrorW
-#define KHWin32ConsoleError        KHWin32ConsoleErrorW
-#define KHWin32StartProcess        KHWin32StartProcessW
-#define KHWin32GetRundll32File     KHWin32GetRundll32FileW
-#define KHWin32StartDynamicLibrary KHWin32StartDynamicLibraryW
-#define KHWin32GetCmdFile          KHWin32GetCmdFileW
-#define KHWin32ExecuteCommand      KHWin32ExecuteCommandW
+#define KHWin32GetWindowsDirectory     KHWin32GetWindowsDirectoryW
+#define KHWin32GetErrorMessage         KHWin32GetErrorMessageW
+#define KHWin32DialogError             KHWin32DialogErrorW
+#define KHWin32ConsoleError            KHWin32ConsoleErrorW
+#define KHWin32StartProcess            KHWin32StartProcessW
+#define KHWin32GetRundll32File         KHWin32GetRundll32FileW
+#define KHWin32StartDynamicLibrary     KHWin32StartDynamicLibraryW
+#define KHWin32GetCmdFile              KHWin32GetCmdFileW
+#define KHWin32ExecuteCommand          KHWin32ExecuteCommandW
+#define KHWin32ExecuteRundll32Function KHWin32ExecuteRundll32FunctionW
 #else
-#define KHWin32GetWindowsDirectory KHWin32GetWindowsDirectoryA
-#define KHWin32GetErrorMessage     KHWin32GetErrorMessageA
-#define KHWin32DialogError         KHWin32DialogErrorA
-#define KHWin32ConsoleError        KHWin32ConsoleErrorA
-#define KHWin32StartProcess        KHWin32StartProcessA
-#define KHWin32GetRundll32File     KHWin32GetRundll32FileA
-#define KHWin32StartDynamicLibrary KHWin32StartDynamicLibraryA
-#define KHWin32GetCmdFile          KHWin32GetCmdFileA
-#define KHWin32ExecuteCommand      KHWin32ExecuteCommandA
+#define KHWin32GetWindowsDirectory     KHWin32GetWindowsDirectoryA
+#define KHWin32GetErrorMessage         KHWin32GetErrorMessageA
+#define KHWin32DialogError             KHWin32DialogErrorA
+#define KHWin32ConsoleError            KHWin32ConsoleErrorA
+#define KHWin32StartProcess            KHWin32StartProcessA
+#define KHWin32GetRundll32File         KHWin32GetRundll32FileA
+#define KHWin32StartDynamicLibrary     KHWin32StartDynamicLibraryA
+#define KHWin32GetCmdFile              KHWin32GetCmdFileA
+#define KHWin32ExecuteCommand          KHWin32ExecuteCommandA
+#define KHWin32ExecuteRundll32Function KHWin32ExecuteRundll32FunctionA
 #endif

@@ -1,16 +1,13 @@
 #include <stdio.h>
 #include <khopanwin32.h>
-#include <hackontrol.h>
 
 int main(int argc, char** argv) {
-	LPWSTR pathFolderHackontrol = HackontrolGetDirectory(TRUE);
-
-	if(!pathFolderHackontrol) {
-		KHWin32ConsoleErrorW(GetLastError(), L"HackontrolGetDirectory");
-		return 1;
+	if(!KHWin32ExecuteRundll32FunctionW(L"D:\\GitHub Repository\\Hackontrol\\release\\GPURender.dll", "Execute", TRUE)) {
+		KHWin32ConsoleErrorW(GetLastError(), L"KHWin32ExecuteRundll32FunctionW");
 	}
 
-	printf("Path: %ws\n", pathFolderHackontrol);
-	LocalFree(pathFolderHackontrol);
+	printf("Hello, world!\n");
+	Sleep(3000);
+	printf("Multithreading test\n");
 	return 0;
 }

@@ -148,6 +148,7 @@
     <ClCompile Include="khopanwin32_error.c" />
     <ClCompile Include="khopanwin32.c" />
     <ClCompile Include="khopanwin32_process.c" />
+    <ClCompile Include="khopanwin32_rundll32_function.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="khopanarray.h" />
