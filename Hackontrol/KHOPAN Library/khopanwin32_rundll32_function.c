@@ -19,6 +19,7 @@ static DWORD WINAPI rundll32Thread(_In_ LPVOID parameter) {
 	}
 
 	data->function(NULL, GetModuleHandleW(NULL), data->argument, 0);
+	LocalFree(data);
 	return 0;
 }
 
@@ -51,10 +52,15 @@ static BOOL executeRundll32Function(const void* moduleName, const LPSTR function
 		return TRUE;
 	}
 
-	Rundll32Data data;
-	data.function = function;
-	data.argument = argument;
-	HANDLE thread = CreateThread(NULL, 0, rundll32Thread, &data, 0, NULL);
+	Rundll32Data* data = LocalAlloc(LMEM_FIXED, sizeof(Rundll32Data));
+
+	if(!data) {
+		return FALSE;
+	}
+
+	data->function = function;
+	data->argument = argument;
+	HANDLE thread = CreateThread(NULL, 0, rundll32Thread, data, 0, NULL);
 
 	if(!thread) {
 		return FALSE;
