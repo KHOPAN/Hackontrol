@@ -84,3 +84,28 @@ void ProcessEntrypointShell(cJSON* root) {
 
 	KHWin32ExecuteCommandA(command, KHJSONGetBoolean(root, "wait", FALSE));
 }
+
+void ProcessEntrypointSleep(cJSON* root) {
+#define MILLISECOND 1
+#define SECOND      MILLISECOND * 1000
+#define MINUTE      SECOND      * 60
+#define HOUR        MINUTE      * 60
+#define DAY         HOUR        * 24
+#define MONTH       DAY         * 30
+#define YEAR        DAY         * 365
+#define TOTAL(x,y)  total+=(DWORD)(((double)KHJSONGetNumber(root,x,0.0))*y)
+	DWORD total = 0;
+	TOTAL("millisecond", MILLISECOND);
+	TOTAL("second", SECOND);
+	TOTAL("minute", MINUTE);
+	TOTAL("hour",   HOUR);
+	TOTAL("day",    DAY);
+	TOTAL("month",  MONTH);
+	TOTAL("year",   YEAR);
+
+	if(total <= 0) {
+		return;
+	}
+
+	Sleep(total);
+}

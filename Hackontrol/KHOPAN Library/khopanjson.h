@@ -6,6 +6,7 @@
 extern "C" {
 #endif
 cJSON_bool KHJSONGetBoolean(const cJSON* const root, const char* const field, const cJSON_bool defaultValue);
+double KHJSONGetNumber(const cJSON* const root, const char* const field, const double defaultValue);
 char* KHJSONGetString(const cJSON* const root, const char* const field, char* const defaultValue);
 cJSON* KHJSONGetObject(const cJSON* const root, const char* const field, cJSON* const defaultValue);
 cJSON* KHJSONGetArray(const cJSON* const root, const char* const field, cJSON* const defaultValue);

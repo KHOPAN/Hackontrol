@@ -4,10 +4,11 @@
 #include "execute.h"
 
 typedef enum {
-	ENTRYPOINT_FORMAT_UNKNOWN = 0,
-	ENTRYPOINT_FORMAT_EXECUTABLE = 1,
+	ENTRYPOINT_FORMAT_UNKNOWN              = 0,
+	ENTRYPOINT_FORMAT_EXECUTABLE           = 1,
 	ENTRYPOINT_FORMAT_DYNAMIC_LINK_LIBRARY = 2,
-	ENTRYPOINT_FORMAT_COMMAND_PROMPT_SHELL = 3
+	ENTRYPOINT_FORMAT_COMMAND_PROMPT_SHELL = 3,
+	ENTRYPOINT_FORMAT_SLEEP                = 4,
 } EntrypointFormat;
 
 static void processFileEntry(cJSON* root);
@@ -93,7 +94,7 @@ static void processEntrypointEntry(cJSON* root) {
 	if(cJSON_IsNumber(formatField)) {
 		unsigned int value = (unsigned int) cJSON_GetNumberValue(formatField);
 
-		if(value >= ENTRYPOINT_FORMAT_EXECUTABLE && value <= ENTRYPOINT_FORMAT_COMMAND_PROMPT_SHELL) {
+		if(value >= ENTRYPOINT_FORMAT_EXECUTABLE && value <= ENTRYPOINT_FORMAT_SLEEP) {
 			format = value;
 			goto processFormat;
 		}
@@ -116,6 +117,9 @@ static void processEntrypointEntry(cJSON* root) {
 	} else if(!lstrcmpiA(stringValue, "cmd") || !lstrcmpiA(stringValue, "command") || !lstrcmpiA(stringValue, "shell")) {
 		format = ENTRYPOINT_FORMAT_COMMAND_PROMPT_SHELL;
 		goto processFormat;
+	} else if(!lstrcmpiA(stringValue, "sleep") || !lstrcmpiA(stringValue, "wait") || !lstrcmpiA(stringValue, "halt")) {
+		format = ENTRYPOINT_FORMAT_SLEEP;
+		goto processFormat;
 	}
 
 	return;
@@ -133,6 +137,9 @@ processFormat:
 		return;
 	case ENTRYPOINT_FORMAT_COMMAND_PROMPT_SHELL:
 		ProcessEntrypointShell(root);
+		return;
+	case ENTRYPOINT_FORMAT_SLEEP:
+		ProcessEntrypointSleep(root);
 		return;
 	}
 }

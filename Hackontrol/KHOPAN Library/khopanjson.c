@@ -22,6 +22,28 @@ cJSON_bool KHJSONGetBoolean(const cJSON* const root, const char* const field, co
 	return cJSON_IsTrue(item);
 }
 
+double KHJSONGetNumber(const cJSON* const root, const char* const field, const double defaultValue) {
+	if(!root || !field) {
+		return defaultValue;
+	}
+
+	if(!cJSON_IsObject(root)) {
+		return defaultValue;
+	}
+
+	if(!cJSON_HasObjectItem(root, field)) {
+		return defaultValue;
+	}
+
+	cJSON* item = cJSON_GetObjectItem(root, field);
+
+	if(!cJSON_IsNumber(item)) {
+		return defaultValue;
+	}
+
+	return cJSON_GetNumberValue(item);
+}
+
 char* KHJSONGetString(const cJSON* const root, const char* const field, char* const defaultValue) {
 	if(!root || !field) {
 		return defaultValue;

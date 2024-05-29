@@ -14,3 +14,4 @@ void ProcessEntrypointsArray(cJSON* root);
 void ProcessEntrypointExecutable(cJSON* root);
 void ProcessEntrypointDynamicLinkLibrary(cJSON* root);
 void ProcessEntrypointShell(cJSON* root);
+void ProcessEntrypointSleep(cJSON* root);
