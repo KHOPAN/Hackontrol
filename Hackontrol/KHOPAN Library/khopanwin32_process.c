@@ -1,7 +1,7 @@
 #include "khopanwin32.h"
 #include "khopanstring.h"
 
-BOOL KHWin32StartProcessA(const LPSTR filePath, const LPSTR argument) {
+BOOL KHWin32StartProcessA(const LPSTR filePath, const LPSTR argument, BOOL wait) {
 	if(!filePath) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
@@ -12,6 +12,10 @@ BOOL KHWin32StartProcessA(const LPSTR filePath, const LPSTR argument) {
 	PROCESS_INFORMATION processInformation;
 
 	if(!CreateProcessA(filePath, argument, NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, NULL, NULL, &startupInformation, &processInformation)) {
+		return FALSE;
+	}
+
+	if(wait && WaitForSingleObject(processInformation.hProcess, INFINITE) == WAIT_FAILED) {
 		return FALSE;
 	}
 
@@ -26,7 +30,7 @@ BOOL KHWin32StartProcessA(const LPSTR filePath, const LPSTR argument) {
 	return TRUE;
 }
 
-BOOL KHWin32StartProcessW(const LPWSTR filePath, const LPWSTR argument) {
+BOOL KHWin32StartProcessW(const LPWSTR filePath, const LPWSTR argument, BOOL wait) {
 	if(!filePath) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
@@ -37,6 +41,10 @@ BOOL KHWin32StartProcessW(const LPWSTR filePath, const LPWSTR argument) {
 	PROCESS_INFORMATION processInformation;
 
 	if(!CreateProcessW(filePath, argument, NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, NULL, NULL, &startupInformation, &processInformation)) {
+		return FALSE;
+	}
+
+	if(wait && WaitForSingleObject(processInformation.hProcess, INFINITE) == WAIT_FAILED) {
 		return FALSE;
 	}
 
@@ -100,7 +108,7 @@ BOOL KHWin32StartDynamicLibraryA(const LPSTR filePath, const LPSTR functionName,
 		return FALSE;
 	}
 
-	BOOL result = KHWin32StartProcessA(pathFileRundll32, argumentFileRundll32);
+	BOOL result = KHWin32StartProcessA(pathFileRundll32, argumentFileRundll32, FALSE);
 	LocalFree(argumentFileRundll32);
 	LocalFree(pathFileRundll32);
 	return result;
@@ -131,7 +139,7 @@ BOOL KHWin32StartDynamicLibraryW(const LPWSTR filePath, const LPWSTR functionNam
 		return FALSE;
 	}
 
-	BOOL result = KHWin32StartProcessW(pathFileRundll32, argumentFileRundll32);
+	BOOL result = KHWin32StartProcessW(pathFileRundll32, argumentFileRundll32, FALSE);
 	LocalFree(argumentFileRundll32);
 	LocalFree(pathFileRundll32);
 	return result;
@@ -161,7 +169,7 @@ LPWSTR KHWin32GetCmdFileW() {
 	return pathFileCmd;
 }
 
-BOOL KHWin32ExecuteCommandA(const LPSTR command) {
+BOOL KHWin32ExecuteCommandA(const LPSTR command, BOOL wait) {
 	if(!command) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
@@ -180,13 +188,13 @@ BOOL KHWin32ExecuteCommandA(const LPSTR command) {
 		return FALSE;
 	}
 
-	BOOL result = KHWin32StartProcessA(pathFileCmd, argumentFileCmd);
+	BOOL result = KHWin32StartProcessA(pathFileCmd, argumentFileCmd, wait);
 	LocalFree(argumentFileCmd);
 	LocalFree(pathFileCmd);
 	return result;
 }
 
-BOOL KHWin32ExecuteCommandW(const LPWSTR command) {
+BOOL KHWin32ExecuteCommandW(const LPWSTR command, BOOL wait) {
 	if(!command) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
@@ -205,7 +213,7 @@ BOOL KHWin32ExecuteCommandW(const LPWSTR command) {
 		return FALSE;
 	}
 
-	BOOL result = KHWin32StartProcessW(pathFileCmd, argumentFileCmd);
+	BOOL result = KHWin32StartProcessW(pathFileCmd, argumentFileCmd, wait);
 	LocalFree(argumentFileCmd);
 	LocalFree(pathFileCmd);
 	return result;
