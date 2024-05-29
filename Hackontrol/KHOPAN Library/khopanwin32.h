@@ -27,8 +27,8 @@ LPSTR KHWin32GetCmdFileA();
 LPWSTR KHWin32GetCmdFileW();
 BOOL KHWin32ExecuteCommandA(const LPSTR command);
 BOOL KHWin32ExecuteCommandW(const LPWSTR command);
-BOOL KHWin32ExecuteRundll32FunctionA(const LPSTR moduleName, const LPSTR functionName, BOOL threaded);
-BOOL KHWin32ExecuteRundll32FunctionW(const LPWSTR moduleName, const LPSTR functionName, BOOL threaded);
+BOOL KHWin32ExecuteRundll32FunctionA(const LPSTR moduleName, const LPSTR functionName, LPSTR argument, BOOL threaded);
+BOOL KHWin32ExecuteRundll32FunctionW(const LPWSTR moduleName, const LPSTR functionName, LPSTR argument, BOOL threaded);
 DWORD KHWin32DecodeHRESULTError(HRESULT result);
 #ifdef __cplusplus
 }

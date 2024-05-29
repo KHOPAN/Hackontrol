@@ -1,16 +1,11 @@
 #include <stdio.h>
 #include <khopanwin32.h>
-#include <khopanjson.h>
 
 int main(int argc, char** argv) {
-	cJSON* root = cJSON_Parse("{\"test\":false}");
-
-	if(!root) {
-		printf("Parse error\n");
-		return 1;
+	if(!KHWin32ExecuteRundll32FunctionW(L"D:\\GitHub Repository\\Hackontrol\\Hackontrol\\x64\\Debug\\libupdate32.dll", "Update", NULL, FALSE)) {
+		KHWin32ConsoleErrorW(GetLastError(), L"KHWin32ExecuteRundll32FunctionW");
 	}
 
-	printf("Bool: %s\n", KHJSONGetBoolean(root, "test", TRUE) ? "true" : "false");
-	cJSON_Delete(root);
+	printf("Done\n");
 	return 0;
 }

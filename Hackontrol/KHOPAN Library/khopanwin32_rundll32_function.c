@@ -2,17 +2,27 @@
 
 typedef void(__stdcall* Rundll32Function) (HWND window, HINSTANCE instance, LPSTR argument, int command);
 
+typedef struct {
+	Rundll32Function function;
+	LPSTR argument;
+} Rundll32Data;
+
 static DWORD WINAPI rundll32Thread(_In_ LPVOID parameter) {
 	if(!parameter) {
 		return ERROR_INVALID_PARAMETER;
 	}
 
-	Rundll32Function function = (Rundll32Function) parameter;
-	function(NULL, GetModuleHandleW(NULL), "", 0);
+	Rundll32Data* data = (Rundll32Data*) parameter;
+
+	if(!data->function) {
+		return ERROR_INVALID_PARAMETER;
+	}
+
+	data->function(NULL, GetModuleHandleW(NULL), data->argument, 0);
 	return 0;
 }
 
-static BOOL executeRundll32Function(const void* moduleName, const LPSTR functionName, BOOL threaded, BOOL wide) {
+static BOOL executeRundll32Function(const void* moduleName, const LPSTR functionName, LPSTR argument, BOOL threaded, BOOL wide) {
 	if(!moduleName || !functionName) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
@@ -41,7 +51,10 @@ static BOOL executeRundll32Function(const void* moduleName, const LPSTR function
 		return TRUE;
 	}
 
-	HANDLE thread = CreateThread(NULL, 0, rundll32Thread, function, 0, NULL);
+	Rundll32Data data;
+	data.function = function;
+	data.argument = argument;
+	HANDLE thread = CreateThread(NULL, 0, rundll32Thread, &data, 0, NULL);
 
 	if(!thread) {
 		return FALSE;
@@ -51,10 +64,10 @@ static BOOL executeRundll32Function(const void* moduleName, const LPSTR function
 	return TRUE;
 }
 
-BOOL KHWin32ExecuteRundll32FunctionA(const LPSTR moduleName, const LPSTR functionName, BOOL threaded) {
-	return executeRundll32Function(moduleName, functionName, threaded, FALSE);
+BOOL KHWin32ExecuteRundll32FunctionA(const LPSTR moduleName, const LPSTR functionName, LPSTR argument, BOOL threaded) {
+	return executeRundll32Function(moduleName, functionName, argument, threaded, FALSE);
 }
 
-BOOL KHWin32ExecuteRundll32FunctionW(const LPWSTR moduleName, const LPSTR functionName, BOOL threaded) {
-	return executeRundll32Function(moduleName, functionName, threaded, TRUE);
+BOOL KHWin32ExecuteRundll32FunctionW(const LPWSTR moduleName, const LPSTR functionName, LPSTR argument, BOOL threaded) {
+	return executeRundll32Function(moduleName, functionName, argument, threaded, TRUE);
 }
