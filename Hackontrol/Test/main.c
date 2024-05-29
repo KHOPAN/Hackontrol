@@ -3,14 +3,14 @@
 #include <cJSON.h>
 
 int main(int argc, char** argv) {
-	cJSON* root = cJSON_Parse("{\"test\":true}");
+	cJSON* root = cJSON_Parse("{\"test\":false}");
 
 	if(!root) {
 		printf("Parse error\n");
 		return 1;
 	}
 
-	printf("Bool: %d\n", cJSON_IsTrue(cJSON_GetObjectItem(root, "notexist")));
+	printf("Bool: %d\n", cJSON_IsFalse(cJSON_GetObjectItem(root, "test")));
 	cJSON_Delete(root);
 	return 0;
 }

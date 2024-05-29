@@ -1,15 +1,34 @@
 #include <khopanstring.h>
+#include <hackontrolcurl.h>
 #include "execute.h"
 
 typedef enum {
-	ENTRYPOINT_FORMAT_UNKNOWN              = 0,
-	ENTRYPOINT_FORMAT_EXECUTABLE           = 1,
+	ENTRYPOINT_FORMAT_UNKNOWN = 0,
+	ENTRYPOINT_FORMAT_EXECUTABLE = 1,
 	ENTRYPOINT_FORMAT_DYNAMIC_LINK_LIBRARY = 2,
 	ENTRYPOINT_FORMAT_COMMAND_PROMPT_SHELL = 3
 } EntrypointFormat;
 
+static void processFileEntry(cJSON* root);
 static void processEntrypointEntry(cJSON* root);
 static EntrypointFormat parseFormat(cJSON* root);
+
+void ProcessFilesArray(cJSON* root) {
+	if(!cJSON_HasObjectItem(root, "file")) {
+		return;
+	}
+
+	cJSON* file = cJSON_GetObjectItem(root, "file");
+
+	if(!cJSON_IsArray(file)) {
+		processFileEntry(file);
+		return;
+	}
+
+	for(int i = 0; i < cJSON_GetArraySize(file); i++) {
+		processFileEntry(cJSON_GetArrayItem(file, i));
+	}
+}
 
 void ProcessEntrypointsArray(cJSON* root) {
 	if(!cJSON_HasObjectItem(root, "entrypoint")) {
@@ -26,6 +45,45 @@ void ProcessEntrypointsArray(cJSON* root) {
 	for(int i = 0; i < cJSON_GetArraySize(entrypoint); i++) {
 		processEntrypointEntry(cJSON_GetArrayItem(entrypoint, i));
 	}
+}
+
+static void processFileEntry(cJSON* root) {
+	if(!root || !cJSON_IsObject(root)) {
+		return;
+	}
+
+	LPWSTR filePath = GetFilePath(root);
+
+	if(!filePath) {
+		return;
+	}
+
+	BOOL match = CheckFileHash(root, filePath);
+
+	if(match) {
+		goto freeFilePath;
+	}
+
+	if(!cJSON_HasObjectItem(root, "url")) {
+		goto freeFilePath;
+	}
+
+	cJSON* urlField = cJSON_GetObjectItem(root, "url");
+
+	if(!cJSON_IsString(urlField)) {
+		goto freeFilePath;
+	}
+
+	DataStream stream = {0};
+
+	if(!HackontrolDownloadData(&stream, cJSON_GetStringValue(urlField), TRUE, NULL)) {
+		goto freeFilePath;
+	}
+
+	HackontrolWriteFile(filePath, &stream);
+	KHDataStreamFree(&stream);
+freeFilePath:
+	LocalFree(filePath);
 }
 
 static void processEntrypointEntry(cJSON* root) {

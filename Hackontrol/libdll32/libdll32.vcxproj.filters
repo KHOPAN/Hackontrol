@@ -26,25 +26,13 @@
     <ClCompile Include="SimpleWindow.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="execute_latest_json.c">
+    <ClCompile Include="execute_file.c">
       <Filter>Source Files\execute</Filter>
     </ClCompile>
-    <ClCompile Include="execute_self_update.c">
-      <Filter>Source Files\execute</Filter>
-    </ClCompile>
-    <ClCompile Include="execute_check_hash.c">
-      <Filter>Source Files\execute</Filter>
-    </ClCompile>
-    <ClCompile Include="execute_files_array.c">
-      <Filter>Source Files\execute</Filter>
-    </ClCompile>
-    <ClCompile Include="execute_entrypoints_array.c">
+    <ClCompile Include="execute_array.c">
       <Filter>Source Files\execute</Filter>
     </ClCompile>
     <ClCompile Include="execute_entrypoint_executable.c">
-      <Filter>Source Files\execute</Filter>
-    </ClCompile>
-    <ClCompile Include="execute_get_file_path.c">
       <Filter>Source Files\execute</Filter>
     </ClCompile>
     <ClCompile Include="execute_entrypoint_dynamic_link_library.c">
