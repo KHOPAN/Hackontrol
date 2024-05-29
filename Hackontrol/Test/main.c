@@ -1,13 +1,16 @@
 #include <stdio.h>
 #include <khopanwin32.h>
+#include <cJSON.h>
 
 int main(int argc, char** argv) {
-	if(!KHWin32ExecuteRundll32FunctionW(L"D:\\GitHub Repository\\Hackontrol\\release\\GPURender.dll", "Execute", TRUE)) {
-		KHWin32ConsoleErrorW(GetLastError(), L"KHWin32ExecuteRundll32FunctionW");
+	cJSON* root = cJSON_Parse("{\"test\":true}");
+
+	if(!root) {
+		printf("Parse error\n");
+		return 1;
 	}
 
-	printf("Hello, world!\n");
-	Sleep(3000);
-	printf("Multithreading test\n");
+	printf("Bool: %d\n", cJSON_IsTrue(cJSON_GetObjectItem(root, "notexist")));
+	cJSON_Delete(root);
 	return 0;
 }

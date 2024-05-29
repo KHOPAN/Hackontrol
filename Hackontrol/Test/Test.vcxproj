@@ -77,15 +77,15 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <CompileAs>CompileAsC</CompileAs>
-      <AdditionalIncludeDirectories>D:\library\libcurl-8.7.1\include;D:\GitHub Repository\Hackontrol\Hackontrol\BaseHackontrol;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;D:\library\libarchive-3.7.4\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\cJSON\include;D:\library\libcurl-8.7.1\include;D:\GitHub Repository\Hackontrol\Hackontrol\BaseHackontrol;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;D:\library\libarchive-3.7.4\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EntryPointSymbol>
       </EntryPointSymbol>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\cJSON\bin\x64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>cJSON-debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -97,7 +97,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <CompileAs>CompileAsC</CompileAs>
-      <AdditionalIncludeDirectories>D:\library\libcurl-8.7.1\include;D:\GitHub Repository\Hackontrol\Hackontrol\BaseHackontrol;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;D:\library\libarchive-3.7.4\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\cJSON\include;D:\library\libcurl-8.7.1\include;D:\GitHub Repository\Hackontrol\Hackontrol\BaseHackontrol;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;D:\library\libarchive-3.7.4\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -106,8 +106,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EntryPointSymbol>
       </EntryPointSymbol>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\cJSON\bin\x64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>cJSON-release.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -117,15 +117,15 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <CompileAs>CompileAsC</CompileAs>
-      <AdditionalIncludeDirectories>D:\library\libcurl-8.7.1\include;D:\GitHub Repository\Hackontrol\Hackontrol\BaseHackontrol;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;D:\library\libarchive-3.7.4\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\cJSON\include;D:\library\libcurl-8.7.1\include;D:\GitHub Repository\Hackontrol\Hackontrol\BaseHackontrol;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;D:\library\libarchive-3.7.4\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EntryPointSymbol>
       </EntryPointSymbol>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\cJSON\bin\x64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>cJSON-debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -137,7 +137,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <CompileAs>CompileAsC</CompileAs>
-      <AdditionalIncludeDirectories>D:\library\libcurl-8.7.1\include;D:\GitHub Repository\Hackontrol\Hackontrol\BaseHackontrol;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;D:\library\libarchive-3.7.4\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\cJSON\include;D:\library\libcurl-8.7.1\include;D:\GitHub Repository\Hackontrol\Hackontrol\BaseHackontrol;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;D:\library\libarchive-3.7.4\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -146,8 +146,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EntryPointSymbol>
       </EntryPointSymbol>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\cJSON\bin\x64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>cJSON-release.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
