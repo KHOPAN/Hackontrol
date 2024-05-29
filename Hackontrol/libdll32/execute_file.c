@@ -1,4 +1,5 @@
 #include <khopanstring.h>
+#include <khopanjson.h>
 #include <hackontrol.h>
 #include "execute.h"
 
@@ -55,7 +56,7 @@ closeHandle:
 }
 
 LPWSTR GetFilePath(cJSON* root) {
-	char* file = cJSON_GetStringValue(cJSON_GetObjectItem(root, "file"));
+	char* file = KHJSONGetString(root, "file", NULL);
 
 	if(!file) {
 		return NULL;
@@ -89,21 +90,8 @@ static void hexDump(char* output, unsigned long size, unsigned char* input) {
 }
 
 static BOOL isAbsolute(cJSON* root) {
-	if(cJSON_HasObjectItem(root, "absolute")) {
-		cJSON* item = cJSON_GetObjectItem(root, "absolute");
-
-		if(cJSON_IsBool(item)) {
-			return cJSON_IsTrue(item);
-		}
-	}
-
-	if(cJSON_HasObjectItem(root, "relative")) {
-		cJSON* item = cJSON_GetObjectItem(root, "relative");
-
-		if(cJSON_IsBool(item)) {
-			return cJSON_IsFalse(item);
-		}
-	}
-
+#define RETURN(x,y) do{if(cJSON_HasObjectItem(root,x)){cJSON*item=cJSON_GetObjectItem(root,x);if(cJSON_IsBool(item))return y(item);}}while(0)
+	RETURN("absolute", cJSON_IsTrue);
+	RETURN("relative", cJSON_IsFalse);
 	return FALSE;
 }

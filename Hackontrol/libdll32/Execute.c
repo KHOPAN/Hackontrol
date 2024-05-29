@@ -1,4 +1,5 @@
 #include <khopanstring.h>
+#include <khopanjson.h>
 #include <hackontrolcurl.h>
 #include "execute.h"
 #include "resource.h"
@@ -46,13 +47,13 @@ globalCleanup:
 }
 
 static BOOL selfUpdate(cJSON* root) {
-	cJSON* selfObject = cJSON_GetObjectItem(root, "self");
+	cJSON* selfObject = KHJSONGetObject(root, "self", NULL);
 
-	if(!cJSON_HasObjectItem(selfObject, "url")) {
+	if(!selfObject) {
 		return TRUE;
 	}
 
-	char* url = cJSON_GetStringValue(cJSON_GetObjectItem(selfObject, "url"));
+	char* url = KHJSONGetString(selfObject, "url", NULL);
 
 	if(!url) {
 		return TRUE;
