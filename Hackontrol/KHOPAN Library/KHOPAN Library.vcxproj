@@ -77,7 +77,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>D:\library\libcurl-8.7.1\include;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\cJSON\include;D:\library\libcurl-8.7.1\include;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
@@ -94,7 +94,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>D:\library\libcurl-8.7.1\include;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\cJSON\include;D:\library\libcurl-8.7.1\include;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
@@ -111,7 +111,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>D:\library\libcurl-8.7.1\include;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\cJSON\include;D:\library\libcurl-8.7.1\include;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
@@ -128,7 +128,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>D:\library\libcurl-8.7.1\include;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\cJSON\include;D:\library\libcurl-8.7.1\include;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
@@ -143,6 +143,7 @@
     <ClCompile Include="khopancurl_error.c" />
     <ClCompile Include="khopandatastream.c" />
     <ClCompile Include="khopanjava_jni.c" />
+    <ClCompile Include="khopanjson.c" />
     <ClCompile Include="khopanstring.c" />
     <ClCompile Include="khopanjava.c" />
     <ClCompile Include="khopanwin32_error.c" />
@@ -155,6 +156,7 @@
     <ClInclude Include="khopancurl.h" />
     <ClInclude Include="khopandatastream.h" />
     <ClInclude Include="khopanjava.h" />
+    <ClInclude Include="khopanjson.h" />
     <ClInclude Include="khopanstring.h" />
     <ClInclude Include="khopanwin32.h" />
   </ItemGroup>

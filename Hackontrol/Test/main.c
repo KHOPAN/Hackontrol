@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <khopanwin32.h>
-#include <cJSON.h>
+#include <khopanjson.h>
 
 int main(int argc, char** argv) {
 	cJSON* root = cJSON_Parse("{\"test\":false}");
@@ -10,7 +10,7 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
-	printf("Bool: %d\n", cJSON_IsFalse(cJSON_GetObjectItem(root, "test")));
+	printf("Bool: %s\n", KHJSONGetBoolean(root, "test", TRUE) ? "true" : "false");
 	cJSON_Delete(root);
 	return 0;
 }

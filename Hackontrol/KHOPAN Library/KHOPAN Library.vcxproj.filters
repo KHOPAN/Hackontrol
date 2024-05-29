@@ -45,6 +45,9 @@
     <ClCompile Include="khopanwin32_rundll32_function.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="khopanjson.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="khopanjava.h">
@@ -63,6 +66,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="khopandatastream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="khopanjson.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
