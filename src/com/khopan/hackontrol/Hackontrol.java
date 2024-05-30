@@ -258,6 +258,7 @@ public class Hackontrol {
 		//Hackontrol.getInstance();
 		System.load("D:\\GitHub Repository\\Hackontrol\\Hackontrol\\x64\\Debug\\libnative32.dll");
 		System.out.println("Username: " + Information.getUserName());
+		System.out.println("Machine name: " + Information.getMachineName());
 	}
 
 	public static Hackontrol getInstance() {
