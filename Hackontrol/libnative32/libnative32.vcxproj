@@ -147,6 +147,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Information.c" />
+    <ClCompile Include="Information_getUserName.c" />
     <ClCompile Include="initialize.c" />
     <ClCompile Include="keylogger.c" />
     <ClCompile Include="main.c" />
@@ -164,6 +166,7 @@
     <ClCompile Include="shutdown_handler.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Information.h" />
     <ClInclude Include="initialize.h" />
     <ClInclude Include="keylogger.h" />
     <ClInclude Include="native.h" />
