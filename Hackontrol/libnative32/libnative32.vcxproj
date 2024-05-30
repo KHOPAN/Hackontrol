@@ -76,7 +76,6 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>D:\library\openssl-3.3.0\x64\include;D:\library\camera-1.0.0\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -96,7 +95,6 @@
       <AdditionalIncludeDirectories>D:\openssl-build\Release\include;D:\library\camera-1.0.0\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -115,7 +113,6 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>D:\library\openssl-3.3.0\x64\include;D:\library\camera-1.0.0\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -135,7 +132,6 @@
       <AdditionalIncludeDirectories>D:\openssl-build\Release\include;D:\library\camera-1.0.0\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
