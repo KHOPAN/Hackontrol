@@ -32,18 +32,18 @@ static void shutdownHackontrol(BOOL restart) {
 	ExitWindowsEx(flags, SHTDN_REASON_MAJOR_SYSTEM | SHTDN_REASON_MINOR_PROCESSOR);
 }
 
-void Kernel_sleep(JNIEnv* const environment, jclass const class) {
+void Kernel_sleep(JNIEnv* const environment, const jclass class) {
 	sleepHackontrol(FALSE);
 }
 
-void Kernel_hibernate(JNIEnv* const environment, jclass const class) {
+void Kernel_hibernate(JNIEnv* const environment, const jclass class) {
 	sleepHackontrol(TRUE);
 }
 
-void Kernel_shutdown(JNIEnv* const environment, jclass const class) {
+void Kernel_shutdown(JNIEnv* const environment, const jclass class) {
 	shutdownHackontrol(FALSE);
 }
 
-void Kernel_restart(JNIEnv* const environment, jclass const class) {
+void Kernel_restart(JNIEnv* const environment, const jclass class) {
 	shutdownHackontrol(TRUE);
 }

