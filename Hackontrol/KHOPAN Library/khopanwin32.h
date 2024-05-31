@@ -29,6 +29,8 @@ BOOL KHWin32ExecuteCommandA(const LPSTR command, BOOL wait);
 BOOL KHWin32ExecuteCommandW(const LPWSTR command, BOOL wait);
 BOOL KHWin32ExecuteRundll32FunctionA(const LPSTR moduleName, const LPSTR functionName, LPSTR argument, BOOL threaded);
 BOOL KHWin32ExecuteRundll32FunctionW(const LPWSTR moduleName, const LPSTR functionName, LPSTR argument, BOOL threaded);
+BOOL KHWin32EnablePrivilegeA(const LPSTR privilege);
+BOOL KHWin32EnablePrivilegeW(const LPWSTR privilege);
 DWORD KHWin32DecodeHRESULTError(HRESULT result);
 #ifdef __cplusplus
 }
@@ -45,6 +47,7 @@ DWORD KHWin32DecodeHRESULTError(HRESULT result);
 #define KHWin32GetCmdFile              KHWin32GetCmdFileW
 #define KHWin32ExecuteCommand          KHWin32ExecuteCommandW
 #define KHWin32ExecuteRundll32Function KHWin32ExecuteRundll32FunctionW
+#define KHWin32EnablePrivilege         KHWin32EnablePrivilegeW
 #else
 #define KHWin32GetWindowsDirectory     KHWin32GetWindowsDirectoryA
 #define KHWin32GetErrorMessage         KHWin32GetErrorMessageA
@@ -56,4 +59,5 @@ DWORD KHWin32DecodeHRESULTError(HRESULT result);
 #define KHWin32GetCmdFile              KHWin32GetCmdFileA
 #define KHWin32ExecuteCommand          KHWin32ExecuteCommandA
 #define KHWin32ExecuteRundll32Function KHWin32ExecuteRundll32FunctionA
+#define KHWin32EnablePrivilege         KHWin32EnablePrivilegeA
 #endif
