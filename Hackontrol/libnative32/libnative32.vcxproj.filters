@@ -22,6 +22,9 @@
     <Filter Include="Header Files\Java">
       <UniqueIdentifier>{c4081cfc-2793-41be-a77b-de86ac9a25e4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\User">
+      <UniqueIdentifier>{534af389-2f8c-4883-99aa-826d5ad24f92}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.c">
@@ -87,6 +90,12 @@
     <ClCompile Include="Kernel_setProcessCritical.c">
       <Filter>Source Files\Kernel</Filter>
     </ClCompile>
+    <ClCompile Include="User.c">
+      <Filter>Source Files\User</Filter>
+    </ClCompile>
+    <ClCompile Include="User_showMessageBox.c">
+      <Filter>Source Files\User</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="privilege.h">
@@ -114,6 +123,9 @@
       <Filter>Header Files\Java</Filter>
     </ClInclude>
     <ClInclude Include="Information.h">
+      <Filter>Header Files\Java</Filter>
+    </ClInclude>
+    <ClInclude Include="User.h">
       <Filter>Header Files\Java</Filter>
     </ClInclude>
   </ItemGroup>

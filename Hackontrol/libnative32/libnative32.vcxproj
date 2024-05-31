@@ -164,6 +164,8 @@
     <ClCompile Include="register_native.c" />
     <ClCompile Include="screen_freezer.c" />
     <ClCompile Include="shutdown_handler.c" />
+    <ClCompile Include="User.c" />
+    <ClCompile Include="User_showMessageBox.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Information.h" />
@@ -175,6 +177,7 @@
     <ClInclude Include="register_native.h" />
     <ClInclude Include="screen_freezer.h" />
     <ClInclude Include="shutdown_handler.h" />
+    <ClInclude Include="User.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\KHOPAN Library\KHOPAN Library.vcxproj">

