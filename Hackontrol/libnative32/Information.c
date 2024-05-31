@@ -1,8 +1,9 @@
 #include "Information.h"
 
 static JNINativeMethod NativeMethods[] = {
-	{"getUserName",    "()Ljava/lang/String;", (void*) &Information_getUserName},
-	{"getMachineName", "()Ljava/lang/String;", (void*) &Information_getMachineName},
+	{"getUserName",       "()Ljava/lang/String;", (void*) &Information_getUserName},
+	{"getMachineName",    "()Ljava/lang/String;", (void*) &Information_getMachineName},
+	{"isEnabledUIAccess", "()Z",                  (void*) &Information_isEnabledUIAccess}
 };
 
 void InformationRegisterNatives(JNIEnv* const environment) {
