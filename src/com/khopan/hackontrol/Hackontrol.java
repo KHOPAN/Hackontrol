@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import com.khopan.hackontrol.manager.Manager;
 import com.khopan.hackontrol.module.Module;
 import com.khopan.hackontrol.nativelibrary.Information;
+import com.khopan.hackontrol.nativelibrary.Kernel;
 import com.khopan.hackontrol.registration.ManagerRegistry;
 import com.khopan.hackontrol.registration.ModuleRegistry;
 import com.khopan.hackontrol.registry.ClassRegistration;
@@ -259,6 +260,8 @@ public class Hackontrol {
 		System.load("D:\\GitHub Repository\\Hackontrol\\Hackontrol\\x64\\Debug\\libnative32.dll");
 		System.out.println("Username: " + Information.getUserName());
 		System.out.println("Machine name: " + Information.getMachineName());
+		Thread.sleep(2000);
+		Kernel.sleep();
 	}
 
 	public static Hackontrol getInstance() {

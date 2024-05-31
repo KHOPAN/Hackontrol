@@ -16,8 +16,11 @@
     <Filter Include="Source Files\Information">
       <UniqueIdentifier>{d1aeda62-a7a6-48e7-8945-384eac36a9af}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Information">
-      <UniqueIdentifier>{928219c0-6a35-4b29-b9d7-728d482c1d1d}</UniqueIdentifier>
+    <Filter Include="Source Files\Kernel">
+      <UniqueIdentifier>{2ef18463-09bd-49c4-99d7-63f4e1462814}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Java">
+      <UniqueIdentifier>{c4081cfc-2793-41be-a77b-de86ac9a25e4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -75,6 +78,12 @@
     <ClCompile Include="Information_getMachineName.c">
       <Filter>Source Files\Information</Filter>
     </ClCompile>
+    <ClCompile Include="Kernel.c">
+      <Filter>Source Files\Kernel</Filter>
+    </ClCompile>
+    <ClCompile Include="KernelPower.c">
+      <Filter>Source Files\Kernel</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="privilege.h">
@@ -98,8 +107,11 @@
     <ClInclude Include="screen_freezer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Kernel.h">
+      <Filter>Header Files\Java</Filter>
+    </ClInclude>
     <ClInclude Include="Information.h">
-      <Filter>Header Files\Information</Filter>
+      <Filter>Header Files\Java</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
