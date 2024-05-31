@@ -102,6 +102,9 @@
     <ClCompile Include="Information_isEnabledUIAccess.c">
       <Filter>Source Files\Information</Filter>
     </ClCompile>
+    <ClCompile Include="UserAudio.c">
+      <Filter>Source Files\User</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="privilege.h">

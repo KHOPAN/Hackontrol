@@ -167,6 +167,7 @@
     <ClCompile Include="screen_freezer.c" />
     <ClCompile Include="shutdown_handler.c" />
     <ClCompile Include="User.c" />
+    <ClCompile Include="UserAudio.c" />
     <ClCompile Include="User_showMessageBox.c" />
   </ItemGroup>
   <ItemGroup>

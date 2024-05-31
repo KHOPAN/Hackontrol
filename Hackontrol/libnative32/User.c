@@ -1,7 +1,11 @@
 #include "User.h"
 
 static JNINativeMethod NativeMethods[] = {
-	{"showMessageBox", "(Ljava/lang/String;Ljava/lang/String;I)I", (void*) &User_showMessageBox},
+	{"getMasterVolume", "()F",                                      (void*) &User_getMasterVolume},
+	{"isMute",          "()Z",                                      (void*) &User_isMute},
+	{"setMasterVolume", "(F)V",                                     (void*) &User_setMasterVolume},
+	{"setMute",         "(Z)V",                                     (void*) &User_setMute},
+	{"showMessageBox",  "(Ljava/lang/String;Ljava/lang/String;I)I", (void*) &User_showMessageBox}
 };
 
 void UserRegisterNatives(JNIEnv* const environment) {
