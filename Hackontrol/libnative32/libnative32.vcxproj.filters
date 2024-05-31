@@ -96,6 +96,9 @@
     <ClCompile Include="User_showMessageBox.c">
       <Filter>Source Files\User</Filter>
     </ClCompile>
+    <ClCompile Include="exception.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="privilege.h">
@@ -127,6 +130,9 @@
     </ClInclude>
     <ClInclude Include="User.h">
       <Filter>Header Files\Java</Filter>
+    </ClInclude>
+    <ClInclude Include="exception.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

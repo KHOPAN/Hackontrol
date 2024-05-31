@@ -1,26 +1,27 @@
 #include <khopanwin32.h>
 #include <powrprof.h>
+#include "exception.h"
 #include "Kernel.h"
 
 #pragma warning(disable: 28159)
 
-#define PRIVILEGE if(!enablePrivilege())return;
-
-static BOOL enablePrivilege() {
+static void sleepHackontrol(JNIEnv* const environment, BOOL hibernate) {
 	if(!KHWin32EnablePrivilegeW(SE_SHUTDOWN_NAME)) {
-		return FALSE;
+		HackontrolThrowWin32Error(environment, L"KHWin32EnablePrivilegeW");
+		return;
 	}
 
-	return TRUE;
+	if(!SetSuspendState(hibernate, TRUE, FALSE)) {
+		HackontrolThrowWin32Error(environment, L"SetSuspendState");
+	}
 }
 
-static void sleepHackontrol(BOOL hibernate) {
-	PRIVILEGE;
-	SetSuspendState(hibernate, TRUE, FALSE);
-}
+static void shutdownHackontrol(JNIEnv* const environment, BOOL restart) {
+	if(!KHWin32EnablePrivilegeW(SE_SHUTDOWN_NAME)) {
+		HackontrolThrowWin32Error(environment, L"KHWin32EnablePrivilegeW");
+		return;
+	}
 
-static void shutdownHackontrol(BOOL restart) {
-	PRIVILEGE;
 	UINT flags = EWX_FORCE;
 
 	if(restart) {
@@ -29,21 +30,23 @@ static void shutdownHackontrol(BOOL restart) {
 		flags |= EWX_SHUTDOWN;
 	}
 
-	ExitWindowsEx(flags, SHTDN_REASON_MAJOR_SYSTEM | SHTDN_REASON_MINOR_PROCESSOR);
+	if(!ExitWindowsEx(flags, SHTDN_REASON_MAJOR_SYSTEM | SHTDN_REASON_MINOR_PROCESSOR)) {
+		HackontrolThrowWin32Error(environment, L"ExitWindowsEx");
+	}
 }
 
 void Kernel_sleep(JNIEnv* const environment, const jclass class) {
-	sleepHackontrol(FALSE);
+	sleepHackontrol(environment, FALSE);
 }
 
 void Kernel_hibernate(JNIEnv* const environment, const jclass class) {
-	sleepHackontrol(TRUE);
+	sleepHackontrol(environment, TRUE);
 }
 
 void Kernel_shutdown(JNIEnv* const environment, const jclass class) {
-	shutdownHackontrol(FALSE);
+	shutdownHackontrol(environment, FALSE);
 }
 
 void Kernel_restart(JNIEnv* const environment, const jclass class) {
-	shutdownHackontrol(TRUE);
+	shutdownHackontrol(environment, TRUE);
 }

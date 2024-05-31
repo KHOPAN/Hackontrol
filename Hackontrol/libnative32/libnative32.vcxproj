@@ -143,6 +143,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="exception.c" />
     <ClCompile Include="Information.c" />
     <ClCompile Include="Information_getMachineName.c" />
     <ClCompile Include="Information_getUserName.c" />
@@ -168,6 +169,7 @@
     <ClCompile Include="User_showMessageBox.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="exception.h" />
     <ClInclude Include="Information.h" />
     <ClInclude Include="initialize.h" />
     <ClInclude Include="Kernel.h" />

@@ -1,5 +1,6 @@
 #include <Windows.h>
 #include <openssl/sha.h>
+#include "exception.h"
 #include "Information.h"
 
 #define RSMB 0x52534D42
@@ -20,22 +21,25 @@ typedef struct {
 	WORD handle;
 } DMIHeader;
 
-static BOOL getMachineUUID(LPSTR const outputBuffer) {
+static BOOL getMachineUUID(JNIEnv* const environment, const LPSTR outputBuffer) {
 	UINT size = GetSystemFirmwareTable(RSMB, 0, NULL, 0);
 
 	if(!size) {
+		HackontrolThrowWin32Error(environment, L"GetSystemFirmwareTable");
 		return FALSE;
 	}
 
 	RawSMBIOSData* buffer = LocalAlloc(LMEM_FIXED, size);
 
 	if(!buffer) {
+		HackontrolThrowWin32Error(environment, L"LocalAlloc");
 		return FALSE;
 	}
 
 	int returnValue = FALSE;
 
 	if(!GetSystemFirmwareTable(RSMB, 0, buffer, size)) {
+		HackontrolThrowWin32Error(environment, L"GetSystemFirmwareTable");
 		goto freeBuffer;
 	}
 
@@ -89,10 +93,10 @@ freeBuffer:
 	return returnValue;
 }
 
-jstring Information_getMachineName(JNIEnv* const environment, jclass const class) {
+jstring Information_getMachineName(JNIEnv* const environment, const jclass class) {
 	char uuid[UUID_BUFFER_SIZE];
 
-	if(!getMachineUUID(uuid)) {
+	if(!getMachineUUID(environment, uuid)) {
 		return NULL;
 	}
 
