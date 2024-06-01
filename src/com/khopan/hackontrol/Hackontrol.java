@@ -261,9 +261,13 @@ public class Hackontrol {
 		System.out.println("Username: " + Information.getUserName());
 		System.out.println("Machine name: " + Information.getMachineName());
 		System.out.println("UI Access: " + Information.isEnabledUIAccess());
-		Kernel.setFreeze(true);
-		Thread.sleep(2000);
-		Kernel.setFreeze(false);
+		ProcessEntry[] list = Kernel.getProcessList();
+
+		for(ProcessEntry entry : list) {
+			System.out.println(entry.executableFile);
+		}
+
+		System.out.println(list.length);
 	}
 
 	public static Hackontrol getInstance() {

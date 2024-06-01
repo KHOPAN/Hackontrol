@@ -108,6 +108,9 @@
     <ClCompile Include="Kernel_setFreeze.c">
       <Filter>Source Files\Kernel</Filter>
     </ClCompile>
+    <ClCompile Include="KernelProcess.c">
+      <Filter>Source Files\Kernel</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="privilege.h">
