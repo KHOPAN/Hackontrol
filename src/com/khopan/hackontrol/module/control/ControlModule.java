@@ -3,7 +3,7 @@ package com.khopan.hackontrol.module.control;
 import java.util.List;
 
 import com.khopan.hackontrol.Hackontrol;
-import com.khopan.hackontrol.NativeLibrary;
+import com.khopan.hackontrol.handler.KeyboardHandler;
 import com.khopan.hackontrol.manager.interaction.ButtonContext;
 import com.khopan.hackontrol.manager.interaction.ButtonManager;
 import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
@@ -121,7 +121,7 @@ public class ControlModule extends Module {
 	}
 
 	private void buttonFreeze(ButtonContext context, boolean freeze) {
-		if(NativeLibrary.Freeze == freeze) {
+		if(KeyboardHandler.Freeze == freeze) {
 			HackontrolMessage.boldDeletable(context.reply(), "The screen is already " + (freeze ? "frozen" : "unfrozen"));
 			return;
 		}
@@ -136,7 +136,7 @@ public class ControlModule extends Module {
 	}
 
 	private void freeze(boolean freeze) {
-		NativeLibrary.Freeze = freeze;
+		KeyboardHandler.Freeze = freeze;
 		Kernel.setFreeze(freeze);
 	}
 

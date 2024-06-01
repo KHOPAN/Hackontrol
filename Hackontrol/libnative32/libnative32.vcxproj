@@ -151,23 +151,20 @@
     <ClCompile Include="Kernel.c" />
     <ClCompile Include="KernelPower.c" />
     <ClCompile Include="KernelProcess.c" />
-    <ClCompile Include="Kernel_setFreeze.c" />
     <ClCompile Include="Kernel_setProcessCritical.c" />
-    <ClCompile Include="keylogger.c" />
     <ClCompile Include="main.c" />
-    <ClCompile Include="shutdown_handler.c" />
     <ClCompile Include="User.c" />
     <ClCompile Include="UserAudio.c" />
     <ClCompile Include="User_showMessageBox.c" />
+    <ClCompile Include="window.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="exception.h" />
     <ClInclude Include="Information.h" />
     <ClInclude Include="instance.h" />
     <ClInclude Include="Kernel.h" />
-    <ClInclude Include="keylogger.h" />
-    <ClInclude Include="shutdown_handler.h" />
     <ClInclude Include="User.h" />
+    <ClInclude Include="window.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\KHOPAN Library\KHOPAN Library.vcxproj">

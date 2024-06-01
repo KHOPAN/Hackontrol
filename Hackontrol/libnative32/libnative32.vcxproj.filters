@@ -30,12 +30,6 @@
     <ClCompile Include="main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="keylogger.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="shutdown_handler.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Information.c">
       <Filter>Source Files\Information</Filter>
     </ClCompile>
@@ -69,20 +63,14 @@
     <ClCompile Include="UserAudio.c">
       <Filter>Source Files\User</Filter>
     </ClCompile>
-    <ClCompile Include="Kernel_setFreeze.c">
-      <Filter>Source Files\Kernel</Filter>
-    </ClCompile>
     <ClCompile Include="KernelProcess.c">
       <Filter>Source Files\Kernel</Filter>
     </ClCompile>
+    <ClCompile Include="window.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="keylogger.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="shutdown_handler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Kernel.h">
       <Filter>Header Files\Java</Filter>
     </ClInclude>
@@ -96,6 +84,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="instance.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

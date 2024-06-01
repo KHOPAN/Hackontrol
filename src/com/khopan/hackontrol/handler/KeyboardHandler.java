@@ -1,12 +1,12 @@
-package com.khopan.hackontrol;
+package com.khopan.hackontrol.handler;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class NativeLibrary {
-	private NativeLibrary() {}
+public class KeyboardHandler {
+	private KeyboardHandler() {}
 
 	public static final List<KeyEntry> KEYSTROKE_LIST = new ArrayList<>();
 	public static final Map<Integer, Boolean> KEYSTROKE_MAP = new HashMap<>();
@@ -15,10 +15,10 @@ public class NativeLibrary {
 	public static boolean Enable = false;
 	public static boolean Freeze = false;
 
-	private static boolean log(int keyAction, int keyCode, int scanCode, int flags, int time) {
-		boolean block = NativeLibrary.Block || NativeLibrary.Freeze;
+	public static boolean log(int keyAction, int keyCode, int scanCode, int flags, int time) {
+		boolean block = KeyboardHandler.Block || KeyboardHandler.Freeze;
 
-		if(!NativeLibrary.Enable) {
+		if(!KeyboardHandler.Enable) {
 			return block;
 		}
 
@@ -45,11 +45,10 @@ public class NativeLibrary {
 
 		entry.keyCode = keyCode;
 		entry.scanCode = scanCode;
-		Boolean value = NativeLibrary.KEYSTROKE_MAP.get(scanCode);
-		boolean previousState = value == null ? false : value;
-		entry.fake = previousState == entry.keyDown;
-		NativeLibrary.KEYSTROKE_MAP.put(scanCode, entry.keyDown);
-		NativeLibrary.KEYSTROKE_LIST.add(entry);
+		Boolean value = KeyboardHandler.KEYSTROKE_MAP.get(scanCode);
+		entry.fake = value == null ? false : value == entry.keyDown;
+		KeyboardHandler.KEYSTROKE_MAP.put(scanCode, entry.keyDown);
+		KeyboardHandler.KEYSTROKE_LIST.add(entry);
 		return block;
 	}
 
