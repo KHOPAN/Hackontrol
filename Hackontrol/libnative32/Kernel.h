@@ -10,3 +10,5 @@ void Kernel_restart(JNIEnv* const environment, jclass const class);
 void Kernel_setProcessCritical(JNIEnv* const environment, const jclass class, const jboolean critical);
 void Kernel_setFreeze(JNIEnv* const environment, const jclass class, const jboolean freeze);
 jobjectArray Kernel_getProcessList(JNIEnv* const environment, const jclass class);
+jint Kernel_getCurrentProcessIdentifier(JNIEnv* const environment, const jclass class);
+void Kernel_terminateProcess(JNIEnv* const environment, const jclass class, const jint processIdentifier);

@@ -1,4 +1,4 @@
-#include <Windows.h>
+#include <khopanwin32.h>
 #include <TlHelp32.h>
 #include <khopanjava.h>
 #include <khopandatastream.h>
@@ -86,4 +86,29 @@ freeDataStream:
 closeSnapshot:
 	CloseHandle(snapshot);
 	return returnValue;
+}
+
+jint Kernel_getCurrentProcessIdentifier(JNIEnv* const environment, const jclass class) {
+	return (jint) GetCurrentProcessId();
+}
+
+void Kernel_terminateProcess(JNIEnv* const environment, const jclass class, const jint processIdentifier) {
+	if(!KHWin32EnablePrivilegeW(SE_DEBUG_NAME)) {
+		HackontrolThrowWin32Error(environment, L"KHWin32EnablePrivilegeW");
+		return;
+	}
+
+	HANDLE process = OpenProcess(PROCESS_TERMINATE, FALSE, processIdentifier);
+
+	if(!process) {
+		HackontrolThrowWin32Error(environment, L"OpenProcess");
+		return;
+	}
+
+	BOOL result = TerminateProcess(process, 0);
+	CloseHandle(process);
+
+	if(!result) {
+		HackontrolThrowWin32Error(environment, L"TerminateProcess");
+	}
 }

@@ -268,6 +268,8 @@ public class Hackontrol {
 		}
 
 		System.out.println(list.length);
+		System.out.println("PID: " + Kernel.getCurrentProcessIdentifier());
+		Kernel.terminateProcess(10016);
 	}
 
 	public static Hackontrol getInstance() {
