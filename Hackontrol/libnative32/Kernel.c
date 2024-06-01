@@ -5,7 +5,8 @@ static JNINativeMethod NativeMethods[] = {
 	{"hibernate",          "()V",  (void*) &Kernel_hibernate},
 	{"shutdown",           "()V",  (void*) &Kernel_shutdown},
 	{"restart",            "()V",  (void*) &Kernel_restart},
-	{"setProcessCritical", "(Z)V", (void*) &Kernel_setProcessCritical}
+	{"setProcessCritical", "(Z)V", (void*) &Kernel_setProcessCritical},
+	{"setFreeze",          "(Z)V", (void*) &Kernel_setFreeze}
 };
 
 void KernelRegisterNatives(JNIEnv* const environment) {

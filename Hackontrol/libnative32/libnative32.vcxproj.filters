@@ -105,6 +105,9 @@
     <ClCompile Include="UserAudio.c">
       <Filter>Source Files\User</Filter>
     </ClCompile>
+    <ClCompile Include="Kernel_setFreeze.c">
+      <Filter>Source Files\Kernel</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="privilege.h">
@@ -138,6 +141,9 @@
       <Filter>Header Files\Java</Filter>
     </ClInclude>
     <ClInclude Include="exception.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="instance.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
