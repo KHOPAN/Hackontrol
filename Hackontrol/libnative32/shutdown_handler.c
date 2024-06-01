@@ -1,8 +1,8 @@
 #include <khopanwin32.h>
 #include <khopanjava.h>
 #include "shutdown_handler.h"
-#include "initialize.h"
-#include "native.h"
+#include "Kernel.h"
+#include "instance.h"
 
 #define CLASS_NAME L"HackontrolDummyWindow"
 
@@ -81,7 +81,7 @@ static LRESULT CALLBACK WindowProcedure(HWND window, UINT message, WPARAM wparam
 			return TRUE;
 		}
 
-		NativeLibrary_critical(globalEnvironment, NULL, FALSE);
+		Kernel_setProcessCritical(globalEnvironment, NULL, FALSE);
 		return TRUE;
 	}
 

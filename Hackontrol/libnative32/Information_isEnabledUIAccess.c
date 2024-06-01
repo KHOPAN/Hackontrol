@@ -1,4 +1,3 @@
-#include <Windows.h>
 #include "exception.h"
 #include "Information.h"
 

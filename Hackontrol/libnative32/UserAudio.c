@@ -1,4 +1,3 @@
-#include <Windows.h>
 #include <endpointvolume.h>
 #include <mmdeviceapi.h>
 #include "exception.h"

@@ -148,7 +148,6 @@
     <ClCompile Include="Information_getMachineName.c" />
     <ClCompile Include="Information_getUserName.c" />
     <ClCompile Include="Information_isEnabledUIAccess.c" />
-    <ClCompile Include="initialize.c" />
     <ClCompile Include="Kernel.c" />
     <ClCompile Include="KernelPower.c" />
     <ClCompile Include="KernelProcess.c" />
@@ -156,17 +155,6 @@
     <ClCompile Include="Kernel_setProcessCritical.c" />
     <ClCompile Include="keylogger.c" />
     <ClCompile Include="main.c" />
-    <ClCompile Include="native_critical.c" />
-    <ClCompile Include="native_dialog.c" />
-    <ClCompile Include="native_machine_name.c" />
-    <ClCompile Include="native_terminate.c" />
-    <ClCompile Include="native_listprocess.c" />
-    <ClCompile Include="native_power.c" />
-    <ClCompile Include="native_uiaccess.c" />
-    <ClCompile Include="native_volume.c" />
-    <ClCompile Include="privilege.c" />
-    <ClCompile Include="register_native.c" />
-    <ClCompile Include="screen_freezer.c" />
     <ClCompile Include="shutdown_handler.c" />
     <ClCompile Include="User.c" />
     <ClCompile Include="UserAudio.c" />
@@ -175,14 +163,9 @@
   <ItemGroup>
     <ClInclude Include="exception.h" />
     <ClInclude Include="Information.h" />
-    <ClInclude Include="initialize.h" />
     <ClInclude Include="instance.h" />
     <ClInclude Include="Kernel.h" />
     <ClInclude Include="keylogger.h" />
-    <ClInclude Include="native.h" />
-    <ClInclude Include="privilege.h" />
-    <ClInclude Include="register_native.h" />
-    <ClInclude Include="screen_freezer.h" />
     <ClInclude Include="shutdown_handler.h" />
     <ClInclude Include="User.h" />
   </ItemGroup>

@@ -30,46 +30,10 @@
     <ClCompile Include="main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="privilege.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="native_power.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="keylogger.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="register_native.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="native_critical.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="native_dialog.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="native_listprocess.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="native_volume.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="native_uiaccess.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="native_terminate.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="shutdown_handler.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="initialize.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="screen_freezer.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="native_machine_name.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Information.c">
@@ -113,25 +77,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="privilege.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="keylogger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="register_native.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="native.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="shutdown_handler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="initialize.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="screen_freezer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Kernel.h">

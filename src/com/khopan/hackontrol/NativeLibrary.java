@@ -15,23 +15,6 @@ public class NativeLibrary {
 	public static boolean Enable = false;
 	public static boolean Freeze = false;
 
-	public static native String machineName();
-	public static native String sleep();
-	public static native String hibernate();
-	public static native String restart();
-	public static native String shutdown();
-	public static native boolean critical(boolean critical);
-	public static native int dialog(String title, String content, int flags);
-	public static native ProcessEntry[] listProcess();
-	public static native int currentIdentifier();
-	public static native boolean terminate(int identifier);
-	public static native boolean hasUIAccess();
-	public static native boolean volume(float volume);
-	public static native float volume();
-	public static native boolean mute(boolean mute);
-	public static native boolean mute();
-	public static native void freeze(boolean freeze);
-
 	private static boolean log(int keyAction, int keyCode, int scanCode, int flags, int time) {
 		boolean block = NativeLibrary.Block || NativeLibrary.Freeze;
 

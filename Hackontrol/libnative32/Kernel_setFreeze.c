@@ -1,4 +1,3 @@
-#include <Windows.h>
 #include <khopanjava.h>
 #include "exception.h"
 #include "Kernel.h"
