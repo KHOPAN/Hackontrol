@@ -146,6 +146,7 @@
     <ClCompile Include="exception.c" />
     <ClCompile Include="Information.c" />
     <ClCompile Include="Information_getMachineName.c" />
+    <ClCompile Include="Information_getToken.c" />
     <ClCompile Include="Information_getUserName.c" />
     <ClCompile Include="Information_isEnabledUIAccess.c" />
     <ClCompile Include="Kernel.c" />

@@ -1,6 +1,7 @@
 #include "Information.h"
 
 static JNINativeMethod NativeMethods[] = {
+	{"getToken",          "()Ljava/lang/String;", (void*) &Information_getToken},
 	{"getUserName",       "()Ljava/lang/String;", (void*) &Information_getUserName},
 	{"getMachineName",    "()Ljava/lang/String;", (void*) &Information_getMachineName},
 	{"isEnabledUIAccess", "()Z",                  (void*) &Information_isEnabledUIAccess}
