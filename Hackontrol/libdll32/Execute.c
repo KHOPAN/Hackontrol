@@ -4,17 +4,19 @@
 #include "execute.h"
 #include "resource.h"
 
+//#define HACKONTROL_OVERRIDE
+
+#ifndef HACKONTROL_OVERRIDE
 #ifdef _DEBUG
 //#define HACKONTROL_NO_DOWNLOAD_LATEST_JSON_FILE
 #define HACKONTROL_NO_SELF_UPDATE
 #define HACKONTROL_NO_DOWNLOAD_FILE
 #define HACKONTROL_NO_EXECUTE_FILE
 #endif
+#endif
 
-#define MAX_RETRY_COUNT 20
+#define MAX_RETRY_COUNT 50
 #define RETRY_DELAY     1000
-
-#define MESSAGE_BOX(x) MessageBoxW(NULL, x, L"Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL)
 
 static HINSTANCE globalInstance;
 
@@ -81,7 +83,7 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 	KHDataStreamFree(&stream);
 #endif
 	if(!rootObject) {
-		MESSAGE_BOX(L"Error while parsing JSON document");
+		MessageBoxW(NULL, L"Error while parsing JSON document", L"Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 		goto globalCleanup;
 	}
 #ifndef HACKONTROL_NO_SELF_UPDATE
