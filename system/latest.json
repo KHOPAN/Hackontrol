@@ -1,19 +1,19 @@
 {
 	"self": {
 		"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/libdll32.dll",
-		"sha384": "6b67504cfb412d6aa97b07dc3d37060442139c73faf12d2f92fea5b3793edcd4818ee4cbd48d7a330fd6ed5e6ef9da3e"
+		"sha384": "f2d0662c30191b9294f59a929745301a31d2d2e35dd63e67d81ebb7524b3fd0f4e65572053b4ac7641d78ad79bb0a84f"
 	},
 
 	"file": [
 		{
 			"file": "libruntime32.dll",
 			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/libruntime32.dll",
-			"sha384": "79bd9ba35b43494385c5d78c50090e95ee48a534dc371131575e5b109a38a37309448b89aae5f04543f1fda22ec05aea"
+			"sha384": "18225e0a972fcbece65fdf322ca785bb2cd5f6fda66072e6a56f37717c5e8f30e4ffc8be2fd44d40a00636afe44f67c5"
 		},
 		{
 			"file": "libnative32.dll",
 			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/libnative32.dll",
-			"sha384": "5c5c83ab0482c5fe22404c050d0d8233b1de67485f1eacaf44e34f331258ee5b9dfd7b26374a4d572178ba7321b0c3bb"
+			"sha384": "231c35e17aec20995e5399419240d4ef501c4bdb028c63b9fe01480890a9e727526ad774b334c92f5ae04692ebb4b1b2"
 		},
 		{
 			"file": "winservice32.jar",
