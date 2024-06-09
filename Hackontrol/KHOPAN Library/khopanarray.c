@@ -29,6 +29,7 @@ BOOL KHArraySize(ArrayList* list, size_t* arraySize) {
 	(*arraySize) = list->elementCount;
 	return TRUE;
 }
+
 BOOL KHArrayIsEmpty(ArrayList* list, LPBOOL isEmpty) {
 	if(!list || !isEmpty) {
 		SetLastError(ERROR_INVALID_PARAMETER);
