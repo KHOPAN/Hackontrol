@@ -19,6 +19,7 @@ import com.khopan.hackontrol.registry.ClassRegistration;
 import com.khopan.hackontrol.registry.RegistryType;
 import com.khopan.hackontrol.registry.implementation.FilteredTypeRegistry;
 import com.khopan.hackontrol.registry.implementation.RegistryImplementation;
+import com.khopan.hackontrol.security.SecurityManager;
 import com.khopan.hackontrol.utils.ErrorHandler;
 import com.khopan.hackontrol.utils.HackontrolError;
 
@@ -91,9 +92,11 @@ public class Hackontrol {
 		}
 
 		this.category = category;
+		SecurityManager.configureViewPermission(this.category.getManager());
 
 		for(Module module : this.moduleList) {
 			TextChannel textChannel = this.getOrCreateTextChannelInCategory(this.category, module.getName());
+			SecurityManager.configureViewPermission(textChannel.getManager());
 			module.hackontrol = this;
 			module.category = this.category;
 			module.channel = textChannel;

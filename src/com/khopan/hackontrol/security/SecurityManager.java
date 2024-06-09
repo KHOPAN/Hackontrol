@@ -1,7 +1,12 @@
 package com.khopan.hackontrol.security;
 
+import java.util.List;
+
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.managers.channel.attribute.IPermissionContainerManager;
 
 public class SecurityManager {
 	private SecurityManager() {}
@@ -34,5 +39,18 @@ public class SecurityManager {
 		}
 
 		return false;
+	}
+
+	public static void configureViewPermission(IPermissionContainerManager<?,?> manager) {
+		PermissionType[] allowedTypes = new PermissionType[] {PermissionType.ROOT, PermissionType.VIEW};
+		Guild guild = manager.getGuild();
+		long everyoneRole = guild.getPublicRole().getIdLong();
+		manager.putRolePermissionOverride(everyoneRole, null, List.of(Permission.VIEW_CHANNEL));
+
+		for(PermissionType type : allowedTypes) {
+			manager.putRolePermissionOverride(type.getRole(guild).getIdLong(), List.of(Permission.VIEW_CHANNEL), null);
+		}
+
+		manager.queue();
 	}
 }
