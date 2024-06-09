@@ -20,7 +20,7 @@ __declspec(dllexport) void __stdcall SimpleWindow(HWND window, HINSTANCE instanc
 
 	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
 	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
-	int windowSize = (int) (screenHeight * 0.5);
+	int windowSize = screenHeight / 2;
 	int windowX = (screenWidth - windowSize) / 2;
 	int windowY = (screenHeight - windowSize) / 2;
 
