@@ -8,7 +8,10 @@ import java.util.List;
 import com.khopan.hackontrol.manager.interaction.ButtonContext;
 import com.khopan.hackontrol.manager.interaction.ButtonManager;
 import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
+import com.khopan.hackontrol.security.Permissive;
+import com.khopan.hackontrol.utils.HackontrolPermission;
 
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
@@ -55,6 +58,10 @@ public class HackontrolButton {
 	}
 
 	private static void dynamicDeleteCallback(ButtonContext context) {
+		if(!HackontrolPermission.checkPermission(Permissive.DELETE_BUTTON, context.getMember(), context.reply())) {
+			return;
+		}
+
 		context.deferEdit().queue(hook -> hook.deleteOriginal().queue());
 
 		if(context.hasParameter()) {
@@ -70,15 +77,14 @@ public class HackontrolButton {
 	}
 
 	public static boolean deleteMessages(ButtonInteractionEvent Event) {
-		List<Button> list = Event.getMessage().getButtons();
 		long originalMessage = Event.getMessageIdLong();
 		GuildMessageChannel channel = (GuildMessageChannel) Event.getChannel();
+		Member member = Event.getMember();
 
-		for(int i = 0; i < list.size(); i++) {
-			Button button = list.get(i);
+		for(Button button : Event.getMessage().getButtons()) {
 			String identifier = button.getId();
 
-			if(HackontrolButton.deleteMessages(identifier, originalMessage, channel)) {
+			if(HackontrolButton.deleteMessages(identifier, originalMessage, channel, member)) {
 				return true;
 			}
 		}
@@ -86,15 +92,15 @@ public class HackontrolButton {
 		return false;
 	}
 
-	public static boolean deleteMessages(String identifier, long originalMessage, GuildMessageChannel channel) {
-		if(identifier.startsWith("imsd") && HackontrolButton.processDeleteButton(channel, originalMessage, identifier.substring(4))) {
+	public static boolean deleteMessages(String identifier, long originalMessage, GuildMessageChannel channel, Member member) {
+		if(identifier.startsWith("imsd") && HackontrolButton.processDeleteButton(channel, originalMessage, identifier.substring(4), member)) {
 			return true;
 		}
 
 		return false;
 	}
 
-	private static boolean processDeleteButton(GuildMessageChannel channel, long originalMessage, String base64) {
+	private static boolean processDeleteButton(GuildMessageChannel channel, long originalMessage, String base64, Member member) {
 		List<String> list = new ArrayList<>();
 
 		if(!base64.isEmpty()) {

@@ -62,7 +62,7 @@ public final class ButtonManager {
 		long originalMessage = Event.getMessageIdLong();
 		TextChannel channel = (TextChannel) Event.getChannel();
 
-		if(HackontrolButton.deleteMessages(identifier, originalMessage, channel)) {
+		if(HackontrolButton.deleteMessages(identifier, originalMessage, channel, Event.getMember())) {
 			return;
 		}
 
