@@ -15,30 +15,21 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="hackontrol.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="stdafx.cpp">
+    <ClCompile Include="token.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="machine.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="error.c">
+    <ClCompile Include="main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stdafx.h">
+    <ClInclude Include="token.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="bot_token.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="machine.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="error.h">
+    <ClInclude Include="hackontrol.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

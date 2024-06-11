@@ -3,7 +3,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-char* machine_getGUID();
+void startHackontrol(const char* botToken, unsigned long long userIdentifier);
 #ifdef __cplusplus
 }
 #endif
