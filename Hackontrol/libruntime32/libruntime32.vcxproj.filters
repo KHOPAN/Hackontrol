@@ -18,9 +18,6 @@
     <ClCompile Include="Execute.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="initialize.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="extract.c">
       <Filter>Source Files</Filter>
     </ClCompile>

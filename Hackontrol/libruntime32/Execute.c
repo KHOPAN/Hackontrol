@@ -8,7 +8,9 @@
 #define FILE_JAVA         L"javaw.exe"
 #define FILE_WINSERVICE32 L"winservice32.jar"
 #define FOLDER_BIN        L"bin"
-#define FOLDER_JAVA       L"AdditionalData"
+#define FOLDER_JAVA       L"RuntimeData"
+
+static HINSTANCE globalInstance;
 
 static void executeJarFile(LPCWSTR const pathFileJavaw, LPWSTR const argumentFileJavaw, LPCWSTR const currentDirectory);
 
@@ -79,11 +81,11 @@ freePathFolderHackontrol:
 	FREE(pathFolderHackontrol);
 }
 
-static BOOL tryStartWithUIAccess(LPCWSTR const pathFileJava, LPWSTR const argumentFileJava, LPCWSTR const currentDirectory) {
+static void executeJarFile(LPCWSTR const pathFileJava, LPWSTR const argumentFileJava, LPCWSTR const currentDirectory) {
 	HANDLE accessToken;
 
 	if(!CreateUIAccessToken(&accessToken)) {
-		return FALSE;
+		goto normalStart;
 	}
 
 	STARTUPINFO startupInformation = {0};
@@ -91,28 +93,26 @@ static BOOL tryStartWithUIAccess(LPCWSTR const pathFileJava, LPWSTR const argume
 	PROCESS_INFORMATION processInformation;
 
 	if(!CreateProcessAsUserW(accessToken, pathFileJava, argumentFileJava, NULL, NULL, FALSE, ABOVE_NORMAL_PRIORITY_CLASS, NULL, currentDirectory, &startupInformation, &processInformation)) {
-		return FALSE;
+		goto normalStart;
 	}
 
-	CloseHandle(processInformation.hProcess);
-	CloseHandle(processInformation.hThread);
-	return TRUE;
-}
-
-static void executeJarFile(LPCWSTR const pathFileJava, LPWSTR const argumentFileJava, LPCWSTR const currentDirectory) {
-	if(tryStartWithUIAccess(pathFileJava, argumentFileJava, currentDirectory)) {
-		return;
-	}
-
-	STARTUPINFO startupInformation = {0};
-	startupInformation.cb = sizeof(startupInformation);
-	PROCESS_INFORMATION processInformation;
-
+	goto closeHandles;
+normalStart:
 	if(!CreateProcessW(pathFileJava, argumentFileJava, NULL, NULL, TRUE, ABOVE_NORMAL_PRIORITY_CLASS, NULL, currentDirectory, &startupInformation, &processInformation)) {
 		KHWin32DialogErrorW(GetLastError(), L"CreateProcessW");
 		return;
 	}
 
+closeHandles:
 	CloseHandle(processInformation.hProcess);
 	CloseHandle(processInformation.hThread);
+}
+
+HINSTANCE GetProgramInstance() {
+	return globalInstance;
+}
+
+BOOL WINAPI DllMain(_In_ HINSTANCE instance, _In_ DWORD reason, _In_ LPVOID reserved) {
+	globalInstance = instance;
+	return TRUE;
 }
