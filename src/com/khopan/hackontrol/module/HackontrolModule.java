@@ -34,6 +34,6 @@ public class HackontrolModule extends Module {
 	@Override
 	public void postInitialize() {
 		long time = Hackontrol.STARTUP_TIME / 1000L;
-		this.channel.sendMessage("**Online: <t:" + time + ":f> (<t:" + time + ":R>) (<t:" + (System.currentTimeMillis() / 1000L) + ":R>) (" + (Information.isEnabledUIAccess() ? "" : "No ") + "UI Access)**").queue();
+		this.channel.sendMessage("**Online: <t:" + time + ":f> (<t:" + time + ":R>) (" + Information.getUserName() + ") (" + (Information.isEnabledUIAccess() ? "" : "No ") + "UI Access)**").queue();
 	}
 }
