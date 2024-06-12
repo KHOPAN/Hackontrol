@@ -18,7 +18,7 @@
 		{
 			"file": "winservice32.jar",
 			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/winservice32.jar",
-			"sha384": "cb2ac46c80c57a6b2cb397fae4acccc483189fe701811a69744fe7b08345f7366d68da1dcfc568e06cdaa72134f26b3a"
+			"sha384": "271fc2c3fbcdf24eacaca9403d9daef256d442bd1cc5ebe3fd025729bda1db0f0f01177b7f9ec89db9f1b80ef74425d5"
 		},
 		{
 			"file": "dpp.dll",
