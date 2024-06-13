@@ -21,7 +21,7 @@ import com.khopan.hackontrol.registry.implementation.FilteredTypeRegistry;
 import com.khopan.hackontrol.security.SecurityManager;
 import com.khopan.hackontrol.utils.ErrorHandler;
 import com.khopan.hackontrol.utils.HackontrolError;
-import com.khopan.hackontrol.widget.ControlMessage;
+import com.khopan.hackontrol.widget.ControlWidget;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -102,7 +102,7 @@ public class Hackontrol {
 			Hackontrol.LOGGER.info(message.getContentRaw());
 		}
 
-		ControlMessage message = ControlMessage.newBuilder().build();
+		ControlWidget widget = ControlWidget.newBuilder().build();
 		/*PanelManager panelManager = new PanelManager();
 		PanelRegistry.register(panelManager);
 		panelManager.start(this.category);
