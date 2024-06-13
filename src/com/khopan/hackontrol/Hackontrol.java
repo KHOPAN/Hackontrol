@@ -222,40 +222,40 @@ public class Hackontrol {
 	}
 
 	public static void main(String[] args) throws Throwable {
-		UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-
 		if(args.length < 1) {
-			JOptionPane.showMessageDialog(null, "Invalid program argument", "Error", JOptionPane.ERROR_MESSAGE);
-			System.exit(1);
+			Hackontrol.error("Invalid program argument");
 			return;
 		}
 
 		File pathFolderHackontrol = new File(args[0]);
 
 		if(!pathFolderHackontrol.exists()) {
-			JOptionPane.showMessageDialog(null, "Directory '" + pathFolderHackontrol.getAbsolutePath() + "' does not exist", "Error", JOptionPane.ERROR_MESSAGE);
-			System.exit(1);
+			Hackontrol.error("Directory '" + pathFolderHackontrol.getAbsolutePath() + "' does not exist");
 			return;
 		}
 
 		File pathFileLibnative32 = new File(pathFolderHackontrol, "libnative32.dll");
 
 		if(!pathFileLibnative32.exists()) {
-			JOptionPane.showMessageDialog(null, "File '" + pathFileLibnative32.getAbsolutePath() + "' does not exist", "Error", JOptionPane.ERROR_MESSAGE);
-			System.exit(1);
+			Hackontrol.error("File '" + pathFileLibnative32.getAbsolutePath() + "' does not exist");
 			return;
 		}
 
 		try {
 			System.load(pathFileLibnative32.getAbsolutePath());
 		} catch(Throwable Errors) {
-			JOptionPane.showMessageDialog(null, HackontrolError.getMessage(Errors), "Error", JOptionPane.ERROR_MESSAGE);
-			System.exit(1);
+			Hackontrol.error(HackontrolError.getMessage(Errors));
 			return;
 		}
 
 		Hackontrol.LOGGER.info("Initializing");
 		Hackontrol.getInstance();
+	}
+
+	private static void error(String message) throws Throwable {
+		UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		JOptionPane.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
+		System.exit(1);
 	}
 
 	public static Hackontrol getInstance() {
