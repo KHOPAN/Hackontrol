@@ -15,8 +15,7 @@
 #endif
 #endif
 
-#define MAX_RETRY_COUNT 50
-#define RETRY_DELAY     800
+#define RETRY_DELAY     1000
 
 static HINSTANCE globalInstance;
 
@@ -62,17 +61,9 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 	LocalFree(buffer);
 #else
 	DataStream stream = {0};
-	unsigned char tryCount = 0;
 
 	while(!HackontrolDownloadData(&stream, URL_LATEST_FILE, TRUE, &code)) {
 		KHDataStreamFree(&stream);
-		tryCount++;
-
-		if(tryCount >= MAX_RETRY_COUNT) {
-			KHCURLDialogErrorW(code, L"HackontrolDownloadData");
-			goto globalCleanup;
-		}
-
 		Sleep(RETRY_DELAY);
 	}
 
