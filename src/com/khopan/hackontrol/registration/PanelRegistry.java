@@ -7,6 +7,6 @@ public class PanelRegistry {
 	private PanelRegistry() {}
 
 	public static void register(PanelManager manager) {
-		manager.add(new HackontrolPanel());
+		manager.register(new HackontrolPanel());
 	}
 }

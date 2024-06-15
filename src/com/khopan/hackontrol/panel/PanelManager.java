@@ -27,7 +27,11 @@ public class PanelManager {
 		this.biRegistrableMap = new HashMap<>();
 	}
 
-	public void add(Panel panel) {
+	public void register(Panel panel) {
+		if(panel == null) {
+			throw new NullPointerException("Panel cannot be null");
+		}
+
 		this.panelList.add(panel);
 	}
 
@@ -36,6 +40,10 @@ public class PanelManager {
 	}
 
 	public void initialize(Category category) {
+		if(category == null) {
+			throw new NullPointerException("Category cannot be null");
+		}
+
 		for(Panel panel : this.panelList) {
 			panel.manager = this;
 			String name = panel.panelName();

