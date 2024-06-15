@@ -51,6 +51,7 @@ public class PanelManager {
 
 			SecurityManager.configureViewPermission(channel.getManager());
 			panel.channel = channel;
+			panel.registeration();
 			ControlWidget[] widgets = panel.controlWidget();
 
 			if(widgets != null && widgets.length > 0) {
@@ -63,6 +64,27 @@ public class PanelManager {
 
 			panel.initialize();
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> List<T> getRegistrable(Registrable<T> registrable) {
+		if(registrable == null) {
+			return List.of();
+		}
+
+		List<Object> objectList = this.registrableMap.get(registrable);
+
+		if(objectList == null) {
+			return List.of();
+		}
+
+		List<T> list = new ArrayList<>();
+
+		for(Object object : objectList) {
+			list.add((T) object);
+		}
+
+		return list;
 	}
 
 	<T> void register(Registrable<T> registrable, T value) {

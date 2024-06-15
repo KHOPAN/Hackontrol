@@ -18,6 +18,7 @@ import com.khopan.hackontrol.registration.ManagerRegistry;
 import com.khopan.hackontrol.registration.ModuleRegistry;
 import com.khopan.hackontrol.registration.PanelRegistry;
 import com.khopan.hackontrol.registry.ClassRegistration;
+import com.khopan.hackontrol.registry.Registration;
 import com.khopan.hackontrol.registry.RegistryType;
 import com.khopan.hackontrol.registry.implementation.FilteredTypeRegistry;
 import com.khopan.hackontrol.security.SecurityManager;
@@ -104,6 +105,9 @@ public class Hackontrol {
 		PanelManager panelManager = new PanelManager();
 		PanelRegistry.register(panelManager);
 		panelManager.initialize(this.category);
+		panelManager.getRegistrable(Registration.TEXT).forEach(text -> {
+			System.out.println(text);
+		});
 
 		/*for(Module module : this.moduleList) {
 			TextChannel textChannel = this.getOrCreateTextChannelInCategory(this.category, module.getName());
