@@ -105,8 +105,8 @@ public class Hackontrol {
 		PanelManager panelManager = new PanelManager();
 		PanelRegistry.register(panelManager);
 		panelManager.initialize(this.category);
-		panelManager.getRegistrable(Registration.TEXT).forEach(text -> {
-			System.out.println(text);
+		panelManager.getRegistrable(Registration.BUTTON).forEach((key, value) -> {
+			System.out.println("Key: " + key + " Value: " + value);
 		});
 
 		/*for(Module module : this.moduleList) {

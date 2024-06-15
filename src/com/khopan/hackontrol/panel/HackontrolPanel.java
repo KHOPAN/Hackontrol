@@ -5,6 +5,7 @@ import com.khopan.hackontrol.manager.interaction.ButtonManager;
 import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.nativelibrary.Information;
 import com.khopan.hackontrol.registry.Registration;
+import com.khopan.hackontrol.utils.HackontrolMessage;
 import com.khopan.hackontrol.widget.ControlWidget;
 
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
@@ -21,8 +22,7 @@ public class HackontrolPanel extends Panel {
 
 	@Override
 	public void registeration() {
-		this.register(Registration.TEXT, "Hello, world!");
-		this.register(Registration.TEXT, "Text registration");
+		this.register(Registration.BUTTON, HackontrolPanel.BUTTON_PING, context -> HackontrolMessage.deletable(context.reply(), "**Status: Ok**"));
 	}
 
 	@Override

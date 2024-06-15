@@ -87,6 +87,23 @@ public class PanelManager {
 		return list;
 	}
 
+	@SuppressWarnings("unchecked")
+	public <T, U> Map<T, U> getRegistrable(BiRegistrable<T, U> registrable) {
+		if(registrable == null) {
+			return Map.of();
+		}
+
+		Map<Object, Object> objectMap = this.biRegistrableMap.get(registrable);
+
+		if(objectMap == null) {
+			return Map.of();
+		}
+
+		Map<T, U> map = new HashMap<>();
+		objectMap.forEach((key, value) -> map.put((T) key, (U) value));
+		return map;
+	}
+
 	<T> void register(Registrable<T> registrable, T value) {
 		if(this.registrableMap.containsKey(registrable)) {
 			this.registrableMap.get(registrable).add(value);
