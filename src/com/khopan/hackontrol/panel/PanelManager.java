@@ -1,6 +1,7 @@
 package com.khopan.hackontrol.panel;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,10 @@ public class PanelManager {
 
 	public void add(Panel panel) {
 		this.panelList.add(panel);
+	}
+
+	public List<Panel> panelList() {
+		return Collections.unmodifiableList(this.panelList);
 	}
 
 	public void initialize(Category category) {

@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import com.khopan.hackontrol.manager.Manager;
 import com.khopan.hackontrol.module.Module;
 import com.khopan.hackontrol.nativelibrary.Information;
+import com.khopan.hackontrol.panel.Panel;
 import com.khopan.hackontrol.panel.PanelManager;
 import com.khopan.hackontrol.registration.ManagerRegistry;
 import com.khopan.hackontrol.registration.ModuleRegistry;
@@ -104,6 +105,11 @@ public class Hackontrol {
 
 		PanelManager panelManager = new PanelManager();
 		PanelRegistry.register(panelManager);
+
+		for(Panel panel : panelManager.panelList()) {
+			Hackontrol.LOGGER.info("Registered panel: {}", panel.getClass().getName());
+		}
+
 		panelManager.initialize(this.category);
 		panelManager.getRegistrable(Registration.BUTTON).forEach((key, value) -> {
 			System.out.println("Key: " + key + " Value: " + value);
