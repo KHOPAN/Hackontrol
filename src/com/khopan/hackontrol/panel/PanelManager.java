@@ -6,6 +6,8 @@ import java.util.List;
 import com.khopan.hackontrol.security.SecurityManager;
 import com.khopan.hackontrol.widget.ControlWidget;
 
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageHistory;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
@@ -44,7 +46,7 @@ public class PanelManager {
 
 			if(widgets != null && widgets.length > 0) {
 				if(hasChannel) {					
-					this.processControlWidget(panel, widgets);
+					this.processControlWidget(channel, widgets);
 				} else {
 					ControlWidget.send(channel, widgets);
 				}
@@ -54,7 +56,24 @@ public class PanelManager {
 		}
 	}
 
-	private void processControlWidget(Panel panel, ControlWidget[] widgets) {
+	private void processControlWidget(TextChannel channel, ControlWidget[] widgets) {
+		List<ControlWidget> widgetList = new ArrayList<>();
+		widgetList.addAll(List.of(widgets));
+		List<Message> list = MessageHistory.getHistoryFromBeginning(channel).complete().getRetrievedHistory();
 
+		for(Message message : list) {
+			ControlWidget controlWidget = ControlWidget.fromMessage(message);
+
+			for(ControlWidget widget : widgetList) {
+				if(widget.equals(controlWidget)) {
+					widgetList.remove(widget);
+					break;
+				}
+			}
+		}
+
+		for(ControlWidget widget : widgetList) {
+			widget.send(channel);
+		}
 	}
 }
