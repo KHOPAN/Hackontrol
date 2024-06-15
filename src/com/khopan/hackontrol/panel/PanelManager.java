@@ -1,8 +1,12 @@
 package com.khopan.hackontrol.panel;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import com.khopan.hackontrol.registry.BiRegistrable;
+import com.khopan.hackontrol.registry.Registrable;
 import com.khopan.hackontrol.security.SecurityManager;
 import com.khopan.hackontrol.widget.ControlWidget;
 
@@ -12,18 +16,23 @@ import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 public class PanelManager {
-	private final List<Panel> list;
+	private final List<Panel> panelList;
+	private final Map<Registrable<?>, List<Object>> registrableMap;
+	private final Map<BiRegistrable<?, ?>, Map<Object, Object>> biRegistrableMap;
 
 	public PanelManager() {
-		this.list = new ArrayList<>();
+		this.panelList = new ArrayList<>();
+		this.registrableMap = new HashMap<>();
+		this.biRegistrableMap = new HashMap<>();
 	}
 
 	public void add(Panel panel) {
-		this.list.add(panel);
+		this.panelList.add(panel);
 	}
 
 	public void initialize(Category category) {
-		for(Panel panel : this.list) {
+		for(Panel panel : this.panelList) {
+			panel.manager = this;
 			String name = panel.panelName();
 			TextChannel channel = null;
 
@@ -54,6 +63,28 @@ public class PanelManager {
 
 			panel.initialize();
 		}
+	}
+
+	<T> void register(Registrable<T> registrable, T value) {
+		if(this.registrableMap.containsKey(registrable)) {
+			this.registrableMap.get(registrable).add(value);
+			return;
+		}
+
+		List<Object> list = new ArrayList<>();
+		list.add(value);
+		this.registrableMap.put(registrable, list);
+	}
+
+	<T, U> void register(BiRegistrable<T, U> registrable, T key, U value) {
+		if(this.biRegistrableMap.containsKey(registrable)) {
+			this.biRegistrableMap.get(registrable).put(key, value);
+			return;
+		}
+
+		Map<Object, Object> map = new HashMap<>();
+		map.put(key, value);
+		this.biRegistrableMap.put(registrable, map);
 	}
 
 	private void processControlWidget(TextChannel channel, ControlWidget[] widgets) {

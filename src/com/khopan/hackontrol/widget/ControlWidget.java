@@ -129,7 +129,7 @@ public class ControlWidget {
 			for(LayoutComponent component : components) {
 				if(component != null) {
 					this.components.add(component);
-				}				
+				}
 			}
 
 			return this;
