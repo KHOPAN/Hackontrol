@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.khopan.hackontrol.panel.PanelManager;
+
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 
@@ -26,9 +28,17 @@ public class ServiceManager {
 		return Collections.unmodifiableList(this.serviceList);
 	}
 
-	public void applyBuilder(JDABuilder builder) {
+	public void applyBuilder(JDABuilder builder, PanelManager manager) {
 		if(builder == null) {
 			throw new NullPointerException("Builder cannot be null");
+		}
+
+		if(manager == null) {
+			throw new NullPointerException("Manager cannot be null");
+		}
+
+		for(Service service : this.serviceList) {
+			service.panelManager = manager;
 		}
 
 		for(Service service : this.serviceList) {

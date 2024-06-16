@@ -16,7 +16,6 @@ import com.khopan.hackontrol.panel.Panel;
 import com.khopan.hackontrol.panel.PanelManager;
 import com.khopan.hackontrol.registration.PanelRegistry;
 import com.khopan.hackontrol.registration.ServiceRegistry;
-import com.khopan.hackontrol.registry.Registration;
 import com.khopan.hackontrol.registry.RegistryType;
 import com.khopan.hackontrol.security.SecurityManager;
 import com.khopan.hackontrol.service.Service;
@@ -58,7 +57,8 @@ public class Hackontrol {
 		}
 
 		JDABuilder builder = JDABuilder.createDefault(Information.getToken()).enableIntents(GatewayIntent.MESSAGE_CONTENT);
-		serviceManager.applyBuilder(builder);
+		PanelManager panelManager = new PanelManager();
+		serviceManager.applyBuilder(builder, panelManager);
 		this.bot = builder.build();
 
 		try {
@@ -87,15 +87,6 @@ public class Hackontrol {
 
 		this.category = category;
 		SecurityManager.configureViewPermission(this.category.getManager());
-		/*TextChannel channel = this.guild.getTextChannelById(1249281558855028787L);
-		List<Message> list = MessageHistory.getHistoryFromBeginning(channel).complete().getRetrievedHistory();
-
-		for(Message message : list) {
-			message.getButtons();
-			Hackontrol.LOGGER.info(message.getContentRaw());
-		}*/
-
-		PanelManager panelManager = new PanelManager();
 		PanelRegistry.register(panelManager);
 
 		for(Panel panel : panelManager.panelList()) {
@@ -103,9 +94,6 @@ public class Hackontrol {
 		}
 
 		panelManager.initialize(this.category);
-		panelManager.getRegistrable(Registration.BUTTON).forEach((key, value) -> {
-			System.out.println("Key: " + key + " Value: " + value);
-		});
 
 		/*for(Module module : this.moduleList) {
 			TextChannel textChannel = this.getOrCreateTextChannelInCategory(this.category, module.getName());
