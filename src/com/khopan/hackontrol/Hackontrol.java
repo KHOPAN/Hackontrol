@@ -99,7 +99,7 @@ public class Hackontrol {
 		PanelRegistry.register(panelManager);
 
 		for(Panel panel : panelManager.panelList()) {
-			Hackontrol.LOGGER.info("Registered panel: {}", panel.getClass().getName());
+			Hackontrol.LOGGER.info("Registered panel: {} ({})", panel.panelName(), panel.getClass().getName());
 		}
 
 		panelManager.initialize(this.category);

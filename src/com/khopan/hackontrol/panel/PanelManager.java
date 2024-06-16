@@ -15,6 +15,8 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageHistory;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import net.dv8tion.jda.api.requests.restaction.order.CategoryOrderAction;
 
 public class PanelManager {
 	private final List<Panel> panelList;
@@ -77,6 +79,46 @@ public class PanelManager {
 
 			panel.initialize();
 		}
+
+		CategoryOrderAction action = category.modifyTextChannelPositions();
+		List<GuildChannel> currentOrder = action.getCurrentOrder();
+		List<Integer> orderList = new ArrayList<>();
+
+		for(GuildChannel channel : currentOrder) {
+			long identifier = channel.getIdLong();
+
+			for(int i = 0; i < this.panelList.size(); i++) {
+				if(identifier == this.panelList.get(i).channel.getIdLong()) {
+					orderList.add(i);
+					break;
+				}
+			}
+		}
+
+		int size = orderList.size();
+
+		for(int i = 0; i < size; i++) {
+			int target = -1;
+
+			for(int j = i; i < size; j++) {
+				if(orderList.get(j) == i) {
+					target = j;
+					break;
+				}
+			}
+
+			if(target == -1 || target == i) {
+				continue;
+			}
+
+			action.selectPosition(i);
+			action.swapPosition(target);
+			int buffer = orderList.get(i);
+			orderList.set(i, orderList.get(target));
+			orderList.set(target, buffer);
+		}
+
+		action.queue();
 	}
 
 	@SuppressWarnings("unchecked")
