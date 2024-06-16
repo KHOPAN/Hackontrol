@@ -81,10 +81,9 @@ public class PanelManager {
 		}
 
 		CategoryOrderAction action = category.modifyTextChannelPositions();
-		List<GuildChannel> currentOrder = action.getCurrentOrder();
 		List<Integer> orderList = new ArrayList<>();
 
-		for(GuildChannel channel : currentOrder) {
+		for(GuildChannel channel : action.getCurrentOrder()) {
 			long identifier = channel.getIdLong();
 
 			for(int i = 0; i < this.panelList.size(); i++) {
@@ -97,24 +96,24 @@ public class PanelManager {
 
 		int size = orderList.size();
 
-		for(int i = 0; i < size; i++) {
+		for(int x = 0; x < size; x++) {
 			int target = -1;
 
-			for(int j = i; i < size; j++) {
-				if(orderList.get(j) == i) {
-					target = j;
+			for(int y = x; y < size; y++) {
+				if(orderList.get(y) == x) {
+					target = y;
 					break;
 				}
 			}
 
-			if(target == -1 || target == i) {
+			if(target == -1 || target == x) {
 				continue;
 			}
 
-			action.selectPosition(i);
+			action.selectPosition(x);
 			action.swapPosition(target);
-			int buffer = orderList.get(i);
-			orderList.set(i, orderList.get(target));
+			int buffer = orderList.get(x);
+			orderList.set(x, orderList.get(target));
 			orderList.set(target, buffer);
 		}
 
