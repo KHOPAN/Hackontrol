@@ -48,7 +48,16 @@ public class Hackontrol {
 
 	private Hackontrol() {
 		Hackontrol.INSTANCE = this;
-		Thread.setDefaultUncaughtExceptionHandler(this :: handleError);
+		Thread.setDefaultUncaughtExceptionHandler((thread, Errors) -> {
+			if(this.handler == null) {
+				Errors.printStackTrace();
+				return;
+			}
+
+			Hackontrol.LOGGER.warn("Uncaught Exception: {}", Errors.toString());
+			this.handler.errorOccured(thread, Errors);
+		});
+
 		ServiceManager serviceManager = new ServiceManager();
 		ServiceRegistry.register(serviceManager);
 
@@ -94,38 +103,7 @@ public class Hackontrol {
 		}
 
 		panelManager.initialize(this.category);
-
-		/*for(Module module : this.moduleList) {
-			TextChannel textChannel = this.getOrCreateTextChannelInCategory(this.category, module.getName());
-			SecurityManager.configureViewPermission(textChannel.getManager());
-			module.hackontrol = this;
-			module.category = this.category;
-			module.channel = textChannel;
-			module.preInitialize(RegistryImplementation.of(module));
-
-			if(MessageHistory.getHistoryFromBeginning(textChannel).complete().getRetrievedHistory().isEmpty()) {
-				module.initialize();
-			}
-
-			module.postInitialize();
-		}
-
-		for(Manager manager : this.managerList) {
-			Hackontrol.LOGGER.info("Initializing manager: {}", manager.getClass().getName());
-			manager.initialize();
-		}
-
-		Kernel.setProcessCritical(true);*/
-	}
-
-	private void handleError(Thread thread, Throwable Errors) {
-		if(this.handler == null) {
-			Errors.printStackTrace();
-			return;
-		}
-
-		Hackontrol.LOGGER.warn("Uncaught Exception: {}", Errors.toString());
-		this.handler.errorOccured(thread, Errors);
+		//Kernel.setProcessCritical(true);
 	}
 
 	public List<Manager> getManagerList() {
