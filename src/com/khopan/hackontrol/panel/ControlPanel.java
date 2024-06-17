@@ -21,6 +21,9 @@ public class ControlPanel extends Panel {
 	private static final Button BUTTON_MICROPHONE_CONNECT    = ButtonManager.staticButton(ButtonType.SUCCESS,   "Connect",    "connectMicrophone");
 	private static final Button BUTTON_MICROPHONE_DISCONNECT = ButtonManager.staticButton(ButtonType.DANGER,    "Disconnect", "disconnectMicrophone");
 
+	private static final Button BUTTON_SCREEN_FREEZE         = ButtonManager.staticButton(ButtonType.SUCCESS,   "Freeze",     "screenFreeze");
+	private static final Button BUTTON_SCREEN_UNFREEZE       = ButtonManager.staticButton(ButtonType.DANGER,    "Unfreeze",   "screenUnfreeze");
+
 	@Override
 	public String panelName() {
 		return ControlPanel.PANEL_NAME;
@@ -34,6 +37,8 @@ public class ControlPanel extends Panel {
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_SHUTDOWN,              context -> Question.positive(context.reply(), "Are you sure you want to shutdown?",  QuestionType.YES_NO, Kernel :: shutdown));
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_MICROPHONE_CONNECT,    context -> {});
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_MICROPHONE_DISCONNECT, context -> {});
+		this.register(Registration.BUTTON, ControlPanel.BUTTON_SCREEN_FREEZE,         context -> {});
+		this.register(Registration.BUTTON, ControlPanel.BUTTON_SCREEN_UNFREEZE,       context -> {});
 	}
 
 	@Override
@@ -46,6 +51,10 @@ public class ControlPanel extends Panel {
 				ControlWidget.newBuilder()
 				.text("**Microphone**")
 				.actionRow(ControlPanel.BUTTON_MICROPHONE_CONNECT, ControlPanel.BUTTON_MICROPHONE_DISCONNECT)
+				.build(),
+				ControlWidget.newBuilder()
+				.text("**Screen**")
+				.actionRow(ControlPanel.BUTTON_SCREEN_FREEZE, ControlPanel.BUTTON_SCREEN_UNFREEZE)
 				.build()
 		};
 	}
