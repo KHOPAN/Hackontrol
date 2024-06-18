@@ -8,7 +8,7 @@ import com.khopan.hackontrol.widget.ControlWidget;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 public class ScreenshotPanel extends Panel {
-	private static final String PANEL_NAME = "control";
+	private static final String PANEL_NAME = "screenshot";
 
 	private static final Button BUTTON_SCREENSHOT = ButtonManager.staticButton(ButtonType.SUCCESS, "Screenshot", "screenshot");
 	private static final Button BUTTON_REFRESH    = ButtonManager.staticButton(ButtonType.SUCCESS, "Refresh",    "screenshotRefresh");
