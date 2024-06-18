@@ -72,6 +72,9 @@
     <ClCompile Include="Information_getToken.c">
       <Filter>Source Files\Information</Filter>
     </ClCompile>
+    <ClCompile Include="User_screenshot.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Kernel.h">

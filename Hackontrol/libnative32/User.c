@@ -5,7 +5,8 @@ static JNINativeMethod NativeMethods[] = {
 	{"isMute",          "()Z",                                      (void*) &User_isMute},
 	{"setMasterVolume", "(F)V",                                     (void*) &User_setMasterVolume},
 	{"setMute",         "(Z)V",                                     (void*) &User_setMute},
-	{"showMessageBox",  "(Ljava/lang/String;Ljava/lang/String;I)I", (void*) &User_showMessageBox}
+	{"showMessageBox",  "(Ljava/lang/String;Ljava/lang/String;I)I", (void*) &User_showMessageBox},
+	{"screenshot",      "()[B",                                     (void*) &User_screenshot}
 };
 
 void UserRegisterNatives(JNIEnv* const environment) {
