@@ -4,6 +4,68 @@
 #include "User.h"
 #include <lodepng.h>
 
+static BOOL drawCursor(JNIEnv* const environment, const HDC context) {
+	CURSORINFO cursorInformation;
+	cursorInformation.cbSize = sizeof(CURSORINFO);
+
+	if(!GetCursorInfo(&cursorInformation)) {
+		HackontrolThrowWin32Error(environment, L"GetCursorInfo");
+		return FALSE;
+	}
+
+	if(cursorInformation.flags != CURSOR_SHOWING) {
+		return TRUE;
+	}
+
+	HICON icon = CopyIcon(cursorInformation.hCursor);
+
+	if(!icon) {
+		HackontrolThrowWin32Error(environment, L"CopyIcon");
+		return FALSE;
+	}
+
+	ICONINFO iconInformation;
+	BOOL returnValue = FALSE;
+
+	if(!GetIconInfo(icon, &iconInformation)) {
+		HackontrolThrowWin32Error(environment, L"GetIconInfo");
+		goto destroyIcon;
+	}
+
+	/*if(!DrawIcon(context, 20, 20, icon)) {
+		HackontrolThrowWin32Error(environment, L"DrawIcon");
+		goto deleteIconBitmap;
+	}*/
+
+	BITMAP bitmap;
+
+	if(!GetObjectW(iconInformation.hbmMask, sizeof(bitmap), &bitmap)) {
+		SetLastError(ERROR_FUNCTION_FAILED);
+		HackontrolThrowWin32Error(environment, L"GetObjectW");
+		goto deleteIconBitmap;
+	}
+
+	/*if(!DrawIconEx(context, 20, 20, icon, bitmap.bmWidth, bitmap.bmHeight, 0, NULL, DI_NORMAL)) {
+		HackontrolThrowWin32Error(environment, L"DrawIconEx");
+		goto deleteIconBitmap;
+	}*/
+
+	HDC cursorContext = CreateCompatibleDC(context);
+	HBITMAP old = SelectObject(cursorContext, iconInformation.hbmMask);
+	//BitBlt(context, 20, 20, bitmap.bmWidth, bitmap.bmHeight, cursorContext, 0, 0, SRCCOPY);
+	MaskBlt(context, 200, 200, bitmap.bmWidth, bitmap.bmHeight, cursorContext, 0, 0, iconInformation.hbmMask, 0, 0, MAKEROP4(SRCPAINT, SRCCOPY));
+	SelectObject(cursorContext, old);
+	DeleteDC(cursorContext);
+	//MessageBoxW(NULL, KHFormatMessageW(L"Color: %ws\nMask: %ws", iconInformation.hbmColor ? L"Present" : L"null", iconInformation.hbmMask ? L"Present" : L"null"), L"Information", MB_OK | MB_ICONINFORMATION | MB_SYSTEMMODAL | MB_DEFBUTTON1);
+	returnValue = TRUE;
+deleteIconBitmap:
+	DeleteObject(iconInformation.hbmMask);
+	DeleteObject(iconInformation.hbmColor);
+destroyIcon:
+	DestroyIcon(icon);
+	return returnValue;
+}
+
 jbyteArray User_screenshot(JNIEnv* const environment, const jclass class) {
 	HDC context = GetDC(NULL);
 	int width = GetDeviceCaps(context, HORZRES);
@@ -12,10 +74,15 @@ jbyteArray User_screenshot(JNIEnv* const environment, const jclass class) {
 	HBITMAP bitmap = CreateCompatibleBitmap(context, width, height);
 	HBITMAP oldBitmap = SelectObject(memoryContext, bitmap);
 	BitBlt(memoryContext, 0, 0, width, height, context, 0, 0, SRCCOPY);
+	jbyteArray returnValue = NULL;
+
+	if(!drawCursor(environment, memoryContext)) {
+		goto cleanup;
+	}
+
 	bitmap = SelectObject(memoryContext, oldBitmap);
 	DWORD size = 4 * width * height;
 	BYTE* buffer = LocalAlloc(LMEM_FIXED, size);
-	jbyteArray returnValue = NULL;
 
 	if(!buffer) {
 		HackontrolThrowWin32Error(environment, L"LocalAlloc");

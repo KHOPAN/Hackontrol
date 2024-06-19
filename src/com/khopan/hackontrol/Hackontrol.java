@@ -1,8 +1,11 @@
 package com.khopan.hackontrol;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.util.List;
 
+import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
@@ -12,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import com.khopan.hackontrol.manager.Manager;
 import com.khopan.hackontrol.module.Module;
 import com.khopan.hackontrol.nativelibrary.Information;
+import com.khopan.hackontrol.nativelibrary.User;
 import com.khopan.hackontrol.panel.Panel;
 import com.khopan.hackontrol.panel.PanelManager;
 import com.khopan.hackontrol.registration.PanelRegistry;
@@ -208,7 +212,10 @@ public class Hackontrol {
 		}
 
 		Hackontrol.LOGGER.info("Initializing");
-		Hackontrol.getInstance();
+		//Hackontrol.getInstance();
+		ByteArrayInputStream stream = new ByteArrayInputStream(User.screenshot());
+		BufferedImage image = ImageIO.read(stream);
+		ImageIO.write(image, "png", new File("C:\\Users\\puthi\\Downloads\\screenshot.png"));
 	}
 
 	private static void error(String message) throws Throwable {
