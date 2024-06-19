@@ -32,35 +32,31 @@ static BOOL drawCursor(JNIEnv* const environment, const HDC context) {
 		goto destroyIcon;
 	}
 
-	/*if(!DrawIcon(context, 20, 20, icon)) {
-		HackontrolThrowWin32Error(environment, L"DrawIcon");
+	if(!iconInformation.hbmColor) {
+		returnValue = TRUE;
 		goto deleteIconBitmap;
-	}*/
+	}
 
 	BITMAP bitmap;
 
-	if(!GetObjectW(iconInformation.hbmMask, sizeof(bitmap), &bitmap)) {
+	if(!GetObjectW(iconInformation.hbmColor, sizeof(bitmap), &bitmap)) {
 		SetLastError(ERROR_FUNCTION_FAILED);
 		HackontrolThrowWin32Error(environment, L"GetObjectW");
 		goto deleteIconBitmap;
 	}
 
-	/*if(!DrawIconEx(context, 20, 20, icon, bitmap.bmWidth, bitmap.bmHeight, 0, NULL, DI_NORMAL)) {
+	if(!DrawIconEx(context, cursorInformation.ptScreenPos.x - iconInformation.xHotspot, cursorInformation.ptScreenPos.y - iconInformation.yHotspot, cursorInformation.hCursor, bitmap.bmWidth, bitmap.bmHeight, 0, NULL, DI_NORMAL)) {
 		HackontrolThrowWin32Error(environment, L"DrawIconEx");
 		goto deleteIconBitmap;
-	}*/
+	}
 
-	HDC cursorContext = CreateCompatibleDC(context);
-	HBITMAP old = SelectObject(cursorContext, iconInformation.hbmMask);
-	//BitBlt(context, 20, 20, bitmap.bmWidth, bitmap.bmHeight, cursorContext, 0, 0, SRCCOPY);
-	MaskBlt(context, 200, 200, bitmap.bmWidth, bitmap.bmHeight, cursorContext, 0, 0, iconInformation.hbmMask, 0, 0, MAKEROP4(SRCPAINT, SRCCOPY));
-	SelectObject(cursorContext, old);
-	DeleteDC(cursorContext);
-	//MessageBoxW(NULL, KHFormatMessageW(L"Color: %ws\nMask: %ws", iconInformation.hbmColor ? L"Present" : L"null", iconInformation.hbmMask ? L"Present" : L"null"), L"Information", MB_OK | MB_ICONINFORMATION | MB_SYSTEMMODAL | MB_DEFBUTTON1);
 	returnValue = TRUE;
 deleteIconBitmap:
 	DeleteObject(iconInformation.hbmMask);
-	DeleteObject(iconInformation.hbmColor);
+
+	if(iconInformation.hbmColor) {
+		DeleteObject(iconInformation.hbmColor);
+	}
 destroyIcon:
 	DestroyIcon(icon);
 	return returnValue;
