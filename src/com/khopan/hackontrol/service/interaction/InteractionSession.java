@@ -82,6 +82,7 @@ class InteractionSession {
 	}
 
 	static enum InteractionType {
-		BUTTON;
+		BUTTON,
+		MODAL;
 	}
 }

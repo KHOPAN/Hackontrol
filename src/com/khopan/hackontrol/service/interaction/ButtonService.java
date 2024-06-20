@@ -1,6 +1,5 @@
 package com.khopan.hackontrol.service.interaction;
 
-import java.util.Map;
 import java.util.function.Consumer;
 
 import com.khopan.hackontrol.Hackontrol;
@@ -15,7 +14,6 @@ import com.khopan.hackontrol.utils.interaction.HackontrolButton;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 public class ButtonService extends Service {
 	@Override
@@ -38,8 +36,7 @@ public class ButtonService extends Service {
 		MultiConsumer<ButtonContext> consumer = new MultiConsumer<>();
 
 		if(session == null) {
-			Map<Button, Consumer<ButtonContext>> map = this.panelManager.getRegistrable(Registration.BUTTON);
-			map.forEach((key, value) -> {
+			this.panelManager.getRegistrable(Registration.BUTTON).forEach((key, value) -> {
 				if(identifier.equals(key.getId())) {
 					consumer.add(value);
 				}
