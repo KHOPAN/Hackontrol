@@ -22,19 +22,19 @@ public class ControlPanel extends Panel {
 	private static final Button BUTTON_RESTART               = ButtonManager.staticButton(ButtonType.PRIMARY,   "Restart",    "restart");
 	private static final Button BUTTON_SHUTDOWN              = ButtonManager.staticButton(ButtonType.DANGER,    "Shutdown",   "shutdown");
 
+	private static final Button BUTTON_VOLUME                = ButtonManager.staticButton(ButtonType.SUCCESS,   "Volume",     "changeVolume");
+
 	private static final Button BUTTON_MICROPHONE_CONNECT    = ButtonManager.staticButton(ButtonType.SUCCESS,   "Connect",    "connectMicrophone");
 	private static final Button BUTTON_MICROPHONE_DISCONNECT = ButtonManager.staticButton(ButtonType.DANGER,    "Disconnect", "disconnectMicrophone");
-
-	private static final Button BUTTON_SCREEN_FREEZE         = ButtonManager.staticButton(ButtonType.SUCCESS,   "Freeze",     "screenFreeze");
-	private static final Button BUTTON_SCREEN_UNFREEZE       = ButtonManager.staticButton(ButtonType.DANGER,    "Unfreeze",   "screenUnfreeze");
-
-	private static final Button BUTTON_VOLUME                = ButtonManager.staticButton(ButtonType.SUCCESS,   "Volume",     "changeVolume");
 
 	private static final Button BUTTON_MUTE                  = ButtonManager.staticButton(ButtonType.SUCCESS,   "Mute",       "volumeMute");
 	private static final Button BUTTON_UNMUTE                = ButtonManager.staticButton(ButtonType.DANGER,    "Unmute",     "volumeUnmute");
 
 	private static final Button BUTTON_FORCE                 = ButtonManager.staticButton(ButtonType.SUCCESS,   "Force",      "volumeForce");
 	private static final Button BUTTON_UNFORCE               = ButtonManager.staticButton(ButtonType.DANGER,    "Unforce",    "volumeUnforce");
+
+	private static final Button BUTTON_SCREEN_FREEZE         = ButtonManager.staticButton(ButtonType.SUCCESS,   "Freeze",     "screenFreeze");
+	private static final Button BUTTON_SCREEN_UNFREEZE       = ButtonManager.staticButton(ButtonType.DANGER,    "Unfreeze",   "screenUnfreeze");
 
 	private final Microphone microphone;
 
@@ -53,15 +53,15 @@ public class ControlPanel extends Panel {
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_HIBERNATE,             context -> Question.positive(context.reply(), "Are you sure you want to hibernate?", QuestionType.YES_NO, Kernel :: hibernate));
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_RESTART,               context -> Question.positive(context.reply(), "Are you sure you want to restart?",   QuestionType.YES_NO, Kernel :: restart));
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_SHUTDOWN,              context -> Question.positive(context.reply(), "Are you sure you want to shutdown?",  QuestionType.YES_NO, Kernel :: shutdown));
+		this.register(Registration.BUTTON, ControlPanel.BUTTON_VOLUME,                context -> {});
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_MICROPHONE_CONNECT,    this.microphone :: connect);
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_MICROPHONE_DISCONNECT, this.microphone :: disconnect);
-		this.register(Registration.BUTTON, ControlPanel.BUTTON_SCREEN_FREEZE,         context -> this.buttonFreeze(context, true));
-		this.register(Registration.BUTTON, ControlPanel.BUTTON_SCREEN_UNFREEZE,       context -> this.buttonFreeze(context, false));
-		this.register(Registration.BUTTON, ControlPanel.BUTTON_VOLUME,                context -> {});
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_MUTE,                  context -> {});
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_UNMUTE,                context -> {});
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_FORCE,                 context -> {});
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_UNFORCE,               context -> {});
+		this.register(Registration.BUTTON, ControlPanel.BUTTON_SCREEN_FREEZE,         context -> this.buttonFreeze(context, true));
+		this.register(Registration.BUTTON, ControlPanel.BUTTON_SCREEN_UNFREEZE,       context -> this.buttonFreeze(context, false));
 	}
 
 	@Override
@@ -72,18 +72,15 @@ public class ControlPanel extends Panel {
 				.actionRow(ControlPanel.BUTTON_SLEEP, ControlPanel.BUTTON_HIBERNATE, ControlPanel.BUTTON_RESTART, ControlPanel.BUTTON_SHUTDOWN)
 				.build(),
 				ControlWidget.newBuilder()
-				.text("**Microphone**")
+				.text("**Sound**")
+				.actionRow(ControlPanel.BUTTON_VOLUME)
 				.actionRow(ControlPanel.BUTTON_MICROPHONE_CONNECT, ControlPanel.BUTTON_MICROPHONE_DISCONNECT)
+				.actionRow(ControlPanel.BUTTON_MUTE, ControlPanel.BUTTON_UNMUTE)
+				.actionRow(ControlPanel.BUTTON_FORCE, ControlPanel.BUTTON_UNFORCE)
 				.build(),
 				ControlWidget.newBuilder()
 				.text("**Screen**")
 				.actionRow(ControlPanel.BUTTON_SCREEN_FREEZE, ControlPanel.BUTTON_SCREEN_UNFREEZE)
-				.build(),
-				ControlWidget.newBuilder()
-				.text("**Volume**")
-				.actionRow(ControlPanel.BUTTON_VOLUME)
-				.actionRow(ControlPanel.BUTTON_MUTE, ControlPanel.BUTTON_UNMUTE)
-				.actionRow(ControlPanel.BUTTON_FORCE, ControlPanel.BUTTON_UNFORCE)
 				.build()
 		};
 	}
