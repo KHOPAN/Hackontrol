@@ -22,7 +22,7 @@ public class HackontrolPanel extends Panel {
 
 	@Override
 	public void registeration() {
-		this.register(Registration.BUTTON, HackontrolPanel.BUTTON_PING, context -> HackontrolMessage.deletable(context.reply(), "**Status: Ok**"));
+		this.register(Registration.BUTTON, HackontrolPanel.BUTTON_PING, context -> HackontrolMessage.deletable(context.reply(), this.getOnlineText(System.currentTimeMillis())));
 	}
 
 	@Override
@@ -36,7 +36,11 @@ public class HackontrolPanel extends Panel {
 
 	@Override
 	public void initialize() {
-		long time = Hackontrol.STARTUP_TIME / 1000L;
-		this.channel.sendMessage("**Online: <t:" + time + ":f> (<t:" + time + ":R>) (" + Information.getUserName() + ") (" + (Information.isEnabledUIAccess() ? "" : "No ") + "UI Access)**").queue();
+		this.channel.sendMessage(this.getOnlineText(Hackontrol.STARTUP_TIME)).queue();
+	}
+
+	private String getOnlineText(long time) {
+		time /= 1000L;
+		return "**Online: <t:" + time + ":f> (<t:" + time + ":R>) (" + Information.getUserName() + ") (" + (Information.isEnabledUIAccess() ? "" : "No ") + "UI Access)**";
 	}
 }
