@@ -56,7 +56,7 @@ public class ControlPanel extends Panel {
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_HIBERNATE,             context -> Question.positive(context.reply(), "Are you sure you want to hibernate?", QuestionType.YES_NO, Kernel :: hibernate));
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_RESTART,               context -> Question.positive(context.reply(), "Are you sure you want to restart?",   QuestionType.YES_NO, Kernel :: restart));
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_SHUTDOWN,              context -> Question.positive(context.reply(), "Are you sure you want to shutdown?",  QuestionType.YES_NO, Kernel :: shutdown));
-		this.register(Registration.BUTTON, ControlPanel.BUTTON_VOLUME,                context -> {});
+		this.register(Registration.BUTTON, ControlPanel.BUTTON_VOLUME,                this.sound :: volume);
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_MICROPHONE_CONNECT,    this.microphone :: connect);
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_MICROPHONE_DISCONNECT, this.microphone :: disconnect);
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_MUTE,                  this.sound :: mute);
@@ -65,6 +65,7 @@ public class ControlPanel extends Panel {
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_UNFORCE,               this.sound :: unforce);
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_SCREEN_FREEZE,         context -> this.buttonFreeze(context, true));
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_SCREEN_UNFREEZE,       context -> this.buttonFreeze(context, false));
+		this.register(Registration.MODAL,  Sound.MODAL_IDENTIFIER,                    this.sound :: volumeModal);
 	}
 
 	@Override
