@@ -2,7 +2,9 @@ package com.khopan.hackontrol.manager.interaction;
 
 import java.util.function.Consumer;
 
-import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
+import com.khopan.hackontrol.service.interaction.ButtonManager;
+import com.khopan.hackontrol.service.interaction.ButtonManager.ButtonType;
+import com.khopan.hackontrol.service.interaction.InteractionManager;
 import com.khopan.hackontrol.utils.HackontrolMessage;
 import com.khopan.hackontrol.utils.sendable.ISendable;
 
