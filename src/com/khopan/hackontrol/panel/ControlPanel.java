@@ -1,11 +1,14 @@
 package com.khopan.hackontrol.panel;
 
+import com.khopan.hackontrol.handler.KeyboardHandler;
+import com.khopan.hackontrol.manager.interaction.ButtonContext;
 import com.khopan.hackontrol.manager.interaction.ButtonManager;
 import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.manager.interaction.Question;
 import com.khopan.hackontrol.manager.interaction.Question.QuestionType;
 import com.khopan.hackontrol.nativelibrary.Kernel;
 import com.khopan.hackontrol.registry.Registration;
+import com.khopan.hackontrol.utils.HackontrolMessage;
 import com.khopan.hackontrol.utils.Microphone;
 import com.khopan.hackontrol.widget.ControlWidget;
 
@@ -44,8 +47,8 @@ public class ControlPanel extends Panel {
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_SHUTDOWN,              context -> Question.positive(context.reply(), "Are you sure you want to shutdown?",  QuestionType.YES_NO, Kernel :: shutdown));
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_MICROPHONE_CONNECT,    this.microphone :: connect);
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_MICROPHONE_DISCONNECT, this.microphone :: disconnect);
-		this.register(Registration.BUTTON, ControlPanel.BUTTON_SCREEN_FREEZE,         context -> {});
-		this.register(Registration.BUTTON, ControlPanel.BUTTON_SCREEN_UNFREEZE,       context -> {});
+		this.register(Registration.BUTTON, ControlPanel.BUTTON_SCREEN_FREEZE,         context -> this.buttonFreeze(context, true));
+		this.register(Registration.BUTTON, ControlPanel.BUTTON_SCREEN_UNFREEZE,       context -> this.buttonFreeze(context, false));
 	}
 
 	@Override
@@ -64,5 +67,25 @@ public class ControlPanel extends Panel {
 				.actionRow(ControlPanel.BUTTON_SCREEN_FREEZE, ControlPanel.BUTTON_SCREEN_UNFREEZE)
 				.build()
 		};
+	}
+
+	private void buttonFreeze(ButtonContext context, boolean freeze) {
+		if(KeyboardHandler.Freeze == freeze) {
+			HackontrolMessage.boldDeletable(context.reply(), "The screen is already " + (freeze ? "frozen" : "unfrozen"));
+			return;
+		}
+
+		if(!freeze) {
+			Question.positive(context.reply(), "Are you sure you want to unfreeze the screen?", QuestionType.YES_NO, () -> this.freeze(false));
+			return;
+		}
+
+		this.freeze(true);
+		context.deferEdit().queue();
+	}
+
+	private void freeze(boolean freeze) {
+		KeyboardHandler.Freeze = freeze;
+		Kernel.setFreeze(freeze);
 	}
 }
