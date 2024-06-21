@@ -73,7 +73,7 @@
       <Filter>Source Files\Information</Filter>
     </ClCompile>
     <ClCompile Include="User_screenshot.c">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\User</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
