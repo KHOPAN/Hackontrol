@@ -117,7 +117,7 @@ public class CameraModule extends Module {
 		TimeSafeReplyHandler.start(context, consumer -> {
 			try {
 				MessageCreateBuilder builder = new MessageCreateBuilder();
-				builder.setFiles(ScreenshotModule.uploadImage(this.selectedCamera.capture(), "capture"));
+				//builder.setFiles(ScreenshotModule.uploadImage(this.selectedCamera.capture(), "capture"));
 				builder.addActionRow(CameraModule.BUTTON_CAPTURE, HackontrolButton.delete());
 				consumer.accept(builder.build());
 			} catch(Throwable Errors) {
