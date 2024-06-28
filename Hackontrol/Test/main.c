@@ -1,30 +1,28 @@
 #include <khopanwin32.h>
-#include <jni.h>
-
-typedef jint(__stdcall* CreateJavaVMFunction) (JavaVM** virtualMachine, void** environment, void* arguments);
 
 int main(int argc, char** argv) {
-	HMODULE libraryJava = LoadLibraryW(L"C:\\Program Files\\Java\\jdk-21\\bin\\server\\jvm.dll");
+	HKEY key;
+	LSTATUS error = RegCreateKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\KHOPAN", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_SET_VALUE, NULL, &key, NULL);
 
-	if(!libraryJava) {
-		KHWin32ConsoleErrorW(GetLastError(), L"LoadLibraryW");
+	if(error) {
+		KHWin32ConsoleErrorW(error, L"RegCreateKeyExW");
 		return 1;
 	}
 
-	CreateJavaVMFunction createJavaVM = (CreateJavaVMFunction) GetProcAddress(libraryJava, "JNI_CreateJavaVM");
 	int returnValue = 1;
 
-	if(!createJavaVM) {
-		KHWin32ConsoleErrorW(GetLastError(), L"GetProcAddress");
-		goto freeLibraryJava;
+	if(!KHWin32RegistrySetStringValueW(key, NULL, L"Hello, world!")) {
+		KHWin32ConsoleErrorW(GetLastError(), L"KHWin32RegistrySetStringValueW");
+		goto closeKey;
+	}
+
+	if(!KHWin32RegistrySetStringValueW(key, L"TestKey", L"Test key value")) {
+		KHWin32ConsoleErrorW(GetLastError(), L"KHWin32RegistrySetStringValueW");
+		goto closeKey;
 	}
 
 	returnValue = 0;
-freeLibraryJava:
-	if(!FreeLibrary(libraryJava)) {
-		KHWin32ConsoleErrorW(GetLastError(), L"LoadLibraryW");
-		return 1;
-	}
-
+closeKey:
+	RegCloseKey(key);
 	return returnValue;
 }

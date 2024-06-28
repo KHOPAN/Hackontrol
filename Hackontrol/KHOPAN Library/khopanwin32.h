@@ -31,6 +31,8 @@ BOOL KHWin32ExecuteRundll32FunctionA(const LPSTR moduleName, const LPSTR functio
 BOOL KHWin32ExecuteRundll32FunctionW(const LPWSTR moduleName, const LPSTR functionName, LPSTR argument, BOOL threaded);
 BOOL KHWin32EnablePrivilegeA(const LPSTR privilege);
 BOOL KHWin32EnablePrivilegeW(const LPWSTR privilege);
+BOOL KHWin32RegistrySetStringValueA(const HKEY key, const LPSTR valueName, const LPSTR value);
+BOOL KHWin32RegistrySetStringValueW(const HKEY key, const LPWSTR valueName, const LPWSTR value);
 DWORD KHWin32DecodeHRESULTError(HRESULT result);
 #ifdef __cplusplus
 }

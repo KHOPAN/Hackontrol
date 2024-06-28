@@ -150,6 +150,7 @@
     <ClCompile Include="khopanwin32.c" />
     <ClCompile Include="khopanwin32_privilege.c" />
     <ClCompile Include="khopanwin32_process.c" />
+    <ClCompile Include="khopanwin32_registry.c" />
     <ClCompile Include="khopanwin32_rundll32_function.c" />
   </ItemGroup>
   <ItemGroup>
