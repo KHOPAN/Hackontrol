@@ -6,9 +6,9 @@ import java.util.Base64;
 import java.util.List;
 
 import com.khopan.hackontrol.manager.interaction.ButtonContext;
-import com.khopan.hackontrol.manager.interaction.ButtonManager;
-import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.security.Permissive;
+import com.khopan.hackontrol.service.interaction.ButtonManager;
+import com.khopan.hackontrol.service.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.utils.HackontrolPermission;
 
 import net.dv8tion.jda.api.entities.Member;

@@ -7,10 +7,12 @@ import java.util.List;
 import com.khopan.hackontrol.manager.interaction.ButtonManager;
 import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.registry.Registration;
-import com.khopan.hackontrol.utils.HackontrolMessage;
-import com.khopan.hackontrol.utils.sendable.ISendable;
+import com.khopan.hackontrol.utils.LargeMessage;
+import com.khopan.hackontrol.utils.interaction.HackontrolButton;
 import com.khopan.hackontrol.widget.ControlWidget;
 
+import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
+import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 public class FilePanel extends Panel {
@@ -27,7 +29,7 @@ public class FilePanel extends Panel {
 
 	@Override
 	public void registeration() {
-		this.register(Registration.BUTTON, FilePanel.BUTTON_LIST_ROOT, context -> this.sendFileList(new File("D:\\GitHub Repository\\Hackontrol"), context.reply()));
+		this.register(Registration.BUTTON, FilePanel.BUTTON_LIST_ROOT, context -> this.sendFileList(new File("D:\\"), context));
 	}
 
 	@Override
@@ -39,7 +41,7 @@ public class FilePanel extends Panel {
 		};
 	}
 
-	private void sendFileList(File folder, ISendable sender) {
+	private void sendFileList(File folder, IReplyCallback callback) {
 		File[] files;
 		String pathName;
 
@@ -53,10 +55,14 @@ public class FilePanel extends Panel {
 
 			files = folder.listFiles();
 			pathName = folder.getAbsolutePath();
+
+			if(pathName.endsWith("\\")) {
+				pathName += '\\';
+			}
 		}
 
 		if(files.length == 1 && files[0].isDirectory()) {
-			this.sendFileList(files[0], sender);
+			this.sendFileList(files[0], callback);
 			return;
 		}
 
@@ -101,6 +107,10 @@ public class FilePanel extends Panel {
 			builder.append('`');
 		}
 
-		HackontrolMessage.deletable(sender, builder.toString());
+		LargeMessage.send(builder.toString(), callback, (request, identifiers) -> {
+			List<ItemComponent> list = new ArrayList<>();
+			list.add(HackontrolButton.delete(identifiers));
+			request.addActionRow(list);
+		});
 	}
 }
