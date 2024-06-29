@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.khopan.hackontrol.manager.interaction.ButtonContext;
 import com.khopan.hackontrol.registry.Registration;
 import com.khopan.hackontrol.service.interaction.ButtonManager;
 import com.khopan.hackontrol.service.interaction.ButtonManager.ButtonType;
@@ -29,7 +30,7 @@ public class FilePanel extends Panel {
 
 	@Override
 	public void registeration() {
-		this.register(Registration.BUTTON, FilePanel.BUTTON_LIST_ROOT, context -> this.sendFileList(new File("D:\\"), context));
+		this.register(Registration.BUTTON, FilePanel.BUTTON_LIST_ROOT, context -> this.sendFileList(new File("D:\\VMImage"), context));
 	}
 
 	@Override
@@ -110,6 +111,11 @@ public class FilePanel extends Panel {
 		File finalFolder = folder;
 		LargeMessage.send(builder.toString(), callback, (request, identifiers) -> {
 			List<ItemComponent> list = new ArrayList<>();
+
+			if(!folderList.isEmpty()) {
+				list.add(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Inside", context -> this.buttonInside(context, fileList, folderList)));
+			}
+
 			list.add(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Refresh", context -> {
 				this.sendFileList(finalFolder, context);
 				HackontrolButton.deleteMessages(context);
@@ -118,5 +124,13 @@ public class FilePanel extends Panel {
 			list.add(HackontrolButton.delete(identifiers));
 			request.addActionRow(list);
 		});
+	}
+
+	private void buttonInside(ButtonContext context, List<File> fileList, List<File> folderList) {
+		if(folderList.size() == 1) {
+			this.sendFileList(folderList.get(0), context);
+			HackontrolButton.deleteMessages(context);
+			return;
+		}
 	}
 }
