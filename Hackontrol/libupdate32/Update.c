@@ -40,11 +40,11 @@ __declspec(dllexport) void __stdcall Update(HWND window, HINSTANCE instance, LPS
 
 	DataStream stream = {0};
 	CURLcode code;
-	BOOL result = HackontrolDownloadData(&stream, downloadUrl, FALSE, &code);
+	BOOL result = HackontrolForceDownload(&stream, downloadUrl, FALSE);
 	LocalFree(downloadUrl);
 
 	if(!result) {
-		KHCURLDialogErrorW(code, L"HackontrolDownloadData");
+		KHWin32DialogErrorW(GetLastError(), L"HackontrolForceDownload");
 		return;
 	}
 

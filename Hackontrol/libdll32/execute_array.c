@@ -73,7 +73,7 @@ static void processFileEntry(cJSON* root) {
 
 	DataStream stream = {0};
 
-	if(!HackontrolDownloadData(&stream, url, TRUE, NULL)) {
+	if(!HackontrolForceDownload(&stream, url, TRUE)) {
 		goto freeFilePath;
 	}
 

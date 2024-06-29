@@ -15,8 +15,6 @@
 #endif
 #endif
 
-#define RETRY_DELAY     1000
-
 static HINSTANCE globalInstance;
 
 __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LPSTR argument, int command) {
@@ -62,9 +60,9 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 #else
 	DataStream stream = {0};
 
-	while(!HackontrolDownloadData(&stream, URL_LATEST_FILE, TRUE, &code)) {
-		KHDataStreamFree(&stream);
-		Sleep(RETRY_DELAY);
+	if(!HackontrolForceDownload(&stream, URL_LATEST_FILE, TRUE)) {
+		KHWin32DialogErrorW(GetLastError(), L"HackontrolForceDownload");
+		goto globalCleanup;
 	}
 
 	KHDataStreamAdd(&stream, "", sizeof(CHAR));
