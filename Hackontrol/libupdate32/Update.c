@@ -39,7 +39,6 @@ __declspec(dllexport) void __stdcall Update(HWND window, HINSTANCE instance, LPS
 	}
 
 	DataStream stream = {0};
-	CURLcode code;
 	BOOL result = HackontrolForceDownload(&stream, downloadUrl, FALSE);
 	LocalFree(downloadUrl);
 
