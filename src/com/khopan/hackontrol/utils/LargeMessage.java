@@ -5,7 +5,7 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.khopan.hackontrol.manager.interaction.InteractionManager;
+import com.khopan.hackontrol.service.interaction.InteractionManager;
 import com.khopan.hackontrol.utils.sendable.ISendable;
 import com.khopan.hackontrol.utils.sendable.sender.ReplyCallbackSendable;
 

