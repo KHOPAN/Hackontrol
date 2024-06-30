@@ -84,7 +84,7 @@ public class FilePanel extends Panel {
 		builder.append("**");
 		int index = 0;
 
-		if(!folderList.isEmpty()) {
+		if(!fileList.isEmpty()) {
 			builder.append("\n***File***");
 		}
 
