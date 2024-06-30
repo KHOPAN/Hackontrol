@@ -2,7 +2,7 @@ package com.khopan.hackontrol.utils;
 
 import java.util.function.Consumer;
 
-import com.khopan.hackontrol.manager.interaction.InteractionManager;
+import com.khopan.hackontrol.service.interaction.InteractionManager;
 
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.interactions.InteractionHook;

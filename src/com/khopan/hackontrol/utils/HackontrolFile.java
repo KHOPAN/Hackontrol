@@ -1,5 +1,8 @@
 package com.khopan.hackontrol.utils;
 
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -9,6 +12,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
+import javax.imageio.ImageIO;
+import javax.swing.Icon;
+import javax.swing.JPanel;
+import javax.swing.filechooser.FileSystemView;
 
 import net.dv8tion.jda.api.utils.FileUpload;
 
@@ -90,6 +98,56 @@ public class HackontrolFile {
 		} catch(Throwable Errors) {
 			throw new RuntimeException(Errors);
 		}
+	}
+
+	public static BufferedImage getFileImage(File file, int width, int height) {
+		if(file == null) {
+			throw new NullPointerException("File cannot be null");
+		}
+
+		try {
+			BufferedImage image = ImageIO.read(file);
+
+			if(image == null) {
+				throw new RuntimeException();
+			}
+
+			int imageWidth = image.getWidth();
+			int imageHeight = image.getHeight();
+			int newWidth = 0;
+			int newHeight = 0;
+
+			if(imageWidth > imageHeight) {
+				newWidth = width;
+				newHeight = (int) Math.round(((double) imageHeight) / ((double) imageWidth) * ((double) width));
+			} else {
+				newWidth = (int) Math.round(((double) imageWidth) / ((double) imageHeight) * ((double) height));
+				newHeight = height;
+			}
+
+			BufferedImage result = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
+			Graphics2D Graphics = result.createGraphics();
+			Graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			Graphics.drawImage(image.getScaledInstance(newWidth, newHeight, BufferedImage.SCALE_SMOOTH), 0, 0, null);
+			Graphics.dispose();
+			return result;
+		} catch(Throwable Errors) {
+
+		}
+
+		FileSystemView view = FileSystemView.getFileSystemView();
+		Icon icon = view.getSystemIcon(file, width, height);
+
+		if(icon == null) {
+			return null;
+		}
+
+		BufferedImage image = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
+		Graphics2D Graphics = image.createGraphics();
+		Graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		icon.paintIcon(new JPanel(), Graphics, 0, 0);
+		Graphics.dispose();
+		return image;
 	}
 
 	private static void retrieveFileList(List<File> list, File root) {
