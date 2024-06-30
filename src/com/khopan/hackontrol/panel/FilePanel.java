@@ -57,7 +57,7 @@ public class FilePanel extends Panel {
 
 	@Override
 	public void registeration() {
-		this.register(Registration.BUTTON, FilePanel.BUTTON_LIST_ROOT, context -> this.sendFileList(new File("D:\\VMImage"), context));
+		this.register(Registration.BUTTON, FilePanel.BUTTON_LIST_ROOT, context -> this.sendFileList(new File("D:\\VMImage"), context, null));
 	}
 
 	@Override
@@ -69,7 +69,7 @@ public class FilePanel extends Panel {
 		};
 	}
 
-	private void sendFileList(File folder, IReplyCallback callback) {
+	private void sendFileList(File folder, IReplyCallback callback, ButtonContext deletingContext) {
 		File[] files;
 		String pathName;
 
@@ -90,7 +90,7 @@ public class FilePanel extends Panel {
 		}
 
 		if(files.length == 1 && files[0].isDirectory()) {
-			this.sendFileList(files[0], callback);
+			this.sendFileList(files[0], callback, deletingContext);
 			return;
 		}
 
@@ -120,20 +120,17 @@ public class FilePanel extends Panel {
 			}
 
 			if(finalFolder != null) {
-				list.add(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Return", context -> {
-					this.sendFileList(finalFolder.getParentFile(), context);
-					HackontrolButton.deleteMessages(context);
-				}));
+				list.add(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Return", context -> this.sendFileList(finalFolder.getParentFile(), context, context)));
 			}
 
-			list.add(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Refresh", context -> {
-				this.sendFileList(finalFolder, context);
-				HackontrolButton.deleteMessages(context);
-			}));
-
+			list.add(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Refresh", context -> this.sendFileList(finalFolder, context, context)));
 			list.add(HackontrolButton.delete(identifiers));
 			request.addActionRow(list);
 		});
+
+		if(deletingContext != null) {
+			HackontrolButton.deleteMessages(deletingContext);
+		}
 	}
 
 	private void sendFileView(File file, Consumer<MessageCreateData> consumer) {
@@ -252,8 +249,7 @@ public class FilePanel extends Panel {
 
 	private void buttonInside(ButtonContext context, List<File> folderList) {
 		if(folderList.size() == 1) {
-			this.sendFileList(folderList.get(0), context);
-			HackontrolButton.deleteMessages(context);
+			this.sendFileList(folderList.get(0), context, context);
 			return;
 		}
 
@@ -262,8 +258,7 @@ public class FilePanel extends Panel {
 			int index = this.parseIndex(modalContext, size);
 
 			if(index != -1) {
-				this.sendFileList(folderList.get(index), modalContext);
-				HackontrolButton.deleteMessages(context);
+				this.sendFileList(folderList.get(index), modalContext, context);
 			}
 		}).addActionRow(TextInput.create(FilePanel.KEY_SHELL_OBJECT_INDEX, "Folder Index", TextInputStyle.SHORT).setRequired(true).setMinLength(1).setMaxLength(Integer.toString(size).length()).setPlaceholder("1 - " + size).build()).build()).queue();
 	}
