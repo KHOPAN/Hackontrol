@@ -91,7 +91,7 @@ public class FilePanel extends Panel {
 		int index = 0;
 
 		if(!folderList.isEmpty()) {
-			builder.append("\n***Folder***");
+			this.appendShellObjectCount(builder, "Folder", folderList.size());
 		}
 
 		for(File file : folderList) {
@@ -103,7 +103,7 @@ public class FilePanel extends Panel {
 		}
 
 		if(!fileList.isEmpty()) {
-			builder.append("\n***File***");
+			this.appendShellObjectCount(builder, "File", fileList.size());
 		}
 
 		for(File file : fileList) {
@@ -137,6 +137,25 @@ public class FilePanel extends Panel {
 			list.add(HackontrolButton.delete(identifiers));
 			request.addActionRow(list);
 		});
+	}
+
+	private void appendShellObjectCount(StringBuilder builder, String name, int count) {
+		builder.append("\n***");
+		builder.append(name);
+
+		if(count != 1) {
+			builder.append('s');
+		}
+
+		builder.append(" (");
+		builder.append(count);
+		builder.append(" item");
+
+		if(count != 1) {
+			builder.append('s');
+		}
+
+		builder.append(")***");
 	}
 
 	private void buttonInside(ButtonContext context, List<File> folderList) {
