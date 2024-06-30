@@ -88,32 +88,7 @@ public class FilePanel extends Panel {
 		builder.append("**");
 		builder.append(pathName);
 		builder.append("**");
-		int index = 0;
-
-		if(!folderList.isEmpty()) {
-			this.appendShellObjectCount(builder, "Folder", folderList.size());
-		}
-
-		for(File file : folderList) {
-			builder.append("\n`");
-			builder.append(++index);
-			builder.append(") ");
-			builder.append(folder == null ? file.getAbsolutePath() : file.getName());
-			builder.append('`');
-		}
-
-		if(!fileList.isEmpty()) {
-			this.appendShellObjectCount(builder, "File", fileList.size());
-		}
-
-		for(File file : fileList) {
-			builder.append("\n`");
-			builder.append(++index);
-			builder.append(") ");
-			builder.append(file.getName());
-			builder.append('`');
-		}
-
+		this.appendShellObject(builder, "File", fileList, this.appendShellObject(builder, "Folder", folderList, 0, folder == null), false);
 		File finalFolder = folder;
 		LargeMessage.send(builder.toString(), callback, (request, identifiers) -> {
 			List<ItemComponent> list = new ArrayList<>();
@@ -139,23 +114,38 @@ public class FilePanel extends Panel {
 		});
 	}
 
-	private void appendShellObjectCount(StringBuilder builder, String name, int count) {
+	private int appendShellObject(StringBuilder builder, String name, List<File> list, int index, boolean absolute) {
+		if(list.isEmpty()) {
+			return index;
+		}
+
+		int size = list.size();
 		builder.append("\n***");
 		builder.append(name);
 
-		if(count != 1) {
+		if(size != 1) {
 			builder.append('s');
 		}
 
 		builder.append(" (");
-		builder.append(count);
+		builder.append(size);
 		builder.append(" item");
 
-		if(count != 1) {
+		if(size != 1) {
 			builder.append('s');
 		}
 
 		builder.append(")***");
+
+		for(File file : list) {
+			builder.append("\n`");
+			builder.append(++index);
+			builder.append(") ");
+			builder.append(absolute ? file.getAbsolutePath() : file.getName());
+			builder.append('`');
+		}
+
+		return index;
 	}
 
 	private void buttonInside(ButtonContext context, List<File> folderList) {
