@@ -6,7 +6,6 @@ import com.khopan.hackontrol.module.DialogModule;
 import com.khopan.hackontrol.module.ProcessModule;
 import com.khopan.hackontrol.module.command.CommandModule;
 import com.khopan.hackontrol.module.control.ControlModule;
-import com.khopan.hackontrol.module.file.FileModule;
 import com.khopan.hackontrol.module.keylogger.KeyLoggerModule;
 import com.khopan.hackontrol.registry.Registry;
 
@@ -18,7 +17,6 @@ public class ModuleRegistry {
 		registry.register(Hackontrol.MODULE_REGISTRY, CommandModule.class);
 		registry.register(Hackontrol.MODULE_REGISTRY, ControlModule.class);
 		registry.register(Hackontrol.MODULE_REGISTRY, DialogModule.class);
-		registry.register(Hackontrol.MODULE_REGISTRY, FileModule.class);
 		registry.register(Hackontrol.MODULE_REGISTRY, KeyLoggerModule.class);
 		registry.register(Hackontrol.MODULE_REGISTRY, ProcessModule.class);
 	}
