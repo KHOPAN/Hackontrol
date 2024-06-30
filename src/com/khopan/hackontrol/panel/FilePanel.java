@@ -9,6 +9,7 @@ import com.khopan.hackontrol.registry.Registration;
 import com.khopan.hackontrol.service.interaction.ButtonManager;
 import com.khopan.hackontrol.service.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.service.interaction.ModalManager;
+import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.LargeMessage;
 import com.khopan.hackontrol.utils.interaction.HackontrolButton;
 import com.khopan.hackontrol.widget.ControlWidget;
@@ -22,9 +23,10 @@ import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 public class FilePanel extends Panel {
 	private static final String PANEL_NAME = "file";
 
-	private static final Button BUTTON_LIST_ROOT     = ButtonManager.staticButton(ButtonType.SUCCESS, "List Root", "listRoot");
+	private static final Button BUTTON_LIST_ROOT       = ButtonManager.staticButton(ButtonType.SUCCESS, "List Root", "listRoot");
 
-	private static final String PATHNAME_SYSTEM_ROOT = "SYSTEMROOT";
+	private static final String PATHNAME_SYSTEM_ROOT   = "SYSTEMROOT";
+	private static final String KEY_SHELL_OBJECT_INDEX = "shellObjectIndex";
 
 	@Override
 	public String panelName() {
@@ -138,7 +140,7 @@ public class FilePanel extends Panel {
 
 		int start = 1;
 		int end = folderList.size();
-		TextInput fileIndexInput = TextInput.create("fileIndex", "File Index", TextInputStyle.SHORT)
+		TextInput folderInput = TextInput.create(FilePanel.KEY_SHELL_OBJECT_INDEX, "Folder Index", TextInputStyle.SHORT)
 				.setRequired(true)
 				.setMinLength(Integer.toString(start).length())
 				.setMaxLength(Integer.toString(end).length())
@@ -146,7 +148,21 @@ public class FilePanel extends Panel {
 				.build();
 
 		context.replyModal(ModalManager.dynamicModal("Inside", modalContext -> {
-			modalContext.deferEdit().queue();
-		}).addActionRow(fileIndexInput).build()).queue();
+			int index;
+
+			try {
+				index = Integer.parseInt(modalContext.getValue(FilePanel.KEY_SHELL_OBJECT_INDEX).getAsString());
+			} catch(Throwable Errors) {
+				HackontrolError.message(modalContext.reply(), "Invalid number format");
+				return;
+			}
+
+			if(index < 1 || index > end) {
+				HackontrolError.message(modalContext.reply(), "Index " + index + " out of bounds, expected " + start + " - " + end);
+				return;
+			}
+
+			modalContext.reply("Index: " + index).queue();
+		}).addActionRow(folderInput).build()).queue();
 	}
 }
