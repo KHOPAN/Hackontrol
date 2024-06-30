@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.khopan.hackontrol.manager.interaction.ButtonContext;
+import com.khopan.hackontrol.manager.interaction.ModalContext;
 import com.khopan.hackontrol.registry.Registration;
 import com.khopan.hackontrol.service.interaction.ButtonManager;
 import com.khopan.hackontrol.service.interaction.ButtonManager.ButtonType;
@@ -145,32 +146,32 @@ public class FilePanel extends Panel {
 			return;
 		}
 
-		int start = 1;
-		int end = folderList.size();
-		TextInput folderInput = TextInput.create(FilePanel.KEY_SHELL_OBJECT_INDEX, "Folder Index", TextInputStyle.SHORT)
-				.setRequired(true)
-				.setMinLength(Integer.toString(start).length())
-				.setMaxLength(Integer.toString(end).length())
-				.setPlaceholder(start + " - " + end)
-				.build();
-
+		int size = folderList.size();
 		context.replyModal(ModalManager.dynamicModal("Inside", modalContext -> {
-			int index;
+			int index = this.parseIndex(modalContext, size);
 
-			try {
-				index = Integer.parseInt(modalContext.getValue(FilePanel.KEY_SHELL_OBJECT_INDEX).getAsString());
-			} catch(Throwable Errors) {
-				HackontrolError.message(modalContext.reply(), "Invalid number format");
-				return;
+			if(index != -1) {
+				this.sendFileList(folderList.get(index), modalContext);
+				HackontrolButton.deleteMessages(context);
 			}
+		}).addActionRow(TextInput.create(FilePanel.KEY_SHELL_OBJECT_INDEX, "Folder Index", TextInputStyle.SHORT).setRequired(true).setMinLength(1).setMaxLength(Integer.toString(size).length()).setPlaceholder("1 - " + size).build()).build()).queue();
+	}
 
-			if(index < 1 || index > end) {
-				HackontrolError.message(modalContext.reply(), "Index " + index + " out of bounds, expected " + start + " - " + end);
-				return;
-			}
+	private int parseIndex(ModalContext context, int maximum) {
+		int index;
 
-			this.sendFileList(folderList.get(index - 1), modalContext);
-			HackontrolButton.deleteMessages(context);
-		}).addActionRow(folderInput).build()).queue();
+		try {
+			index = Integer.parseInt(context.getValue(FilePanel.KEY_SHELL_OBJECT_INDEX).getAsString());
+		} catch(Throwable Errors) {
+			HackontrolError.message(context.reply(), "Invalid number format");
+			return -1;
+		}
+
+		if(index < 1 || index > maximum) {
+			HackontrolError.message(context.reply(), "Index " + index + " out of bounds, expected 1 - " + maximum);
+			return -1;
+		}
+
+		return index - 1;
 	}
 }
