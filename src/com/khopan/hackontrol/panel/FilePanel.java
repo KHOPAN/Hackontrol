@@ -139,8 +139,13 @@ public class FilePanel extends Panel {
 			return;
 		}
 
+		int start = 1;
+		int end = folderList.size();
 		TextInput fileIndexInput = TextInput.create("fileIndex", "File Index", TextInputStyle.SHORT)
 				.setRequired(true)
+				.setMinLength(Integer.toString(start).length())
+				.setMaxLength(Integer.toString(end).length())
+				.setPlaceholder(start + " - " + end)
 				.build();
 
 		Modal modal = Modal.create(FilePanel.MODAL_INSIDE, "Inside")
