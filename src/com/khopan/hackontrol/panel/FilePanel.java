@@ -48,7 +48,6 @@ public class FilePanel extends Panel {
 
 	private static final Button BUTTON_LIST_ROOT       = ButtonManager.staticButton(ButtonType.SUCCESS, "List Root", "listRoot");
 
-	private static final String PATHNAME_SYSTEM_ROOT   = "SYSTEMROOT";
 	private static final String KEY_SHELL_OBJECT_INDEX = "shellObjectIndex";
 
 	@Override
@@ -76,7 +75,7 @@ public class FilePanel extends Panel {
 
 		if(folder == null) {
 			files = File.listRoots();
-			pathName = FilePanel.PATHNAME_SYSTEM_ROOT;
+			pathName = "SYSTEMROOT";
 		} else {
 			if(!folder.isDirectory()) {
 				folder = folder.getParentFile();
