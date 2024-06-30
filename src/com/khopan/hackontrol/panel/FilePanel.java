@@ -162,7 +162,8 @@ public class FilePanel extends Panel {
 				return;
 			}
 
-			modalContext.reply("Index: " + index).queue();
+			this.sendFileList(folderList.get(index - 1), modalContext);
+			HackontrolButton.deleteMessages(context);
 		}).addActionRow(folderInput).build()).queue();
 	}
 }
