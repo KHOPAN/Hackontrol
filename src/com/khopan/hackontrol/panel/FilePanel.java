@@ -121,6 +121,13 @@ public class FilePanel extends Panel {
 				list.add(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Inside", context -> this.buttonInside(context, folderList)));
 			}
 
+			if(finalFolder != null) {
+				list.add(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Return", context -> {
+					this.sendFileList(finalFolder.getParentFile(), context);
+					HackontrolButton.deleteMessages(context);
+				}));
+			}
+
 			list.add(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Refresh", context -> {
 				this.sendFileList(finalFolder, context);
 				HackontrolButton.deleteMessages(context);
