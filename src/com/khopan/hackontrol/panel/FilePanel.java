@@ -57,7 +57,7 @@ public class FilePanel extends Panel {
 
 	@Override
 	public void registeration() {
-		this.register(Registration.BUTTON, FilePanel.BUTTON_LIST_ROOT, context -> this.sendFileList(new File("D:\\VMImage"), context, null));
+		this.register(Registration.BUTTON, FilePanel.BUTTON_LIST_ROOT, context -> this.sendFileList(null, context, null));
 	}
 
 	@Override
