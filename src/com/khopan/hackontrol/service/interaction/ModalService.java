@@ -4,10 +4,10 @@ import java.util.function.Consumer;
 
 import com.khopan.hackontrol.Hackontrol;
 import com.khopan.hackontrol.eventlistener.InteractionEventListener;
-import com.khopan.hackontrol.manager.interaction.ModalContext;
 import com.khopan.hackontrol.registry.Registration;
 import com.khopan.hackontrol.service.Service;
 import com.khopan.hackontrol.service.interaction.InteractionSession.InteractionType;
+import com.khopan.hackontrol.service.interaction.context.ModalContext;
 import com.khopan.hackontrol.utils.MultiConsumer;
 
 import net.dv8tion.jda.api.JDABuilder;

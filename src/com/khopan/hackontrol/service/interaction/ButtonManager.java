@@ -2,8 +2,8 @@ package com.khopan.hackontrol.service.interaction;
 
 import java.util.function.Consumer;
 
-import com.khopan.hackontrol.manager.interaction.ButtonContext;
 import com.khopan.hackontrol.service.interaction.InteractionSession.InteractionType;
+import com.khopan.hackontrol.service.interaction.context.ButtonContext;
 
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;

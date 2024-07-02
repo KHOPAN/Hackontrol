@@ -1,13 +1,18 @@
-package com.khopan.hackontrol.service;
+package com.khopan.hackontrol.service.interaction;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 import com.khopan.hackontrol.Hackontrol;
 import com.khopan.hackontrol.eventlistener.FilteredEventListener;
 import com.khopan.hackontrol.registry.Registration;
+import com.khopan.hackontrol.service.Service;
+import com.khopan.hackontrol.utils.HackontrolMessage;
 
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
+import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 public class MessageService extends Service {
@@ -25,6 +30,23 @@ public class MessageService extends Service {
 					consumer.accept(Event);
 				}
 			}
+		}));
+
+		builder.addEventListeners(FilteredEventListener.create(MessageDeleteEvent.class, Event -> {
+			if(!HackontrolMessage.checkCategory(Event.getChannel())) {
+				return;
+			}
+
+			long messageIdentifier = Event.getMessageIdLong();
+			List<InteractionSession> deleteList = new ArrayList<>();
+
+			for(InteractionSession session : InteractionSession.SESSION_LIST) {
+				if(session.messageIdentifier == messageIdentifier) {
+					deleteList.add(session);
+				}
+			}
+
+			InteractionSession.SESSION_LIST.removeAll(deleteList);
 		}));
 	}
 }

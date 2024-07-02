@@ -8,7 +8,6 @@ import javax.swing.UIManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.khopan.hackontrol.manager.Manager;
 import com.khopan.hackontrol.module.Module;
 import com.khopan.hackontrol.nativelibrary.Information;
 import com.khopan.hackontrol.panel.Panel;
@@ -29,7 +28,6 @@ import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
 public class Hackontrol {
-	public static final RegistryType<Void, Class<? extends Manager>> MANAGER_REGISTRY = RegistryType.create();
 	public static final RegistryType<Void, Class<? extends Module>> MODULE_REGISTRY = RegistryType.create();
 
 	public static final Logger LOGGER = LoggerFactory.getLogger("Hackontrol");

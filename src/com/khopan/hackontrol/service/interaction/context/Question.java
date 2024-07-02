@@ -1,4 +1,4 @@
-package com.khopan.hackontrol.manager.interaction;
+package com.khopan.hackontrol.service.interaction.context;
 
 import java.util.function.Consumer;
 

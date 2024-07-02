@@ -1,8 +1,8 @@
 package com.khopan.hackontrol.registration;
 
-import com.khopan.hackontrol.service.MessageService;
 import com.khopan.hackontrol.service.ServiceManager;
 import com.khopan.hackontrol.service.interaction.ButtonService;
+import com.khopan.hackontrol.service.interaction.MessageService;
 import com.khopan.hackontrol.service.interaction.ModalService;
 import com.khopan.hackontrol.service.interaction.StringSelectMenuService;
 

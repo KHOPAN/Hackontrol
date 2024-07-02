@@ -1,4 +1,4 @@
-package com.khopan.hackontrol.manager.interaction;
+package com.khopan.hackontrol.service.interaction.context;
 
 import com.khopan.hackontrol.utils.sendable.ISendable;
 import com.khopan.hackontrol.utils.sendable.ISendableMessage;
@@ -6,12 +6,12 @@ import com.khopan.hackontrol.utils.sendable.ISendableReply;
 import com.khopan.hackontrol.utils.sendable.sender.MessageChannelSendable;
 import com.khopan.hackontrol.utils.sendable.sender.ReplyCallbackSendable;
 
-import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 
-public class ModalContext extends ModalInteractionEvent implements IParameterized, ISendableMessage, ISendableReply {
+public class ButtonContext extends ButtonInteractionEvent implements IParameterized, ISendableMessage, ISendableReply {
 	private final Object[] parameters;
 
-	public ModalContext(ModalInteractionEvent Event, Object[] parameters) {
+	public ButtonContext(ButtonInteractionEvent Event, Object[] parameters) {
 		super(Event.getJDA(), Event.getResponseNumber(), Event.getInteraction());
 		this.parameters = parameters;
 	}

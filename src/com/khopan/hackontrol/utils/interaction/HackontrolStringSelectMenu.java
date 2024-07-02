@@ -2,7 +2,7 @@ package com.khopan.hackontrol.utils.interaction;
 
 import java.util.List;
 
-import com.khopan.hackontrol.manager.interaction.StringSelectContext;
+import com.khopan.hackontrol.service.interaction.context.StringSelectContext;
 
 import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 

@@ -3,16 +3,16 @@ package com.khopan.hackontrol.module;
 import java.util.List;
 import java.util.function.Consumer;
 
-import com.khopan.hackontrol.manager.interaction.ButtonContext;
 import com.khopan.hackontrol.manager.interaction.InteractionManager;
-import com.khopan.hackontrol.manager.interaction.ModalContext;
 import com.khopan.hackontrol.manager.interaction.ModalManager;
-import com.khopan.hackontrol.manager.interaction.StringSelectContext;
 import com.khopan.hackontrol.manager.interaction.StringSelectManager;
 import com.khopan.hackontrol.nativelibrary.User;
 import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.service.interaction.ButtonManager;
 import com.khopan.hackontrol.service.interaction.ButtonManager.ButtonType;
+import com.khopan.hackontrol.service.interaction.context.ButtonContext;
+import com.khopan.hackontrol.service.interaction.context.ModalContext;
+import com.khopan.hackontrol.service.interaction.context.StringSelectContext;
 import com.khopan.hackontrol.utils.interaction.HackontrolButton;
 import com.khopan.hackontrol.win32.WinUser;
 

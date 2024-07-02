@@ -2,9 +2,9 @@ package com.khopan.hackontrol.registry;
 
 import java.util.function.Consumer;
 
-import com.khopan.hackontrol.manager.interaction.ButtonContext;
-import com.khopan.hackontrol.manager.interaction.ModalContext;
-import com.khopan.hackontrol.manager.interaction.StringSelectContext;
+import com.khopan.hackontrol.service.interaction.context.ButtonContext;
+import com.khopan.hackontrol.service.interaction.context.ModalContext;
+import com.khopan.hackontrol.service.interaction.context.StringSelectContext;
 
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
