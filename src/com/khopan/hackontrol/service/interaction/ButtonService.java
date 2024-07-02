@@ -12,8 +12,11 @@ import com.khopan.hackontrol.utils.MultiConsumer;
 import com.khopan.hackontrol.utils.interaction.HackontrolButton;
 
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 public class ButtonService extends Service {
 	@SuppressWarnings("unchecked")
@@ -46,5 +49,19 @@ public class ButtonService extends Service {
 
 			consumer.accept(new ButtonContext(Event, session == null ? null : session.parameters));
 		}));
+	}
+
+	static void assignIdentifier(Message message) {
+		long messageIdentifier = message.getIdLong();
+
+		for(ActionRow row : message.getActionRows()) {
+			for(Button button : row.getButtons()) {
+				InteractionSession session = InteractionSession.decodeSession(button.getId());
+
+				if(session != null) {
+					session.messageIdentifier = messageIdentifier;
+				}
+			}
+		}
 	}
 }

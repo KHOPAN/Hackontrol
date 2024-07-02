@@ -71,9 +71,7 @@ class InteractionSession {
 
 	private static boolean hasCollision(long sessionIdentifier) {
 		for(int i = 0; i < InteractionSession.SESSION_LIST.size(); i++) {
-			InteractionSession session = InteractionSession.SESSION_LIST.get(i);
-
-			if(session.sessionIdentifier == sessionIdentifier) {
+			if(InteractionSession.SESSION_LIST.get(i).sessionIdentifier == sessionIdentifier) {
 				return true;
 			}
 		}
@@ -83,6 +81,7 @@ class InteractionSession {
 
 	static enum InteractionType {
 		BUTTON,
-		MODAL;
+		MODAL,
+		STRING_SELECT_MENU;
 	}
 }

@@ -4,12 +4,14 @@ import java.util.function.Consumer;
 
 import com.khopan.hackontrol.manager.interaction.ButtonContext;
 import com.khopan.hackontrol.manager.interaction.ModalContext;
+import com.khopan.hackontrol.manager.interaction.StringSelectContext;
 
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 public class Registration {
 	private Registration() {}
 
-	public static final BiRegistrable<Button, Consumer<ButtonContext>> BUTTON = BiRegistrable.create();
-	public static final BiRegistrable<String, Consumer<ModalContext>>  MODAL  = BiRegistrable.create();
+	public static final BiRegistrable<Button, Consumer<ButtonContext>>       BUTTON             = BiRegistrable.create();
+	public static final BiRegistrable<String, Consumer<ModalContext>>        MODAL              = BiRegistrable.create();
+	public static final BiRegistrable<String, Consumer<StringSelectContext>> STRING_SELECT_MENU = BiRegistrable.create();
 }

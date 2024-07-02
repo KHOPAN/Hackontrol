@@ -7,7 +7,8 @@ public class InteractionManager {
 	private InteractionManager() {}
 
 	public static void callback(Message message) {
-		ButtonManager.assignIdentifier(message);
+		ButtonService.assignIdentifier(message);
+		StringSelectMenuService.assignIdentifier(message);
 	}
 
 	public static void callback(InteractionHook hook) {

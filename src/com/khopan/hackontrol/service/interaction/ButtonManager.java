@@ -1,13 +1,10 @@
 package com.khopan.hackontrol.service.interaction;
 
-import java.util.List;
 import java.util.function.Consumer;
 
 import com.khopan.hackontrol.manager.interaction.ButtonContext;
 import com.khopan.hackontrol.service.interaction.InteractionSession.InteractionType;
 
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 
@@ -48,23 +45,6 @@ public final class ButtonManager {
 			return Button.link(identifier, label);
 		default:
 			throw new IllegalArgumentException("Invalid button type");
-		}
-	}
-
-	static void assignIdentifier(Message message) {
-		long messageIdentifier = message.getIdLong();
-		List<ActionRow> rowList = message.getActionRows();
-
-		for(int x = 0; x < rowList.size(); x++) {
-			List<Button> buttonList = rowList.get(x).getButtons();
-
-			for(int y = 0; y < buttonList.size(); y++) {
-				InteractionSession session = InteractionSession.decodeSession(buttonList.get(y).getId());
-
-				if(session != null) {
-					session.messageIdentifier = messageIdentifier;
-				}
-			}
 		}
 	}
 
