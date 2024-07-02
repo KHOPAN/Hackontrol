@@ -10,7 +10,6 @@ import com.khopan.hackontrol.registry.RegistryType;
 import com.khopan.hackontrol.utils.HackontrolMessage;
 
 import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
@@ -33,7 +32,7 @@ public class MessageManager implements Manager {
 			return;
 		}
 
-		Module module = Hackontrol.getInstance().getModule((TextChannel) channel);
+		Module module = null; //Hackontrol.getInstance().getModule((TextChannel) channel);
 		List<Consumer<MessageReceivedEvent>> list = MessageManager.MESSAGE_RECEIVED_EVENT_REGISTRY.filter(module, null);
 
 		for(int i = 0; i < list.size(); i++) {

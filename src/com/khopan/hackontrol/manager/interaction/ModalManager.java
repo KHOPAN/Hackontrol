@@ -6,7 +6,6 @@ import com.khopan.hackontrol.Hackontrol;
 import com.khopan.hackontrol.module.Module;
 import com.khopan.hackontrol.utils.MultiConsumer;
 
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.interactions.modals.Modal;
 
@@ -41,7 +40,7 @@ public class ModalManager {
 		MultiConsumer<ModalContext> consumer = new MultiConsumer<>();
 
 		if(session == null) {
-			Module module = Hackontrol.getInstance().getModule((TextChannel) Event.getChannel());
+			Module module = null; //Hackontrol.getInstance().getModule((TextChannel) Event.getChannel());
 			consumer.addAll(InteractionManager.MODAL_REGISTRY.filter(module, identifier));
 		} else {
 			if(!InteractionType.MODAL.equals(session.type)) {

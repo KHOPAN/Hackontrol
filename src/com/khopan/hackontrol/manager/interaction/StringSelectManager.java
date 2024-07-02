@@ -8,7 +8,6 @@ import com.khopan.hackontrol.module.Module;
 import com.khopan.hackontrol.utils.MultiConsumer;
 
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
@@ -41,7 +40,7 @@ public class StringSelectManager {
 		MultiConsumer<StringSelectContext> consumer = new MultiConsumer<>();
 
 		if(session == null) {
-			Module module = Hackontrol.getInstance().getModule((TextChannel) Event.getChannel());
+			Module module = null; //Hackontrol.getInstance().getModule((TextChannel) Event.getChannel());
 			consumer.addAll(InteractionManager.STRING_SELECT_MENU_REGISTRY.filter(module, identifier));
 		} else {
 			if(!InteractionType.STRING_SELECT_MENU.equals(session.type)) {

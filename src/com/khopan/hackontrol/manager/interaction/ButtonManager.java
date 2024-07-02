@@ -71,7 +71,7 @@ public final class ButtonManager {
 		MultiConsumer<ButtonContext> consumer = new MultiConsumer<>();
 
 		if(session == null) {
-			Module module = Hackontrol.getInstance().getModule(channel);
+			Module module = null; //Hackontrol.getInstance().getModule(channel);
 			List<TypeEntry<Button, Consumer<ButtonContext>>> buttonList = InteractionManager.BUTTON_REGISTRY.list(module);
 
 			for(int i = 0; i < buttonList.size(); i++) {
