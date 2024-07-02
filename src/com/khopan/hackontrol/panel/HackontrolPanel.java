@@ -1,10 +1,10 @@
 package com.khopan.hackontrol.panel;
 
 import com.khopan.hackontrol.Hackontrol;
-import com.khopan.hackontrol.manager.interaction.ButtonManager;
-import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.nativelibrary.Information;
 import com.khopan.hackontrol.registry.Registration;
+import com.khopan.hackontrol.service.interaction.ButtonManager;
+import com.khopan.hackontrol.service.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.utils.HackontrolMessage;
 import com.khopan.hackontrol.widget.ControlWidget;
 

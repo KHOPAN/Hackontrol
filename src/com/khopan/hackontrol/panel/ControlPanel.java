@@ -12,13 +12,13 @@ import javax.sound.sampled.TargetDataLine;
 
 import com.khopan.hackontrol.handler.KeyboardHandler;
 import com.khopan.hackontrol.manager.interaction.ButtonContext;
-import com.khopan.hackontrol.manager.interaction.ButtonManager;
-import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.manager.interaction.Question;
 import com.khopan.hackontrol.manager.interaction.Question.QuestionType;
 import com.khopan.hackontrol.nativelibrary.Kernel;
 import com.khopan.hackontrol.nativelibrary.User;
 import com.khopan.hackontrol.registry.Registration;
+import com.khopan.hackontrol.service.interaction.ButtonManager;
+import com.khopan.hackontrol.service.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.HackontrolMessage;
 import com.khopan.hackontrol.utils.sendable.ISendable;

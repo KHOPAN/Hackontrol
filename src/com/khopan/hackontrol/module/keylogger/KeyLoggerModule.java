@@ -4,13 +4,13 @@ import java.util.List;
 
 import com.khopan.hackontrol.handler.KeyboardHandler;
 import com.khopan.hackontrol.manager.interaction.ButtonContext;
-import com.khopan.hackontrol.manager.interaction.ButtonManager;
-import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.manager.interaction.InteractionManager;
 import com.khopan.hackontrol.manager.interaction.Question;
 import com.khopan.hackontrol.manager.interaction.Question.QuestionType;
 import com.khopan.hackontrol.module.Module;
 import com.khopan.hackontrol.registry.Registry;
+import com.khopan.hackontrol.service.interaction.ButtonManager;
+import com.khopan.hackontrol.service.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.utils.HackontrolMessage;
 
 import net.dv8tion.jda.api.entities.Message;

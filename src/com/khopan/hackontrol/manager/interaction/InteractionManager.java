@@ -13,7 +13,6 @@ import com.khopan.hackontrol.utils.HackontrolMessage;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
-import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
@@ -26,7 +25,6 @@ public class InteractionManager implements Manager {
 
 	@Override
 	public void configureBuilder(JDABuilder builder) {
-		builder.addEventListeners(InteractionEventListener.create(ButtonInteractionEvent.class, Event -> ButtonManager.buttonEvent(Event)));
 		builder.addEventListeners(InteractionEventListener.create(ModalInteractionEvent.class, Event -> ModalManager.modalEvent(Event)));
 		builder.addEventListeners(InteractionEventListener.create(StringSelectInteractionEvent.class, Event -> StringSelectManager.stringSelectInteractionEvent(Event)));
 		builder.addEventListeners(FilteredEventListener.create(MessageDeleteEvent.class, this :: deleteEvent));
@@ -52,7 +50,6 @@ public class InteractionManager implements Manager {
 	}
 
 	public static void callback(Message message) {
-		ButtonManager.assignIdentifier(message);
 		StringSelectManager.assignIdentifier(message);
 	}
 

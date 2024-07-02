@@ -5,11 +5,11 @@ import java.util.List;
 
 import com.khopan.camera.Camera;
 import com.khopan.hackontrol.manager.interaction.ButtonContext;
-import com.khopan.hackontrol.manager.interaction.ButtonManager;
-import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.manager.interaction.InteractionManager;
 import com.khopan.hackontrol.manager.interaction.ModalContext;
 import com.khopan.hackontrol.registry.Registry;
+import com.khopan.hackontrol.service.interaction.ButtonManager;
+import com.khopan.hackontrol.service.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.HackontrolMessage;
 import com.khopan.hackontrol.utils.TimeSafeReplyHandler;
