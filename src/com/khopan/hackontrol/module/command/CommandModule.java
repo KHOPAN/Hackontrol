@@ -2,7 +2,6 @@ package com.khopan.hackontrol.module.command;
 
 import java.io.File;
 
-import com.khopan.hackontrol.manager.MessageManager;
 import com.khopan.hackontrol.module.Module;
 import com.khopan.hackontrol.registry.Registry;
 
@@ -28,9 +27,10 @@ public class CommandModule extends Module {
 
 	@Override
 	public void preInitialize(Registry registry) {
-		registry.register(MessageManager.MESSAGE_RECEIVED_EVENT_REGISTRY, this :: messageReceived);
+		//registry.register(MessageManager.MESSAGE_RECEIVED_EVENT_REGISTRY, this :: messageReceived);
 	}
 
+	@SuppressWarnings("unused")
 	private void messageReceived(MessageReceivedEvent Event) {
 		if(Event.getAuthor().isBot()) {
 			return;
