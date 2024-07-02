@@ -12,7 +12,6 @@ import com.khopan.hackontrol.utils.HackontrolMessage;
 import com.khopan.hackontrol.utils.TimeSafeReplyHandler;
 import com.khopan.hackontrol.utils.interaction.HackontrolButton;
 import com.khopan.hackontrol.utils.sendable.sender.ConsumerMessageCreateDataSendable;
-import com.khopan.hackontrol.widget.ControlWidget;
 
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.utils.FileUpload;

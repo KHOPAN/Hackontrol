@@ -31,7 +31,6 @@ import com.khopan.hackontrol.utils.TimeSafeReplyHandler;
 import com.khopan.hackontrol.utils.interaction.HackontrolButton;
 import com.khopan.hackontrol.utils.sendable.ISendableReply;
 import com.khopan.hackontrol.utils.sendable.sender.ConsumerMessageCreateDataSendable;
-import com.khopan.hackontrol.widget.ControlWidget;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;

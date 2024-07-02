@@ -6,7 +6,6 @@ import com.khopan.hackontrol.registry.Registration;
 import com.khopan.hackontrol.service.interaction.ButtonManager;
 import com.khopan.hackontrol.service.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.utils.HackontrolMessage;
-import com.khopan.hackontrol.widget.ControlWidget;
 
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 

@@ -1,4 +1,4 @@
-package com.khopan.hackontrol.widget;
+package com.khopan.hackontrol.panel;
 
 import java.util.ArrayList;
 import java.util.List;

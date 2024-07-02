@@ -2,7 +2,6 @@ package com.khopan.hackontrol.panel;
 
 import com.khopan.hackontrol.registry.BiRegistrable;
 import com.khopan.hackontrol.registry.Registrable;
-import com.khopan.hackontrol.widget.ControlWidget;
 
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 

@@ -1,7 +1,5 @@
 package com.khopan.hackontrol.panel;
 
-import com.khopan.hackontrol.widget.ControlWidget;
-
 public class KeyLoggerPanel extends Panel {
 	private static final String PANEL_NAME = "keylogger";
 
