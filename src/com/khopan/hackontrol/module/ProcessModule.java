@@ -5,8 +5,6 @@ import java.util.Comparator;
 import java.util.List;
 
 import com.khopan.hackontrol.ProcessEntry;
-import com.khopan.hackontrol.manager.interaction.InteractionManager;
-import com.khopan.hackontrol.manager.interaction.StringSelectManager;
 import com.khopan.hackontrol.nativelibrary.Kernel;
 import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.service.interaction.ButtonManager;
@@ -55,11 +53,11 @@ public class ProcessModule extends Module {
 
 	@Override
 	public void preInitialize(Registry registry) {
-		registry.register(InteractionManager.BUTTON_REGISTRY, ProcessModule.BUTTON_SNAPSHOT,         this :: send);
+		/*registry.register(InteractionManager.BUTTON_REGISTRY, ProcessModule.BUTTON_SNAPSHOT,         this :: send);
 		registry.register(InteractionManager.BUTTON_REGISTRY, ProcessModule.BUTTON_REFRESH,          this :: buttonRefresh);
 		registry.register(InteractionManager.BUTTON_REGISTRY, ProcessModule.BUTTON_SORT,             this :: buttonSort);
 		registry.register(InteractionManager.BUTTON_REGISTRY, ProcessModule.BUTTON_TERMINATE,        this :: buttonTerminate);
-		registry.register(InteractionManager.MODAL_REGISTRY,  ProcessModule.MODAL_TERMINATE_PROCESS, this :: modalTerminateProcess);
+		registry.register(InteractionManager.MODAL_REGISTRY,  ProcessModule.MODAL_TERMINATE_PROCESS, this :: modalTerminateProcess);*/
 	}
 
 	@Override
@@ -73,7 +71,7 @@ public class ProcessModule extends Module {
 	}
 
 	private void buttonSort(ButtonContext context) {
-		StringSelectMenu.Builder builder = StringSelectManager.dynamicMenu(this :: selectMenuSortType, context);
+		StringSelectMenu.Builder builder = null; //StringSelectManager.dynamicMenu(this :: selectMenuSortType, context);
 		builder.setMaxValues(1);
 		SortRule[] rules = SortRule.values();
 

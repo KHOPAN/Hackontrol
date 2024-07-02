@@ -3,13 +3,12 @@ package com.khopan.hackontrol.module;
 import java.util.List;
 import java.util.function.Consumer;
 
-import com.khopan.hackontrol.manager.interaction.InteractionManager;
-import com.khopan.hackontrol.manager.interaction.ModalManager;
-import com.khopan.hackontrol.manager.interaction.StringSelectManager;
 import com.khopan.hackontrol.nativelibrary.User;
 import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.service.interaction.ButtonManager;
 import com.khopan.hackontrol.service.interaction.ButtonManager.ButtonType;
+import com.khopan.hackontrol.service.interaction.InteractionManager;
+import com.khopan.hackontrol.service.interaction.ModalManager;
 import com.khopan.hackontrol.service.interaction.context.ButtonContext;
 import com.khopan.hackontrol.service.interaction.context.ModalContext;
 import com.khopan.hackontrol.service.interaction.context.StringSelectContext;
@@ -37,7 +36,7 @@ public class DialogModule extends Module {
 
 	@Override
 	public void preInitialize(Registry registry) {
-		registry.register(InteractionManager.BUTTON_REGISTRY, DialogModule.BUTTON_NEW_DIALOG, context -> this.replyDialogModal(context, false, null));
+		//registry.register(InteractionManager.BUTTON_REGISTRY, DialogModule.BUTTON_NEW_DIALOG, context -> this.replyDialogModal(context, false, null));
 	}
 
 	@Override
@@ -77,7 +76,7 @@ public class DialogModule extends Module {
 		instance.message = context.getValue("message").getAsString();
 		instance.icon = DialogIcon.ICON_INFORMATION;
 		instance.optionType = DialogOptionType.OPTION_OK;
-		StringSelectMenu iconMenu = StringSelectManager.dynamicMenu(Event -> this.storeDefault(Event, DialogIcon.class, icon -> instance.icon = icon))
+		/*StringSelectMenu iconMenu = StringSelectManager.dynamicMenu(Event -> this.storeDefault(Event, DialogIcon.class, icon -> instance.icon = icon))
 				.addOption("Icon Information", DialogIcon.ICON_INFORMATION.name(), "An icon consisting of a lowercase letter i in a circle appears in the message box.")
 				.addOption("Icon Question",    DialogIcon.ICON_QUESTION.name(),    "A question-mark icon appears in the message box.")
 				.addOption("Icon Warning",     DialogIcon.ICON_WARNING.name(),     "An exclamation-point icon appears in the message box.")
@@ -96,8 +95,10 @@ public class DialogModule extends Module {
 				.addOption("Yes, No, Cancel",             DialogOptionType.OPTION_YES_NO_CANCEL.name(),            "The message box contains three push buttons: Yes, No, and Cancel.")
 				.setMaxValues(1)
 				.setDefaultValues(instance.optionType.name())
-				.build();
+				.build();*/
 
+		StringSelectMenu iconMenu = null;
+		StringSelectMenu optionMenu = null;
 		context.reply(instance.toString()).addActionRow(iconMenu).addActionRow(optionMenu).addActionRow(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Display", Event -> this.buttonDisplay(Event, instance)), ButtonManager.dynamicButton(ButtonType.SUCCESS, "Edit", Event -> this.replyDialogModal(Event, true, instance)), HackontrolButton.delete()).queue(InteractionManager :: callback);
 	}
 

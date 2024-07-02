@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.khopan.camera.Camera;
-import com.khopan.hackontrol.manager.interaction.InteractionManager;
 import com.khopan.hackontrol.registry.Registry;
 import com.khopan.hackontrol.service.interaction.ButtonManager;
 import com.khopan.hackontrol.service.interaction.ButtonManager.ButtonType;
+import com.khopan.hackontrol.service.interaction.InteractionManager;
 import com.khopan.hackontrol.service.interaction.context.ButtonContext;
 import com.khopan.hackontrol.service.interaction.context.ModalContext;
 import com.khopan.hackontrol.utils.HackontrolError;
@@ -48,11 +48,11 @@ public class CameraModule extends Module {
 
 	@Override
 	public void preInitialize(Registry registry) {
-		registry.register(InteractionManager.BUTTON_REGISTRY, CameraModule.BUTTON_CAMERA_LIST,  this :: buttonCameraList);
+		/*registry.register(InteractionManager.BUTTON_REGISTRY, CameraModule.BUTTON_CAMERA_LIST,  this :: buttonCameraList);
 		registry.register(InteractionManager.BUTTON_REGISTRY, CameraModule.BUTTON_SELECT,       this :: buttonSelect);
 		registry.register(InteractionManager.BUTTON_REGISTRY, CameraModule.BUTTON_CAPTURE,      this :: buttonCapture);
 		registry.register(InteractionManager.BUTTON_REGISTRY, CameraModule.BUTTON_REFRESH,      this :: buttonRefresh);
-		registry.register(InteractionManager.MODAL_REGISTRY,  CameraModule.MODAL_SELECT_CAMERA, this :: modalSelectCamera);
+		registry.register(InteractionManager.MODAL_REGISTRY,  CameraModule.MODAL_SELECT_CAMERA, this :: modalSelectCamera);*/
 	}
 
 	@Override
