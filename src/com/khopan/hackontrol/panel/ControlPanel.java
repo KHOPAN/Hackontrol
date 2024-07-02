@@ -10,7 +10,7 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine.Info;
 import javax.sound.sampled.TargetDataLine;
 
-import com.khopan.hackontrol.handler.KeyboardHandler;
+import com.khopan.hackontrol.KeyboardHandler;
 import com.khopan.hackontrol.manager.interaction.ButtonContext;
 import com.khopan.hackontrol.manager.interaction.Question;
 import com.khopan.hackontrol.manager.interaction.Question.QuestionType;

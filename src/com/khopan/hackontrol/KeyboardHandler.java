@@ -1,4 +1,4 @@
-package com.khopan.hackontrol.handler;
+package com.khopan.hackontrol;
 
 import java.util.ArrayList;
 import java.util.HashMap;

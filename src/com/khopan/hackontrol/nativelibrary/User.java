@@ -1,6 +1,6 @@
 package com.khopan.hackontrol.nativelibrary;
 
-import com.khopan.hackontrol.handler.KeyboardHandler;
+import com.khopan.hackontrol.KeyboardHandler;
 
 public class User {
 	private User() {}
