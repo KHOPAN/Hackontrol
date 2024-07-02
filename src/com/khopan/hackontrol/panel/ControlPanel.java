@@ -18,24 +18,23 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 public class ControlPanel extends Panel {
 	private static final String PANEL_NAME = "control";
 
-	private static final Button BUTTON_SLEEP                 = ButtonManager.staticButton(ButtonType.SECONDARY, "Sleep",      "sleep");
-	private static final Button BUTTON_HIBERNATE             = ButtonManager.staticButton(ButtonType.SUCCESS,   "Hibernate",  "hibernate");
-	private static final Button BUTTON_RESTART               = ButtonManager.staticButton(ButtonType.PRIMARY,   "Restart",    "restart");
-	private static final Button BUTTON_SHUTDOWN              = ButtonManager.staticButton(ButtonType.DANGER,    "Shutdown",   "shutdown");
+	private static final Button BUTTON_SLEEP                 = ButtonManager.staticButton(ButtonType.SECONDARY, "Sleep",        "sleep");
+	private static final Button BUTTON_HIBERNATE             = ButtonManager.staticButton(ButtonType.SUCCESS,   "Hibernate",    "hibernate");
+	private static final Button BUTTON_RESTART               = ButtonManager.staticButton(ButtonType.PRIMARY,   "Restart",      "restart");
+	private static final Button BUTTON_SHUTDOWN              = ButtonManager.staticButton(ButtonType.DANGER,    "Shutdown",     "shutdown");
 
-	private static final Button BUTTON_VOLUME                = ButtonManager.staticButton(ButtonType.SUCCESS,   "Volume",     "changeVolume");
+	private static final Button BUTTON_VOLUME                = ButtonManager.staticButton(ButtonType.SUCCESS,   "Volume",       "changeVolume");
+	private static final Button BUTTON_MICROPHONE_CONNECT    = ButtonManager.staticButton(ButtonType.SUCCESS,   "Connect",      "connectMicrophone");
+	private static final Button BUTTON_MICROPHONE_DISCONNECT = ButtonManager.staticButton(ButtonType.DANGER,    "Disconnect",   "disconnectMicrophone");
+	private static final Button BUTTON_MUTE                  = ButtonManager.staticButton(ButtonType.SUCCESS,   "Mute",         "volumeMute");
+	private static final Button BUTTON_UNMUTE                = ButtonManager.staticButton(ButtonType.DANGER,    "Unmute",       "volumeUnmute");
+	private static final Button BUTTON_FORCE                 = ButtonManager.staticButton(ButtonType.SUCCESS,   "Force",        "volumeForce");
+	private static final Button BUTTON_UNFORCE               = ButtonManager.staticButton(ButtonType.DANGER,    "Unforce",      "volumeUnforce");
 
-	private static final Button BUTTON_MICROPHONE_CONNECT    = ButtonManager.staticButton(ButtonType.SUCCESS,   "Connect",    "connectMicrophone");
-	private static final Button BUTTON_MICROPHONE_DISCONNECT = ButtonManager.staticButton(ButtonType.DANGER,    "Disconnect", "disconnectMicrophone");
+	private static final Button BUTTON_SCREEN_FREEZE         = ButtonManager.staticButton(ButtonType.SUCCESS,   "Freeze",       "screenFreeze");
+	private static final Button BUTTON_SCREEN_UNFREEZE       = ButtonManager.staticButton(ButtonType.DANGER,    "Unfreeze",     "screenUnfreeze");
 
-	private static final Button BUTTON_MUTE                  = ButtonManager.staticButton(ButtonType.SUCCESS,   "Mute",       "volumeMute");
-	private static final Button BUTTON_UNMUTE                = ButtonManager.staticButton(ButtonType.DANGER,    "Unmute",     "volumeUnmute");
-
-	private static final Button BUTTON_FORCE                 = ButtonManager.staticButton(ButtonType.SUCCESS,   "Force",      "volumeForce");
-	private static final Button BUTTON_UNFORCE               = ButtonManager.staticButton(ButtonType.DANGER,    "Unforce",    "volumeUnforce");
-
-	private static final Button BUTTON_SCREEN_FREEZE         = ButtonManager.staticButton(ButtonType.SUCCESS,   "Freeze",     "screenFreeze");
-	private static final Button BUTTON_SCREEN_UNFREEZE       = ButtonManager.staticButton(ButtonType.DANGER,    "Unfreeze",   "screenUnfreeze");
+	private static final Button BUTTON_PROCESS_LIST          = ButtonManager.staticButton(ButtonType.SUCCESS,   "Process List", "listProcess");
 
 	private final Microphone microphone;
 	private final Sound sound;
@@ -65,6 +64,7 @@ public class ControlPanel extends Panel {
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_UNFORCE,               this.sound :: unforce);
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_SCREEN_FREEZE,         context -> this.buttonFreeze(context, true));
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_SCREEN_UNFREEZE,       context -> this.buttonFreeze(context, false));
+		this.register(Registration.BUTTON, ControlPanel.BUTTON_PROCESS_LIST,          context -> {});
 		this.register(Registration.MODAL,  Sound.MODAL_IDENTIFIER,                    this.sound :: volumeModal);
 	}
 
@@ -85,6 +85,10 @@ public class ControlPanel extends Panel {
 				ControlWidget.newBuilder()
 				.text("**Screen**")
 				.actionRow(ControlPanel.BUTTON_SCREEN_FREEZE, ControlPanel.BUTTON_SCREEN_UNFREEZE)
+				.build(),
+				ControlWidget.newBuilder()
+				.text("**Process**")
+				.actionRow(ControlPanel.BUTTON_PROCESS_LIST)
 				.build()
 		};
 	}
