@@ -1,7 +1,6 @@
 package com.khopan.hackontrol;
 
 import java.io.File;
-import java.util.List;
 
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
@@ -27,7 +26,6 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
 public class Hackontrol {
@@ -104,56 +102,6 @@ public class Hackontrol {
 
 		panelManager.initialize(this.category);
 		//Kernel.setProcessCritical(true);
-	}
-
-	public List<Manager> getManagerList() {
-		return null;//Collections.unmodifiableList(this.managerList);
-	}
-
-	public <T extends Manager> T getManager(Class<T> managerClass) {
-		if(managerClass == null) {
-			throw new NullPointerException("Manager class cannot be null");
-		}
-
-		/*for(Manager manager : this.managerList) {
-			if(managerClass.isAssignableFrom(manager.getClass())) {
-				return (T) manager;
-			}
-		}*/
-
-		return null;
-	}
-
-	public List<Module> getModuleList() {
-		return null;//Collections.unmodifiableList(this.moduleList);
-	}
-
-	public <T extends Module> T getModule(Class<T> moduleClass) {
-		if(moduleClass == null) {
-			throw new NullPointerException("Module class cannot be null");
-		}
-
-		/*for(Module module : this.moduleList) {
-			if(moduleClass.isAssignableFrom(module.getClass())) {
-				return (T) module;
-			}
-		}*/
-
-		return null;
-	}
-
-	public Module getModule(TextChannel textChannel) {
-		if(textChannel == null) {
-			throw new NullPointerException("Text channel cannot be null");
-		}
-
-		/*for(Module module : this.moduleList) {
-			if(textChannel.equals(module.channel)) {
-				return module;
-			}
-		}*/
-
-		return null;
 	}
 
 	public JDA getBot() {
