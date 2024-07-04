@@ -49,17 +49,14 @@ public class ScreenshotPanel extends Panel {
 	private void screenshot(ButtonContext context) {
 		TimeSafeReplyHandler.start(context, consumer -> {
 			try {
-				MessageCreateBuilder builder = new MessageCreateBuilder();
-				builder.setFiles(FileUpload.fromData(User.screenshot(), ScreenshotPanel.getFileName("screenshot")));
-				builder.addActionRow(ScreenshotPanel.BUTTON_SCREENSHOT, ScreenshotPanel.BUTTON_REFRESH, HackontrolButton.delete());
-				consumer.accept(builder.build());
+				consumer.accept(new MessageCreateBuilder().setFiles(FileUpload.fromData(User.screenshot(), ScreenshotPanel.getFileName("screenshot"))).addActionRow(ScreenshotPanel.BUTTON_SCREENSHOT, ScreenshotPanel.BUTTON_REFRESH, HackontrolButton.delete()).build());
 			} catch(Throwable Errors) {
 				HackontrolError.throwable(ConsumerMessageCreateDataSendable.of(consumer), Errors);
 			}
 		});
 	}
 
-	private static String getFileName(String baseName) {
+	static String getFileName(String baseName) {
 		try {
 			Calendar calendar = Calendar.getInstance();
 			return String.format("%s-%04d_%02d_%02d-%02d_%02d_%02d_%03d.png", baseName, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH) + 1, calendar.get(Calendar.DAY_OF_MONTH), calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), calendar.get(Calendar.SECOND), calendar.get(Calendar.MILLISECOND));
