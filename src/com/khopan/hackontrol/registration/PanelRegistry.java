@@ -1,6 +1,7 @@
 package com.khopan.hackontrol.registration;
 
 import com.khopan.hackontrol.panel.CameraPanel;
+import com.khopan.hackontrol.panel.CommandPanel;
 import com.khopan.hackontrol.panel.ControlPanel;
 import com.khopan.hackontrol.panel.DialogPanel;
 import com.khopan.hackontrol.panel.FilePanel;
@@ -15,6 +16,7 @@ public class PanelRegistry {
 	public static void register(PanelManager manager) {
 		manager.register(new HackontrolPanel());
 		manager.register(new CameraPanel());
+		manager.register(new CommandPanel());
 		manager.register(new ControlPanel());
 		manager.register(new DialogPanel());
 		manager.register(new FilePanel());
