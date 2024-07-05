@@ -12,7 +12,7 @@ public class User {
 	public static native int showMessageBox(String title, String content, int flags);
 	public static native byte[] screenshot();
 
-	private static boolean log(int keyAction, int keyCode, int scanCode, int flags, int time) {
-		return KeyboardHandler.log(keyAction, keyCode, scanCode, flags, time);
+	private static boolean log(int keyAction, int keyCode, int scanCode, int flags, int time, String keyName) {
+		return KeyboardHandler.log(keyAction, keyCode, scanCode, flags, time, keyName);
 	}
 }

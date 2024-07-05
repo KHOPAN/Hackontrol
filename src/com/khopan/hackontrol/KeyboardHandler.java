@@ -15,7 +15,7 @@ public class KeyboardHandler {
 	public static boolean Enable = false;
 	public static boolean Freeze = false;
 
-	public static boolean log(int keyAction, int keyCode, int scanCode, int flags, int time) {
+	public static boolean log(int keyAction, int keyCode, int scanCode, int flags, int time, String keyName) {
 		boolean block = KeyboardHandler.Block || KeyboardHandler.Freeze;
 
 		if(!KeyboardHandler.Enable) {
@@ -45,6 +45,7 @@ public class KeyboardHandler {
 
 		entry.keyCode = keyCode;
 		entry.scanCode = scanCode;
+		entry.keyName = keyName;
 		Boolean value = KeyboardHandler.KEYSTROKE_MAP.get(scanCode);
 		entry.fake = value == null ? false : value == entry.keyDown;
 		KeyboardHandler.KEYSTROKE_MAP.put(scanCode, entry.keyDown);
@@ -57,6 +58,7 @@ public class KeyboardHandler {
 		public boolean systemKey;
 		public int keyCode;
 		public int scanCode;
+		public String keyName;
 		public boolean fake;
 	}
 }

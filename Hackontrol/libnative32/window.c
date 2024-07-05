@@ -57,7 +57,14 @@ static LRESULT CALLBACK keyLoggerProcedure(_In_ int code, _In_ WPARAM wparam, _I
 	}
 
 	PKBDLLHOOKSTRUCT keyboard = (PKBDLLHOOKSTRUCT) lparam;
-	return (*globalEnvironment)->CallStaticBooleanMethod(globalEnvironment, globalUserClass, globalLogMethod, (jint) wparam, (jint) keyboard->vkCode, (jint) keyboard->scanCode, (jint) keyboard->flags, (jint) keyboard->time) ? 1 : CallNextHookEx(NULL, code, wparam, lparam);
+	WCHAR buffer[256];
+	int length = GetKeyNameTextW((keyboard->scanCode & 0xFF) << 16, buffer, 256);
+
+	if(!length) {
+		return CallNextHookEx(NULL, code, wparam, lparam);
+	}
+
+	return (*globalEnvironment)->CallStaticBooleanMethod(globalEnvironment, globalUserClass, globalLogMethod, (jint) wparam, (jint) keyboard->vkCode, (jint) keyboard->scanCode, (jint) keyboard->flags, (jint) keyboard->time, (*globalEnvironment)->NewString(globalEnvironment, buffer, length)) ? 1 : CallNextHookEx(NULL, code, wparam, lparam);
 }
 
 static DWORD WINAPI windowThread(_In_ LPVOID parameter) {
@@ -84,7 +91,7 @@ static DWORD WINAPI windowThread(_In_ LPVOID parameter) {
 	}
 
 	globalUserClass = userClass;
-	jmethodID logMethod = (*environment)->GetStaticMethodID(environment, userClass, "log", "(IIIII)Z");
+	jmethodID logMethod = (*environment)->GetStaticMethodID(environment, userClass, "log", "(IIIIILjava/lang/String;)Z");
 	
 	if(!logMethod) {
 		goto detachThread;
