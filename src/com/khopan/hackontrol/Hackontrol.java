@@ -154,7 +154,7 @@ public class Hackontrol {
 		}
 
 		Hackontrol.LOGGER.info("Initializing");
-		//Hackontrol.getInstance();
+		Hackontrol.getInstance();
 	}
 
 	private static void error(String message) throws Throwable {

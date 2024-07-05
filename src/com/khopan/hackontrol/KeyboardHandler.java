@@ -14,6 +14,7 @@ public class KeyboardHandler {
 	public static boolean Block = false;
 	public static boolean Enable = false;
 	public static boolean Freeze = false;
+	public static boolean RawKeyMode = false;
 
 	public static boolean log(int keyAction, int keyCode, int scanCode, int flags, int time, String keyName) {
 		boolean block = KeyboardHandler.Block || KeyboardHandler.Freeze;
