@@ -98,14 +98,6 @@ public class Hackontrol {
 		//Kernel.setProcessCritical(true);
 	}
 
-	public JDA getBot() {
-		return this.bot;
-	}
-
-	public Guild getGuild() {
-		return this.guild;
-	}
-
 	public String getMachineIdentifier() {
 		return this.machineIdentifier;
 	}
