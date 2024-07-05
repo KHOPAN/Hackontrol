@@ -41,7 +41,7 @@ public class KeyLoggerPanel extends Panel {
 			return;
 		}
 
-		KeyboardHandler.Enable = true;
+		KeyboardHandler.Enable = enable;
 		context.deferEdit().queue();
 	}
 }
