@@ -10,7 +10,7 @@ static JNINativeMethod NativeMethods[] = {
 };
 
 void UserRegisterNatives(JNIEnv* const environment) {
-	jclass class = (*environment)->FindClass(environment, "com/khopan/hackontrol/nativelibrary/User");
+	jclass class = (*environment)->FindClass(environment, "com/khopan/hackontrol/library/User");
 
 	if(!class) {
 		return;

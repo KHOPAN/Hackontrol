@@ -13,7 +13,7 @@ static JNINativeMethod NativeMethods[] = {
 };
 
 void KernelRegisterNatives(JNIEnv* const environment) {
-	jclass class = (*environment)->FindClass(environment, "com/khopan/hackontrol/nativelibrary/Kernel");
+	jclass class = (*environment)->FindClass(environment, "com/khopan/hackontrol/library/Kernel");
 
 	if(!class) {
 		return;

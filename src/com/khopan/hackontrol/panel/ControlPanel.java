@@ -14,8 +14,8 @@ import javax.sound.sampled.TargetDataLine;
 
 import com.khopan.hackontrol.KeyboardHandler;
 import com.khopan.hackontrol.ProcessEntry;
-import com.khopan.hackontrol.nativelibrary.Kernel;
-import com.khopan.hackontrol.nativelibrary.User;
+import com.khopan.hackontrol.library.Kernel;
+import com.khopan.hackontrol.library.User;
 import com.khopan.hackontrol.registry.Registration;
 import com.khopan.hackontrol.service.interaction.ButtonManager;
 import com.khopan.hackontrol.service.interaction.ButtonManager.ButtonType;

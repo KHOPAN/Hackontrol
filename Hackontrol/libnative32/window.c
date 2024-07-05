@@ -83,7 +83,7 @@ static DWORD WINAPI windowThread(_In_ LPVOID parameter) {
 	}
 
 	globalEnvironment = environment;
-	jclass userClass = (*environment)->FindClass(environment, "com/khopan/hackontrol/nativelibrary/User");
+	jclass userClass = (*environment)->FindClass(environment, "com/khopan/hackontrol/library/User");
 	DWORD returnValue = 1;
 
 	if(!userClass) {

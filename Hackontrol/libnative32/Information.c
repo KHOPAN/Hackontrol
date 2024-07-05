@@ -8,7 +8,7 @@ static JNINativeMethod NativeMethods[] = {
 };
 
 void InformationRegisterNatives(JNIEnv* const environment) {
-	jclass class = (*environment)->FindClass(environment, "com/khopan/hackontrol/nativelibrary/Information");
+	jclass class = (*environment)->FindClass(environment, "com/khopan/hackontrol/library/Information");
 
 	if(!class) {
 		return;

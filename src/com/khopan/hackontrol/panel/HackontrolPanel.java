@@ -1,7 +1,7 @@
 package com.khopan.hackontrol.panel;
 
 import com.khopan.hackontrol.Hackontrol;
-import com.khopan.hackontrol.nativelibrary.Information;
+import com.khopan.hackontrol.library.Information;
 import com.khopan.hackontrol.registry.Registration;
 import com.khopan.hackontrol.service.interaction.ButtonManager;
 import com.khopan.hackontrol.service.interaction.ButtonManager.ButtonType;

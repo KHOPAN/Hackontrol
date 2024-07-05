@@ -1,4 +1,4 @@
-package com.khopan.hackontrol.nativelibrary;
+package com.khopan.hackontrol.library;
 
 public class Information {
 	private Information() {}

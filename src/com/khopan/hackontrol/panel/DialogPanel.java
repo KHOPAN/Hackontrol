@@ -3,7 +3,7 @@ package com.khopan.hackontrol.panel;
 import java.util.List;
 import java.util.function.Consumer;
 
-import com.khopan.hackontrol.nativelibrary.User;
+import com.khopan.hackontrol.library.User;
 import com.khopan.hackontrol.registry.Registration;
 import com.khopan.hackontrol.service.interaction.ButtonManager;
 import com.khopan.hackontrol.service.interaction.ButtonManager.ButtonType;
