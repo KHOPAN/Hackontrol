@@ -12,7 +12,6 @@ import com.khopan.hackontrol.service.interaction.ModalManager;
 import com.khopan.hackontrol.service.interaction.StringSelectMenuManager;
 import com.khopan.hackontrol.service.interaction.context.StringSelectContext;
 import com.khopan.hackontrol.utils.interaction.HackontrolButton;
-import com.khopan.hackontrol.win32.WinUser;
 
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.callbacks.IModalCallback;
@@ -27,6 +26,32 @@ public class DialogPanel extends Panel {
 	private static int ThreadCount;
 
 	private static Button BUTTON_NEW_DIALOG = ButtonManager.staticButton(ButtonType.SUCCESS, "New Dialog", "newDialog");
+
+	private static final int MB_ICONINFORMATION = 0x40;
+	private static final int MB_ICONQUESTION    = 0x20;
+	private static final int MB_ICONWARNING     = 0x30;
+	private static final int MB_ICONERROR       = 0x10;
+
+	private static final int MB_ABORTRETRYIGNORE  = 0x02;
+	private static final int MB_CANCELTRYCONTINUE = 0x06;
+	private static final int MB_OK                = 0x00;
+	private static final int MB_OKCANCEL          = 0x01;
+	private static final int MB_RETRYCANCEL       = 0x05;
+	private static final int MB_YESNO             = 0x04;
+	private static final int MB_YESNOCANCEL       = 0x03;
+
+	private static final int MB_DEFBUTTON1  = 0x0000;
+	private static final int MB_SYSTEMMODAL = 0x1000;
+
+	private static final int IDOK       = 0x01;
+	private static final int IDCANCEL   = 0x02;
+	private static final int IDABORT    = 0x03;
+	private static final int IDRETRY    = 0x04;
+	private static final int IDIGNORE   = 0x05;
+	private static final int IDYES      = 0x06;
+	private static final int IDNO       = 0x07;
+	private static final int IDCONTINUE = 0x0B;
+	private static final int IDTRYAGAIN = 0x0A;
 
 	@Override
 	public String panelName() {
@@ -114,7 +139,7 @@ public class DialogPanel extends Panel {
 	}
 
 	private void display(MessageChannel channel, DialogInstance instance) {
-		int flags = WinUser.MB_DEFBUTTON1 | WinUser.MB_SYSTEMMODAL;
+		int flags = DialogPanel.MB_DEFBUTTON1 | DialogPanel.MB_SYSTEMMODAL;
 
 		if(instance.icon != null) {
 			flags |= instance.icon.flag;
@@ -126,15 +151,15 @@ public class DialogPanel extends Panel {
 
 		int response = User.showMessageBox(instance.title, instance.message, flags);
 		String buttonName = switch(response) {
-		case WinUser.IDOK       -> "Ok";
-		case WinUser.IDCANCEL   -> "Cancel";
-		case WinUser.IDABORT    -> "Abort";
-		case WinUser.IDRETRY    -> "Retry";
-		case WinUser.IDIGNORE   -> "Ignore";
-		case WinUser.IDYES      -> "Yes";
-		case WinUser.IDNO       -> "No";
-		case WinUser.IDCONTINUE -> "Continue";
-		case WinUser.IDTRYAGAIN -> "Try Again";
+		case DialogPanel.IDOK       -> "Ok";
+		case DialogPanel.IDCANCEL   -> "Cancel";
+		case DialogPanel.IDABORT    -> "Abort";
+		case DialogPanel.IDRETRY    -> "Retry";
+		case DialogPanel.IDIGNORE   -> "Ignore";
+		case DialogPanel.IDYES      -> "Yes";
+		case DialogPanel.IDNO       -> "No";
+		case DialogPanel.IDCONTINUE -> "Continue";
+		case DialogPanel.IDTRYAGAIN -> "Try Again";
 		default                 -> "Unknown response: " + response;
 		};
 
@@ -167,10 +192,10 @@ public class DialogPanel extends Panel {
 	}
 
 	private static enum DialogIcon {
-		ICON_INFORMATION(WinUser.MB_ICONINFORMATION),
-		ICON_QUESTION(WinUser.MB_ICONQUESTION),
-		ICON_WARNING(WinUser.MB_ICONWARNING),
-		ICON_ERROR(WinUser.MB_ICONERROR);
+		ICON_INFORMATION(DialogPanel.MB_ICONINFORMATION),
+		ICON_QUESTION(DialogPanel.MB_ICONQUESTION),
+		ICON_WARNING(DialogPanel.MB_ICONWARNING),
+		ICON_ERROR(DialogPanel.MB_ICONERROR);
 
 		private int flag;
 
@@ -180,13 +205,13 @@ public class DialogPanel extends Panel {
 	}
 
 	private static enum DialogOptionType {
-		OPTION_ABORT_RETRY_IGNORE(WinUser.MB_ABORTRETRYIGNORE),
-		OPTION_CANCEL_TRYAGAIN_CONTINUE(WinUser.MB_CANCELTRYCONTINUE),
-		OPTION_OK(WinUser.MB_OK),
-		OPTION_OK_CANCEL(WinUser.MB_OKCANCEL),
-		OPTION_RETRY_CANCEL(WinUser.MB_RETRYCANCEL),
-		OPTION_YES_NO(WinUser.MB_YESNO),
-		OPTION_YES_NO_CANCEL(WinUser.MB_YESNOCANCEL);
+		OPTION_ABORT_RETRY_IGNORE(DialogPanel.MB_ABORTRETRYIGNORE),
+		OPTION_CANCEL_TRYAGAIN_CONTINUE(DialogPanel.MB_CANCELTRYCONTINUE),
+		OPTION_OK(DialogPanel.MB_OK),
+		OPTION_OK_CANCEL(DialogPanel.MB_OKCANCEL),
+		OPTION_RETRY_CANCEL(DialogPanel.MB_RETRYCANCEL),
+		OPTION_YES_NO(DialogPanel.MB_YESNO),
+		OPTION_YES_NO_CANCEL(DialogPanel.MB_YESNOCANCEL);
 
 		private int flag;
 

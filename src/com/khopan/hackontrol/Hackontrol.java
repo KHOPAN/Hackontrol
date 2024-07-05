@@ -8,13 +8,11 @@ import javax.swing.UIManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.khopan.hackontrol.module.Module;
 import com.khopan.hackontrol.nativelibrary.Information;
 import com.khopan.hackontrol.panel.Panel;
 import com.khopan.hackontrol.panel.PanelManager;
 import com.khopan.hackontrol.registration.PanelRegistry;
 import com.khopan.hackontrol.registration.ServiceRegistry;
-import com.khopan.hackontrol.registry.RegistryType;
 import com.khopan.hackontrol.security.SecurityManager;
 import com.khopan.hackontrol.service.Service;
 import com.khopan.hackontrol.service.ServiceManager;
@@ -28,8 +26,6 @@ import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
 public class Hackontrol {
-	public static final RegistryType<Void, Class<? extends Module>> MODULE_REGISTRY = RegistryType.create();
-
 	public static final Logger LOGGER = LoggerFactory.getLogger("Hackontrol");
 	public static final long STARTUP_TIME = System.currentTimeMillis();
 
