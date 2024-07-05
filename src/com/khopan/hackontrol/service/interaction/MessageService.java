@@ -5,10 +5,10 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import com.khopan.hackontrol.Hackontrol;
-import com.khopan.hackontrol.eventlistener.FilteredEventListener;
 import com.khopan.hackontrol.registry.Registration;
 import com.khopan.hackontrol.service.Service;
 import com.khopan.hackontrol.utils.HackontrolMessage;
+import com.khopan.hackontrol.utils.event.FilteredEventListener;
 
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;

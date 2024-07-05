@@ -1,4 +1,4 @@
-package com.khopan.hackontrol.eventlistener;
+package com.khopan.hackontrol.utils.event;
 
 import com.khopan.hackontrol.Hackontrol;
 import com.khopan.hackontrol.utils.ErrorHandler;

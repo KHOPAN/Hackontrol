@@ -1,4 +1,4 @@
-package com.khopan.hackontrol.eventlistener;
+package com.khopan.hackontrol.utils.event;
 
 import net.dv8tion.jda.api.events.GenericEvent;
 

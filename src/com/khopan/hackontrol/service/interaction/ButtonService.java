@@ -3,12 +3,12 @@ package com.khopan.hackontrol.service.interaction;
 import java.util.function.Consumer;
 
 import com.khopan.hackontrol.Hackontrol;
-import com.khopan.hackontrol.eventlistener.InteractionEventListener;
 import com.khopan.hackontrol.registry.Registration;
 import com.khopan.hackontrol.service.Service;
 import com.khopan.hackontrol.service.interaction.InteractionSession.InteractionType;
 import com.khopan.hackontrol.service.interaction.context.ButtonContext;
 import com.khopan.hackontrol.utils.MultiConsumer;
+import com.khopan.hackontrol.utils.event.InteractionEventListener;
 import com.khopan.hackontrol.utils.interaction.HackontrolButton;
 
 import net.dv8tion.jda.api.JDABuilder;
