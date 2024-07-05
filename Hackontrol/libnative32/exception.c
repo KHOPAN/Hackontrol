@@ -42,5 +42,5 @@ static void internalWin32Error(JNIEnv* const environment, const LPSTR errorClass
 }
 
 void HackontrolThrowWin32Error(JNIEnv* const environment, const LPWSTR functionName) {
-	internalWin32Error(environment, "com/khopan/hackontrol/exception/Win32Error", functionName);
+	internalWin32Error(environment, "com/khopan/hackontrol/Win32Error", functionName);
 }

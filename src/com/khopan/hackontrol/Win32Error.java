@@ -1,4 +1,4 @@
-package com.khopan.hackontrol.exception;
+package com.khopan.hackontrol;
 
 public class Win32Error extends Error {
 	private static final long serialVersionUID = -4873748328320278492L;
