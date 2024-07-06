@@ -34,7 +34,7 @@ public class CommandPanel extends Panel {
 	@Override
 	public void registeration() {
 		this.register(Registration.MESSAGE_RECEIVED_EVENT, Event -> {
-			if(Event.getAuthor().isBot()) {
+			if(Event.getAuthor().isBot() || Event.getChannel().getIdLong() != this.channel.getIdLong()) {
 				return;
 			}
 

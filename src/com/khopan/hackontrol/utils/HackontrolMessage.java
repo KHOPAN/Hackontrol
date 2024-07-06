@@ -7,7 +7,6 @@ import com.khopan.hackontrol.utils.sendable.ISendable;
 
 import net.dv8tion.jda.api.entities.channel.Channel;
 import net.dv8tion.jda.api.entities.channel.attribute.ICategorizableChannel;
-import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.interactions.components.ComponentInteraction;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 
@@ -47,10 +46,7 @@ public class HackontrolMessage {
 			throw new NullPointerException("Sender cannot be null");
 		}
 
-		MessageCreateBuilder builder = new MessageCreateBuilder();
-		builder.setContent(message);
-		builder.addActionRow(HackontrolButton.delete());
-		sender.send(builder.build(), InteractionManager :: callback);
+		sender.send(new MessageCreateBuilder().setContent(message).addActionRow(HackontrolButton.delete()).build(), InteractionManager :: callback);
 	}
 
 	private static String limitBlock(String text) {
@@ -70,8 +66,6 @@ public class HackontrolMessage {
 			return false;
 		}
 
-		Category category = ((ICategorizableChannel) channel).getParentCategory();
-		Hackontrol hackontrol = Hackontrol.getInstance();
-		return hackontrol.getCategory().equals(category);
+		return Hackontrol.getInstance().getCategory().equals(((ICategorizableChannel) channel).getParentCategory());
 	}
 }
