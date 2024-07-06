@@ -11,9 +11,11 @@ import javax.imageio.ImageIO;
 import com.khopan.hackontrol.registry.Registration;
 import com.khopan.hackontrol.service.interaction.ButtonManager;
 import com.khopan.hackontrol.service.interaction.ButtonManager.ButtonType;
+import com.khopan.hackontrol.service.interaction.InteractionManager;
 import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.HackontrolMessage;
 import com.khopan.hackontrol.utils.ImageTransform;
+import com.khopan.hackontrol.utils.interaction.HackontrolButton;
 import com.khopan.hackontrol.utils.sendable.sender.MessageChannelSendable;
 
 import net.dv8tion.jda.api.entities.Message.Attachment;
@@ -88,7 +90,7 @@ public class ImagePanel extends Panel {
 			}
 
 			Event.getMessage().delete().queue();
-			this.channel.sendFiles(upload).queue();
+			this.channel.sendFiles(upload).addActionRow(HackontrolButton.delete()).queue(InteractionManager :: callback);
 		});
 	}
 
