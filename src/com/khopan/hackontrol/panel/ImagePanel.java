@@ -59,7 +59,7 @@ public class ImagePanel extends Panel {
 				return;
 			}
 
-			Kernel.setFreeze(KeyboardHandler.Freeze = false);
+			Kernel.setFreeze(KeyboardHandler.Freeze = false, null);
 			context.deferEdit().queue();
 		});
 

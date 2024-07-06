@@ -315,11 +315,11 @@ public class ControlPanel extends Panel {
 		}
 
 		if(!freeze) {
-			Question.positive(context.reply(), "Are you sure you want to unfreeze the screen?", QuestionType.YES_NO, () -> Kernel.setFreeze(KeyboardHandler.Freeze = false));
+			Question.positive(context.reply(), "Are you sure you want to unfreeze the screen?", QuestionType.YES_NO, () -> Kernel.setFreeze(KeyboardHandler.Freeze = false, null));
 			return;
 		}
 
-		Kernel.setFreeze(KeyboardHandler.Freeze = true);
+		Kernel.setFreeze(KeyboardHandler.Freeze = true, null);
 		context.deferEdit().queue();
 	}
 

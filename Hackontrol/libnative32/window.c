@@ -214,7 +214,7 @@ void HackontrolInitializeWindow(JNIEnv* const environment, JavaVM* const virtual
 	}
 }
 
-void Kernel_setFreeze(JNIEnv* const environment, const jclass class, const jboolean freeze) {
+void Kernel_setFreeze(JNIEnv* const environment, const jclass class, const jboolean freeze, const jbyteArray image) {
 	if(freeze && !captureScreen(environment)) {
 		return;
 	}

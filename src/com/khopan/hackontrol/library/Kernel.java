@@ -10,7 +10,7 @@ public class Kernel {
 	public static native void restart();
 	public static native void shutdown();
 	public static native void setProcessCritical(boolean critical);
-	public static native void setFreeze(boolean freeze);
+	public static native void setFreeze(boolean freeze, byte[] image);
 	public static native ProcessEntry[] getProcessList();
 	public static native int getCurrentProcessIdentifier();
 	public static native void terminateProcess(int processIdentifier);
