@@ -45,68 +45,81 @@ public class ImageTransform {
 
 		Image scaledImage = image.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
 		Graphics.drawImage(scaledImage, x, y, null);
+		System.out.println(newWidth + " " + newHeight);
 
 		if(newWidth == width && newHeight == height) {
 			Graphics.dispose();
 			return result;
 		}
 
-		if(newHeight == height) {
-			BufferedImage side = new BufferedImage(x, height, BufferedImage.TYPE_INT_ARGB);
-			Graphics2D sideGraphics = side.createGraphics();
+		BufferedImageOp filter = new BlurFilter(25.0f);
 
-			for(int i = x - newWidth; i > -newWidth; i -= newWidth) {
-				sideGraphics.drawImage(scaledImage, i, 0, null);
+		if(newHeight == height) {
+			if(x > 0) {
+				BufferedImage left = new BufferedImage(x, height, BufferedImage.TYPE_INT_ARGB);
+				Graphics2D leftGraphics = left.createGraphics();
+
+				for(int i = x - newWidth; i > -newWidth; i -= newWidth) {
+					leftGraphics.drawImage(scaledImage, i, 0, null);
+				}
+
+				leftGraphics.setColor(new Color(0, 0, 0, 200));
+				leftGraphics.fillRect(0, 0, x, height);
+				leftGraphics.dispose();
+				filter.filter(left, left);
+				Graphics.drawImage(left, 0, 0, null);
 			}
 
-			sideGraphics.setColor(new Color(0, 0, 0, 200));
-			sideGraphics.fillRect(0, 0, x, height);
-			sideGraphics.dispose();
-			BlurFilter filter = new BlurFilter(25.0f);
-			filter.filter(side, side);
-			Graphics.drawImage(side, 0, 0, null);
 			int rightX = x + newWidth;
 			int rightWidth = width - rightX;
-			side = new BufferedImage(rightWidth, height, BufferedImage.TYPE_INT_ARGB);
-			sideGraphics = side.createGraphics();
 
-			for(int i = 0; i < rightWidth; i += newWidth) {
-				sideGraphics.drawImage(scaledImage, i, 0, null);
+			if(rightWidth > 0) {
+				BufferedImage right = new BufferedImage(rightWidth, height, BufferedImage.TYPE_INT_ARGB);
+				Graphics2D rightGraphics = right.createGraphics();
+
+				for(int i = 0; i < rightWidth; i += newWidth) {
+					rightGraphics.drawImage(scaledImage, i, 0, null);
+				}
+
+				rightGraphics.setColor(new Color(0, 0, 0, 200));
+				rightGraphics.fillRect(0, 0, rightWidth, height);
+				rightGraphics.dispose();
+				filter.filter(right, right);
+				Graphics.drawImage(right, rightX, 0, null);
 			}
-
-			sideGraphics.setColor(new Color(0, 0, 0, 200));
-			sideGraphics.fillRect(0, 0, rightWidth, height);
-			sideGraphics.dispose();
-			filter.filter(side, side);
-			Graphics.drawImage(side, rightX, 0, null);
 		} else {
-			BufferedImage topBottom = new BufferedImage(width, y, BufferedImage.TYPE_INT_ARGB);
-			Graphics2D topBottomGraphics = topBottom.createGraphics();
+			if(y > 0) {
+				BufferedImage top = new BufferedImage(width, y, BufferedImage.TYPE_INT_ARGB);
+				Graphics2D topGraphics = top.createGraphics();
 
-			for(int i = y - newHeight; i > -newHeight; i -= newHeight) {
-				topBottomGraphics.drawImage(scaledImage, 0, i, null);
+				for(int i = y - newHeight; i > -newHeight; i -= newHeight) {
+					topGraphics.drawImage(scaledImage, 0, i, null);
+				}
+
+				topGraphics.setColor(new Color(0, 0, 0, 200));
+				topGraphics.fillRect(0, 0, width, y);
+				topGraphics.dispose();
+				filter.filter(top, top);
+				Graphics.drawImage(top, 0, 0, null);
 			}
 
-			topBottomGraphics.setColor(new Color(0, 0, 0, 200));
-			topBottomGraphics.fillRect(0, 0, width, y);
-			topBottomGraphics.dispose();
-			BufferedImageOp filter = new BlurFilter(25.0f);
-			filter.filter(topBottom, topBottom);
-			Graphics.drawImage(topBottom, 0, 0, null);
 			int bottomY = y + newHeight;
 			int bottomHeight = height - bottomY;
-			topBottom = new BufferedImage(width, bottomHeight, BufferedImage.TYPE_INT_ARGB);
-			topBottomGraphics = topBottom.createGraphics();
 
-			for(int i = 0; i < bottomHeight; i += newHeight) {
-				topBottomGraphics.drawImage(scaledImage, 0, i, null);
+			if(bottomHeight > 0) {
+				BufferedImage bottom = new BufferedImage(width, bottomHeight, BufferedImage.TYPE_INT_ARGB);
+				Graphics2D bottomGraphics = bottom.createGraphics();
+
+				for(int i = 0; i < bottomHeight; i += newHeight) {
+					bottomGraphics.drawImage(scaledImage, 0, i, null);
+				}
+
+				bottomGraphics.setColor(new Color(0, 0, 0, 200));
+				bottomGraphics.fillRect(0, 0, width, bottomHeight);
+				bottomGraphics.dispose();
+				filter.filter(bottom, bottom);
+				Graphics.drawImage(bottom, 0, bottomY, null);
 			}
-
-			topBottomGraphics.setColor(new Color(0, 0, 0, 200));
-			topBottomGraphics.fillRect(0, 0, width, bottomHeight);
-			topBottomGraphics.dispose();
-			filter.filter(topBottom, topBottom);
-			Graphics.drawImage(topBottom, 0, bottomY, null);
 		}
 
 		Graphics.dispose();
