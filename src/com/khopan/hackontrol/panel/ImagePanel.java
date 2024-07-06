@@ -1,16 +1,25 @@
 package com.khopan.hackontrol.panel;
 
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.util.List;
+
+import javax.imageio.ImageIO;
 
 import com.khopan.hackontrol.registry.Registration;
 import com.khopan.hackontrol.service.interaction.ButtonManager;
 import com.khopan.hackontrol.service.interaction.ButtonManager.ButtonType;
+import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.HackontrolMessage;
+import com.khopan.hackontrol.utils.ImageTransform;
 import com.khopan.hackontrol.utils.sendable.sender.MessageChannelSendable;
 
 import net.dv8tion.jda.api.entities.Message.Attachment;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.utils.FileUpload;
 
 public class ImagePanel extends Panel {
 	private static final String PANEL_NAME = "image";
@@ -40,6 +49,10 @@ public class ImagePanel extends Panel {
 		});
 
 		this.register(Registration.MESSAGE_RECEIVED_EVENT, Event -> {
+			if(Event.getAuthor().isBot()) {
+				return;
+			}
+
 			MessageChannelUnion channel = Event.getChannel();
 
 			if(channel.getIdLong() != this.channel.getIdLong()) {
@@ -53,8 +66,29 @@ public class ImagePanel extends Panel {
 			}
 
 			channel.deleteMessageById(this.uploadMessage).queue();
-			Attachment attachment = attachmentList.get(0);
-			HackontrolMessage.boldDeletable(MessageChannelSendable.of(channel), "Attachment: " + attachment.getFileName());
+			BufferedImage input;
+
+			try {
+				input = ImageIO.read(attachmentList.get(0).getProxy().download().join());
+			} catch(Throwable Errors) {
+				HackontrolError.throwable(MessageChannelSendable.of(this.channel), Errors);
+				return;
+			}
+
+			FileUpload upload;
+
+			try {
+				ByteArrayOutputStream stream = new ByteArrayOutputStream();
+				Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
+				ImageIO.write(ImageTransform.transform(input, size.width, size.height), "png", stream);
+				upload = FileUpload.fromData(stream.toByteArray(), "image.png");
+			} catch(Throwable Errors) {
+				HackontrolError.throwable(MessageChannelSendable.of(this.channel), Errors);
+				return;
+			}
+
+			Event.getMessage().delete().queue();
+			this.channel.sendFiles(upload).queue();
 		});
 	}
 

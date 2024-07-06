@@ -45,7 +45,6 @@ public class ImageTransform {
 
 		Image scaledImage = image.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
 		Graphics.drawImage(scaledImage, x, y, null);
-		System.out.println(newWidth + " " + newHeight);
 
 		if(newWidth == width && newHeight == height) {
 			Graphics.dispose();
