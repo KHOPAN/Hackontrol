@@ -8,6 +8,8 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
+import com.khopan.hackontrol.KeyboardHandler;
+import com.khopan.hackontrol.library.Kernel;
 import com.khopan.hackontrol.registry.Registration;
 import com.khopan.hackontrol.service.interaction.ButtonManager;
 import com.khopan.hackontrol.service.interaction.ButtonManager.ButtonType;
@@ -27,6 +29,7 @@ public class ImagePanel extends Panel {
 	private static final String PANEL_NAME = "image";
 
 	private static final Button BUTTON_UPLOAD = ButtonManager.staticButton(ButtonType.SUCCESS, "Upload", "imageUpload");
+	private static final Button BUTTON_CLOSE  = ButtonManager.staticButton(ButtonType.DANGER,  "Close",  "imageClose");
 
 	private boolean uploading;
 	private long uploadMessage;
@@ -48,6 +51,16 @@ public class ImagePanel extends Panel {
 			this.uploading = false;
 			context.getChannel().deleteMessageById(this.uploadMessage).queue();
 			HackontrolMessage.boldDeletable(context.reply(), "Uploading canceled");
+		});
+
+		this.register(Registration.BUTTON, ImagePanel.BUTTON_CLOSE,  context -> {
+			if(!KeyboardHandler.Freeze) {
+				HackontrolMessage.boldDeletable(context.reply(), "The image is already closed");
+				return;
+			}
+
+			Kernel.setFreeze(KeyboardHandler.Freeze = false);
+			context.deferEdit().queue();
 		});
 
 		this.register(Registration.MESSAGE_RECEIVED_EVENT, Event -> {
@@ -90,7 +103,7 @@ public class ImagePanel extends Panel {
 			}
 
 			Event.getMessage().delete().queue();
-			this.channel.sendFiles(upload).addActionRow(HackontrolButton.delete()).queue(InteractionManager :: callback);
+			this.channel.sendFiles(upload).addActionRow(ImagePanel.BUTTON_CLOSE, HackontrolButton.delete()).queue(InteractionManager :: callback);
 		});
 	}
 
