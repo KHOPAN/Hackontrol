@@ -1,8 +1,10 @@
-#include <Windows.h>
+#include <khopanstring.h>
+#include <khopanjava.h>
 #include "exception.h"
 #include "Kernel.h"
 #include "instance.h"
 #include "window.h"
+#include <lodepng.h>
 
 #define CLASS_NAME L"ICoveringWindow"
 
@@ -208,16 +210,79 @@ deleteScreenContext:
 	return returnValue;
 }
 
-void HackontrolInitializeWindow(JNIEnv* const environment, JavaVM* const virtualMachine) {
-	if(!CreateThread(NULL, 0, windowThread, virtualMachine, 0, NULL)) {
-		HackontrolThrowWin32Error(environment, L"CreateThread");
+static BOOL decodeImageParameter(JNIEnv* const environment, const jbyteArray image) {
+	jbyte* byteArray = (*environment)->GetByteArrayElements(environment, image, NULL);
+
+	if(!byteArray) {
+		KHJavaThrowInternalErrorW(environment, L"Null image byte array data");
+		return FALSE;
 	}
+
+	jsize length = (*environment)->GetArrayLength(environment, image);
+	unsigned char* rawImage;
+	unsigned int imageWidth;
+	unsigned int imageHeight;
+	unsigned int error = lodepng_decode32(&rawImage, &imageWidth, &imageHeight, byteArray, length);
+	(*environment)->ReleaseByteArrayElements(environment, image, byteArray, JNI_ABORT);
+
+	if(error) {
+		LPWSTR message = KHFormatMessageW(L"lodepng_decode32() %S (Error code: %u)", lodepng_error_text(error), error);
+
+		if(!message) {
+			return FALSE;
+		}
+
+		KHJavaThrowInternalErrorW(environment, message);
+		LocalFree(message);
+		return FALSE;
+	}
+
+	unsigned char* inputImage = LocalAlloc(LMEM_FIXED, imageWidth * imageHeight * 4);
+
+	if(!inputImage) {
+		HackontrolThrowWin32Error(environment, L"LocalAlloc");
+		free(rawImage);
+		return FALSE;
+	}
+
+	for(unsigned int y = 0; y < imageHeight; y++) {
+		for(unsigned int x = 0; x < imageWidth; x++) {
+			unsigned int position = (y * imageWidth + x) * 4;
+			inputImage[position + 0] = rawImage[position + 2];
+			inputImage[position + 1] = rawImage[position + 1];
+			inputImage[position + 2] = rawImage[position + 0];
+			inputImage[position + 3] = rawImage[position + 3];
+		}
+	}
+
+	free(rawImage);
+	HBITMAP bitmap = CreateBitmap(imageWidth, imageHeight, 1, 32, inputImage);
+	LocalFree(inputImage);
+
+	if(!bitmap) {
+		HackontrolThrowWin32Error(environment, L"CreateBitmap");
+		return FALSE;
+	}
+
+	globalBitmap = bitmap;
+	return TRUE;
 }
 
 void Kernel_setFreeze(JNIEnv* const environment, const jclass class, const jboolean freeze, const jbyteArray image) {
-	if(freeze && !captureScreen(environment)) {
+	if(globalBitmap) {
+		DeleteObject(globalBitmap);
+		globalBitmap = NULL;
+	}
+
+	if(freeze && (image ? !decodeImageParameter(environment, image) : !captureScreen(environment))) {
 		return;
 	}
 
 	ShowWindow(globalWindow, freeze ? SW_SHOW : SW_HIDE);
+}
+
+void HackontrolInitializeWindow(JNIEnv* const environment, JavaVM* const virtualMachine) {
+	if(!CreateThread(NULL, 0, windowThread, virtualMachine, 0, NULL)) {
+		HackontrolThrowWin32Error(environment, L"CreateThread");
+	}
 }
