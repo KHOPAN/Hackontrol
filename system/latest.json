@@ -13,12 +13,12 @@
 		{
 			"file": "libnative32.dll",
 			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/libnative32.dll",
-			"sha384": "231c35e17aec20995e5399419240d4ef501c4bdb028c63b9fe01480890a9e727526ad774b334c92f5ae04692ebb4b1b2"
+			"sha384": "f9227117b267c164281e63c5f13f11bbb75f34d94695fa05cb9423ec877fd2a84a278e72e6a5534769de0d188448c89e"
 		},
 		{
 			"file": "winservice32.jar",
 			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/winservice32.jar",
-			"sha384": "271fc2c3fbcdf24eacaca9403d9daef256d442bd1cc5ebe3fd025729bda1db0f0f01177b7f9ec89db9f1b80ef74425d5"
+			"sha384": "c43c91ffc89b830414b19fa789d46eac837807a088c3020a5200a08684fd280c88f47e1c74d6c53ba8e8ce1224e80d22"
 		},
 		{
 			"file": "dpp.dll",

