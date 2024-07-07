@@ -64,7 +64,7 @@ public class ImagePanel extends Panel {
 		});
 
 		this.register(Registration.MESSAGE_RECEIVED_EVENT, Event -> {
-			if(Event.getAuthor().isBot()) {
+			if(!this.uploading || Event.getAuthor().isBot()) {
 				return;
 			}
 
@@ -80,6 +80,7 @@ public class ImagePanel extends Panel {
 				return;
 			}
 
+			this.uploading = false;
 			channel.deleteMessageById(this.uploadMessage).queue();
 			BufferedImage input;
 
