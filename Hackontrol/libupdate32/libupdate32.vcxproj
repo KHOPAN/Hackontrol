@@ -131,6 +131,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Restart.c" />
+    <ClCompile Include="RestartUpdate.c" />
     <ClCompile Include="Update.c" />
   </ItemGroup>
   <ItemGroup>

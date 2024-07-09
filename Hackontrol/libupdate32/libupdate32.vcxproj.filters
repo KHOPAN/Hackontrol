@@ -18,5 +18,11 @@
     <ClCompile Include="Update.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Restart.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RestartUpdate.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
