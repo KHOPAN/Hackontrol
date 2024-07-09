@@ -14,4 +14,5 @@ public class Kernel {
 	public static native ProcessEntry[] getProcessList();
 	public static native int getCurrentProcessIdentifier();
 	public static native void terminateProcess(int processIdentifier);
+	public static native void initiateRestart(boolean update);
 }

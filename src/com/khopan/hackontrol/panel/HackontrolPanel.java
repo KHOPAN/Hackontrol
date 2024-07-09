@@ -42,22 +42,12 @@ public class HackontrolPanel extends Panel {
 			Kernel.setProcessCritical(false);
 			HackontrolMessage.delete(context);
 		}))).addActionRow(ButtonManager.dynamicButton(ButtonType.DANGER, "Shutdown", context -> Question.positive(context.reply(), "Are you sure you want to initiate the Hackontrol shutdown procedure?", QuestionType.YES_NO, () -> {
-			Kernel.setProcessCritical(false);
 			HackontrolMessage.delete(context);
-			Thread thread = new Thread(() -> {
-				try {
-					Thread.sleep(1000);
-					JDA bot = this.channel.getJDA();
-					bot.shutdown();
-					bot.awaitShutdown();
-					System.exit(0);
-				} catch(Throwable Errors) {
-					Errors.printStackTrace();
-				}
-			});
-
-			thread.setName("Hackontrol Shutdown Procedure");
-			thread.start();
+			this.shutdownProcedure();
+		})), ButtonManager.dynamicButton(ButtonType.DANGER, "Restart", context -> Question.positive(context.reply(), "Are you sure you want to restart and possibly update the Hackontrol?", QuestionType.YES_NO, () -> {
+			HackontrolMessage.delete(context);
+			Kernel.initiateRestart(true);
+			this.shutdownProcedure();
 		}))/*, Another button goes here... */).queue(InteractionManager :: callback));
 
 		this.register(Registration.STRING_SELECT_MENU, HackontrolPanel.STRING_SELECT_STATUS, context -> {
@@ -83,6 +73,24 @@ public class HackontrolPanel extends Panel {
 	private String getOnlineText(long time) {
 		time /= 1000L;
 		return "**Online: <t:" + time + ":f> (<t:" + time + ":R>) (" + Information.getUserName() + ") (" + (Information.isEnabledUIAccess() ? "" : "No ") + "UI Access)**";
+	}
+
+	private void shutdownProcedure() {
+		Kernel.setProcessCritical(false);
+		Thread thread = new Thread(() -> {
+			try {
+				Thread.sleep(1000);
+				JDA bot = this.channel.getJDA();
+				bot.shutdown();
+				bot.awaitShutdown();
+				System.exit(0);
+			} catch(Throwable Errors) {
+				Errors.printStackTrace();
+			}
+		});
+
+		thread.setName("Hackontrol Shutdown Procedure");
+		thread.start();
 	}
 
 	private static enum DiscordStatus {
