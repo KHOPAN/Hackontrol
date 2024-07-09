@@ -48,7 +48,11 @@ public class HackontrolPanel extends Panel {
 			HackontrolMessage.delete(context);
 			Kernel.initiateRestart(true);
 			this.shutdownProcedure();
-		}))/*, Another button goes here... */).queue(InteractionManager :: callback));
+		})), ButtonManager.dynamicButton(ButtonType.DANGER, "Restart Only", context -> Question.positive(context.reply(), "Are you sure you want to restart the Hackontrol without updating?", QuestionType.YES_NO, () -> {
+			HackontrolMessage.delete(context);
+			Kernel.initiateRestart(false);
+			this.shutdownProcedure();
+		}))).queue(InteractionManager :: callback));
 
 		this.register(Registration.STRING_SELECT_MENU, HackontrolPanel.STRING_SELECT_STATUS, context -> {
 			this.channel.getJDA().getPresence().setStatus(DiscordStatus.fromName(context.getValues().get(0)).status);
