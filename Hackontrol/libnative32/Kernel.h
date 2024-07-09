@@ -12,3 +12,4 @@ void Kernel_setFreeze(JNIEnv* const environment, const jclass class, const jbool
 jobjectArray Kernel_getProcessList(JNIEnv* const environment, const jclass class);
 jint Kernel_getCurrentProcessIdentifier(JNIEnv* const environment, const jclass class);
 void Kernel_terminateProcess(JNIEnv* const environment, const jclass class, const jint processIdentifier);
+void Kernel_initiateRestart(JNIEnv* const environment, const jclass class, const jboolean update);

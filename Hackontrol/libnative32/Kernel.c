@@ -9,7 +9,8 @@ static JNINativeMethod NativeMethods[] = {
 	{"setFreeze",                   "(Z[B)V",                                  (void*) &Kernel_setFreeze},
 	{"getProcessList",              "()[Lcom/khopan/hackontrol/ProcessEntry;", (void*) &Kernel_getProcessList},
 	{"getCurrentProcessIdentifier", "()I",                                     (void*) &Kernel_getCurrentProcessIdentifier},
-	{"terminateProcess",            "(I)V",                                    (void*) &Kernel_terminateProcess}
+	{"terminateProcess",            "(I)V",                                    (void*) &Kernel_terminateProcess},
+	{"initiateRestart",             "(Z)V",                                    (void*) &Kernel_initiateRestart}
 };
 
 void KernelRegisterNatives(JNIEnv* const environment) {

@@ -152,6 +152,7 @@
     <ClCompile Include="Kernel.c" />
     <ClCompile Include="KernelPower.c" />
     <ClCompile Include="KernelProcess.c" />
+    <ClCompile Include="Kernel_initiateRestart.c" />
     <ClCompile Include="Kernel_setProcessCritical.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="User.c" />

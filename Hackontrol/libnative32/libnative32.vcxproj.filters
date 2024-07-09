@@ -75,6 +75,9 @@
     <ClCompile Include="User_screenshot.c">
       <Filter>Source Files\User</Filter>
     </ClCompile>
+    <ClCompile Include="Kernel_initiateRestart.c">
+      <Filter>Source Files\Kernel</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Kernel.h">
