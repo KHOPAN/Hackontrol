@@ -51,6 +51,15 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 
 	LocalFree(arguments);
 exitParameter:
+	if(waitForProcess) {
+		HANDLE process = OpenProcess(PROCESS_ALL_ACCESS, FALSE, waitingProcess);
+
+		if(process) {
+			WaitForSingleObject(process, INFINITE);
+			CloseHandle(process);
+		}
+	}
+
 	MessageBoxW(NULL, KHFormatMessageW(L"Wait: %d Waiting: %lld No update: %d", waitForProcess, waitingProcess, noUpdate), L"Argument", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 	/*CURLcode code = curl_global_init(CURL_GLOBAL_ALL);
 
