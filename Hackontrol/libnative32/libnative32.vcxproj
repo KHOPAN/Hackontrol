@@ -74,7 +74,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\LodePNG\include;D:\library\openssl-3.3.0\x64\include;D:\library\camera-1.0.0\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\GitHub Repository\Hackontrol\Hackontrol\BaseHackontrol;D:\LodePNG\include;D:\library\openssl-3.3.0\x64\include;D:\library\camera-1.0.0\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
@@ -92,7 +92,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\LodePNG\include;D:\openssl-build\Release\include;D:\library\camera-1.0.0\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\GitHub Repository\Hackontrol\Hackontrol\BaseHackontrol;D:\LodePNG\include;D:\openssl-build\Release\include;D:\library\camera-1.0.0\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
@@ -111,7 +111,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\LodePNG\include;D:\library\openssl-3.3.0\x64\include;D:\library\camera-1.0.0\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\GitHub Repository\Hackontrol\Hackontrol\BaseHackontrol;D:\LodePNG\include;D:\library\openssl-3.3.0\x64\include;D:\library\camera-1.0.0\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
@@ -129,7 +129,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\LodePNG\include;D:\openssl-build\Release\include;D:\library\camera-1.0.0\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\GitHub Repository\Hackontrol\Hackontrol\BaseHackontrol;D:\LodePNG\include;D:\openssl-build\Release\include;D:\library\camera-1.0.0\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
@@ -170,6 +170,9 @@
     <ClInclude Include="window.h" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\BaseHackontrol\BaseHackontrol.vcxproj">
+      <Project>{7ad64c41-0110-4779-bdaa-7f2017f2692f}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\KHOPAN Library\KHOPAN Library.vcxproj">
       <Project>{8c1e7669-d899-4b10-8d65-557b98a620b5}</Project>
     </ProjectReference>
