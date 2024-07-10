@@ -51,17 +51,7 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 
 	LocalFree(arguments);
 exitParameter:
-	if(waitForProcess) {
-		HANDLE process = OpenProcess(PROCESS_ALL_ACCESS, FALSE, waitingProcess);
-
-		if(process) {
-			WaitForSingleObject(process, INFINITE);
-			CloseHandle(process);
-		}
-	}
-
-	MessageBoxW(NULL, KHFormatMessageW(L"Wait: %d Waiting: %lld No update: %d", waitForProcess, waitingProcess, noUpdate), L"Argument", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
-	/*CURLcode code = curl_global_init(CURL_GLOBAL_ALL);
+	CURLcode code = curl_global_init(CURL_GLOBAL_ALL);
 
 	if(code != CURLE_OK) {
 		KHCURLDialogErrorW(code, L"curl_global_init");
@@ -221,8 +211,18 @@ exitParameter:
 	goto deleteJson;
 exitUpdate:
 #endif
+	if(waitForProcess) {
+		HANDLE process = OpenProcess(PROCESS_ALL_ACCESS, FALSE, waitingProcess);
+
+		if(process) {
+			WaitForSingleObject(process, INFINITE);
+			CloseHandle(process);
+		}
+	}
 #ifndef HACKONTROL_NO_DOWNLOAD_FILE
-	ProcessFilesArray(rootObject);
+	if(!noUpdate) {
+		ProcessFilesArray(rootObject);
+	}
 #endif
 #ifndef HACKONTROL_NO_EXECUTE_FILE
 	ProcessEntrypointsArray(rootObject);
@@ -232,7 +232,7 @@ deleteJson:
 #endif
 	cJSON_Delete(rootObject);
 globalCleanup:
-	curl_global_cleanup();*/
+	curl_global_cleanup();
 }
 
 BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved) {
