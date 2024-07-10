@@ -47,7 +47,7 @@ __declspec(dllexport) void __stdcall Update(HWND window, HINSTANCE instance, LPS
 		return;
 	}
 
-	HANDLE process = OpenProcess(PROCESS_ALL_ACCESS, FALSE, (DWORD) atol(argument));
+	HANDLE process = OpenProcess(PROCESS_ALL_ACCESS, FALSE, processIdentifier);
 
 	if(process) {
 		WaitForSingleObject(process, INFINITE);
