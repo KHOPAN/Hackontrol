@@ -20,6 +20,7 @@ static HINSTANCE globalInstance;
 __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LPSTR argument, int command) {
 	BOOL waitForProcess = FALSE;
 	DWORD waitingProcess = 0;
+	BOOL noUpdate = FALSE;
 
 	if(!argument || !strlen(argument)) {
 		goto exitParameter;
@@ -44,12 +45,13 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 		waitingProcess = (DWORD) _wtoll(arguments[0]);
 	}
 
-	LocalFree(arguments);
-exitParameter:
-	if(waitForProcess) {
-		MessageBoxW(NULL, KHFormatMessageW(L"Waiting: %lld", waitingProcess), L"Argument", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+	if(count > 1) {
+		noUpdate = _wtoi(arguments[1]);
 	}
 
+	LocalFree(arguments);
+exitParameter:
+	MessageBoxW(NULL, KHFormatMessageW(L"Wait: %d Waiting: %lld No update: %d", waitForProcess, waitingProcess, noUpdate), L"Argument", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 	/*CURLcode code = curl_global_init(CURL_GLOBAL_ALL);
 
 	if(code != CURLE_OK) {
