@@ -11,6 +11,7 @@ import com.khopan.hackontrol.service.interaction.StringSelectMenuManager;
 import com.khopan.hackontrol.service.interaction.context.Question;
 import com.khopan.hackontrol.service.interaction.context.Question.QuestionType;
 import com.khopan.hackontrol.utils.HackontrolMessage;
+import com.khopan.hackontrol.utils.interaction.HackontrolButton;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.OnlineStatus;
@@ -52,7 +53,7 @@ public class HackontrolPanel extends Panel {
 			HackontrolMessage.delete(context);
 			Kernel.initiateRestart(false);
 			this.shutdownProcedure();
-		}))).queue(InteractionManager :: callback));
+		}))).addActionRow(HackontrolButton.delete()).queue(InteractionManager :: callback));
 
 		this.register(Registration.STRING_SELECT_MENU, HackontrolPanel.STRING_SELECT_STATUS, context -> {
 			this.channel.getJDA().getPresence().setStatus(DiscordStatus.fromName(context.getValues().get(0)).status);
