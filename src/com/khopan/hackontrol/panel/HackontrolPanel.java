@@ -10,8 +10,10 @@ import com.khopan.hackontrol.service.interaction.InteractionManager;
 import com.khopan.hackontrol.service.interaction.StringSelectMenuManager;
 import com.khopan.hackontrol.service.interaction.context.Question;
 import com.khopan.hackontrol.service.interaction.context.Question.QuestionType;
+import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.HackontrolMessage;
 import com.khopan.hackontrol.utils.interaction.HackontrolButton;
+import com.khopan.hackontrol.utils.sendable.sender.MessageChannelSendable;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.OnlineStatus;
@@ -72,6 +74,7 @@ public class HackontrolPanel extends Panel {
 
 	@Override
 	public void initialize() {
+		Hackontrol.getInstance().setErrorHandler((thread, Errors) -> HackontrolError.throwable(MessageChannelSendable.of(this.channel), Errors));
 		this.channel.sendMessage(this.getOnlineText(Hackontrol.STARTUP_TIME)).queue();
 	}
 
