@@ -1,5 +1,7 @@
 package com.khopan.hackontrol.library;
 
+import java.util.function.Consumer;
+
 import com.khopan.hackontrol.ProcessEntry;
 
 public class Kernel {
@@ -15,4 +17,5 @@ public class Kernel {
 	public static native int getCurrentProcessIdentifier();
 	public static native void terminateProcess(int processIdentifier);
 	public static native void initiateRestart(boolean update);
+	public static native void shellExecute(String command, Consumer<String> callback);
 }

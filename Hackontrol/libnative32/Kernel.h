@@ -13,3 +13,4 @@ jobjectArray Kernel_getProcessList(JNIEnv* const environment, const jclass class
 jint Kernel_getCurrentProcessIdentifier(JNIEnv* const environment, const jclass class);
 void Kernel_terminateProcess(JNIEnv* const environment, const jclass class, const jint processIdentifier);
 void Kernel_initiateRestart(JNIEnv* const environment, const jclass class, const jboolean update);
+void Kernel_shellExecute(JNIEnv* const environment, const jclass class, const jstring command, const jobject callback);

