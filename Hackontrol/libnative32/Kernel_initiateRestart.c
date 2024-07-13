@@ -22,7 +22,7 @@ void Kernel_initiateRestart(JNIEnv* const environment, const jclass class, const
 		return;
 	}
 
-	LPWSTR argumentFileLibdll32 = KHFormatMessageW(L"%lu %u", GetCurrentProcessId(), update);
+	LPWSTR argumentFileLibdll32 = KHFormatMessageW(L"%lu %u", GetCurrentProcessId(), !update);
 
 	if(!argumentFileLibdll32) {
 		HackontrolThrowWin32Error(environment, L"KHFormatMessageW");
