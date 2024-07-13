@@ -4,28 +4,22 @@
 #include "User.h"
 #include <lodepng.h>
 
-static BOOL drawCursor(JNIEnv* const environment, const HDC context) {
+static void drawCursor(JNIEnv* const environment, const HDC context) {
 	CURSORINFO cursorInformation;
 	cursorInformation.cbSize = sizeof(CURSORINFO);
 
-	if(!GetCursorInfo(&cursorInformation)) {
-		HackontrolThrowWin32Error(environment, L"GetCursorInfo");
-		return FALSE;
-	}
-
-	if(cursorInformation.flags != CURSOR_SHOWING) {
-		return TRUE;
+	if(!GetCursorInfo(&cursorInformation) || cursorInformation.flags != CURSOR_SHOWING) {
+		return;
 	}
 
 	HICON icon = CopyIcon(cursorInformation.hCursor);
 
 	if(!icon) {
 		HackontrolThrowWin32Error(environment, L"CopyIcon");
-		return FALSE;
+		return;
 	}
 
 	ICONINFO iconInformation;
-	BOOL returnValue = FALSE;
 
 	if(!GetIconInfo(icon, &iconInformation)) {
 		HackontrolThrowWin32Error(environment, L"GetIconInfo");
@@ -33,7 +27,6 @@ static BOOL drawCursor(JNIEnv* const environment, const HDC context) {
 	}
 
 	if(!iconInformation.hbmColor) {
-		returnValue = TRUE;
 		goto deleteIconBitmap;
 	}
 
@@ -49,8 +42,6 @@ static BOOL drawCursor(JNIEnv* const environment, const HDC context) {
 		HackontrolThrowWin32Error(environment, L"DrawIconEx");
 		goto deleteIconBitmap;
 	}
-
-	returnValue = TRUE;
 deleteIconBitmap:
 	DeleteObject(iconInformation.hbmMask);
 
@@ -59,7 +50,6 @@ deleteIconBitmap:
 	}
 destroyIcon:
 	DestroyIcon(icon);
-	return returnValue;
 }
 
 jbyteArray User_screenshot(JNIEnv* const environment, const jclass class) {
@@ -71,13 +61,9 @@ jbyteArray User_screenshot(JNIEnv* const environment, const jclass class) {
 	HBITMAP oldBitmap = SelectObject(memoryContext, bitmap);
 	BitBlt(memoryContext, 0, 0, width, height, context, 0, 0, SRCCOPY);
 	jbyteArray returnValue = NULL;
-
-	if(!drawCursor(environment, memoryContext)) {
-		goto cleanup;
-	}
-
+	drawCursor(environment, memoryContext);
 	bitmap = SelectObject(memoryContext, oldBitmap);
-	DWORD size = 4 * width * height;
+	DWORD size = width * height * 4;
 	BYTE* buffer = LocalAlloc(LMEM_FIXED, size);
 
 	if(!buffer) {
