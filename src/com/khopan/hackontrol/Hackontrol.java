@@ -144,7 +144,8 @@ public class Hackontrol {
 
 		Hackontrol.LOGGER.info("Initializing");
 		//Hackontrol.getInstance();
-		Kernel.shellExecute("ipconfig", System.out :: println);
+		Kernel.shellExecute("ping google.com", System.out :: println);
+		System.exit(0);
 	}
 
 	private static void error(String message) throws Throwable {
