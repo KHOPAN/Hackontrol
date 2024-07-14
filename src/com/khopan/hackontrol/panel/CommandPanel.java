@@ -1,8 +1,6 @@
 package com.khopan.hackontrol.panel;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 import com.khopan.hackontrol.library.Kernel;
 import com.khopan.hackontrol.registry.Registration;
@@ -78,7 +76,12 @@ public class CommandPanel extends Panel {
 
 			String finalCommand = command;
 			Thread thread = new Thread(() -> {
-				this.process(finalCommand);
+				try {
+					this.process(finalCommand);
+				} catch(Throwable Errors) {
+					HackontrolError.throwable(MessageChannelSendable.of(this.channel), Errors);
+				}
+
 				CommandPanel.ThreadCount--;
 			});
 
@@ -88,35 +91,30 @@ public class CommandPanel extends Panel {
 		});
 	}
 
-	private void process(String command) {
-		try {
-			/*ProcessBuilder builder = new ProcessBuilder("cmd.exe", "/c", command);
-			builder.redirectErrorStream(true);
-			builder.directory(CommandPanel.CurrentDirectory);
-			InputStream stream = builder.start().getInputStream();
-			byte[] data = stream.readAllBytes();
-			stream.close();
+	private void process(String command) throws Throwable {
+		Kernel.shellExecute(command, response -> {
+			StringBuilder builder = new StringBuilder();
+			String[] parts = response.split("\n");
+			int count = 0;
 
-			for(String part : this.getParts(new String(data, StandardCharsets.UTF_8), 1992)) {
-				this.channel.sendMessage("```\n" + part + "\n```").queue();
-			}*/
+			for(int i = 0; i < parts.length; i++) {
+				String part = parts[i].replaceAll("\r|\n", "");
 
-			Kernel.shellExecute(command, response -> {
-				this.channel.sendMessage('`' + response + '`').queue();
-			});
-		} catch(Throwable Errors) {
-			HackontrolError.throwable(MessageChannelSendable.of(this.channel), Errors);
-		}
-	}
+				if(part.isEmpty()) {
+					continue;
+				}
 
-	private List<String> getParts(String text, int partitionSize) {
-		List<String> parts = new ArrayList<String>();
-		int length = text.length();
+				if(count != 0) {
+					builder.append('\n');
+				}
 
-		for(int i = 0; i < length; i += partitionSize) {
-			parts.add(text.substring(i, Math.min(length, i + partitionSize)));
-		}
+				builder.append('`');
+				builder.append(part);
+				builder.append('`');
+				count++;
+			}
 
-		return parts;
+			this.channel.sendMessage(builder.toString()).queue();
+		});
 	}
 }
