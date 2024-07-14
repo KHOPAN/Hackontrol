@@ -1,12 +1,15 @@
 package com.khopan.hackontrol.panel;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.khopan.hackontrol.library.Kernel;
 import com.khopan.hackontrol.registry.Registration;
 import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.sendable.sender.MessageChannelSendable;
 
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageHistory;
 
 public class CommandPanel extends Panel {
@@ -39,7 +42,12 @@ public class CommandPanel extends Panel {
 			int length = command.length();
 
 			if(command.startsWith("cls ") || command.startsWith("clear ") || (command.startsWith("cls") && length == 3) || (command.startsWith("clear") && length == 5)) {
-				MessageHistory.getHistoryFromBeginning(this.channel).queue(history -> history.getRetrievedHistory().forEach(message -> message.delete().queue()));
+				MessageHistory.getHistoryFromBeginning(this.channel).queue(history -> {
+					List<Message> messageList = new ArrayList<>();
+					history.getRetrievedHistory().forEach(messageList :: add);
+					this.channel.deleteMessages(messageList).queue();
+				});
+
 				return;
 			}
 
