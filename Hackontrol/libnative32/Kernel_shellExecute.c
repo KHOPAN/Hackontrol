@@ -44,34 +44,15 @@ void Kernel_shellExecute(JNIEnv* const environment, const jclass class, const js
 		goto closePipe;
 	}
 
-	LPWSTR pathFileShell = KHWin32GetCmdFileW();
-
-	if(!pathFileShell) {
-		SetLastError(ERROR_FUNCTION_FAILED);
-		HackontrolThrowWin32Error(environment, L"KHWin32GetCmdFileW");
-		goto closePipe;
-	}
-
-	const jchar* commandInput = (*environment)->GetStringChars(environment, command, NULL);
-	LPWSTR argumentFileShell = KHFormatMessageW(L"%ws /c %ws", pathFileShell, commandInput);
-	(*environment)->ReleaseStringChars(environment, command, commandInput);
-
-	if(!argumentFileShell) {
-		SetLastError(ERROR_FUNCTION_FAILED);
-		HackontrolThrowWin32Error(environment, L"KHFormatMessageW");
-		LocalFree(pathFileShell);
-		goto closePipe;
-	}
-
 	STARTUPINFOW startupInformation = {0};
 	startupInformation.cb = sizeof(STARTUPINFOW);
 	startupInformation.dwFlags = STARTF_USESTDHANDLES;
 	startupInformation.hStdOutput = pipeWrite;
 	startupInformation.hStdError = pipeWrite;
 	PROCESS_INFORMATION processInformation;
-	BOOL result = CreateProcessW(pathFileShell, argumentFileShell, NULL, NULL, TRUE, NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW, NULL, NULL, &startupInformation, &processInformation);
-	LocalFree(argumentFileShell);
-	LocalFree(pathFileShell);
+	const jchar* commandLine = (*environment)->GetStringChars(environment, command, NULL);
+	BOOL result = CreateProcessW(NULL, (jchar*) commandLine, NULL, NULL, TRUE, NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW, NULL, NULL, &startupInformation, &processInformation);
+	(*environment)->ReleaseStringChars(environment, command, commandLine);
 
 	if(!result) {
 		HackontrolThrowWin32Error(environment, L"CreateProcessW");
