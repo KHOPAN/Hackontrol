@@ -17,11 +17,11 @@ import javax.swing.filechooser.FileSystemView;
 import com.khopan.hackontrol.registry.Registration;
 import com.khopan.hackontrol.service.interaction.ButtonManager;
 import com.khopan.hackontrol.service.interaction.ButtonManager.ButtonType;
+import com.khopan.hackontrol.service.interaction.ModalManager;
 import com.khopan.hackontrol.service.interaction.context.ButtonContext;
 import com.khopan.hackontrol.service.interaction.context.ModalContext;
 import com.khopan.hackontrol.service.interaction.context.Question;
 import com.khopan.hackontrol.service.interaction.context.Question.QuestionType;
-import com.khopan.hackontrol.service.interaction.ModalManager;
 import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.HackontrolFile;
 import com.khopan.hackontrol.utils.HackontrolFile.FileCountAndSize;
@@ -120,6 +120,7 @@ public class FilePanel extends Panel {
 
 			if(finalFolder != null) {
 				list.add(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Return", context -> this.sendFileList(finalFolder.getParentFile(), context, context)));
+				list.add(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Upload", context -> {}));
 			}
 
 			list.add(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Refresh", context -> this.sendFileList(finalFolder, context, context)));
