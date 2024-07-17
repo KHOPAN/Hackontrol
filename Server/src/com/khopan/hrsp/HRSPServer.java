@@ -6,14 +6,12 @@ import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
-import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
@@ -26,7 +24,7 @@ public class HRSPServer {
 		frame.add(view, BorderLayout.CENTER);
 		frame.setSize(600, 400);
 		frame.setLocationRelativeTo(null);
-		frame.setVisible(true);
+		frame.setVisible(true);/**/
 		System.out.println("Wait for incoming connection...");
 		ServerSocket server = new ServerSocket(42485);
 		Socket socket = server.accept();
@@ -48,7 +46,18 @@ public class HRSPServer {
 			byte[] bytes = inputStream.readNBytes(4);
 
 			if(bytes.length > 0) {
-				view.setImage(ImageIO.read(new ByteArrayInputStream(inputStream.readNBytes(((bytes[0] & 0xFF) << 24) | ((bytes[1] & 0xFF) << 16) | ((bytes[2] & 0xFF) << 8) | (bytes[3] & 0xFF)))));
+				byte[] data = inputStream.readNBytes(((bytes[0] & 0xFF) << 24) | ((bytes[1] & 0xFF) << 16) | ((bytes[2] & 0xFF) << 8) | (bytes[3] & 0xFF));
+				//view.setImage(ImageIO.read(new ByteArrayInputStream(data)));
+				BufferedImage image = new BufferedImage(1366, 768, BufferedImage.TYPE_INT_RGB);
+
+				for(int y = 0; y < 768; y++) {
+					for(int x = 0; x < 1366; x++) {
+						int index = (y * 1366 + x) * 4;
+						image.setRGB(x, 767 - y, ((data[index + 3] & 0xFF) << 24) | ((data[index + 2] & 0xFF) << 16) | ((data[index + 1] & 0xFF) << 8) | (data[index + 0] & 0xFF));
+					}
+				}
+
+				view.setImage(image);
 			}
 		}
 	}
@@ -97,7 +106,7 @@ public class HRSPServer {
 				this.y = (int) Math.round((((double) this.height) - ((double) newHeight)) * 0.5d);
 			}
 
-			this.image = this.sourceImage.getScaledInstance(newWidth, newHeight, Image.SCALE_FAST);
+			this.image = this.sourceImage.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
 			this.repaint();
 		}
 

@@ -35,7 +35,7 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket) {
 		goto cleanup;
 	}
 
-	BYTE* flippedImage = LocalAlloc(LMEM_FIXED, size);
+	/*BYTE* flippedImage = LocalAlloc(LMEM_FIXED, size);
 
 	if(!flippedImage) {
 		HackontrolThrowWin32Error(environment, L"LocalAlloc");
@@ -69,8 +69,10 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket) {
 		KHJavaThrowInternalErrorW(environment, message);
 		LocalFree(message);
 		goto freeFlippedImage;
-	}
+	}*/
 
+	BYTE* pngImage = buffer;
+	size_t pngSize = size;
 	BYTE sizeBuffer[4];
 	sizeBuffer[0] = (pngSize >> 24) & 0xFF;
 	sizeBuffer[1] = (pngSize >> 16) & 0xFF;
@@ -80,12 +82,14 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket) {
 	if(send(clientSocket, sizeBuffer, 4, 0) == SOCKET_ERROR) {
 		SetLastError(WSAGetLastError());
 		HackontrolThrowWin32Error(environment, L"send");
-		free(pngImage);
+		//free(pngImage);
+		LocalFree(pngImage);
 		goto freeFlippedImage;
 	}
 
 	int status = send(clientSocket, pngImage, (int) pngSize, 0);
-	free(pngImage);
+	//free(pngImage);
+	LocalFree(pngImage);
 
 	if(status == SOCKET_ERROR) {
 		SetLastError(WSAGetLastError());
@@ -95,7 +99,7 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket) {
 
 	returnValue = TRUE;
 freeFlippedImage:
-	LocalFree(flippedImage);
+	//LocalFree(flippedImage);
 cleanup:
 	DeleteObject(bitmap);
 	DeleteDC(memoryContext);
