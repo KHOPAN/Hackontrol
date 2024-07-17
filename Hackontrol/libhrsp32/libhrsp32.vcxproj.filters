@@ -21,9 +21,15 @@
     <ClCompile Include="exception.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="screenshot.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="exception.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="screenshot.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

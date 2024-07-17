@@ -97,7 +97,7 @@ public class HRSPServer {
 				this.y = (int) Math.round((((double) this.height) - ((double) newHeight)) * 0.5d);
 			}
 
-			this.image = this.sourceImage.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
+			this.image = this.sourceImage.getScaledInstance(newWidth, newHeight, Image.SCALE_FAST);
 			this.repaint();
 		}
 

@@ -1,6 +1,7 @@
 #include <WS2tcpip.h>
 #include <khopanjava.h>
 #include "exception.h"
+#include "screenshot.h"
 
 _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment, LPCSTR hostName, LPCSTR port, const jobject callback) {
 	jclass consumerClass = (*environment)->FindClass(environment, "java/util/function/Consumer");
@@ -100,6 +101,12 @@ _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment,
 	}
 
 	(*environment)->CallObjectMethod(environment, callback, acceptMethod, (*environment)->NewStringUTF(environment, "**Connected**"));
+
+	while(TRUE) {
+		if(!TakeScreenshot(environment, clientSocket)) {
+			goto closeSocket;
+		}
+	}
 closeSocket:
 	closesocket(clientSocket);
 wsaCleanup:
