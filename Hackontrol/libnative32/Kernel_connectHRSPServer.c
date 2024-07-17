@@ -1,8 +1,9 @@
+#include <khopanstring.h>
 #include <khopanjava.h>
 #include "Kernel.h"
 #include "exception.h"
 
-typedef void(__stdcall* ConnectHRSPServerFunction) (JNIEnv* const environment, LPCSTR hostName, const unsigned int port, const jobject callback);
+typedef void(__stdcall* ConnectHRSPServerFunction) (JNIEnv* const environment, LPCSTR hostName, LPCSTR port, const jobject callback);
 
 void Kernel_connectHRSPServer(JNIEnv* const environment, const jclass class, const jstring host, const jint port, const jobject callback) {
 	if(!host) {
@@ -42,6 +43,16 @@ void Kernel_connectHRSPServer(JNIEnv* const environment, const jclass class, con
 		return;
 	}
 
-	function(environment, hostName, port, callback);
+	LPSTR portName = KHFormatMessageA("%d", port);
+
+	if(!portName) {
+		SetLastError(ERROR_FUNCTION_FAILED);
+		HackontrolThrowWin32Error(environment, L"KHFormatMessageA");
+		(*environment)->ReleaseStringUTFChars(environment, host, hostName);
+		return;
+	}
+
+	function(environment, hostName, portName, callback);
+	LocalFree(portName);
 	(*environment)->ReleaseStringUTFChars(environment, host, hostName);
 }

@@ -30,7 +30,7 @@ public class HRSPServer {
 		System.out.println("Wait for incoming connection...");
 		ServerSocket server = new ServerSocket(42485);
 		Socket socket = server.accept();
-		System.out.println("Client connected: " + socket.getInetAddress().getHostName());
+		System.out.println("Client connected: " + socket.getInetAddress().getHostAddress());
 		InputStream inputStream = socket.getInputStream();
 		String response = new String(inputStream.readNBytes(16), StandardCharsets.UTF_8);
 

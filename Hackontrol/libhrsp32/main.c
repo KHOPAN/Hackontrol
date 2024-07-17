@@ -3,7 +3,7 @@
 #include <khopanjava.h>
 #include "exception.h"
 
-_declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment, LPCSTR hostName, const unsigned int port, const jobject callback) {
+_declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment, LPCSTR hostName, LPCSTR port, const jobject callback) {
 	WSADATA windowsSocketData;
 	int status = WSAStartup(MAKEWORD(2, 2), &windowsSocketData);
 
@@ -18,7 +18,7 @@ _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment,
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
 	struct addrinfo* result;
-	status = getaddrinfo("localhost", "42485", &hints, &result);
+	status = getaddrinfo(hostName, port, &hints, &result);
 
 	if(status) {
 		SetLastError(status);
@@ -38,7 +38,7 @@ _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment,
 			goto wsaCleanup;
 		}
 
-		status = connect(clientSocket, pointer->ai_addr, pointer->ai_addrlen);
+		status = connect(clientSocket, pointer->ai_addr, (int) pointer->ai_addrlen);
 
 		if(status != SOCKET_ERROR) {
 			break;
