@@ -1,7 +1,6 @@
 package com.khopan.hackontrol.panel;
 
 import com.khopan.hackontrol.Hackontrol;
-import com.khopan.hackontrol.hrsp.HRSPClient;
 import com.khopan.hackontrol.library.Information;
 import com.khopan.hackontrol.library.Kernel;
 import com.khopan.hackontrol.registry.Registration;
@@ -66,7 +65,7 @@ public class HackontrolPanel extends Panel {
 			try {
 				ModalMapping port = modalContext.getValue("port");
 				String portValue = port == null ? null : port.getAsString();
-				new HRSPClient(modalContext.getValue("domainName").getAsString(), portValue == null || portValue.isEmpty() ? 42485 : Integer.parseInt(portValue), consumer);
+				Kernel.connectHRSPServer(modalContext.getValue("domainName").getAsString(), portValue == null || portValue.isEmpty() ? 42485 : Integer.parseInt(portValue), message -> HackontrolMessage.deletable(ConsumerMessageCreateDataSendable.of(consumer), message));
 			} catch(Throwable Errors) {
 				HackontrolError.throwable(ConsumerMessageCreateDataSendable.of(consumer), Errors);
 			}
