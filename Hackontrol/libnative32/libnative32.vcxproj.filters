@@ -81,6 +81,9 @@
     <ClCompile Include="Kernel_shellExecute.c">
       <Filter>Source Files\Kernel</Filter>
     </ClCompile>
+    <ClCompile Include="Kernel_connectHRSPServer.c">
+      <Filter>Source Files\Kernel</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Kernel.h">

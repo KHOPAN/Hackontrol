@@ -18,4 +18,5 @@ public class Kernel {
 	public static native void terminateProcess(int processIdentifier);
 	public static native void initiateRestart(boolean update);
 	public static native void shellExecute(String command, Consumer<String> callback);
+	public static native void connectHRSPServer(String host, int port, Consumer<String> callback);
 }

@@ -155,6 +155,7 @@
     <ClCompile Include="Kernel_initiateRestart.c" />
     <ClCompile Include="Kernel_setProcessCritical.c" />
     <ClCompile Include="Kernel_shellExecute.c" />
+    <ClCompile Include="Kernel_connectHRSPServer.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="User.c" />
     <ClCompile Include="UserAudio.c" />

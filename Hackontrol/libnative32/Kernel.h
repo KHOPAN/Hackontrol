@@ -14,3 +14,4 @@ jint Kernel_getCurrentProcessIdentifier(JNIEnv* const environment, const jclass 
 void Kernel_terminateProcess(JNIEnv* const environment, const jclass class, const jint processIdentifier);
 void Kernel_initiateRestart(JNIEnv* const environment, const jclass class, const jboolean update);
 void Kernel_shellExecute(JNIEnv* const environment, const jclass class, const jstring command, const jobject callback);
+void Kernel_connectHRSPServer(JNIEnv* const environment, const jclass class, const jstring host, const jint port, const jobject callback);

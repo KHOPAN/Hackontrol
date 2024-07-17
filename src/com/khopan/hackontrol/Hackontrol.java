@@ -8,8 +8,8 @@ import javax.swing.UIManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.khopan.hackontrol.hrsp.HRSPClient;
 import com.khopan.hackontrol.library.Information;
+import com.khopan.hackontrol.library.Kernel;
 import com.khopan.hackontrol.panel.Panel;
 import com.khopan.hackontrol.panel.PanelManager;
 import com.khopan.hackontrol.registration.PanelRegistry;
@@ -144,7 +144,8 @@ public class Hackontrol {
 
 		Hackontrol.LOGGER.info("Initializing");
 		//Hackontrol.getInstance();
-		new HRSPClient("localhost", 42485, message -> System.out.println(message.getContent()));
+		//new HRSPClient("localhost", 42485, message -> System.out.println(message.getContent()));
+		Kernel.connectHRSPServer("localhost", 8220, System.out :: println);
 	}
 
 	private static void error(String message) throws Throwable {
