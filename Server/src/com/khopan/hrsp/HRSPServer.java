@@ -49,8 +49,7 @@ public class HRSPServer {
 				int width = ((bytes[0] & 0xFF) << 24) | ((bytes[1] & 0xFF) << 16) | ((bytes[2] & 0xFF) << 8) | (bytes[3] & 0xFF);
 				int height = ((bytes[4] & 0xFF) << 24) | ((bytes[5] & 0xFF) << 16) | ((bytes[6] & 0xFF) << 8) | (bytes[7] & 0xFF);
 				byte[] data = inputStream.readNBytes(width * height * 4);
-				//view.setImage(ImageIO.read(new ByteArrayInputStream(data)));
-				BufferedImage image = new BufferedImage(1366, 768, BufferedImage.TYPE_INT_RGB);
+				BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 
 				for(int y = 0; y < height; y++) {
 					for(int x = 0; x < width; x++) {
