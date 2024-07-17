@@ -145,7 +145,7 @@ public class Hackontrol {
 		Hackontrol.LOGGER.info("Initializing");
 		//Hackontrol.getInstance();
 		//new HRSPClient("localhost", 42485, message -> System.out.println(message.getContent()));
-		Kernel.connectHRSPServer("localhost", 8220, System.out :: println);
+		Kernel.connectHRSPServer("localhost", 42485, System.out :: println);
 	}
 
 	private static void error(String message) throws Throwable {
