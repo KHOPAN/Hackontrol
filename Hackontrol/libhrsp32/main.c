@@ -1,4 +1,3 @@
-#include <WinSock2.h>
 #include <WS2tcpip.h>
 #include <khopanjava.h>
 #include "exception.h"
@@ -55,6 +54,39 @@ _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment,
 		goto wsaCleanup;
 	}
 
+	const char* header = "HRSP 1.0 CONNECT";
+	status = send(clientSocket, header, (int) strlen(header), 0);
+
+	if(status == SOCKET_ERROR) {
+		SetLastError(WSAGetLastError());
+		HackontrolThrowWin32Error(environment, L"send");
+		goto closeSocket;
+	}
+
+	char buffer[12];
+	status = recv(clientSocket, buffer, 11, 0);
+
+	if(status == SOCKET_ERROR) {
+		SetLastError(WSAGetLastError());
+		HackontrolThrowWin32Error(environment, L"recv");
+		goto closeSocket;
+	}
+
+	buffer[11] = 0;
+
+	if(strcmp(buffer, "HRSP 1.0 OK")) {
+		KHJavaThrowInternalErrorW(environment, L"Server responded with an invalid response");
+		goto closeSocket;
+	}
+
+	status = shutdown(clientSocket, SD_RECEIVE);
+
+	if(status == SOCKET_ERROR) {
+		SetLastError(WSAGetLastError());
+		HackontrolThrowWin32Error(environment, L"shutdown");
+		goto closeSocket;
+	}
+closeSocket:
 	closesocket(clientSocket);
 wsaCleanup:
 	WSACleanup();
