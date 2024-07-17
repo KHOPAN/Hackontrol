@@ -43,17 +43,19 @@ public class HRSPServer {
 		outputStream.flush();
 
 		while(true) {
-			byte[] bytes = inputStream.readNBytes(4);
+			byte[] bytes = inputStream.readNBytes(8);
 
 			if(bytes.length > 0) {
-				byte[] data = inputStream.readNBytes(((bytes[0] & 0xFF) << 24) | ((bytes[1] & 0xFF) << 16) | ((bytes[2] & 0xFF) << 8) | (bytes[3] & 0xFF));
+				int width = ((bytes[0] & 0xFF) << 24) | ((bytes[1] & 0xFF) << 16) | ((bytes[2] & 0xFF) << 8) | (bytes[3] & 0xFF);
+				int height = ((bytes[4] & 0xFF) << 24) | ((bytes[5] & 0xFF) << 16) | ((bytes[6] & 0xFF) << 8) | (bytes[7] & 0xFF);
+				byte[] data = inputStream.readNBytes(width * height * 4);
 				//view.setImage(ImageIO.read(new ByteArrayInputStream(data)));
 				BufferedImage image = new BufferedImage(1366, 768, BufferedImage.TYPE_INT_RGB);
 
-				for(int y = 0; y < 768; y++) {
-					for(int x = 0; x < 1366; x++) {
-						int index = (y * 1366 + x) * 4;
-						image.setRGB(x, 767 - y, ((data[index + 3] & 0xFF) << 24) | ((data[index + 2] & 0xFF) << 16) | ((data[index + 1] & 0xFF) << 8) | (data[index + 0] & 0xFF));
+				for(int y = 0; y < height; y++) {
+					for(int x = 0; x < width; x++) {
+						int index = (y * width + x) * 4;
+						image.setRGB(x, height - y - 1, ((data[index + 3] & 0xFF) << 24) | ((data[index + 2] & 0xFF) << 16) | ((data[index + 1] & 0xFF) << 8) | (data[index + 0] & 0xFF));
 					}
 				}
 
