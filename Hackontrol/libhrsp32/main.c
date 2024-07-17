@@ -26,18 +26,36 @@ _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment,
 		goto wsaCleanup;
 	}
 
+	SOCKET clientSocket = INVALID_SOCKET;
+
 	for(struct addrinfo* pointer = result; pointer != NULL; pointer = pointer->ai_next) {
-		SOCKET clientSocket = socket(pointer->ai_family, pointer->ai_socktype, pointer->ai_protocol);
+		clientSocket = socket(pointer->ai_family, pointer->ai_socktype, pointer->ai_protocol);
 
 		if(clientSocket == INVALID_SOCKET) {
 			SetLastError(WSAGetLastError());
 			HackontrolThrowWin32Error(environment, L"socket");
-			goto freeAddressInfo;
+			freeaddrinfo(result);
+			goto wsaCleanup;
 		}
+
+		status = connect(clientSocket, pointer->ai_addr, pointer->ai_addrlen);
+
+		if(status != SOCKET_ERROR) {
+			break;
+		}
+
+		closesocket(clientSocket);
+		clientSocket = INVALID_SOCKET;
 	}
 
-freeAddressInfo:
 	freeaddrinfo(result);
+
+	if(clientSocket == INVALID_SOCKET) {
+		KHJavaThrowInternalErrorW(environment, L"Unable to connect to the server");
+		goto wsaCleanup;
+	}
+
+	closesocket(clientSocket);
 wsaCleanup:
 	WSACleanup();
 }
