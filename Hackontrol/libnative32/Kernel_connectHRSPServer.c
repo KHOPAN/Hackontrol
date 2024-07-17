@@ -6,7 +6,7 @@ typedef void(__stdcall* ConnectHRSPServerFunction) (JNIEnv* const environment, L
 
 void Kernel_connectHRSPServer(JNIEnv* const environment, const jclass class, const jstring host, const jint port, const jobject callback) {
 	if(!host) {
-		KHJavaThrowIllegalArgumentExceptionW(environment, L"Host cannot be null");
+		KHJavaThrowIllegalArgumentExceptionW(environment, L"Host name cannot be null");
 		return;
 	}
 
@@ -31,10 +31,17 @@ void Kernel_connectHRSPServer(JNIEnv* const environment, const jclass class, con
 
 	const char* hostName = (*environment)->GetStringUTFChars(environment, host, NULL);
 
-	if(!hostName || !strlen(hostName)) {
-		KHJavaThrowIllegalArgumentExceptionW(environment, L"Null or empty host name");
+	if(!hostName) {
+		KHJavaThrowIllegalArgumentExceptionW(environment, L"Host name cannot be null");
+		return;
+	}
+
+	if(!strlen(hostName)) {
+		KHJavaThrowIllegalArgumentExceptionW(environment, L"Host name cannot be empty");
+		(*environment)->ReleaseStringUTFChars(environment, host, hostName);
 		return;
 	}
 
 	function(environment, hostName, port, callback);
+	(*environment)->ReleaseStringUTFChars(environment, host, hostName);
 }
