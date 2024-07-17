@@ -11,6 +11,11 @@
 			"sha384": "5b50964476720b67ee57e91f7c863cfd8de94fe6f62af2752e9b5ae0185503bb3f8d2b103beea968e6b5472f076317f2"
 		},
 		{
+			"file": "libhrsp32.dll",
+			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/libhrsp32.dll",
+			"sha384": "625af42f644d67d1e33b2f5ce7d7dfec2a9e0456961dfeef53eb472b0efef7832bff816326bf151c6b9b7548b22306c0"
+		},,
+		{
 			"file": "libnative32.dll",
 			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/libnative32.dll",
 			"sha384": "f1a9bb180bec6a6af4bf51c9185a03e73aa593d11e6c7877b0723291c4857b4d21848213ce906cad0b69681e18b499ca"
