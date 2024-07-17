@@ -66,6 +66,7 @@ public class TimeSafeReplyHandler {
 
 	private void execute() {
 		if(this.processed) {
+			this.callback.getMessageChannel().sendMessage(this.message).queue(this :: consumeMessage);
 			return;
 		}
 
