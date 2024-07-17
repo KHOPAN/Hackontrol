@@ -42,7 +42,7 @@ public class HRSPClient {
 		while(true) {
 			BufferedImage image = robot.createScreenCapture(bounds);
 			ByteArrayOutputStream stream = new ByteArrayOutputStream();
-			ImageIO.write(image, "jpg", stream);
+			ImageIO.write(image, "png", stream);
 			byte[] data = stream.toByteArray();
 			outputStream.write((data.length >> 24) & 0xFF);
 			outputStream.write((data.length >> 16) & 0xFF);
