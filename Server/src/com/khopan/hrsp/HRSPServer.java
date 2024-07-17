@@ -26,8 +26,10 @@ public class HRSPServer {
 		frame.setSize(600, 400);
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
+		System.out.println("Wait for incoming connection...");
 		ServerSocket server = new ServerSocket(42485);
 		Socket socket = server.accept();
+		System.out.println("Client connected: " + socket.getInetAddress().getHostName());
 		InputStream inputStream = socket.getInputStream();
 		String response = new String(inputStream.readNBytes(16), StandardCharsets.UTF_8);
 
