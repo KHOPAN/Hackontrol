@@ -1,7 +1,10 @@
 #include <khopanstring.h>
 #include <khopanjava.h>
+#include <hackontrol.h>
 #include "Kernel.h"
 #include "exception.h"
+
+#define FILE_LIBHRSP32 L"libhrsp32.dll"
 
 typedef void(__stdcall* ConnectHRSPServerFunction) (JNIEnv* const environment, LPCSTR hostName, LPCSTR port, const jobject callback);
 
@@ -16,7 +19,24 @@ void Kernel_connectHRSPServer(JNIEnv* const environment, const jclass class, con
 		return;
 	}
 
-	HMODULE library = LoadLibraryW(L"D:\\GitHub Repository\\Hackontrol\\Hackontrol\\x64\\Debug\\libhrsp32.dll");
+	LPWSTR pathFolderHackontrol = HackontrolGetDirectory(TRUE);
+
+	if(!pathFolderHackontrol) {
+		HackontrolThrowWin32Error(environment, L"HackontrolGetDirectory");
+		return;
+	}
+
+	LPWSTR pathFileLibHRSP32 = KHFormatMessageW(L"%ws\\" FILE_LIBHRSP32, pathFolderHackontrol);
+	LocalFree(pathFolderHackontrol);
+
+	if(!pathFileLibHRSP32) {
+		SetLastError(ERROR_FUNCTION_FAILED);
+		HackontrolThrowWin32Error(environment, L"KHFormatMessageW");
+		return;
+	}
+
+	HMODULE library = LoadLibraryW(pathFileLibHRSP32);
+	LocalFree(pathFileLibHRSP32);
 
 	if(!library) {
 		HackontrolThrowWin32Error(environment, L"LoadLibraryW");
