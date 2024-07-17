@@ -3,6 +3,18 @@
 #include "exception.h"
 
 _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment, LPCSTR hostName, LPCSTR port, const jobject callback) {
+	jclass consumerClass = (*environment)->FindClass(environment, "java/util/function/Consumer");
+	
+	if(!consumerClass) {
+		return;
+	}
+
+	jmethodID acceptMethod = (*environment)->GetMethodID(environment, consumerClass, "accept", "(Ljava/lang/Object;)V");
+
+	if(!acceptMethod) {
+		return;
+	}
+
 	WSADATA windowsSocketData;
 	int status = WSAStartup(MAKEWORD(2, 2), &windowsSocketData);
 
@@ -86,6 +98,8 @@ _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment,
 		HackontrolThrowWin32Error(environment, L"shutdown");
 		goto closeSocket;
 	}
+
+	(*environment)->CallObjectMethod(environment, callback, acceptMethod, (*environment)->NewStringUTF(environment, "**Connected**"));
 closeSocket:
 	closesocket(clientSocket);
 wsaCleanup:
