@@ -1,7 +1,10 @@
+#include "packet.h"
+#include <khopanstring.h>
+#include <khopanjava.h>
 #include "screenshot.h"
 #include "exception.h"
 
-BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket) {
+BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket, LodePNGState* state) {
 	HDC context = GetDC(NULL);
 	int width = GetDeviceCaps(context, HORZRES);
 	int height = GetDeviceCaps(context, VERTRES);
@@ -10,8 +13,7 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket) {
 	HBITMAP oldBitmap = SelectObject(memoryContext, bitmap);
 	BitBlt(memoryContext, 0, 0, width, height, context, 0, 0, SRCCOPY);
 	bitmap = SelectObject(memoryContext, oldBitmap);
-	size_t bufferSize = (width * height * 4) + 8;
-	BYTE* buffer = LocalAlloc(LMEM_FIXED, bufferSize);
+	BYTE* buffer = LocalAlloc(LMEM_FIXED, width * height * 4);
 	BOOL returnValue = FALSE;
 
 	if(!buffer) {
@@ -25,28 +27,39 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket) {
 	header.biPlanes = 1;
 	header.biBitCount = 32;
 
-	if(!GetDIBits(memoryContext, bitmap, 0, height, buffer + 8, (LPBITMAPINFO) &header, DIB_RGB_COLORS)) {
+	if(!GetDIBits(memoryContext, bitmap, 0, height, buffer, (LPBITMAPINFO) &header, DIB_RGB_COLORS)) {
 		SetLastError(ERROR_FUNCTION_FAILED);
 		HackontrolThrowWin32Error(environment, L"GetDIBits");
 		LocalFree(buffer);
 		goto cleanup;
 	}
 
-	buffer[0] = (width >> 24) & 0xFF;
-	buffer[1] = (width >> 16) & 0xFF;
-	buffer[2] = (width >> 8) & 0xFF;
-	buffer[3] = width & 0xFF;
-	buffer[4] = (height >> 24) & 0xFF;
-	buffer[5] = (height >> 16) & 0xFF;
-	buffer[6] = (height >> 8) & 0xFF;
-	buffer[7] = height & 0xFF;
-
-	int status = send(clientSocket, buffer, (int) bufferSize, 0);
+	BYTE* pngImage;
+	size_t pngSize;
+	unsigned int status = lodepng_encode(&pngImage, &pngSize, buffer, width, height, state);
 	LocalFree(buffer);
 
-	if(status == SOCKET_ERROR) {
-		SetLastError(WSAGetLastError());
-		HackontrolThrowWin32Error(environment, L"send");
+	if(status) {
+		LPWSTR message = KHFormatMessageW(L"lodepng_encode() %S (Error code: %u)", lodepng_error_text(status), status);
+
+		if(!message) {
+			goto cleanup;
+		}
+
+		KHJavaThrowInternalErrorW(environment, message);
+		LocalFree(message);
+		goto cleanup;
+	}
+
+	PACKET packet;
+	packet.size = (long) pngSize;
+	packet.packetType = PACKET_TYPE_STREAM_FRAME;
+	packet.data = pngImage;
+	BOOL result = SendPacket(clientSocket, &packet);
+	free(pngImage);
+
+	if(!result) {
+		HackontrolThrowWin32Error(environment, L"SendPacket");
 		goto cleanup;
 	}
 

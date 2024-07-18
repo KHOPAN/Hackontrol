@@ -2,7 +2,6 @@
 #include <khopanjava.h>
 #include "exception.h"
 #include "screenshot.h"
-#include "packet.h"
 
 _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment, LPCSTR hostName, LPCSTR port, const jobject callback) {
 	jclass consumerClass = (*environment)->FindClass(environment, "java/util/function/Consumer");
@@ -102,21 +101,16 @@ _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment,
 	}
 
 	(*environment)->CallObjectMethod(environment, callback, acceptMethod, (*environment)->NewStringUTF(environment, "**Connected**"));
+	LodePNGState state;
+	lodepng_state_init(&state);
 
-	/*while(TRUE) {
-		if(!TakeScreenshot(environment, clientSocket)) {
-			goto closeSocket;
+	while(TRUE) {
+		if(!TakeScreenshot(environment, clientSocket, &state)) {
+			break;
 		}
-	}*/
-	PACKET packet = {0};
-	packet.size = 200;
-	packet.data = LocalAlloc(LMEM_FIXED, 200);
-	packet.packetType = PACKET_TYPE_STREAM_FRAME;
-	memset(packet.data, 0, 200);
-
-	if(!SendPacket(clientSocket, &packet)) {
-		HackontrolThrowWin32Error(environment, L"SendPacket");
 	}
+
+	lodepng_state_cleanup(&state);
 closeSocket:
 	closesocket(clientSocket);
 wsaCleanup:
