@@ -3,8 +3,6 @@
 #include "Kernel.h"
 #include "exception.h"
 
-#define FILE_LIBHRSP32 L"libhrsp32.dll"
-
 typedef void(__stdcall* ConnectHRSPServerFunction) (JNIEnv* const environment, LPCSTR hostName, LPCSTR port, const jobject callback);
 
 void Kernel_connectHRSPServer(JNIEnv* const environment, const jclass class, const jstring host, const jint port, const jobject callback) {
