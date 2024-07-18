@@ -55,10 +55,18 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket) {
 	memset(seenRed, 0, sizeof(seenRed));
 	memset(seenGreen, 0, sizeof(seenGreen));
 	memset(seenBlue, 0, sizeof(seenBlue));
+#define APPEND(z) encodedResult[encodedPointer++]=z
+	APPEND((width >> 24) & 0xFF);
+	APPEND((width >> 16) & 0xFF);
+	APPEND((width >> 8) & 0xFF);
+	APPEND(width & 0xFF);
+	APPEND((height >> 24) & 0xFF);
+	APPEND((height >> 16) & 0xFF);
+	APPEND((height >> 8) & 0xFF);
+	APPEND(height & 0xFF);
 
 	for(int y = 0; y < height; y++) {
 		for(int x = 0; x < width; x++) {
-		#define APPEND(z) encodedResult[encodedPointer++]=z
 			int position = (y * width + x) * 4;
 			BYTE red = buffer[position + 2];
 			BYTE green = buffer[position + 1];
