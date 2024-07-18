@@ -1,6 +1,5 @@
 package com.khopan.hrsp;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
@@ -12,12 +11,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
-import javax.swing.JFrame;
-import javax.swing.WindowConstants;
-
 public class HRSPServer {
 	public static void main(String[] args) throws Throwable {
-		JFrame frame = new JFrame();
+		/*JFrame frame = new JFrame();
 		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		frame.setLayout(new BorderLayout());
 		ImageView view = new ImageView();
@@ -43,23 +39,37 @@ public class HRSPServer {
 		outputStream.flush();
 
 		while(true) {
-			byte[] bytes = inputStream.readNBytes(8);
+			byte[] bytes = inputStream.readNBytes(5);
 
-			if(bytes.length > 0) {
-				int width = ((bytes[0] & 0xFF) << 24) | ((bytes[1] & 0xFF) << 16) | ((bytes[2] & 0xFF) << 8) | (bytes[3] & 0xFF);
-				int height = ((bytes[4] & 0xFF) << 24) | ((bytes[5] & 0xFF) << 16) | ((bytes[6] & 0xFF) << 8) | (bytes[7] & 0xFF);
-				byte[] data = inputStream.readNBytes(width * height * 4);
-				BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-
-				for(int y = 0; y < height; y++) {
-					for(int x = 0; x < width; x++) {
-						int index = (y * width + x) * 4;
-						image.setRGB(x, height - y - 1, ((data[index + 3] & 0xFF) << 24) | ((data[index + 2] & 0xFF) << 16) | ((data[index + 1] & 0xFF) << 8) | (data[index + 0] & 0xFF));
-					}
-				}
-
-				view.setImage(image);
+			if(bytes.length < 5) {
+				continue;
 			}
+
+			int size = ((bytes[0] & 0xFF) << 24) | ((bytes[1] & 0xFF) << 16) | ((bytes[2] & 0xFF) << 8) | (bytes[3] & 0xFF);
+			int packetType = bytes[4];
+			byte[] data = inputStream.readNBytes(size);
+			System.out.println(size + " " + packetType + " " + data.length);
+			/*int width = ((bytes[0] & 0xFF) << 24) | ((bytes[1] & 0xFF) << 16) | ((bytes[2] & 0xFF) << 8) | (bytes[3] & 0xFF);
+			int height = ((bytes[4] & 0xFF) << 24) | ((bytes[5] & 0xFF) << 16) | ((bytes[6] & 0xFF) << 8) | (bytes[7] & 0xFF);
+			byte[] data = inputStream.readNBytes(width * height * 4);
+			int[] pixels = new int[width * height];
+
+			for(int i = 0; i < pixels.length; i++) {
+				int index = i * 4;
+				pixels[i] = ((data[index + 3] & 0xFF) << 24) | ((data[index + 2] & 0xFF) << 16) | ((data[index + 1] & 0xFF) << 8) | (data[index] & 0xFF);
+			}
+
+			BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+			//((WritableRaster) image.getRaster()).setDataElements(0, 0, width, height, pixels);
+
+			for(int y = 0; y < height; y++) {
+				for(int x = 0; x < width; x++) {
+					int index = (y * width + x) * 4;
+					image.setRGB(x, height - y - 1, ((data[index + 3] & 0xFF) << 24) | ((data[index + 2] & 0xFF) << 16) | ((data[index + 1] & 0xFF) << 8) | (data[index + 0] & 0xFF));
+				}
+			}
+
+			view.setImage(image);*/
 		}
 	}
 
