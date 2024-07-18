@@ -101,16 +101,12 @@ _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment,
 	}
 
 	(*environment)->CallObjectMethod(environment, callback, acceptMethod, (*environment)->NewStringUTF(environment, "**Connected**"));
-	LodePNGState state;
-	lodepng_state_init(&state);
 
 	while(TRUE) {
-		if(!TakeScreenshot(environment, clientSocket, &state)) {
-			break;
+		if(!TakeScreenshot(environment, clientSocket)) {
+			goto closeSocket;
 		}
 	}
-
-	lodepng_state_cleanup(&state);
 closeSocket:
 	closesocket(clientSocket);
 wsaCleanup:
