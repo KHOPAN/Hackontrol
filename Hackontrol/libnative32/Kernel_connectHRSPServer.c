@@ -1,6 +1,5 @@
 #include <khopanstring.h>
 #include <khopanjava.h>
-#include <hackontrol.h>
 #include "Kernel.h"
 #include "exception.h"
 
@@ -19,24 +18,25 @@ void Kernel_connectHRSPServer(JNIEnv* const environment, const jclass class, con
 		return;
 	}
 
-	LPWSTR pathFolderHackontrol = HackontrolGetDirectory(TRUE);
+	jfieldID fieldPathFileLibHRSP32 = (*environment)->GetStaticFieldID(environment, class, "PathFileLibHRSP32", "Ljava/lang/String;");
 
-	if(!pathFolderHackontrol) {
-		HackontrolThrowWin32Error(environment, L"HackontrolGetDirectory");
+	if(!fieldPathFileLibHRSP32) {
 		return;
 	}
 
-	LPWSTR pathFileLibHRSP32 = KHFormatMessageW(L"%ws\\" FILE_LIBHRSP32, pathFolderHackontrol);
-	LocalFree(pathFolderHackontrol);
+	jstring pathFileLibHRSP32Instance = (*environment)->GetStaticObjectField(environment, class, fieldPathFileLibHRSP32);
 
-	if(!pathFileLibHRSP32) {
-		SetLastError(ERROR_FUNCTION_FAILED);
-		HackontrolThrowWin32Error(environment, L"KHFormatMessageW");
+	if(!pathFileLibHRSP32Instance) {
+		KHJavaThrowInternalErrorW(environment, L"Field 'PathFileLibHRSP32' cannot be null");
 		return;
 	}
 
+	const jchar* pathFileLibHRSP32 = (*environment)->GetStringChars(environment, pathFileLibHRSP32Instance, NULL);
 	HMODULE library = LoadLibraryW(pathFileLibHRSP32);
-	LocalFree(pathFileLibHRSP32);
+
+	if(pathFileLibHRSP32) {
+		(*environment)->ReleaseStringChars(environment, pathFileLibHRSP32Instance, pathFileLibHRSP32);
+	}
 
 	if(!library) {
 		HackontrolThrowWin32Error(environment, L"LoadLibraryW");

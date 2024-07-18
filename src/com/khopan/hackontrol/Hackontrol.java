@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.khopan.hackontrol.library.Information;
+import com.khopan.hackontrol.library.Kernel;
 import com.khopan.hackontrol.panel.Panel;
 import com.khopan.hackontrol.panel.PanelManager;
 import com.khopan.hackontrol.registration.PanelRegistry;
@@ -141,8 +142,10 @@ public class Hackontrol {
 			return;
 		}
 
+		Kernel.PathFileLibHRSP32 = new File(pathFolderHackontrol, "libhrsp32.dll").getAbsolutePath();
 		Hackontrol.LOGGER.info("Initializing");
-		Hackontrol.getInstance();
+		//Hackontrol.getInstance();
+		Kernel.connectHRSPServer("localhost", 42485, System.out :: println);
 	}
 
 	private static void error(String message) throws Throwable {

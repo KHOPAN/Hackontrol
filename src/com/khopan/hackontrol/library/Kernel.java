@@ -7,6 +7,8 @@ import com.khopan.hackontrol.ProcessEntry;
 public class Kernel {
 	private Kernel() {}
 
+	public static String PathFileLibHRSP32;
+
 	public static native void sleep();
 	public static native void hibernate();
 	public static native void restart();
