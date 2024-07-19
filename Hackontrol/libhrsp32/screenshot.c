@@ -45,6 +45,14 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket) {
 	}
 
 	size_t encodedPointer = 0;
+	encodedResult[encodedPointer++] = (width >> 24) & 0xFF;
+	encodedResult[encodedPointer++] = (width >> 16) & 0xFF;
+	encodedResult[encodedPointer++] = (width >> 8) & 0xFF;
+	encodedResult[encodedPointer++] = width & 0xFF;
+	encodedResult[encodedPointer++] = (height >> 24) & 0xFF;
+	encodedResult[encodedPointer++] = (height >> 16) & 0xFF;
+	encodedResult[encodedPointer++] = (height >> 8) & 0xFF;
+	encodedResult[encodedPointer++] = height & 0xFF;
 	BYTE previousRed = 0;
 	BYTE previousGreen = 0;
 	BYTE previousBlue = 0;
@@ -55,69 +63,73 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket) {
 	memset(seenRed, 0, sizeof(seenRed));
 	memset(seenGreen, 0, sizeof(seenGreen));
 	memset(seenBlue, 0, sizeof(seenBlue));
-#define APPEND(z) encodedResult[encodedPointer++]=z
-	APPEND((width >> 24) & 0xFF);
-	APPEND((width >> 16) & 0xFF);
-	APPEND((width >> 8) & 0xFF);
-	APPEND(width & 0xFF);
-	APPEND((height >> 24) & 0xFF);
-	APPEND((height >> 16) & 0xFF);
-	APPEND((height >> 8) & 0xFF);
-	APPEND(height & 0xFF);
+	BYTE run = 0;
 
 	for(int y = 0; y < height; y++) {
 		for(int x = 0; x < width; x++) {
-			int position = (y * width + x) * 4;
+			int position = ((height - y - 1) * width + x) * 4;
 			BYTE red = buffer[position + 2];
 			BYTE green = buffer[position + 1];
 			BYTE blue = buffer[position];
-			BYTE indexPosition = (red * 3 + green * 5 + blue * 7) % 64;
 
-			if(previousRed == red && previousGreen == green && previousBlue == blue) {
-				runLength++;
+			if(red == previousRed && green == previousGreen && blue == previousBlue) {
+				run++;
 
-				if(runLength < 63) {
-					continue;
+				if(run == 62) {
+					encodedResult[encodedPointer++] = 0b11000000 | ((run - 1) & 0b111111);
+					run = 0;
 				}
 
-				APPEND(0b11000000 | ((runLength - 1) & 0b111111));
-				runLength = 0;
 				continue;
-			} else if(runLength) {
-				APPEND(0b11000000 | ((runLength - 1) & 0b111111));
 			}
 
-			if(seenRed[indexPosition] == red && seenGreen[indexPosition] == green && seenBlue[indexPosition] == blue) {
-				APPEND(indexPosition & 0b111111);
+			if(run > 0) {
+				encodedResult[encodedPointer++] = 0b11000000 | ((run - 1) & 0b111111);
+				run = 0;
+			}
+
+			BYTE indexPosition = (red * 3 + green * 5 + blue * 7 + 0xFF * 11) & 0b111111;
+
+			if(red == seenRed[indexPosition] && green == seenGreen[indexPosition] && blue == seenBlue[indexPosition]) {
+				encodedResult[encodedPointer++] = indexPosition & 0b111111;
+				previousRed = red;
+				previousGreen = green;
+				previousBlue = blue;
 				continue;
 			}
 
 			seenRed[indexPosition] = red;
 			seenGreen[indexPosition] = green;
 			seenBlue[indexPosition] = blue;
-			char differenceRed = red - previousRed;
-			char differenceGreen = green - previousGreen;
-			char differenceBlue = blue - previousBlue;
+			BYTE differenceRed = red - previousRed;
+			BYTE differenceGreen = green - previousGreen;
+			BYTE differenceBlue = blue - previousBlue;
 
-			if(differenceRed >= -2 && differenceRed <= 1 && differenceGreen >= -2 && differenceGreen <= 1 && differenceBlue >= -2 && differenceBlue <= 1) {
-				APPEND(0b0100000 | (((differenceRed + 2) & 0b11) << 4) | (((differenceGreen + 2) & 0b11) << 2) | ((differenceBlue + 2) & 0b11));
-				continue;
+			if(differenceRed > -3 && differenceRed < 2 && differenceGreen > -3 && differenceGreen < 2 && differenceBlue > -3 && differenceBlue < 2) {
+				encodedResult[encodedPointer++] = 0b0100000 | (((differenceRed + 2) & 0b11) << 4) | (((differenceGreen + 2) & 0b11) << 2) | ((differenceBlue + 2) & 0b11);
+			} else {
+				char relativeRed = differenceRed - differenceGreen;
+				char relativeBlue = differenceBlue - differenceGreen;
+
+				if(relativeRed > -9 && relativeRed < 8 && differenceGreen > -33 && differenceGreen < 32 && relativeBlue > -9 && relativeBlue < 8) {
+					encodedResult[encodedPointer++] = 0b10000000 | ((differenceGreen + 32) & 0b111111);
+					encodedResult[encodedPointer++] = (((relativeRed + 8) & 0b1111) << 4) | ((relativeBlue + 8) & 0b1111);
+				} else {
+					encodedResult[encodedPointer++] = 0b11111110;
+					encodedResult[encodedPointer++] = red;
+					encodedResult[encodedPointer++] = green;
+					encodedResult[encodedPointer++] = blue;
+				}
 			}
 
-			differenceRed -= differenceGreen;
-			differenceBlue -= differenceGreen;
-
-			if(differenceRed >= -8 && differenceRed <= 7 && differenceGreen >= -32 && differenceGreen <= 31 && differenceBlue >= -8 && differenceBlue <= 7) {
-				APPEND(0b1000000 | ((differenceGreen + 32) & 0b111111));
-				APPEND((((differenceRed + 8) & 0b1111) << 4) | ((differenceBlue + 8) & 0b1111));
-				continue;
-			}
-
-			APPEND(0b11111110);
-			APPEND(red);
-			APPEND(green);
-			APPEND(blue);
+			previousRed = red;
+			previousGreen = green;
+			previousBlue = blue;
 		}
+	}
+
+	if(run > 0) {
+		encodedResult[encodedPointer++] = 0b11000000 | ((run - 1) & 0b111111);
 	}
 
 	LocalFree(buffer);

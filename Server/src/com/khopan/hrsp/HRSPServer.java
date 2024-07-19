@@ -1,5 +1,6 @@
 package com.khopan.hrsp;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
@@ -11,16 +12,19 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
+import javax.swing.JFrame;
+import javax.swing.WindowConstants;
+
 public class HRSPServer {
 	public static void main(String[] args) throws Throwable {
-		/*JFrame frame = new JFrame();
+		JFrame frame = new JFrame();
 		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		frame.setLayout(new BorderLayout());
 		ImageView view = new ImageView();
 		frame.add(view, BorderLayout.CENTER);
 		frame.setSize(600, 400);
 		frame.setLocationRelativeTo(null);
-		frame.setVisible(true);*/
+		frame.setVisible(true);
 		System.out.println("Wait for incoming connection...");
 		ServerSocket server = new ServerSocket(42485);
 		Socket socket = server.accept();
@@ -37,6 +41,7 @@ public class HRSPServer {
 		OutputStream outputStream = socket.getOutputStream();
 		outputStream.write("HRSP 1.0 OK".getBytes(StandardCharsets.UTF_8));
 		outputStream.flush();
+		QOIDecoder decoder = new QOIDecoder();
 
 		while(true) {
 			byte[] bytes = inputStream.readNBytes(5);
@@ -47,9 +52,10 @@ public class HRSPServer {
 
 			int size = ((bytes[0] & 0xFF) << 24) | ((bytes[1] & 0xFF) << 16) | ((bytes[2] & 0xFF) << 8) | (bytes[3] & 0xFF);
 			byte[] data = inputStream.readNBytes(size);
-			//BufferedImage image = ImageIO.read(new ByteArrayInputStream(data));
-			//view.setImage(image);
-			System.out.println(data.length);
+			int pointer = 0;
+			int width = ((data[pointer++] & 0xFF) << 24) | ((data[pointer++] & 0xFF) << 16) | ((data[pointer++] & 0xFF) << 8) | (data[pointer++] & 0xFF);
+			int height = ((data[pointer++] & 0xFF) << 24) | ((data[pointer++] & 0xFF) << 16) | ((data[pointer++] & 0xFF) << 8) | (data[pointer++] & 0xFF);
+			view.setImage(decoder.decode(width, height, data));
 		}
 	}
 
