@@ -5,6 +5,12 @@
 #include "screenshot.h"
 #include "exception.h"
 
+#define QOI_OP_RGB   0b11111110
+#define QOI_OP_INDEX 0b00000000
+#define QOI_OP_DIFF  0b01000000
+#define QOI_OP_LUMA  0b10000000
+#define QOI_OP_RUN   0b11000000
+
 BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket) {
 	HDC context = GetDC(NULL);
 	int width = GetDeviceCaps(context, HORZRES);
@@ -65,18 +71,18 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket) {
 	memset(seenBlue, 0, sizeof(seenBlue));
 	BYTE run = 0;
 
-	for(int y = 0; y < height; y++) {
+	for(int y = height - 1; y >= 0; y--) {
 		for(int x = 0; x < width; x++) {
-			int position = ((height - y - 1) * width + x) * 4;
-			BYTE red = buffer[position + 2];
-			BYTE green = buffer[position + 1];
-			BYTE blue = buffer[position];
+			int bufferIndex = (y * width + x) * 4;
+			BYTE red = buffer[bufferIndex + 2];
+			BYTE green = buffer[bufferIndex + 1];
+			BYTE blue = buffer[bufferIndex];
 
 			if(red == previousRed && green == previousGreen && blue == previousBlue) {
 				run++;
 
 				if(run == 62) {
-					encodedResult[encodedPointer++] = 0b11000000 | ((run - 1) & 0b111111);
+					encodedResult[encodedPointer++] = QOI_OP_RUN | (run - 1);
 					run = 0;
 				}
 
@@ -84,14 +90,14 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket) {
 			}
 
 			if(run > 0) {
-				encodedResult[encodedPointer++] = 0b11000000 | ((run - 1) & 0b111111);
+				encodedResult[encodedPointer++] = QOI_OP_RUN | ((run - 1) & 0b111111);
 				run = 0;
 			}
 
 			BYTE indexPosition = (red * 3 + green * 5 + blue * 7 + 0xFF * 11) & 0b111111;
 
 			if(red == seenRed[indexPosition] && green == seenGreen[indexPosition] && blue == seenBlue[indexPosition]) {
-				encodedResult[encodedPointer++] = indexPosition & 0b111111;
+				encodedResult[encodedPointer++] = QOI_OP_INDEX | indexPosition;
 				previousRed = red;
 				previousGreen = green;
 				previousBlue = blue;
@@ -101,21 +107,21 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket) {
 			seenRed[indexPosition] = red;
 			seenGreen[indexPosition] = green;
 			seenBlue[indexPosition] = blue;
-			BYTE differenceRed = red - previousRed;
-			BYTE differenceGreen = green - previousGreen;
-			BYTE differenceBlue = blue - previousBlue;
+			char differenceRed = red - previousRed;
+			char differenceGreen = green - previousGreen;
+			char differenceBlue = blue - previousBlue;
 
 			if(differenceRed > -3 && differenceRed < 2 && differenceGreen > -3 && differenceGreen < 2 && differenceBlue > -3 && differenceBlue < 2) {
-				encodedResult[encodedPointer++] = 0b0100000 | (((differenceRed + 2) & 0b11) << 4) | (((differenceGreen + 2) & 0b11) << 2) | ((differenceBlue + 2) & 0b11);
+				encodedResult[encodedPointer++] = QOI_OP_DIFF | ((differenceRed + 2) << 4) | ((differenceGreen + 2) << 2) | (differenceBlue + 2);
 			} else {
 				char relativeRed = differenceRed - differenceGreen;
 				char relativeBlue = differenceBlue - differenceGreen;
 
 				if(relativeRed > -9 && relativeRed < 8 && differenceGreen > -33 && differenceGreen < 32 && relativeBlue > -9 && relativeBlue < 8) {
-					encodedResult[encodedPointer++] = 0b10000000 | ((differenceGreen + 32) & 0b111111);
-					encodedResult[encodedPointer++] = (((relativeRed + 8) & 0b1111) << 4) | ((relativeBlue + 8) & 0b1111);
+					encodedResult[encodedPointer++] = QOI_OP_LUMA | (differenceGreen + 32);
+					encodedResult[encodedPointer++] = ((relativeRed + 8) << 4) | (relativeBlue + 8);
 				} else {
-					encodedResult[encodedPointer++] = 0b11111110;
+					encodedResult[encodedPointer++] = QOI_OP_RGB;
 					encodedResult[encodedPointer++] = red;
 					encodedResult[encodedPointer++] = green;
 					encodedResult[encodedPointer++] = blue;
@@ -129,7 +135,7 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket) {
 	}
 
 	if(run > 0) {
-		encodedResult[encodedPointer++] = 0b11000000 | ((run - 1) & 0b111111);
+		encodedResult[encodedPointer++] = QOI_OP_RUN | ((run - 1) & 0b111111);
 	}
 
 	LocalFree(buffer);
