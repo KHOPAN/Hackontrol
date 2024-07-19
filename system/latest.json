@@ -13,7 +13,7 @@
 		{
 			"file": "libhrsp32.dll",
 			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/libhrsp32.dll",
-			"sha384": "32d3c18f0ed4d81b988534d86c34cdaa818d69e43207a156bfc1257884e33b6308e02fdb0457ae94494a9016bffe304b"
+			"sha384": "a485f23c06c59cebfc5a26d7f95e929ca073d8fbf7e10b599d1326153048f5aeadac6050929473bbfe8a2c9d38ff7281"
 		},
 		{
 			"file": "libnative32.dll",
