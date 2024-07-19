@@ -124,11 +124,30 @@ _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment,
 		goto closeSocket;
 	}
 
+	size_t bufferSize = width * height * 4;
+	BYTE* screenshotBuffer = LocalAlloc(LMEM_FIXED, bufferSize);
+
+	if(!screenshotBuffer) {
+		HackontrolThrowWin32Error(environment, L"SendPacket");
+		goto closeSocket;
+	}
+
+	BYTE* qoiBuffer = LocalAlloc(LMEM_FIXED, bufferSize);
+
+	if(!qoiBuffer) {
+		HackontrolThrowWin32Error(environment, L"SendPacket");
+		goto freeScreenshotBuffer;
+	}
+
 	while(TRUE) {
-		if(!TakeScreenshot(environment, clientSocket, width, height)) {
-			goto closeSocket;
+		if(!TakeScreenshot(environment, clientSocket, width, height, screenshotBuffer, qoiBuffer)) {
+			goto freeQOIBuffer;
 		}
 	}
+freeQOIBuffer:
+	LocalFree(qoiBuffer);
+freeScreenshotBuffer:
+	LocalFree(screenshotBuffer);
 closeSocket:
 	closesocket(clientSocket);
 wsaCleanup:

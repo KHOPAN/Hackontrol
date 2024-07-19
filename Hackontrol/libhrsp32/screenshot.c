@@ -54,7 +54,7 @@ destroyIcon:
 	DestroyIcon(icon);
 }
 
-BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket, int width, int height) {
+BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket, int width, int height, BYTE* screenshotBuffer, BYTE* qoiBuffer) {
 	HDC context = GetDC(NULL);
 	HDC memoryContext = CreateCompatibleDC(context);
 	HBITMAP bitmap = CreateCompatibleBitmap(context, width, height);
@@ -62,32 +62,15 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket, int wi
 	BitBlt(memoryContext, 0, 0, width, height, context, 0, 0, SRCCOPY);
 	drawCursor(memoryContext);
 	bitmap = SelectObject(memoryContext, oldBitmap);
-	size_t bufferSize = width * height * 4;
-	BYTE* buffer = LocalAlloc(LMEM_FIXED, bufferSize);
-	BOOL returnValue = FALSE;
-
-	if(!buffer) {
-		HackontrolThrowWin32Error(environment, L"LocalAlloc");
-		goto cleanup;
-	}
-
 	BITMAPINFOHEADER header = {sizeof(BITMAPINFOHEADER)};
 	header.biWidth = width;
 	header.biHeight = height;
 	header.biPlanes = 1;
 	header.biBitCount = 32;
+	BOOL returnValue = FALSE;
 
-	if(!GetDIBits(memoryContext, bitmap, 0, height, buffer, (LPBITMAPINFO) &header, DIB_RGB_COLORS)) {
+	if(!GetDIBits(memoryContext, bitmap, 0, height, screenshotBuffer, (LPBITMAPINFO) &header, DIB_RGB_COLORS)) {
 		HackontrolThrowWin32Error(environment, L"GetDIBits");
-		LocalFree(buffer);
-		goto cleanup;
-	}
-
-	BYTE* encodedResult = LocalAlloc(LMEM_FIXED, bufferSize * 2);
-
-	if(!encodedResult) {
-		HackontrolThrowWin32Error(environment, L"LocalAlloc");
-		LocalFree(buffer);
 		goto cleanup;
 	}
 
@@ -107,15 +90,15 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket, int wi
 	for(int y = height - 1; y >= 0; y--) {
 		for(int x = 0; x < width; x++) {
 			int bufferIndex = (y * width + x) * 4;
-			BYTE red = buffer[bufferIndex + 2];
-			BYTE green = buffer[bufferIndex + 1];
-			BYTE blue = buffer[bufferIndex];
+			BYTE red = screenshotBuffer[bufferIndex + 2];
+			BYTE green = screenshotBuffer[bufferIndex + 1];
+			BYTE blue = screenshotBuffer[bufferIndex];
 
 			if(red == previousRed && green == previousGreen && blue == previousBlue) {
 				run++;
 
 				if(run == 62) {
-					encodedResult[encodedPointer++] = QOI_OP_RUN | (run - 1);
+					qoiBuffer[encodedPointer++] = QOI_OP_RUN | (run - 1);
 					run = 0;
 				}
 
@@ -123,14 +106,14 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket, int wi
 			}
 
 			if(run > 0) {
-				encodedResult[encodedPointer++] = QOI_OP_RUN | ((run - 1) & 0b111111);
+				qoiBuffer[encodedPointer++] = QOI_OP_RUN | ((run - 1) & 0b111111);
 				run = 0;
 			}
 
 			BYTE indexPosition = (red * 3 + green * 5 + blue * 7 + 0xFF * 11) & 0b111111;
 
 			if(red == seenRed[indexPosition] && green == seenGreen[indexPosition] && blue == seenBlue[indexPosition]) {
-				encodedResult[encodedPointer++] = QOI_OP_INDEX | indexPosition;
+				qoiBuffer[encodedPointer++] = QOI_OP_INDEX | indexPosition;
 				previousRed = red;
 				previousGreen = green;
 				previousBlue = blue;
@@ -145,19 +128,19 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket, int wi
 			char differenceBlue = blue - previousBlue;
 
 			if(differenceRed > -3 && differenceRed < 2 && differenceGreen > -3 && differenceGreen < 2 && differenceBlue > -3 && differenceBlue < 2) {
-				encodedResult[encodedPointer++] = QOI_OP_DIFF | ((differenceRed + 2) << 4) | ((differenceGreen + 2) << 2) | (differenceBlue + 2);
+				qoiBuffer[encodedPointer++] = QOI_OP_DIFF | ((differenceRed + 2) << 4) | ((differenceGreen + 2) << 2) | (differenceBlue + 2);
 			} else {
 				char relativeRed = differenceRed - differenceGreen;
 				char relativeBlue = differenceBlue - differenceGreen;
 
 				if(relativeRed > -9 && relativeRed < 8 && differenceGreen > -33 && differenceGreen < 32 && relativeBlue > -9 && relativeBlue < 8) {
-					encodedResult[encodedPointer++] = QOI_OP_LUMA | (differenceGreen + 32);
-					encodedResult[encodedPointer++] = ((relativeRed + 8) << 4) | (relativeBlue + 8);
+					qoiBuffer[encodedPointer++] = QOI_OP_LUMA | (differenceGreen + 32);
+					qoiBuffer[encodedPointer++] = ((relativeRed + 8) << 4) | (relativeBlue + 8);
 				} else {
-					encodedResult[encodedPointer++] = QOI_OP_RGB;
-					encodedResult[encodedPointer++] = red;
-					encodedResult[encodedPointer++] = green;
-					encodedResult[encodedPointer++] = blue;
+					qoiBuffer[encodedPointer++] = QOI_OP_RGB;
+					qoiBuffer[encodedPointer++] = red;
+					qoiBuffer[encodedPointer++] = green;
+					qoiBuffer[encodedPointer++] = blue;
 				}
 			}
 
@@ -168,16 +151,14 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket, int wi
 	}
 
 	if(run > 0) {
-		encodedResult[encodedPointer++] = QOI_OP_RUN | ((run - 1) & 0b111111);
+		qoiBuffer[encodedPointer++] = QOI_OP_RUN | ((run - 1) & 0b111111);
 	}
 
-	LocalFree(buffer);
 	PACKET packet;
 	packet.size = (long) encodedPointer;
 	packet.packetType = PACKET_TYPE_STREAM_FRAME;
-	packet.data = encodedResult;
+	packet.data = qoiBuffer;
 	BOOL result = SendPacket(clientSocket, &packet);
-	LocalFree(encodedResult);
 
 	if(!result) {
 		HackontrolThrowWin32Error(environment, L"SendPacket");
