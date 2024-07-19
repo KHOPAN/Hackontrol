@@ -24,6 +24,7 @@ public class HRSPServer {
 		frame.add(view, BorderLayout.CENTER);
 		frame.setSize(600, 400);
 		frame.setLocationRelativeTo(null);
+		frame.setAlwaysOnTop(true);;
 		frame.setVisible(true);
 		System.out.println("Wait for incoming connection...");
 		ServerSocket server = new ServerSocket(42485);
