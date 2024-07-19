@@ -54,10 +54,8 @@ destroyIcon:
 	DestroyIcon(icon);
 }
 
-BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket) {
+BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket, int width, int height) {
 	HDC context = GetDC(NULL);
-	int width = GetDeviceCaps(context, HORZRES);
-	int height = GetDeviceCaps(context, VERTRES);
 	HDC memoryContext = CreateCompatibleDC(context);
 	HBITMAP bitmap = CreateCompatibleBitmap(context, width, height);
 	HBITMAP oldBitmap = SelectObject(memoryContext, bitmap);
@@ -80,7 +78,6 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket) {
 	header.biBitCount = 32;
 
 	if(!GetDIBits(memoryContext, bitmap, 0, height, buffer, (LPBITMAPINFO) &header, DIB_RGB_COLORS)) {
-		SetLastError(ERROR_FUNCTION_FAILED);
 		HackontrolThrowWin32Error(environment, L"GetDIBits");
 		LocalFree(buffer);
 		goto cleanup;
@@ -95,14 +92,6 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket) {
 	}
 
 	size_t encodedPointer = 0;
-	encodedResult[encodedPointer++] = (width >> 24) & 0xFF;
-	encodedResult[encodedPointer++] = (width >> 16) & 0xFF;
-	encodedResult[encodedPointer++] = (width >> 8) & 0xFF;
-	encodedResult[encodedPointer++] = width & 0xFF;
-	encodedResult[encodedPointer++] = (height >> 24) & 0xFF;
-	encodedResult[encodedPointer++] = (height >> 16) & 0xFF;
-	encodedResult[encodedPointer++] = (height >> 8) & 0xFF;
-	encodedResult[encodedPointer++] = height & 0xFF;
 	BYTE previousRed = 0;
 	BYTE previousGreen = 0;
 	BYTE previousBlue = 0;

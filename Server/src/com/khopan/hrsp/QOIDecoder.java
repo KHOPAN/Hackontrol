@@ -11,12 +11,22 @@ public class QOIDecoder {
 	public static final int QOI_OP_RUN   = 0b11000000;
 	public static final int OP_MASK      = 0b11000000;
 
-	public static BufferedImage decode(byte[] data) {
+	private int width;
+	private int height;
+
+	public void size(int width, int height) {
+		this.width = width;
+		this.height = height;
+	}
+
+	public BufferedImage decode(byte[] data) {
+		if(this.width * this.height < 1) {
+			throw new IllegalArgumentException("Size is not set");
+		}
+
 		ByteArrayInputStream stream = new ByteArrayInputStream(data);
-		int width = ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
-		int height = ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
-		BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-		int[] pixels = new int[width * height];
+		BufferedImage image = new BufferedImage(this.width, this.height, BufferedImage.TYPE_INT_RGB);
+		int[] pixels = new int[this.width * this.height];
 		int[] indexTable = new int[64];
 		int red = 0;
 		int green = 0;
@@ -61,7 +71,7 @@ public class QOIDecoder {
 			pixels[i] = indexTable[((red & 0xFF) * 3 + (green & 0xFF) * 5 + (blue & 0xFF) * 7 + 0xFF * 11) & 0b111111] = ((red & 0xFF) << 16) | ((green & 0xFF) << 8) | (blue & 0xFF);
 		}
 
-		image.getRaster().setDataElements(0, 0, width, height, pixels);
+		image.getRaster().setDataElements(0, 0, this.width, this.height, pixels);
 		return image;
 	}
 }

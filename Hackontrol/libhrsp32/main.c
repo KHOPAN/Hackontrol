@@ -2,6 +2,7 @@
 #include <khopanjava.h>
 #include "exception.h"
 #include "screenshot.h"
+#include "packet.h"
 
 _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment, LPCSTR hostName, LPCSTR port, const jobject callback) {
 	jclass consumerClass = (*environment)->FindClass(environment, "java/util/function/Consumer");
@@ -101,9 +102,30 @@ _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment,
 	}
 
 	(*environment)->CallObjectMethod(environment, callback, acceptMethod, (*environment)->NewStringUTF(environment, "**Connected**"));
+	HDC context = GetDC(NULL);
+	int width = GetDeviceCaps(context, HORZRES);
+	int height = GetDeviceCaps(context, VERTRES);
+	BYTE screenInfoBuffer[8];
+	screenInfoBuffer[0] = (width >> 24) & 0xFF;
+	screenInfoBuffer[1] = (width >> 16) & 0xFF;
+	screenInfoBuffer[2] = (width >> 8) & 0xFF;
+	screenInfoBuffer[3] = width & 0xFF;
+	screenInfoBuffer[4] = (height >> 24) & 0xFF;
+	screenInfoBuffer[5] = (height >> 16) & 0xFF;
+	screenInfoBuffer[6] = (height >> 8) & 0xFF;
+	screenInfoBuffer[7] = height & 0xFF;
+	PACKET packet;
+	packet.size = sizeof(screenInfoBuffer);
+	packet.packetType = PACKET_TYPE_SCREEN_INFORMATION;
+	packet.data = screenInfoBuffer;
+
+	if(!SendPacket(clientSocket, &packet)) {
+		HackontrolThrowWin32Error(environment, L"SendPacket");
+		goto closeSocket;
+	}
 
 	while(TRUE) {
-		if(!TakeScreenshot(environment, clientSocket)) {
+		if(!TakeScreenshot(environment, clientSocket, width, height)) {
 			goto closeSocket;
 		}
 	}
