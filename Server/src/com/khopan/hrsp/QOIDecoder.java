@@ -3,6 +3,7 @@ package com.khopan.hrsp;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.io.ByteArrayInputStream;
+import java.util.Arrays;
 
 public class QOIDecoder {
 	public static final int QOI_OP_RGB   = 0b11111110;
@@ -57,8 +58,8 @@ public class QOIDecoder {
 		int y = ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
 		int width = ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
 		int height = ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
-		System.out.println(x + " " + y + " " + width + " " + height);
-		/*int red = 0;
+		Arrays.fill(this.indexTable, 0);
+		int red = 0;
 		int green = 0;
 		int blue = 0;
 
@@ -99,13 +100,8 @@ public class QOIDecoder {
 			}
 
 			this.pixels[i] = this.indexTable[((red & 0xFF) * 3 + (green & 0xFF) * 5 + (blue & 0xFF) * 7 + 0xFF * 11) & 0b111111] = ((red & 0xFF) << 16) | ((green & 0xFF) << 8) | (blue & 0xFF);
-		}*/
-
-		for(int i = 0; i < width * height; i++) {
-			this.pixels[i] = ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
 		}
 
-		this.raster.setDataElements(0, 0, this.width, this.height, new int[this.width * this.height]);
 		this.raster.setDataElements(x, y, width, height, this.pixels);
 	}
 }

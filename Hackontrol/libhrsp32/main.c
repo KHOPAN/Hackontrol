@@ -147,10 +147,6 @@ _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment,
 		goto freeQOIBuffer;
 	}
 
-	memset(screenshotBuffer, 0, bufferSize);
-	memset(qoiBuffer, 0, bufferSize);
-	memset(previousBuffer, 0, baseSize * 3);
-
 	while(TRUE) {
 		if(!TakeScreenshot(environment, clientSocket, width, height, screenshotBuffer, qoiBuffer, previousBuffer)) {
 			goto freePreviousBuffer;
