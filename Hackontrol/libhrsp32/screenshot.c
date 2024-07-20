@@ -68,6 +68,7 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket, int wi
 	header.biPlanes = 1;
 	header.biBitCount = 32;
 	BOOL returnValue = FALSE;
+	memset(screenshotBuffer, 0, width * height * 4);
 
 	if(!GetDIBits(memoryContext, bitmap, 0, height, screenshotBuffer, (LPBITMAPINFO) &header, DIB_RGB_COLORS)) {
 		HackontrolThrowWin32Error(environment, L"GetDIBits");
@@ -86,13 +87,19 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket, int wi
 			int previousIndex = baseIndex * 3;
 
 			if(screenshotBuffer[screenshotIndex + 2] != previousBuffer[previousIndex] || screenshotBuffer[screenshotIndex + 1] != previousBuffer[previousIndex + 1] || screenshotBuffer[screenshotIndex] != previousBuffer[previousIndex + 2]) {
-				previousBuffer[previousIndex] = screenshotBuffer[screenshotIndex + 2];
-				previousBuffer[previousIndex + 1] = screenshotBuffer[screenshotIndex + 1];
-				previousBuffer[previousIndex + 2] = screenshotBuffer[screenshotIndex];
 				startX = min(startX, x);
 				startY = min(startY, y);
 				endX = max(endX, x);
 				endY = max(endY, y);
+				//int temporary = previousBuffer[previousIndex];
+				previousBuffer[previousIndex] = screenshotBuffer[screenshotIndex + 2];
+				//screenshotBuffer[screenshotIndex + 2] = temporary;
+				//temporary = previousBuffer[previousIndex + 1];
+				previousBuffer[previousIndex + 1] = screenshotBuffer[screenshotIndex + 1];
+				//screenshotBuffer[screenshotIndex + 1] = temporary;
+				//temporary = previousBuffer[previousIndex + 2];
+				previousBuffer[previousIndex + 2] = screenshotBuffer[screenshotIndex];
+				//screenshotBuffer[screenshotIndex] = temporary;
 			}
 		}
 	}
@@ -106,6 +113,7 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket, int wi
 	}
 
 	size_t encodedPointer = 0;
+	memset(qoiBuffer, 0, width * height * 4);
 	qoiBuffer[encodedPointer++] = (startX >> 24) & 0xFF;
 	qoiBuffer[encodedPointer++] = (startX >> 16) & 0xFF;
 	qoiBuffer[encodedPointer++] = (startX >> 8) & 0xFF;
@@ -122,7 +130,17 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket, int wi
 	qoiBuffer[encodedPointer++] = (startHeight >> 16) & 0xFF;
 	qoiBuffer[encodedPointer++] = (startHeight >> 8) & 0xFF;
 	qoiBuffer[encodedPointer++] = startHeight & 0xFF;
-	BYTE seenRed[64];
+
+	for(int y = startY; y <= endY; y++) {
+		for(int x = startX; x <= endX; x++) {
+			int previousIndex = ((height - y - 1) * width + x) * 4;
+			qoiBuffer[encodedPointer++] = screenshotBuffer[previousIndex + 2];
+			qoiBuffer[encodedPointer++] = screenshotBuffer[previousIndex + 1];
+			qoiBuffer[encodedPointer++] = screenshotBuffer[previousIndex];
+		}
+	}
+
+	/*BYTE seenRed[64];
 	BYTE seenGreen[64];
 	BYTE seenBlue[64];
 	memset(seenRed, 0, sizeof(seenRed));
@@ -135,10 +153,10 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket, int wi
 
 	for(int y = startY; y <= endY; y++) {
 		for(int x = startX; x <= endX; x++) {
-			int previousIndex = ((height - y - 1) * width + x) * 3;
-			BYTE red = previousBuffer[previousIndex];
-			BYTE green = previousBuffer[previousIndex + 1];
-			BYTE blue = previousBuffer[previousIndex + 2];
+			int previousIndex = ((height - y - 1) * width + x) * 4;
+			BYTE red = screenshotBuffer[previousIndex + 2];
+			BYTE green = screenshotBuffer[previousIndex + 1];
+			BYTE blue = screenshotBuffer[previousIndex];
 
 			if(red == previousRed && green == previousGreen && blue == previousBlue) {
 				run++;
@@ -198,7 +216,7 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket, int wi
 
 	if(run > 0) {
 		qoiBuffer[encodedPointer++] = QOI_OP_RUN | ((run - 1) & 0b111111);
-	}
+	}*/
 
 	PACKET packet;
 	packet.size = (long) encodedPointer;
