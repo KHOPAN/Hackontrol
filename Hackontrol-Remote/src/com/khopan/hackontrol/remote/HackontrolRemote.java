@@ -1,4 +1,4 @@
-package com.khopan.hrsp;
+package com.khopan.hackontrol.remote;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
-public class HRSPServer {
+public class HackontrolRemote {
 	public static void main(String[] args) throws Throwable {
 		JFrame frame = new JFrame();
 		frame.setTitle("Hackontrol Remote");

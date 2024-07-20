@@ -1,4 +1,4 @@
-package com.khopan.hrsp;
+package com.khopan.hackontrol.remote;
 
 import java.io.IOException;
 import java.io.InputStream;

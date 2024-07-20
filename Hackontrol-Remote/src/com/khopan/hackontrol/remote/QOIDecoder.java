@@ -1,4 +1,4 @@
-package com.khopan.hrsp;
+package com.khopan.hackontrol.remote;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
