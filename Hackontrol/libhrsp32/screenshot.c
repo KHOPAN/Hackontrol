@@ -54,7 +54,7 @@ destroyIcon:
 	DestroyIcon(icon);
 }
 
-BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket, int width, int height, BYTE* screenshotBuffer, BYTE* qoiBuffer) {
+BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket, int width, int height, BYTE* screenshotBuffer, BYTE* qoiBuffer, BYTE* previousBuffer) {
 	HDC context = GetDC(NULL);
 	HDC memoryContext = CreateCompatibleDC(context);
 	HBITMAP bitmap = CreateCompatibleBitmap(context, width, height);
@@ -158,9 +158,8 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket, int wi
 	packet.size = (long) encodedPointer;
 	packet.packetType = PACKET_TYPE_STREAM_FRAME;
 	packet.data = qoiBuffer;
-	BOOL result = SendPacket(clientSocket, &packet);
 
-	if(!result) {
+	if(!SendPacket(clientSocket, &packet)) {
 		HackontrolThrowWin32Error(environment, L"SendPacket");
 		goto cleanup;
 	}
