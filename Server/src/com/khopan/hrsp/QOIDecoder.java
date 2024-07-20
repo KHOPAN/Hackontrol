@@ -1,6 +1,7 @@
 package com.khopan.hrsp;
 
 import java.awt.image.BufferedImage;
+import java.awt.image.WritableRaster;
 import java.io.ByteArrayInputStream;
 
 public class QOIDecoder {
@@ -11,21 +12,39 @@ public class QOIDecoder {
 	public static final int QOI_OP_RUN   = 0b11000000;
 	public static final int OP_MASK      = 0b11000000;
 
+	private BufferedImage image;
+	private WritableRaster raster;
 	private int width;
 	private int height;
 
-	public void size(int width, int height) {
-		this.width = width;
-		this.height = height;
-	}
-
-	public BufferedImage decode(byte[] data) {
-		if(this.width * this.height < 1) {
-			throw new IllegalArgumentException("Size is not set");
+	public boolean packet(Packet packet) {
+		if(packet == null) {
+			return false;
 		}
 
+		byte[] data = packet.getData();
+
+		switch(packet.getType()) {
+		case Packet.PACKET_TYPE_SCREEN_INFORMATION:
+			this.width = ((data[0] & 0xFF) << 24) | ((data[1] & 0xFF) << 16) | ((data[2] & 0xFF) << 8) | (data[3] & 0xFF);
+			this.height = ((data[4] & 0xFF) << 24) | ((data[5] & 0xFF) << 16) | ((data[6] & 0xFF) << 8) | (data[7] & 0xFF);
+			this.image = new BufferedImage(this.width, this.height, BufferedImage.TYPE_INT_RGB);
+			this.raster = this.image.getRaster();
+			break;
+		case Packet.PACKET_TYPE_STREAM_FRAME:
+			this.decode(data);
+			return true;
+		}
+
+		return false;
+	}
+
+	public BufferedImage getImage() {
+		return this.image;
+	}
+
+	private void decode(byte[] data) {
 		ByteArrayInputStream stream = new ByteArrayInputStream(data);
-		BufferedImage image = new BufferedImage(this.width, this.height, BufferedImage.TYPE_INT_RGB);
 		int[] pixels = new int[this.width * this.height];
 		int[] indexTable = new int[64];
 		int red = 0;
@@ -71,7 +90,6 @@ public class QOIDecoder {
 			pixels[i] = indexTable[((red & 0xFF) * 3 + (green & 0xFF) * 5 + (blue & 0xFF) * 7 + 0xFF * 11) & 0b111111] = ((red & 0xFF) << 16) | ((green & 0xFF) << 8) | (blue & 0xFF);
 		}
 
-		image.getRaster().setDataElements(0, 0, this.width, this.height, pixels);
-		return image;
+		this.raster.setDataElements(0, 0, this.width, this.height, pixels);
 	}
 }

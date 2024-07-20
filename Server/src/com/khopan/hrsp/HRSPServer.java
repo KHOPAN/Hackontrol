@@ -16,9 +16,6 @@ import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
 public class HRSPServer {
-	public static final int PACKET_TYPE_SCREEN_INFORMATION = 1;
-	public static final int PACKET_TYPE_STREAM_FRAME       = 2;
-
 	public static void main(String[] args) throws Throwable {
 		JFrame frame = new JFrame();
 		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -48,25 +45,10 @@ public class HRSPServer {
 		QOIDecoder decoder = new QOIDecoder();
 
 		while(true) {
-			byte[] bytes = inputStream.readNBytes(5);
+			Packet packet = Packet.readPacket(inputStream);
 
-			if(bytes.length < 5) {
-				continue;
-			}
-
-			int size = ((bytes[0] & 0xFF) << 24) | ((bytes[1] & 0xFF) << 16) | ((bytes[2] & 0xFF) << 8) | (bytes[3] & 0xFF);
-			int packetType = bytes[4] & 0xFF;
-			byte[] data = inputStream.readNBytes(size);
-
-			switch(packetType) {
-			case HRSPServer.PACKET_TYPE_SCREEN_INFORMATION:
-				int width = ((data[0] & 0xFF) << 24) | ((data[1] & 0xFF) << 16) | ((data[2] & 0xFF) << 8) | (data[3] & 0xFF);
-				int height = ((data[4] & 0xFF) << 24) | ((data[5] & 0xFF) << 16) | ((data[6] & 0xFF) << 8) | (data[7] & 0xFF);
-				decoder.size(width, height);
-				break;
-			case HRSPServer.PACKET_TYPE_STREAM_FRAME:
-				view.setImage(decoder.decode(data));
-				break;
+			if(decoder.packet(packet)) {
+				view.setImage(decoder.getImage());
 			}
 		}
 	}
