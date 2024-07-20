@@ -81,9 +81,14 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket, int wi
 
 	for(int y = 0; y < height; y++) {
 		for(int x = 0; x < width; x++) {
-			int bufferIndex = ((height - y - 1) * width + x) * 4;
+			int baseIndex = (height - y - 1) * width + x;
+			int screenshotIndex = baseIndex * 4;
+			int previousIndex = baseIndex * 3;
 
-			if(screenshotBuffer[bufferIndex + 2] != previousBuffer[bufferIndex + 2] || screenshotBuffer[bufferIndex + 1] != previousBuffer[bufferIndex + 1] || screenshotBuffer[bufferIndex] != previousBuffer[bufferIndex]) {
+			if(screenshotBuffer[screenshotIndex + 2] != previousBuffer[previousIndex] || screenshotBuffer[screenshotIndex + 1] != previousBuffer[previousIndex + 1] || screenshotBuffer[screenshotIndex] != previousBuffer[previousIndex + 2]) {
+				previousBuffer[previousIndex] = screenshotBuffer[screenshotIndex + 2];
+				previousBuffer[previousIndex + 1] = screenshotBuffer[screenshotIndex + 1];
+				previousBuffer[previousIndex + 2] = screenshotBuffer[screenshotIndex];
 				startX = min(startX, x);
 				startY = min(startY, y);
 				endX = max(endX, x);
@@ -92,7 +97,6 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket, int wi
 		}
 	}
 
-	memcpy(previousBuffer, screenshotBuffer, width * height * 4);
 	int startWidth = endX - startX + 1;
 	int startHeight = endY - startY + 1;
 
@@ -131,10 +135,10 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket, int wi
 
 	for(int y = startY; y <= endY; y++) {
 		for(int x = startX; x <= endX; x++) {
-			int bufferIndex = ((height - y - 1) * width + x) * 4;
-			BYTE red = previousBuffer[bufferIndex + 2];
-			BYTE green = previousBuffer[bufferIndex + 1];
-			BYTE blue = previousBuffer[bufferIndex];
+			int previousIndex = ((height - y - 1) * width + x) * 3;
+			BYTE red = previousBuffer[previousIndex];
+			BYTE green = previousBuffer[previousIndex + 1];
+			BYTE blue = previousBuffer[previousIndex + 2];
 
 			if(red == previousRed && green == previousGreen && blue == previousBlue) {
 				run++;

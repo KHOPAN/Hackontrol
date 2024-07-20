@@ -124,7 +124,8 @@ _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment,
 		goto closeSocket;
 	}
 
-	size_t bufferSize = width * height * 4;
+	size_t baseSize = width * height;
+	size_t bufferSize = baseSize * 4;
 	BYTE* screenshotBuffer = LocalAlloc(LMEM_FIXED, bufferSize);
 
 	if(!screenshotBuffer) {
@@ -139,7 +140,7 @@ _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment,
 		goto freeScreenshotBuffer;
 	}
 
-	BYTE* previousBuffer = LocalAlloc(LMEM_FIXED, bufferSize);
+	BYTE* previousBuffer = LocalAlloc(LMEM_FIXED, baseSize * 3);
 
 	if(!previousBuffer) {
 		HackontrolThrowWin32Error(environment, L"LocalAlloc");
