@@ -120,7 +120,6 @@ public class FilePanel extends Panel {
 
 			if(finalFolder != null) {
 				list.add(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Return", context -> this.sendFileList(finalFolder.getParentFile(), context, context)));
-				list.add(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Upload", context -> {}));
 			}
 
 			list.add(ButtonManager.dynamicButton(ButtonType.SUCCESS, "Refresh", context -> this.sendFileList(finalFolder, context, context)));
