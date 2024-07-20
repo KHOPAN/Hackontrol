@@ -74,11 +74,50 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket, int wi
 		goto cleanup;
 	}
 
+	int startX = width - 1;
+	int startY = height - 1;
+	int endX = 0;
+	int endY = 0;
+
+	for(int y = 0; y < height; y++) {
+		for(int x = 0; x < width; x++) {
+			int bufferIndex = ((height - y - 1) * width + x) * 4;
+
+			if(screenshotBuffer[bufferIndex + 2] != previousBuffer[bufferIndex + 2] || screenshotBuffer[bufferIndex + 1] != previousBuffer[bufferIndex + 1] || screenshotBuffer[bufferIndex] != previousBuffer[bufferIndex]) {
+				startX = min(startX, x);
+				startY = min(startY, y);
+				endX = max(endX, x);
+				endY = max(endY, y);
+			}
+		}
+	}
+
+	memcpy(previousBuffer, screenshotBuffer, width * height * 4);
+	int startWidth = endX - startX + 1;
+	int startHeight = endY - startY + 1;
+
+	if(startWidth < 1 || startHeight < 1) {
+		returnValue = TRUE;
+		goto cleanup;
+	}
+
 	size_t encodedPointer = 0;
-	BYTE previousRed = 0;
-	BYTE previousGreen = 0;
-	BYTE previousBlue = 0;
-	BYTE runLength = 0;
+	qoiBuffer[encodedPointer++] = (startX >> 24) & 0xFF;
+	qoiBuffer[encodedPointer++] = (startX >> 16) & 0xFF;
+	qoiBuffer[encodedPointer++] = (startX >> 8) & 0xFF;
+	qoiBuffer[encodedPointer++] = startX & 0xFF;
+	qoiBuffer[encodedPointer++] = (startY >> 24) & 0xFF;
+	qoiBuffer[encodedPointer++] = (startY >> 16) & 0xFF;
+	qoiBuffer[encodedPointer++] = (startY >> 8) & 0xFF;
+	qoiBuffer[encodedPointer++] = startY & 0xFF;
+	qoiBuffer[encodedPointer++] = (startWidth >> 24) & 0xFF;
+	qoiBuffer[encodedPointer++] = (startWidth >> 16) & 0xFF;
+	qoiBuffer[encodedPointer++] = (startWidth >> 8) & 0xFF;
+	qoiBuffer[encodedPointer++] = startWidth & 0xFF;
+	qoiBuffer[encodedPointer++] = (startHeight >> 24) & 0xFF;
+	qoiBuffer[encodedPointer++] = (startHeight >> 16) & 0xFF;
+	qoiBuffer[encodedPointer++] = (startHeight >> 8) & 0xFF;
+	qoiBuffer[encodedPointer++] = startHeight & 0xFF;
 	BYTE seenRed[64];
 	BYTE seenGreen[64];
 	BYTE seenBlue[64];
@@ -86,13 +125,16 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket, int wi
 	memset(seenGreen, 0, sizeof(seenGreen));
 	memset(seenBlue, 0, sizeof(seenBlue));
 	BYTE run = 0;
+	BYTE previousRed = 0;
+	BYTE previousGreen = 0;
+	BYTE previousBlue = 0;
 
-	for(int y = height - 1; y >= 0; y--) {
-		for(int x = 0; x < width; x++) {
-			int bufferIndex = (y * width + x) * 4;
-			BYTE red = screenshotBuffer[bufferIndex + 2];
-			BYTE green = screenshotBuffer[bufferIndex + 1];
-			BYTE blue = screenshotBuffer[bufferIndex];
+	for(int y = startY; y <= endY; y++) {
+		for(int x = startX; x <= endX; x++) {
+			int bufferIndex = ((height - y - 1) * width + x) * 4;
+			BYTE red = previousBuffer[bufferIndex + 2];
+			BYTE green = previousBuffer[bufferIndex + 1];
+			BYTE blue = previousBuffer[bufferIndex];
 
 			if(red == previousRed && green == previousGreen && blue == previousBlue) {
 				run++;
