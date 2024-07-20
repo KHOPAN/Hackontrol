@@ -144,7 +144,8 @@ public class Hackontrol {
 
 		Kernel.PathFileLibHRSP32 = new File(pathFolderHackontrol, "libhrsp32.dll").getAbsolutePath();
 		Hackontrol.LOGGER.info("Initializing");
-		Hackontrol.getInstance();
+		//Hackontrol.getInstance();
+		Kernel.connectHRSPServer("localhost", 42485, System.out :: println);
 	}
 
 	private static void error(String message) throws Throwable {
