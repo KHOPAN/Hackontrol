@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 
 public class HRSPConnection {
@@ -27,7 +28,12 @@ public class HRSPConnection {
 			outputStream.flush();
 
 			while(true) {
-				processor.processPacket(Packet.readPacket(inputStream));
+				try {
+					processor.processPacket(Packet.readPacket(inputStream));
+				} catch(SocketException Exception) {
+					System.out.println("Client disconnected");
+					System.exit(0);
+				}
 			}
 		} catch(Throwable Errors) {
 			Errors.printStackTrace();
