@@ -1,5 +1,7 @@
 package com.khopan.hackontrol.remote.session;
 
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -18,7 +20,7 @@ public class RemoteSession {
 	private final String name;
 	private final JFrame frame;
 
-	public RemoteSession(Socket socket, InputStream inputStream, OutputStream outputStream, String name) {
+	public RemoteSession(Socket socket, InputStream inputStream, OutputStream outputStream, Runnable onClose, String name) {
 		this.socket = socket;
 		this.inputStream = inputStream;
 		this.outputStream = outputStream;
@@ -29,6 +31,12 @@ public class RemoteSession {
 		this.frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		this.frame.setSize(600, 400);
 		this.frame.setLocationRelativeTo(null);
+		this.frame.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent Event) {
+				onClose.run();
+			}
+		});
 	}
 
 	public void start() throws IOException {

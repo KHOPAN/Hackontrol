@@ -83,7 +83,7 @@ public class HackontrolRemote {
 		frame.setSize(400, 600);
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
-		HRSPServer.start(model);
+		HRSPServer.start(model, () -> frame.setVisible(true));
 	}
 
 	public static void main(String[] args) throws Throwable {

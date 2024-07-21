@@ -17,7 +17,7 @@ public class HRSPServer {
 
 	private static int Count;
 
-	public static void start(DefaultListModel<RemoteSession> model) {
+	public static void start(DefaultListModel<RemoteSession> model, Runnable onClose) {
 		try {
 			HackontrolRemote.LOGGER.info("Wait for incoming connection...");
 			ServerSocket server = new ServerSocket(42485);
@@ -26,7 +26,7 @@ public class HRSPServer {
 				while(true) {
 					Socket socket = server.accept();
 					HackontrolRemote.LOGGER.info("Client connected: {}", socket.getInetAddress().getHostAddress());
-					Thread thread = new Thread(() -> HRSPServer.handleConnection(model, socket));
+					Thread thread = new Thread(() -> HRSPServer.handleConnection(model, onClose, socket));
 					thread.setName(HackontrolRemote.NAME + " Connection Handler #" + (HRSPServer.Count++));
 					thread.start();
 				}
@@ -38,7 +38,7 @@ public class HRSPServer {
 		}
 	}
 
-	private static void handleConnection(DefaultListModel<RemoteSession> model, Socket socket) {
+	private static void handleConnection(DefaultListModel<RemoteSession> model, Runnable onClose, Socket socket) {
 		RemoteSession session = null;
 
 		try {
@@ -59,7 +59,7 @@ public class HRSPServer {
 				throw new IllegalArgumentException("Invalid packet type, the first packet sent must be PACKET_TYPE_INFORMATION");
 			}
 
-			session = new RemoteSession(socket, inputStream, outputStream, new String(packet.getData(), StandardCharsets.UTF_8));
+			session = new RemoteSession(socket, inputStream, outputStream, onClose, new String(packet.getData(), StandardCharsets.UTF_8));
 			model.addElement(session);
 			session.start();
 		} catch(SocketException ignored) {
