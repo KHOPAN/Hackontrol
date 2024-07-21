@@ -15,10 +15,11 @@ public class HackontrolRemote {
 	private HackontrolRemote() {
 		HackontrolRemote.INSTANCE = this;
 		JFrame frame = new JFrame();
-		frame.setTitle("Hackontrol Remote");
+		String name = "Hackontrol Remote";
+		frame.setTitle(name);
 		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		frame.setLayout(new BorderLayout());
-		StreamView streamView = new StreamView();
+		StreamView streamView = new StreamView(text -> frame.setTitle(name + " " + text));
 		frame.add(streamView, BorderLayout.CENTER);
 		frame.setSize(600, 400);
 		frame.setLocationRelativeTo(null);

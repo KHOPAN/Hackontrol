@@ -8,6 +8,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
+import java.util.function.Consumer;
 
 import com.khopan.hackontrol.remote.network.Packet;
 import com.khopan.hackontrol.remote.network.PacketProcessor;
@@ -23,6 +24,7 @@ public class StreamView extends Component implements PacketProcessor {
 	private static final int OP_MASK      = 0b11000000;
 
 	private final int[] indexTable;
+	private final Consumer<String> fpsCallback;
 
 	private int width;
 	private int height;
@@ -33,9 +35,12 @@ public class StreamView extends Component implements PacketProcessor {
 	private int sourceHeight;
 	private BufferedImage sourceImage;
 	private int[] receiveBuffer;
+	private long lastTime;
 
-	public StreamView() {
+	public StreamView(Consumer<String> fpsCallback) {
 		this.indexTable = new int[64];
+		this.fpsCallback = fpsCallback;
+		this.lastTime = System.nanoTime();
 	}
 
 	@SuppressWarnings("deprecation")
@@ -70,6 +75,10 @@ public class StreamView extends Component implements PacketProcessor {
 			return true;
 		case Packet.PACKET_TYPE_STREAM_FRAME:
 			this.decodeImage(stream);
+			long time = System.nanoTime();
+			long delta = time - this.lastTime;
+			this.lastTime = time;
+			this.fpsCallback.accept(String.format("%.2f FPS", 1000000000.0d / ((double) delta)));
 			return true;
 		}
 
