@@ -14,6 +14,7 @@ import javax.swing.border.TitledBorder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.khopan.hackontrol.remote.network.HRSPServer;
 import com.khopan.hackontrol.remote.session.RemoteSession;
 
 public class HackontrolRemote {
@@ -39,7 +40,7 @@ public class HackontrolRemote {
 		frame.setSize(400, 600);
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
-		//HRSPServer.start(MultiPacketProcessor.of(streamView));
+		HRSPServer.start(model);
 	}
 
 	public static void main(String[] args) throws Throwable {
