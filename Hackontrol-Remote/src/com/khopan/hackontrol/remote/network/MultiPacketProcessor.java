@@ -18,12 +18,12 @@ public class MultiPacketProcessor implements PacketProcessor {
 				continue;
 			}
 
-			if(!processor.processPacket(packet)) {
-				return false;
+			if(processor.processPacket(packet)) {
+				return true;
 			}
 		}
 
-		return true;
+		return false;
 	}
 
 	public static MultiPacketProcessor of(PacketProcessor... processors) {
