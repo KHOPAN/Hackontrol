@@ -12,3 +12,4 @@ typedef struct {
 } PACKET;
 
 BOOL SendPacket(const SOCKET socket, const PACKET* packet);
+BOOL ReceivePacket(const SOCKET socket, PACKET* packet);

@@ -7,15 +7,15 @@ BOOL SendPacket(const SOCKET socket, const PACKET* packet) {
 		return FALSE;
 	}
 
-	char headerBuffer[5];
-	headerBuffer[0] = (packet->size >> 24) & 0xFF;
-	headerBuffer[1] = (packet->size >> 16) & 0xFF;
-	headerBuffer[2] = (packet->size >> 8) & 0xFF;
-	headerBuffer[3] = packet->size & 0xFF;
-	headerBuffer[4] = packet->packetType;
+	char header[5];
+	header[0] = (packet->size >> 24) & 0xFF;
+	header[1] = (packet->size >> 16) & 0xFF;
+	header[2] = (packet->size >> 8) & 0xFF;
+	header[3] = packet->size & 0xFF;
+	header[4] = packet->packetType;
 	DataStream stream = {0};
 
-	if(!KHDataStreamAdd(&stream, headerBuffer, sizeof(headerBuffer))) {
+	if(!KHDataStreamAdd(&stream, header, sizeof(header))) {
 		return FALSE;
 	}
 
@@ -23,29 +23,45 @@ BOOL SendPacket(const SOCKET socket, const PACKET* packet) {
 		return FALSE;
 	}
 
-	char* remainingBuffer = stream.data;
-	size_t remainingSize = stream.size;
+	int status = send(socket, stream.data, (int) stream.size, 0);
+	KHDataStreamFree(&stream);
 
-	while(remainingSize) {
-		int sendSize;
-
-		if(remainingSize > INT_MAX) {
-			sendSize = INT_MAX;
-			remainingSize -= INT_MAX;
-		} else {
-			sendSize = (int) remainingSize;
-			remainingSize = 0;
-		}
-
-		if(send(socket, remainingBuffer, sendSize, 0) == SOCKET_ERROR) {
-			SetLastError(WSAGetLastError());
-			KHDataStreamFree(&stream);
-			return FALSE;
-		}
-
-		remainingBuffer += sendSize;
+	if(status == SOCKET_ERROR) {
+		SetLastError(WSAGetLastError());
+		return FALSE;
 	}
 
-	KHDataStreamFree(&stream);
+	return TRUE;
+}
+
+BOOL ReceivePacket(const SOCKET socket, PACKET* packet) {
+	if(!socket || !packet) {
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	char header[5];
+
+	if(recv(socket, header, sizeof(header), MSG_WAITALL) == SOCKET_ERROR) {
+		SetLastError(WSAGetLastError());
+		return FALSE;
+	}
+
+	long size = ((header[0] & 0xFF) << 24) | ((header[1] & 0xFF) << 16) | ((header[2] & 0xFF) << 8) | (header[3] & 0xFF);
+	void* buffer = LocalAlloc(LMEM_FIXED, size);
+	
+	if(!buffer) {
+		return FALSE;
+	}
+
+	if(recv(socket, buffer, size, MSG_WAITALL) == SOCKET_ERROR) {
+		SetLastError(WSAGetLastError());
+		LocalFree(buffer);
+		return FALSE;
+	}
+
+	packet->size = size;
+	packet->packetType = header[4];
+	packet->data = buffer;
 	return TRUE;
 }
