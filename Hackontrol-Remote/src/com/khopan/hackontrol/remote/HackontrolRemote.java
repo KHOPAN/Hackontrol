@@ -12,6 +12,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -43,8 +44,9 @@ public class HackontrolRemote {
 		DefaultListModel<RemoteSession> model = new DefaultListModel<>();
 		list.setModel(model);
 		list.setFocusable(false);
+		list.addMouseListener(new ListListener(frame, list));
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		list.addMouseListener(new ListListener(list));
+		list.setFixedCellHeight(30);
 		panel.add(new JScrollPane(list), BorderLayout.CENTER);
 		frame.add(panel, BorderLayout.CENTER);
 		frame.setSize(400, 600);
@@ -68,42 +70,47 @@ public class HackontrolRemote {
 	}
 
 	private static class ListListener extends MouseAdapter {
+		private final JFrame frame;
 		private final JList<RemoteSession> list;
+		private final ListModel<RemoteSession> model;
 
-		private ListListener(JList<RemoteSession> list) {
+		private ListListener(JFrame frame, JList<RemoteSession> list) {
+			this.frame = frame;
 			this.list = list;
-		}
-
-		@Override
-		public void mousePressed(MouseEvent Event) {
-			Point point = Event.getPoint();
-
-			for(int i = 0; i < this.list.getModel().getSize(); i++) {
-				if(this.list.getCellBounds(i, i).contains(point)) {
-					return;
-				}
-			}
-
-			this.list.clearSelection();
+			this.model = this.list.getModel();
 		}
 
 		@Override
 		public void mouseClicked(MouseEvent Event) {
-			if(!SwingUtilities.isRightMouseButton(Event)) {
+			Point point = Event.getPoint();
+
+			if(SwingUtilities.isLeftMouseButton(Event) && Event.getClickCount() >= 2) {
+				for(int i = 0; i < this.model.getSize(); i++) {
+					if(this.list.getCellBounds(i, i).contains(point)) {
+						this.frame.dispose();
+						this.model.getElementAt(i).open();
+						return;
+					}
+				}
+
 				return;
 			}
 
-			Point point = Event.getPoint();
-
-			for(int i = 0; i < this.list.getModel().getSize(); i++) {
-				if(this.list.getCellBounds(i, i).contains(point)) {
-					this.list.setSelectedIndex(i);
-					JPopupMenu menu = new JPopupMenu();
-					menu.add(new JMenuItem("Open"));
-					menu.add(new JMenuItem("Disconnect"));
-					menu.show(this.list, point.x, point.y);
-				}
+			if(!SwingUtilities.isRightMouseButton(Event) || this.list.isSelectionEmpty()) {
+				return;
 			}
+
+			RemoteSession session = this.list.getSelectedValue();
+			JPopupMenu popupMenu = new JPopupMenu();
+			JMenuItem openItem = new JMenuItem("Open");
+			openItem.addActionListener(action -> {
+				this.frame.dispose();
+				session.open();
+			});
+
+			popupMenu.add(openItem);
+			popupMenu.add(new JMenuItem("Disconnect"));
+			popupMenu.show(this.list, point.x, point.y);
 		}
 	}
 }

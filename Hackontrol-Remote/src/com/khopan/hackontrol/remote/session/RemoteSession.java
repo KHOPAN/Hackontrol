@@ -26,6 +26,10 @@ public class RemoteSession {
 		}
 	}
 
+	public void open() {
+
+	}
+
 	@Override
 	public String toString() {
 		return this.name;
