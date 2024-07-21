@@ -9,12 +9,18 @@ import java.awt.image.WritableRaster;
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 
-import com.khopan.hackontrol.remote.QOIDecoder;
 import com.khopan.hackontrol.remote.network.Packet;
 import com.khopan.hackontrol.remote.network.PacketProcessor;
 
 public class StreamView extends Component implements PacketProcessor {
-	private static final long serialVersionUID = 5488818679972601274L;
+	private static final long serialVersionUID = 2380631139944740419L;
+
+	private static final int QOI_OP_RGB   = 0b11111110;
+	private static final int QOI_OP_INDEX = 0b00000000;
+	private static final int QOI_OP_DIFF  = 0b01000000;
+	private static final int QOI_OP_LUMA  = 0b10000000;
+	private static final int QOI_OP_RUN   = 0b11000000;
+	private static final int OP_MASK      = 0b11000000;
 
 	private final int[] indexTable;
 
@@ -77,7 +83,7 @@ public class StreamView extends Component implements PacketProcessor {
 			for(int i = 0; i < width * height; i++) {
 				int chunk = stream.read() & 0xFF;
 
-				if(chunk == QOIDecoder.QOI_OP_RGB) {
+				if(chunk == StreamView.QOI_OP_RGB) {
 					red = stream.read();
 					green = stream.read();
 					blue = stream.read();
@@ -85,26 +91,26 @@ public class StreamView extends Component implements PacketProcessor {
 					continue;
 				}
 
-				switch(chunk & QOIDecoder.OP_MASK) {
-				case QOIDecoder.QOI_OP_INDEX:
+				switch(chunk & StreamView.OP_MASK) {
+				case StreamView.QOI_OP_INDEX:
 					int index = chunk & 0b111111;
 					red = (this.indexTable[index] >> 16) & 0xFF;
 					green = (this.indexTable[index] >> 8) & 0xFF;
 					blue = this.indexTable[index] & 0xFF;
 					break;
-				case QOIDecoder.QOI_OP_DIFF:
+				case StreamView.QOI_OP_DIFF:
 					red += ((chunk >> 4) & 0b11) - 2;
 					green += ((chunk >> 2) & 0b11) - 2;
 					blue += (chunk & 0b11) - 2;
 					break;
-				case QOIDecoder.QOI_OP_LUMA:
+				case StreamView.QOI_OP_LUMA:
 					int next = stream.read() & 0xFF;
 					int differenceGreen = (chunk & 0b111111) - 32;
 					red += differenceGreen - 8 + ((next >> 4) & 0b1111);
 					green += differenceGreen;
 					blue += differenceGreen - 8 + (next & 0b1111);
 					break;
-				case QOIDecoder.QOI_OP_RUN:
+				case StreamView.QOI_OP_RUN:
 					for(int z = 0; z < (chunk & 0b111111); z++) {
 						this.receiveBuffer[i++] = ((red & 0xFF) << 16) | ((green & 0xFF) << 8) | (blue & 0xFF);
 					}
