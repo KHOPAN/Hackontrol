@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.khopan.hackontrol.remote.component.StreamView;
-import com.khopan.hackontrol.remote.network.HRSPConnection;
+import com.khopan.hackontrol.remote.network.HRSPServer;
 import com.khopan.hackontrol.remote.network.MultiPacketProcessor;
 
 public class HackontrolRemote {
@@ -30,7 +30,7 @@ public class HackontrolRemote {
 		frame.setLocationRelativeTo(null);
 		frame.setAlwaysOnTop(true);
 		frame.setVisible(true);
-		new HRSPConnection(MultiPacketProcessor.of(streamView));
+		HRSPServer.start(MultiPacketProcessor.of(streamView));
 	}
 
 	public static void main(String[] args) {

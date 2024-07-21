@@ -7,13 +7,17 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 
-public class HRSPConnection {
-	public HRSPConnection(PacketProcessor processor) {
+import com.khopan.hackontrol.remote.HackontrolRemote;
+
+public class HRSPServer {
+	private HRSPServer() {}
+
+	public static void start(PacketProcessor processor) {
 		try {
-			System.out.println("Wait for incoming connection...");
+			HackontrolRemote.LOGGER.info("Wait for incoming connection...");
 			ServerSocket server = new ServerSocket(42485);
 			Socket socket = server.accept();
-			System.out.println("Client connected: " + socket.getInetAddress().getHostAddress());
+			HackontrolRemote.LOGGER.info("Client connected: {}", socket.getInetAddress().getHostAddress());
 			InputStream inputStream = socket.getInputStream();
 			String response = new String(inputStream.readNBytes(16), StandardCharsets.UTF_8);
 
@@ -31,12 +35,12 @@ public class HRSPConnection {
 				try {
 					processor.processPacket(Packet.readPacket(inputStream));
 				} catch(SocketException Exception) {
-					System.out.println("Client disconnected");
+					HackontrolRemote.LOGGER.info("Client disconnected, exiting...");
 					System.exit(0);
 				}
 			}
 		} catch(Throwable Errors) {
-			Errors.printStackTrace();
+			HackontrolRemote.LOGGER.error("HRSP Server Error", Errors);
 		}
 	}
 }
