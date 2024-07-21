@@ -53,7 +53,10 @@ public class HRSPServer {
 			OutputStream outputStream = socket.getOutputStream();
 			outputStream.write("HRSP 1.0 OK".getBytes(StandardCharsets.UTF_8));
 			outputStream.flush();
-			Packet packet = Packet.readPacket(inputStream);
+			Packet.writePacket(outputStream, Packet.of(new byte[20], Packet.PACKET_TYPE_INFORMATION));
+			Packet.writePacket(outputStream, Packet.of(new byte[40], Packet.PACKET_TYPE_INFORMATION));
+			Packet.writePacket(outputStream, Packet.of(new byte[10], Packet.PACKET_TYPE_INFORMATION));
+			/*Packet packet = Packet.readPacket(inputStream);
 
 			if(packet.getType() != Packet.PACKET_TYPE_INFORMATION) {
 				throw new IllegalArgumentException("Invalid packet type, the first packet sent must be PACKET_TYPE_INFORMATION");
@@ -61,7 +64,7 @@ public class HRSPServer {
 
 			session = new RemoteSession(socket, inputStream, outputStream, onClose, new String(packet.getData(), StandardCharsets.UTF_8));
 			model.addElement(session);
-			session.start();
+			session.start();*/
 		} catch(SocketException ignored) {
 		} catch(Throwable Errors) {
 			HackontrolRemote.LOGGER.error("HRSP Server Error", Errors);

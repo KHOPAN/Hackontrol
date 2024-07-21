@@ -2,6 +2,7 @@ package com.khopan.hackontrol.remote.network;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 public class Packet {
 	public static final int PACKET_TYPE_INFORMATION  = 1;
@@ -30,14 +31,51 @@ public class Packet {
 	}
 
 	public static Packet readPacket(InputStream stream) throws IOException {
-		byte[] bytes = stream.readNBytes(5);
-		int type = bytes[4] & 0xFF;
+		if(stream == null) {
+			throw new NullPointerException("Stream cannot be null");
+		}
 
+		byte[] bytes;
+
+		do {
+			bytes = stream.readNBytes(5);
+		} while(bytes.length < 5);
+
+		int type = bytes[4] & 0xFF;
+		Packet.checkPacketType(type);
+		int size = ((bytes[0] & 0xFF) << 24) | ((bytes[1] & 0xFF) << 16) | ((bytes[2] & 0xFF) << 8) | (bytes[3] & 0xFF);
+		return new Packet(size, type, stream.readNBytes(size));
+	}
+
+	public static void writePacket(OutputStream stream, Packet packet) throws IOException {
+		if(stream == null) {
+			throw new NullPointerException("Stream cannot be null");
+		}
+
+		if(packet == null) {
+			throw new NullPointerException("Packet cannot be null");
+		}
+
+		stream.write((packet.size >> 24) & 0xFF);
+		stream.write((packet.size >> 16) & 0xFF);
+		stream.write((packet.size >> 8) & 0xFF);
+		stream.write(packet.size & 0xFF);
+		stream.write(packet.type & 0xFF);
+		stream.write(packet.data);
+	}
+
+	public static Packet of(byte[] data, int type) {
+		if(data == null) {
+			throw new NullPointerException("Data cannot be null");
+		}
+
+		Packet.checkPacketType(type);
+		return new Packet(data.length, type, data);
+	}
+
+	private static void checkPacketType(int type) {
 		if(type < Packet.PACKET_TYPE_INFORMATION || type > Packet.PACKET_TYPE_STREAM_FRAME) {
 			throw new IllegalArgumentException("Unknown packet type: " + type);
 		}
-
-		int size = ((bytes[0] & 0xFF) << 24) | ((bytes[1] & 0xFF) << 16) | ((bytes[2] & 0xFF) << 8) | (bytes[3] & 0xFF);
-		return new Packet(size, type, stream.readNBytes(size));
 	}
 }

@@ -83,7 +83,7 @@ public class HackontrolRemote {
 		frame.setSize(400, 600);
 		frame.setLocationRelativeTo(null);
 		frame.setAlwaysOnTop(true);
-		frame.setVisible(true);
+		//frame.setVisible(true);
 		HRSPServer.start(model, () -> frame.setVisible(true));
 	}
 

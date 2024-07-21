@@ -93,14 +93,6 @@ _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment,
 		goto closeSocket;
 	}
 
-	status = shutdown(clientSocket, SD_RECEIVE);
-
-	if(status == SOCKET_ERROR) {
-		SetLastError(WSAGetLastError());
-		HackontrolThrowWin32Error(environment, L"shutdown");
-		goto closeSocket;
-	}
-
 	(*environment)->CallObjectMethod(environment, callback, acceptMethod, (*environment)->NewStringUTF(environment, "**Connected**"));
 	/*HDC context = GetDC(NULL);
 	int width = GetDeviceCaps(context, HORZRES);
@@ -114,7 +106,7 @@ _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment,
 	screenInfoBuffer[5] = (height >> 16) & 0xFF;
 	screenInfoBuffer[6] = (height >> 8) & 0xFF;
 	screenInfoBuffer[7] = height & 0xFF;*/
-	DWORD usernameSize = 0;
+	/*DWORD usernameSize = 0;
 
 	if(!GetUserNameA(NULL, &usernameSize) && GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
 		HackontrolThrowWin32Error(environment, L"GetUserNameA");
@@ -181,7 +173,19 @@ freePreviousBuffer:
 freeQOIBuffer:
 	LocalFree(qoiBuffer);
 freeScreenshotBuffer:
-	LocalFree(screenshotBuffer);
+	LocalFree(screenshotBuffer);*/
+	PACKET packet;
+
+	while(TRUE) {
+		if(!ReceivePacket(clientSocket, &packet)) {
+			HackontrolThrowWin32Error(environment, L"ReceivePacket");
+			goto closeSocket;
+		}
+
+		printf("Data: %d\n", packet.size);
+		_flushall();
+		LocalFree(packet.data);
+	}
 closeSocket:
 	closesocket(clientSocket);
 wsaCleanup:
