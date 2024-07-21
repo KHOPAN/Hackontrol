@@ -8,7 +8,6 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
-import java.util.function.Consumer;
 
 import com.khopan.hackontrol.remote.network.Packet;
 import com.khopan.hackontrol.remote.network.PacketProcessor;
@@ -24,7 +23,6 @@ public class StreamView extends Component implements PacketProcessor {
 	private static final int OP_MASK      = 0b11000000;
 
 	private final int[] indexTable;
-	private final Consumer<String> fpsCallback;
 
 	private int width;
 	private int height;
@@ -35,12 +33,14 @@ public class StreamView extends Component implements PacketProcessor {
 	private int sourceHeight;
 	private BufferedImage sourceImage;
 	private int[] receiveBuffer;
-	private long lastTime;
 
-	public StreamView(Consumer<String> fpsCallback) {
+	public StreamView() {
 		this.indexTable = new int[64];
-		this.fpsCallback = fpsCallback;
-		this.lastTime = System.nanoTime();
+
+		this.sourceWidth = 1366;
+		this.sourceHeight = 768;
+		this.sourceImage = new BufferedImage(this.sourceWidth, this.sourceHeight, BufferedImage.TYPE_INT_RGB);
+		this.receiveBuffer = ((DataBufferInt) this.sourceImage.getRaster().getDataBuffer()).getData();
 	}
 
 	@SuppressWarnings("deprecation")
@@ -67,18 +67,8 @@ public class StreamView extends Component implements PacketProcessor {
 		ByteArrayInputStream stream = new ByteArrayInputStream(packet.getData());
 
 		switch(packet.getType()) {
-		case Packet.PACKET_TYPE_INFORMATION:
-			this.sourceWidth = ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
-			this.sourceHeight = ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
-			this.sourceImage = new BufferedImage(this.sourceWidth, this.sourceHeight, BufferedImage.TYPE_INT_RGB);
-			this.receiveBuffer = ((DataBufferInt) this.sourceImage.getRaster().getDataBuffer()).getData();
-			return true;
 		case Packet.PACKET_TYPE_STREAM_FRAME:
 			this.decodeImage(stream);
-			long time = System.nanoTime();
-			long delta = time - this.lastTime;
-			this.lastTime = time;
-			this.fpsCallback.accept(String.format("%.2f FPS", 1000000000.0d / ((double) delta)));
 			return true;
 		}
 
