@@ -84,7 +84,7 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket, int wi
 			int baseIndex = (height - y - 1) * width + x;
 			int screenshotIndex = baseIndex * 4;
 			int previousIndex = baseIndex * 3;
-			/*BYTE red = screenshotBuffer[screenshotIndex + 2];
+			BYTE red = screenshotBuffer[screenshotIndex + 2];
 			BYTE green = screenshotBuffer[screenshotIndex + 1];
 			BYTE blue = screenshotBuffer[screenshotIndex];
 			screenshotBuffer[screenshotIndex + 2] = previousBuffer[previousIndex] - screenshotBuffer[screenshotIndex + 2];
@@ -92,12 +92,9 @@ BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket, int wi
 			screenshotBuffer[screenshotIndex] = previousBuffer[previousIndex + 2] - screenshotBuffer[screenshotIndex];
 			previousBuffer[previousIndex] = red;
 			previousBuffer[previousIndex + 1] = green;
-			previousBuffer[previousIndex + 2] = blue;*/
+			previousBuffer[previousIndex + 2] = blue;
 
 			if(screenshotBuffer[screenshotIndex + 2] != previousBuffer[previousIndex] || screenshotBuffer[screenshotIndex + 1] != previousBuffer[previousIndex + 1] || screenshotBuffer[screenshotIndex] != previousBuffer[previousIndex + 2]) {
-				previousBuffer[previousIndex] = screenshotBuffer[screenshotIndex + 2];
-				previousBuffer[previousIndex + 1] = screenshotBuffer[screenshotIndex + 1];
-				previousBuffer[previousIndex + 2] = screenshotBuffer[screenshotIndex];
 				startX = min(startX, x);
 				startY = min(startY, y);
 				endX = max(endX, x);

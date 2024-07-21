@@ -69,70 +69,81 @@ public class StreamView extends Component implements PacketProcessor {
 			this.receiveBuffer = ((DataBufferInt) this.sourceImage.getRaster().getDataBuffer()).getData();
 			return true;
 		case Packet.PACKET_TYPE_STREAM_FRAME:
-			int startX = ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
-			int startY = ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
-			int width = ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
-			int height = ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
-			Arrays.fill(this.indexTable, 0);
-			int red = 0;
-			int green = 0;
-			int blue = 0;
-			int run = 0;
-
-			for(int y = startY; y < startY + height; y++) {
-				for(int x = startX; x < startX + width; x++) {
-					int pixelIndex = y * this.sourceWidth + x;
-
-					if(run > 0) {
-						this.receiveBuffer[pixelIndex] = ((red & 0xFF) << 16) | ((green & 0xFF) << 8) | (blue & 0xFF);
-						run--;
-						continue;
-					}
-
-					int chunk = stream.read() & 0xFF;
-
-					if(chunk == StreamView.QOI_OP_RGB) {
-						red = stream.read();
-						green = stream.read();
-						blue = stream.read();
-						this.receiveBuffer[pixelIndex] = this.indexTable[((red & 0xFF) * 3 + (green & 0xFF) * 5 + (blue & 0xFF) * 7 + 0xFF * 11) & 0b111111] = ((red & 0xFF) << 16) | ((green & 0xFF) << 8) | (blue & 0xFF);
-						continue;
-					}
-
-					switch(chunk & StreamView.OP_MASK) {
-					case StreamView.QOI_OP_INDEX:
-						int index = chunk & 0b111111;
-						red = (this.indexTable[index] >> 16) & 0xFF;
-						green = (this.indexTable[index] >> 8) & 0xFF;
-						blue = this.indexTable[index] & 0xFF;
-						break;
-					case StreamView.QOI_OP_DIFF:
-						red += ((chunk >> 4) & 0b11) - 2;
-						green += ((chunk >> 2) & 0b11) - 2;
-						blue += (chunk & 0b11) - 2;
-						break;
-					case StreamView.QOI_OP_LUMA:
-						int next = stream.read() & 0xFF;
-						int differenceGreen = (chunk & 0b111111) - 32;
-						red += differenceGreen - 8 + ((next >> 4) & 0b1111);
-						green += differenceGreen;
-						blue += differenceGreen - 8 + (next & 0b1111);
-						break;
-					case StreamView.QOI_OP_RUN:
-						this.receiveBuffer[pixelIndex] = ((red & 0xFF) << 16) | ((green & 0xFF) << 8) | (blue & 0xFF);
-						run = (chunk & 0b111111);
-						continue;
-					}
-
-					this.receiveBuffer[pixelIndex] = this.indexTable[((red & 0xFF) * 3 + (green & 0xFF) * 5 + (blue & 0xFF) * 7 + 0xFF * 11) & 0b111111] = ((red & 0xFF) << 16) | ((green & 0xFF) << 8) | (blue & 0xFF);
-				}
-			}
-
-			this.updateImage();
+			this.decodeImage(stream);
 			return true;
 		}
 
 		return false;
+	}
+
+	private void decodeImage(ByteArrayInputStream stream) {
+		int startX = ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
+		int startY = ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
+		int width = ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
+		int height = ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
+		Arrays.fill(this.indexTable, 0);
+		int red = 0;
+		int green = 0;
+		int blue = 0;
+		int run = 0;
+
+		for(int y = startY; y < startY + height; y++) {
+			for(int x = startX; x < startX + width; x++) {
+				int pixelIndex = y * this.sourceWidth + x;
+
+				if(run > 0) {
+					this.subtract(pixelIndex, ((red & 0xFF) << 16) | ((green & 0xFF) << 8) | (blue & 0xFF));
+					run--;
+					continue;
+				}
+
+				int chunk = stream.read() & 0xFF;
+
+				if(chunk == StreamView.QOI_OP_RGB) {
+					red = stream.read();
+					green = stream.read();
+					blue = stream.read();
+					this.subtract(pixelIndex, this.indexTable[((red & 0xFF) * 3 + (green & 0xFF) * 5 + (blue & 0xFF) * 7 + 0xFF * 11) & 0b111111] = ((red & 0xFF) << 16) | ((green & 0xFF) << 8) | (blue & 0xFF));
+					continue;
+				}
+
+				switch(chunk & StreamView.OP_MASK) {
+				case StreamView.QOI_OP_INDEX:
+					int index = chunk & 0b111111;
+					red = (this.indexTable[index] >> 16) & 0xFF;
+					green = (this.indexTable[index] >> 8) & 0xFF;
+					blue = this.indexTable[index] & 0xFF;
+					break;
+				case StreamView.QOI_OP_DIFF:
+					red += ((chunk >> 4) & 0b11) - 2;
+					green += ((chunk >> 2) & 0b11) - 2;
+					blue += (chunk & 0b11) - 2;
+					break;
+				case StreamView.QOI_OP_LUMA:
+					int next = stream.read() & 0xFF;
+					int differenceGreen = (chunk & 0b111111) - 32;
+					red += differenceGreen - 8 + ((next >> 4) & 0b1111);
+					green += differenceGreen;
+					blue += differenceGreen - 8 + (next & 0b1111);
+					break;
+				case StreamView.QOI_OP_RUN:
+					this.subtract(pixelIndex, ((red & 0xFF) << 16) | ((green & 0xFF) << 8) | (blue & 0xFF));
+					run = (chunk & 0b111111);
+					continue;
+				}
+
+				this.subtract(pixelIndex, this.indexTable[((red & 0xFF) * 3 + (green & 0xFF) * 5 + (blue & 0xFF) * 7 + 0xFF * 11) & 0b111111] = ((red & 0xFF) << 16) | ((green & 0xFF) << 8) | (blue & 0xFF));
+			}
+		}
+
+		this.updateImage();
+	}
+
+	private void subtract(int index, int color) {
+		int red = ((this.receiveBuffer[index] >> 16) & 0xFF) - ((color >> 16) & 0xFF);
+		int green = ((this.receiveBuffer[index] >> 8) & 0xFF) - ((color >> 8) & 0xFF);
+		int blue = (this.receiveBuffer[index] & 0xFF) - (color & 0xFF);
+		this.receiveBuffer[index] = ((red & 0xFF) << 16) | ((green & 0xFF) << 8) | (blue & 0xFF);
 	}
 
 	private void updateImage() {
