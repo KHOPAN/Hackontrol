@@ -1,12 +1,19 @@
 package com.khopan.hackontrol.remote;
 
 import java.awt.BorderLayout;
+import java.awt.Point;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JFrame;
 import javax.swing.JList;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import javax.swing.border.TitledBorder;
@@ -35,6 +42,9 @@ public class HackontrolRemote {
 		JList<RemoteSession> list = new JList<>();
 		DefaultListModel<RemoteSession> model = new DefaultListModel<>();
 		list.setModel(model);
+		list.setFocusable(false);
+		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		list.addMouseListener(new ListListener(list));
 		panel.add(new JScrollPane(list), BorderLayout.CENTER);
 		frame.add(panel, BorderLayout.CENTER);
 		frame.setSize(400, 600);
@@ -55,5 +65,45 @@ public class HackontrolRemote {
 		}
 
 		return HackontrolRemote.INSTANCE;
+	}
+
+	private static class ListListener extends MouseAdapter {
+		private final JList<RemoteSession> list;
+
+		private ListListener(JList<RemoteSession> list) {
+			this.list = list;
+		}
+
+		@Override
+		public void mousePressed(MouseEvent Event) {
+			Point point = Event.getPoint();
+
+			for(int i = 0; i < this.list.getModel().getSize(); i++) {
+				if(this.list.getCellBounds(i, i).contains(point)) {
+					return;
+				}
+			}
+
+			this.list.clearSelection();
+		}
+
+		@Override
+		public void mouseClicked(MouseEvent Event) {
+			if(!SwingUtilities.isRightMouseButton(Event)) {
+				return;
+			}
+
+			Point point = Event.getPoint();
+
+			for(int i = 0; i < this.list.getModel().getSize(); i++) {
+				if(this.list.getCellBounds(i, i).contains(point)) {
+					this.list.setSelectedIndex(i);
+					JPopupMenu menu = new JPopupMenu();
+					menu.add(new JMenuItem("Open"));
+					menu.add(new JMenuItem("Disconnect"));
+					menu.show(this.list, point.x, point.y);
+				}
+			}
+		}
 	}
 }
