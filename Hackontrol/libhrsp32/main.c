@@ -114,33 +114,32 @@ _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment,
 	screenInfoBuffer[5] = (height >> 16) & 0xFF;
 	screenInfoBuffer[6] = (height >> 8) & 0xFF;
 	screenInfoBuffer[7] = height & 0xFF;*/
-	DWORD userNameSize = 0;
+	DWORD usernameSize = 0;
 
-	if(!GetUserNameW(NULL, &userNameSize) && GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
-		HackontrolThrowWin32Error(environment, L"GetUserNameW");
+	if(!GetUserNameA(NULL, &usernameSize) && GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
+		HackontrolThrowWin32Error(environment, L"GetUserNameA");
 		goto closeSocket;
 	}
 
-	size_t userNameBufferSize = userNameSize * sizeof(WCHAR);
-	LPWSTR userName = LocalAlloc(LMEM_FIXED, userNameBufferSize);
+	LPSTR username = LocalAlloc(LMEM_FIXED, usernameSize);
 
-	if(!userName) {
+	if(!username) {
 		HackontrolThrowWin32Error(environment, L"LocalAlloc");
 		goto closeSocket;
 	}
 
-	if(!GetUserNameW(userName, &userNameSize)) {
-		HackontrolThrowWin32Error(environment, L"GetUserNameW");
-		LocalFree(userName);
+	if(!GetUserNameA(username, &usernameSize)) {
+		HackontrolThrowWin32Error(environment, L"GetUserNameA");
+		LocalFree(username);
 		goto closeSocket;
 	}
 
 	PACKET packet;
-	packet.size = (long) userNameBufferSize;
+	packet.size = (long) (usernameSize - 1);
 	packet.packetType = PACKET_TYPE_INFORMATION;
-	packet.data = userName;
+	packet.data = username;
 	BOOL errorCode = SendPacket(clientSocket, &packet);
-	LocalFree(userName);
+	LocalFree(username);
 
 	if(!errorCode) {
 		HackontrolThrowWin32Error(environment, L"SendPacket");
