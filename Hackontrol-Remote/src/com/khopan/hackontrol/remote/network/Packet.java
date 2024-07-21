@@ -1,4 +1,4 @@
-package com.khopan.hackontrol.remote;
+package com.khopan.hackontrol.remote.network;
 
 import java.io.IOException;
 import java.io.InputStream;
