@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class Packet {
-	public static final int PACKET_TYPE_SCREEN_INFORMATION = 1;
-	public static final int PACKET_TYPE_STREAM_FRAME       = 2;
+	public static final int PACKET_TYPE_INFORMATION  = 1;
+	public static final int PACKET_TYPE_STREAM_FRAME = 2;
 
 	private final int size;
 	private final int type;
@@ -33,7 +33,7 @@ public class Packet {
 		byte[] bytes = stream.readNBytes(5);
 		int type = bytes[4] & 0xFF;
 
-		if(type < Packet.PACKET_TYPE_SCREEN_INFORMATION || type > Packet.PACKET_TYPE_STREAM_FRAME) {
+		if(type < Packet.PACKET_TYPE_INFORMATION || type > Packet.PACKET_TYPE_STREAM_FRAME) {
 			throw new IllegalArgumentException("Unknown packet type: " + type);
 		}
 

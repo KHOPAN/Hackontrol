@@ -53,7 +53,13 @@ public class HRSPServer {
 			OutputStream outputStream = socket.getOutputStream();
 			outputStream.write("HRSP 1.0 OK".getBytes(StandardCharsets.UTF_8));
 			outputStream.flush();
-			session = new RemoteSession(socket, inputStream, outputStream);
+			Packet packet = Packet.readPacket(inputStream);
+
+			if(packet.getType() != Packet.PACKET_TYPE_INFORMATION) {
+				throw new IllegalArgumentException("Invalid packet type, the first packet sent must be PACKET_TYPE_INFORMATION");
+			}
+
+			session = new RemoteSession(socket, inputStream, outputStream, new String(packet.getData(), StandardCharsets.UTF_8));
 			model.addElement(session);
 			session.start();
 		} catch(SocketException ignored) {

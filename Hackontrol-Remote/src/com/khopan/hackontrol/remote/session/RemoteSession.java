@@ -13,11 +13,11 @@ public class RemoteSession {
 	private final OutputStream outputStream;
 	private final String name;
 
-	public RemoteSession(Socket socket, InputStream inputStream, OutputStream outputStream) {
+	public RemoteSession(Socket socket, InputStream inputStream, OutputStream outputStream, String name) {
 		this.socket = socket;
 		this.inputStream = inputStream;
 		this.outputStream = outputStream;
-		this.name = this.socket.getInetAddress().getHostAddress();
+		this.name = name + " (" + this.socket.getInetAddress().getHostAddress() + ')';
 	}
 
 	public void start() throws IOException {

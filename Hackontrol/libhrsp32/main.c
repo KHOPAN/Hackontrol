@@ -102,7 +102,7 @@ _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment,
 	}
 
 	(*environment)->CallObjectMethod(environment, callback, acceptMethod, (*environment)->NewStringUTF(environment, "**Connected**"));
-	HDC context = GetDC(NULL);
+	/*HDC context = GetDC(NULL);
 	int width = GetDeviceCaps(context, HORZRES);
 	int height = GetDeviceCaps(context, VERTRES);
 	BYTE screenInfoBuffer[8];
@@ -113,18 +113,43 @@ _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment,
 	screenInfoBuffer[4] = (height >> 24) & 0xFF;
 	screenInfoBuffer[5] = (height >> 16) & 0xFF;
 	screenInfoBuffer[6] = (height >> 8) & 0xFF;
-	screenInfoBuffer[7] = height & 0xFF;
-	PACKET packet;
-	packet.size = sizeof(screenInfoBuffer);
-	packet.packetType = PACKET_TYPE_SCREEN_INFORMATION;
-	packet.data = screenInfoBuffer;
+	screenInfoBuffer[7] = height & 0xFF;*/
+	DWORD userNameSize = 0;
 
-	if(!SendPacket(clientSocket, &packet)) {
+	if(!GetUserNameW(NULL, &userNameSize) && GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
+		HackontrolThrowWin32Error(environment, L"GetUserNameW");
+		goto closeSocket;
+	}
+
+	size_t userNameBufferSize = userNameSize * sizeof(WCHAR);
+	LPWSTR userName = LocalAlloc(LMEM_FIXED, userNameBufferSize);
+
+	if(!userName) {
+		HackontrolThrowWin32Error(environment, L"LocalAlloc");
+		goto closeSocket;
+	}
+
+	if(!GetUserNameW(userName, &userNameSize)) {
+		HackontrolThrowWin32Error(environment, L"GetUserNameW");
+		LocalFree(userName);
+		goto closeSocket;
+	}
+
+	PACKET packet;
+	packet.size = (long) userNameBufferSize;
+	packet.packetType = PACKET_TYPE_INFORMATION;
+	packet.data = userName;
+	BOOL errorCode = SendPacket(clientSocket, &packet);
+	LocalFree(userName);
+
+	if(!errorCode) {
 		HackontrolThrowWin32Error(environment, L"SendPacket");
 		goto closeSocket;
 	}
 
-	size_t baseSize = width * height;
+	int width = 1366;
+	int height = 768;
+	size_t baseSize = width* height;
 	size_t bufferSize = baseSize * 4;
 	BYTE* screenshotBuffer = LocalAlloc(LMEM_FIXED, bufferSize);
 

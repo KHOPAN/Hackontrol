@@ -67,7 +67,7 @@ public class StreamView extends Component implements PacketProcessor {
 		ByteArrayInputStream stream = new ByteArrayInputStream(packet.getData());
 
 		switch(packet.getType()) {
-		case Packet.PACKET_TYPE_SCREEN_INFORMATION:
+		case Packet.PACKET_TYPE_INFORMATION:
 			this.sourceWidth = ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
 			this.sourceHeight = ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
 			this.sourceImage = new BufferedImage(this.sourceWidth, this.sourceHeight, BufferedImage.TYPE_INT_RGB);
