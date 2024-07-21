@@ -12,7 +12,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
-import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -40,7 +39,39 @@ public class HackontrolRemote {
 		JPanel panel = new JPanel();
 		panel.setBorder(new TitledBorder("Connected Devices"));
 		panel.setLayout(new BorderLayout());
-		JList<RemoteSession> list = new JList<>();
+		JList<RemoteSession> list = new JList<>() {
+			private static final long serialVersionUID = -2764133493352244595L;
+
+			@Override
+			public int locationToIndex(Point location) {
+				int index = super.locationToIndex(location);
+
+				if(index != -1 && !this.getCellBounds(index, index).contains(location)) {
+					return -1;
+				}
+
+				return index;
+			}
+
+			@Override
+			protected void processMouseEvent(MouseEvent Event) {
+				int identifier = Event.getID();
+
+				if(this.locationToIndex(Event.getPoint()) != -1) {
+					super.processMouseEvent(Event);
+				} else if(identifier != MouseEvent.MOUSE_RELEASED && identifier != MouseEvent.MOUSE_ENTERED && identifier != MouseEvent.MOUSE_EXITED) {
+					this.clearSelection();
+				}
+			}
+
+			@Override
+			protected void processMouseMotionEvent(MouseEvent Event) {
+				if(Event.getID() != MouseEvent.MOUSE_DRAGGED) {
+					super.processMouseMotionEvent(Event);
+				}
+			}
+		};
+
 		DefaultListModel<RemoteSession> model = new DefaultListModel<>();
 		list.setModel(model);
 		list.setFocusable(false);
@@ -72,35 +103,35 @@ public class HackontrolRemote {
 	private static class ListListener extends MouseAdapter {
 		private final JFrame frame;
 		private final JList<RemoteSession> list;
-		private final ListModel<RemoteSession> model;
 
 		private ListListener(JFrame frame, JList<RemoteSession> list) {
 			this.frame = frame;
 			this.list = list;
-			this.model = this.list.getModel();
 		}
 
 		@Override
 		public void mouseClicked(MouseEvent Event) {
 			Point point = Event.getPoint();
+			int index = this.list.locationToIndex(point);
+
+			if(index == -1) {
+				this.list.clearSelection();
+				return;
+			}
+
+			this.list.setSelectedIndex(index);
+			RemoteSession session = this.list.getSelectedValue();
 
 			if(SwingUtilities.isLeftMouseButton(Event) && Event.getClickCount() >= 2) {
-				for(int i = 0; i < this.model.getSize(); i++) {
-					if(this.list.getCellBounds(i, i).contains(point)) {
-						this.frame.dispose();
-						this.model.getElementAt(i).open();
-						return;
-					}
-				}
-
+				this.frame.dispose();
+				session.open();
 				return;
 			}
 
-			if(!SwingUtilities.isRightMouseButton(Event) || this.list.isSelectionEmpty()) {
+			if(!SwingUtilities.isRightMouseButton(Event)) {
 				return;
 			}
 
-			RemoteSession session = this.list.getSelectedValue();
 			JPopupMenu popupMenu = new JPopupMenu();
 			JMenuItem openItem = new JMenuItem("Open");
 			openItem.addActionListener(action -> {
