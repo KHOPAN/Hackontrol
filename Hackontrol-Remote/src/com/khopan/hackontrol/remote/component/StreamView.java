@@ -25,8 +25,9 @@ public class StreamView extends Component {
 	private final BufferedImage sourceImage;
 	private final int[] receiveBuffer;
 
-	private int width;
-	private int height;
+	private volatile int width;
+	private volatile int height;
+
 	private Image image;
 	private int x;
 	private int y;
@@ -60,15 +61,31 @@ public class StreamView extends Component {
 
 	public void decode(byte[] data) {
 		ByteArrayInputStream stream = new ByteArrayInputStream(data);
-		int startX = ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
-		int startY = ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
-		int width = ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
-		int height = ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
+		int flags = stream.read() & 0xFF;
+		boolean boundaryDifference = (flags & 1) == 1;
+		int startX;
+		int startY;
+		int width;
+		int height;
+
+		if(boundaryDifference) {
+			startX = ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
+			startY = ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
+			width = ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
+			height = ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
+		} else {
+			startX = 0;
+			startY = 0;
+			width = this.sourceWidth;
+			height = this.sourceHeight;
+		}
+
 		Arrays.fill(this.indexTable, 0);
 		int red = 0;
 		int green = 0;
 		int blue = 0;
 		int run = 0;
+		Arrays.fill(this.receiveBuffer, 0x000000);
 
 		for(int y = startY; y < startY + height; y++) {
 			for(int x = startX; x < startX + width; x++) {
@@ -130,7 +147,7 @@ public class StreamView extends Component {
 	}
 
 	private void updateImage() {
-		if(this.sourceImage == null || !this.isVisible() || this.width == 0 || this.height == 0) {
+		if(this.sourceImage == null || !this.isVisible() || this.width < 1 || this.height < 1) {
 			return;
 		}
 

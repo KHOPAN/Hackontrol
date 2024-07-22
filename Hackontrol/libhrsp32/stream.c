@@ -101,28 +101,35 @@ static BOOL takeScreenshot(JNIEnv* const environment, PACKET* packet, int width,
 	int endX = 0;
 	int endY = 0;
 
-	for(int y = 0; y < height; y++) {
-		for(int x = 0; x < width; x++) {
-			int baseIndex = (height - y - 1) * width + x;
-			int screenshotIndex = baseIndex * 4;
-			int previousIndex = baseIndex * 3;
-			BYTE red = screenshotBuffer[screenshotIndex + 2];
-			BYTE green = screenshotBuffer[screenshotIndex + 1];
-			BYTE blue = screenshotBuffer[screenshotIndex];
-			screenshotBuffer[screenshotIndex + 2] = previousBuffer[previousIndex] - screenshotBuffer[screenshotIndex + 2];
-			screenshotBuffer[screenshotIndex + 1] = previousBuffer[previousIndex + 1] - screenshotBuffer[screenshotIndex + 1];
-			screenshotBuffer[screenshotIndex] = previousBuffer[previousIndex + 2] - screenshotBuffer[screenshotIndex];
-			previousBuffer[previousIndex] = red;
-			previousBuffer[previousIndex + 1] = green;
-			previousBuffer[previousIndex + 2] = blue;
+	if(boundaryDifference) {
+		for(int y = 0; y < height; y++) {
+			for(int x = 0; x < width; x++) {
+				int baseIndex = (height - y - 1) * width + x;
+				int screenshotIndex = baseIndex * 4;
+				int previousIndex = baseIndex * 3;
+				BYTE red = screenshotBuffer[screenshotIndex + 2];
+				BYTE green = screenshotBuffer[screenshotIndex + 1];
+				BYTE blue = screenshotBuffer[screenshotIndex];
+				screenshotBuffer[screenshotIndex + 2] = previousBuffer[previousIndex] - screenshotBuffer[screenshotIndex + 2];
+				screenshotBuffer[screenshotIndex + 1] = previousBuffer[previousIndex + 1] - screenshotBuffer[screenshotIndex + 1];
+				screenshotBuffer[screenshotIndex] = previousBuffer[previousIndex + 2] - screenshotBuffer[screenshotIndex];
+				previousBuffer[previousIndex] = red;
+				previousBuffer[previousIndex + 1] = green;
+				previousBuffer[previousIndex + 2] = blue;
 
-			if(screenshotBuffer[screenshotIndex + 2] != previousBuffer[previousIndex] || screenshotBuffer[screenshotIndex + 1] != previousBuffer[previousIndex + 1] || screenshotBuffer[screenshotIndex] != previousBuffer[previousIndex + 2]) {
-				startX = min(startX, x);
-				startY = min(startY, y);
-				endX = max(endX, x);
-				endY = max(endY, y);
+				if(screenshotBuffer[screenshotIndex + 2] != previousBuffer[previousIndex] || screenshotBuffer[screenshotIndex + 1] != previousBuffer[previousIndex + 1] || screenshotBuffer[screenshotIndex] != previousBuffer[previousIndex + 2]) {
+					startX = min(startX, x);
+					startY = min(startY, y);
+					endX = max(endX, x);
+					endY = max(endY, y);
+				}
 			}
 		}
+	} else {
+		endX = startX;
+		endY = startY;
+		startX = 0;
+		startY = 0;
 	}
 
 	int startWidth = endX - startX + 1;
@@ -135,22 +142,26 @@ static BOOL takeScreenshot(JNIEnv* const environment, PACKET* packet, int width,
 
 	size_t encodedPointer = 0;
 	qoiBuffer[encodedPointer++] = ((colorDifference & 1) << 1) | (boundaryDifference & 1);
-	qoiBuffer[encodedPointer++] = (startX >> 24) & 0xFF;
-	qoiBuffer[encodedPointer++] = (startX >> 16) & 0xFF;
-	qoiBuffer[encodedPointer++] = (startX >> 8) & 0xFF;
-	qoiBuffer[encodedPointer++] = startX & 0xFF;
-	qoiBuffer[encodedPointer++] = (startY >> 24) & 0xFF;
-	qoiBuffer[encodedPointer++] = (startY >> 16) & 0xFF;
-	qoiBuffer[encodedPointer++] = (startY >> 8) & 0xFF;
-	qoiBuffer[encodedPointer++] = startY & 0xFF;
-	qoiBuffer[encodedPointer++] = (startWidth >> 24) & 0xFF;
-	qoiBuffer[encodedPointer++] = (startWidth >> 16) & 0xFF;
-	qoiBuffer[encodedPointer++] = (startWidth >> 8) & 0xFF;
-	qoiBuffer[encodedPointer++] = startWidth & 0xFF;
-	qoiBuffer[encodedPointer++] = (startHeight >> 24) & 0xFF;
-	qoiBuffer[encodedPointer++] = (startHeight >> 16) & 0xFF;
-	qoiBuffer[encodedPointer++] = (startHeight >> 8) & 0xFF;
-	qoiBuffer[encodedPointer++] = startHeight & 0xFF;
+
+	if(boundaryDifference) {
+		qoiBuffer[encodedPointer++] = (startX >> 24) & 0xFF;
+		qoiBuffer[encodedPointer++] = (startX >> 16) & 0xFF;
+		qoiBuffer[encodedPointer++] = (startX >> 8) & 0xFF;
+		qoiBuffer[encodedPointer++] = startX & 0xFF;
+		qoiBuffer[encodedPointer++] = (startY >> 24) & 0xFF;
+		qoiBuffer[encodedPointer++] = (startY >> 16) & 0xFF;
+		qoiBuffer[encodedPointer++] = (startY >> 8) & 0xFF;
+		qoiBuffer[encodedPointer++] = startY & 0xFF;
+		qoiBuffer[encodedPointer++] = (startWidth >> 24) & 0xFF;
+		qoiBuffer[encodedPointer++] = (startWidth >> 16) & 0xFF;
+		qoiBuffer[encodedPointer++] = (startWidth >> 8) & 0xFF;
+		qoiBuffer[encodedPointer++] = startWidth & 0xFF;
+		qoiBuffer[encodedPointer++] = (startHeight >> 24) & 0xFF;
+		qoiBuffer[encodedPointer++] = (startHeight >> 16) & 0xFF;
+		qoiBuffer[encodedPointer++] = (startHeight >> 8) & 0xFF;
+		qoiBuffer[encodedPointer++] = startHeight & 0xFF;
+	}
+
 	BYTE seenRed[64];
 	BYTE seenGreen[64];
 	BYTE seenBlue[64];

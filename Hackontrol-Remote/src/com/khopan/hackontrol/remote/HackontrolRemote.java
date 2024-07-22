@@ -8,7 +8,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
-import javax.swing.DefaultListModel;
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
@@ -18,7 +17,6 @@ import org.slf4j.LoggerFactory;
 
 import com.khopan.hackontrol.remote.component.StreamView;
 import com.khopan.hackontrol.remote.network.Packet;
-import com.khopan.hackontrol.remote.session.RemoteSession;
 
 public class HackontrolRemote {
 	public static final String NAME = "Hackontrol Remote";
@@ -87,6 +85,7 @@ public class HackontrolRemote {
 		frame.setLayout(new BorderLayout());
 		StreamView streamView = new StreamView(1366, 768);
 		frame.add(streamView, BorderLayout.CENTER);
+		streamView.setVisible(true);
 		frame.setSize(600, 400);
 		frame.setLocationRelativeTo(null);
 		frame.setAlwaysOnTop(true);
@@ -121,9 +120,18 @@ public class HackontrolRemote {
 			int height = ((informationStream.read() & 0xFF) << 24) | ((informationStream.read() & 0xFF) << 16) | ((informationStream.read() & 0xFF) << 8) | (informationStream.read() & 0xFF);
 			String username = new String(informationStream.readAllBytes(), StandardCharsets.UTF_8);
 			HackontrolRemote.LOGGER.info("Width: {} Height: {} Username: {}", width, height, username);
-			RemoteSession session = new RemoteSession(socket, inputStream, outputStream, new DefaultListModel<>(), () -> {}, width, height, username);
-			session.start();
-			session.open();
+			Packet.writePacket(outputStream, Packet.of(new byte[] {0b00000101}, Packet.PACKET_TYPE_STREAM_FRAME));
+
+			while(true) {
+				packet = Packet.readPacket(inputStream);
+
+				if(packet.getType() != Packet.PACKET_TYPE_STREAM_FRAME) {
+					break;
+				}
+
+				streamView.decode(packet.getData());
+			}
+
 			server.close();
 		} catch(Throwable Errors) {
 			throw new RuntimeException(Errors);
