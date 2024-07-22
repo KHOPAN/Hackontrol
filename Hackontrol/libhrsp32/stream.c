@@ -11,6 +11,13 @@
 #define QOI_OP_LUMA  0b10000000
 #define QOI_OP_RUN   0b11000000
 
+static LRESULT CALLBACK mouseProcedure(_In_ int code, _In_ WPARAM wparam, _In_ LPARAM lparam) {
+	MSLLHOOKSTRUCT* hook = (MSLLHOOKSTRUCT*) lparam;
+	printf("X: %d Y: %d\n", hook->pt.x, hook->pt.y);
+	_flushall();
+	return CallNextHookEx(NULL, code, wparam, lparam);
+}
+
 DWORD WINAPI StreamThread(_In_ PSTREAMPARAMETER parameter) {
 	if(!parameter) {
 		return 1;
@@ -25,12 +32,26 @@ DWORD WINAPI StreamThread(_In_ PSTREAMPARAMETER parameter) {
 		return 1;
 	}
 
-	KHJavaStandardOutputW(environment, L"Hello, world! from another thread");
+	int returnValue = 1;
+	HHOOK hook = SetWindowsHookExW(WH_MOUSE_LL, mouseProcedure, NULL, 0);
+
+	if(!hook) {
+		HackontrolThrowWin32Error(environment, L"SetWindowsHookExW");
+		goto detachThread;
+	}
+
 	MSG message;
 
 	while(GetMessageW(&message, NULL, 0, 0)) {
 		TranslateMessage(&message);
 		DispatchMessageW(&message);
+	}
+
+	returnValue = 0;
+
+	if(!UnhookWindowsHookEx(hook)) {
+		HackontrolThrowWin32Error(environment, L"UnhookWindowsHookEx");
+		returnValue = 1;
 	}
 detachThread:
 	if((*virtualMachine)->DetachCurrentThread(virtualMachine) != JNI_OK) {
@@ -39,7 +60,7 @@ detachThread:
 		return 1;
 	}
 
-	return 0;
+	return returnValue;
 }
 
 static void drawCursor(const HDC context) {
