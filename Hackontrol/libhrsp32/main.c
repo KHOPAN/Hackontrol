@@ -189,6 +189,11 @@ freeScreenshotBuffer:
 		goto closeSocket;
 	}
 
+	if(!SetThreadPriority(screenStreamThread, THREAD_PRIORITY_HIGHEST)) {
+		HackontrolThrowWin32Error(environment, L"SetThreadPriority");
+		goto closeScreenStreamThread;
+	}
+
 	HANDLE inputStreamThread = CreateThread(NULL, 0, InputStreamThread, &streamParameter, 0, NULL);
 
 	if(!inputStreamThread) {
