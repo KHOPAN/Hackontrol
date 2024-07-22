@@ -11,81 +11,6 @@
 #define QOI_OP_LUMA  0b10000000
 #define QOI_OP_RUN   0b11000000
 
-DWORD WINAPI ScreenStreamThread(_In_ PSTREAMPARAMETER parameter) {
-	if(!parameter) {
-		return 1;
-	}
-
-	JavaVM* virtualMachine = parameter->virtualMachine;
-	JNIEnv* environment = NULL;
-	JavaVMAttachArgs arguments = {0};
-	arguments.version = JNI_VERSION_21;
-
-	if((*virtualMachine)->AttachCurrentThread(virtualMachine, (void**) &environment, &arguments) != JNI_OK) {
-		return 1;
-	}
-
-	if((*virtualMachine)->DetachCurrentThread(virtualMachine) != JNI_OK) {
-		SetLastError(ERROR_FUNCTION_FAILED);
-		HackontrolThrowWin32Error(environment, L"JavaVM::DetachCurrentThread");
-		return 1;
-	}
-
-	return 0;
-}
-
-static LRESULT CALLBACK mouseProcedure(_In_ int code, _In_ WPARAM wparam, _In_ LPARAM lparam) {
-	MSLLHOOKSTRUCT* hook = (MSLLHOOKSTRUCT*) lparam;
-	//printf("X: %d Y: %d\n", hook->pt.x, hook->pt.y);
-	//_flushall();
-	return CallNextHookEx(NULL, code, wparam, lparam);
-}
-
-DWORD WINAPI InputStreamThread(_In_ PSTREAMPARAMETER parameter) {
-	if(!parameter) {
-		return 1;
-	}
-
-	JavaVM* virtualMachine = parameter->virtualMachine;
-	JNIEnv* environment = NULL;
-	JavaVMAttachArgs arguments = {0};
-	arguments.version = JNI_VERSION_21;
-
-	if((*virtualMachine)->AttachCurrentThread(virtualMachine, (void**) &environment, &arguments) != JNI_OK) {
-		return 1;
-	}
-
-	int returnValue = 1;
-	HHOOK hook = SetWindowsHookExW(WH_MOUSE_LL, mouseProcedure, NULL, 0);
-
-	if(!hook) {
-		HackontrolThrowWin32Error(environment, L"SetWindowsHookExW");
-		goto detachThread;
-	}
-
-	MSG message;
-
-	while(GetMessageW(&message, NULL, 0, 0)) {
-		TranslateMessage(&message);
-		DispatchMessageW(&message);
-	}
-
-	returnValue = 0;
-
-	if(!UnhookWindowsHookEx(hook)) {
-		HackontrolThrowWin32Error(environment, L"UnhookWindowsHookEx");
-		returnValue = 1;
-	}
-detachThread:
-	if((*virtualMachine)->DetachCurrentThread(virtualMachine) != JNI_OK) {
-		SetLastError(ERROR_FUNCTION_FAILED);
-		HackontrolThrowWin32Error(environment, L"JavaVM::DetachCurrentThread");
-		return 1;
-	}
-
-	return returnValue;
-}
-
 static void drawCursor(const HDC context) {
 	CURSORINFO cursorInformation;
 	cursorInformation.cbSize = sizeof(CURSORINFO);
@@ -129,7 +54,7 @@ destroyIcon:
 	DestroyIcon(icon);
 }
 
-static BOOL takeScreenshot(JNIEnv* const environment, const SOCKET clientSocket, int width, int height, BYTE* screenshotBuffer, BYTE* qoiBuffer, BYTE* previousBuffer) {
+static BOOL takeScreenshot(JNIEnv* const environment, PACKET* packet, int width, int height, BYTE* screenshotBuffer, BYTE* qoiBuffer, BYTE* previousBuffer) {
 	HDC context = GetDC(NULL);
 	HDC memoryContext = CreateCompatibleDC(context);
 	HBITMAP bitmap = CreateCompatibleBitmap(context, width, height);
@@ -281,20 +206,131 @@ static BOOL takeScreenshot(JNIEnv* const environment, const SOCKET clientSocket,
 		qoiBuffer[encodedPointer++] = QOI_OP_RUN | ((run - 1) & 0b111111);
 	}
 
-	PACKET packet;
-	packet.size = (long) encodedPointer;
-	packet.packetType = PACKET_TYPE_STREAM_FRAME;
-	packet.data = qoiBuffer;
-
-	if(!SendPacket(clientSocket, &packet)) {
-		HackontrolThrowWin32Error(environment, L"SendPacket");
-		goto cleanup;
-	}
-
+	packet->size = (long) encodedPointer;
+	packet->data = qoiBuffer;
 	returnValue = TRUE;
 cleanup:
 	DeleteObject(bitmap);
 	DeleteDC(memoryContext);
 	ReleaseDC(NULL, context);
+	return returnValue;
+}
+
+DWORD WINAPI ScreenStreamThread(_In_ PSTREAMPARAMETER parameter) {
+	if(!parameter) {
+		return 1;
+	}
+
+	JavaVM* virtualMachine = parameter->virtualMachine;
+	JNIEnv* environment = NULL;
+	JavaVMAttachArgs arguments = {0};
+	arguments.version = JNI_VERSION_21;
+
+	if((*virtualMachine)->AttachCurrentThread(virtualMachine, (void**) &environment, &arguments) != JNI_OK) {
+		return 1;
+	}
+
+	int width = GetSystemMetrics(SM_CXSCREEN);
+	int height = GetSystemMetrics(SM_CYSCREEN);
+	size_t baseSize = width * height;
+	size_t bufferSize = baseSize * 4;
+	BYTE* screenshotBuffer = LocalAlloc(LMEM_FIXED, bufferSize);
+
+	if(!screenshotBuffer) {
+		HackontrolThrowWin32Error(environment, L"LocalAlloc");
+		goto detachThread;
+	}
+
+	BYTE* qoiBuffer = LocalAlloc(LMEM_FIXED, bufferSize);
+
+	if(!qoiBuffer) {
+		HackontrolThrowWin32Error(environment, L"LocalAlloc");
+		goto freeScreenshotBuffer;
+	}
+
+	BYTE* previousBuffer = LocalAlloc(LMEM_FIXED, baseSize * 3);
+
+	if(!previousBuffer) {
+		HackontrolThrowWin32Error(environment, L"LocalAlloc");
+		goto freeQOIBuffer;
+	}
+	PACKET packet;
+	packet.packetType = PACKET_TYPE_STREAM_FRAME;
+
+	while(TRUE) {
+		if(!takeScreenshot(environment, &packet, width, height, screenshotBuffer, qoiBuffer, previousBuffer)) {
+			goto freePreviousBuffer;
+		}
+
+		if(!SendPacket(parameter->clientSocket, &packet)) {
+			HackontrolThrowWin32Error(environment, L"SendPacket");
+			goto freePreviousBuffer;
+		}
+	}
+freePreviousBuffer:
+	LocalFree(previousBuffer);
+freeQOIBuffer:
+	LocalFree(qoiBuffer);
+freeScreenshotBuffer:
+	LocalFree(screenshotBuffer);
+detachThread:
+	if((*virtualMachine)->DetachCurrentThread(virtualMachine) != JNI_OK) {
+		SetLastError(ERROR_FUNCTION_FAILED);
+		HackontrolThrowWin32Error(environment, L"JavaVM::DetachCurrentThread");
+		return 1;
+	}
+
+	return 0;
+}
+
+static LRESULT CALLBACK mouseProcedure(_In_ int code, _In_ WPARAM wparam, _In_ LPARAM lparam) {
+	MSLLHOOKSTRUCT* hook = (MSLLHOOKSTRUCT*) lparam;
+	//printf("X: %d Y: %d\n", hook->pt.x, hook->pt.y);
+	//_flushall();
+	return CallNextHookEx(NULL, code, wparam, lparam);
+}
+
+DWORD WINAPI InputStreamThread(_In_ PSTREAMPARAMETER parameter) {
+	if(!parameter) {
+		return 1;
+	}
+
+	JavaVM* virtualMachine = parameter->virtualMachine;
+	JNIEnv* environment = NULL;
+	JavaVMAttachArgs arguments = {0};
+	arguments.version = JNI_VERSION_21;
+
+	if((*virtualMachine)->AttachCurrentThread(virtualMachine, (void**) &environment, &arguments) != JNI_OK) {
+		return 1;
+	}
+
+	int returnValue = 1;
+	HHOOK hook = SetWindowsHookExW(WH_MOUSE_LL, mouseProcedure, NULL, 0);
+
+	if(!hook) {
+		HackontrolThrowWin32Error(environment, L"SetWindowsHookExW");
+		goto detachThread;
+	}
+
+	MSG message;
+
+	while(GetMessageW(&message, NULL, 0, 0)) {
+		TranslateMessage(&message);
+		DispatchMessageW(&message);
+	}
+
+	returnValue = 0;
+
+	if(!UnhookWindowsHookEx(hook)) {
+		HackontrolThrowWin32Error(environment, L"UnhookWindowsHookEx");
+		returnValue = 1;
+	}
+detachThread:
+	if((*virtualMachine)->DetachCurrentThread(virtualMachine) != JNI_OK) {
+		SetLastError(ERROR_FUNCTION_FAILED);
+		HackontrolThrowWin32Error(environment, L"JavaVM::DetachCurrentThread");
+		return 1;
+	}
+
 	return returnValue;
 }
