@@ -12,11 +12,11 @@
 #define QOI_OP_RUN   0b11000000
 
 /*
- *       /-- Send frame with color differences from previous frame
+ *      /----- Send frame with only the boundary differences
+ *      |
+ * 76543210 -- Enable stream frame sending
  *       |
- * 76543210
- *        |
- *        \-- Send frame with only the boundary differences
+ *       \---- Send frame with color differences from previous frame
  */
 static unsigned char globalStreamSettings = 0;
 
@@ -267,7 +267,7 @@ DWORD WINAPI ScreenStreamThread(_In_ PSTREAMPARAMETER parameter) {
 	packet.packetType = PACKET_TYPE_STREAM_FRAME;
 
 	while(TRUE) {
-		if(!(globalStreamSettings & 0b11)) {
+		if(!(globalStreamSettings & 1)) {
 			continue;
 		}
 
