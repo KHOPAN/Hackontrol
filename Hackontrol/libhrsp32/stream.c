@@ -12,11 +12,15 @@
 #define QOI_OP_RUN   0b11000000
 
 /*
- *      /----- Send frame with only the boundary differences
- *      |
- * 76543210 -- Enable stream frame sending
- *       |
- *       \---- Send frame with color differences from previous frame
+ *    /------- Send mouse input separately
+ *    |
+ *    | /----- Send frame with only the boundary differences
+ *    | |
+ * 87654321 -- Enable stream frame sending
+ *     | |
+ *     | \---- Send frame with color differences from previous frame
+ *     |
+ *     \------ Correction frame, send as raw image then set this bit to 0
  */
 static unsigned char globalStreamSettings = 0;
 
