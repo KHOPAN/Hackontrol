@@ -130,7 +130,7 @@ public class StreamView extends Component {
 	}
 
 	private void updateImage() {
-		if(this.sourceImage == null) {
+		if(this.sourceImage == null || !this.isVisible() || this.width == 0 || this.height == 0) {
 			return;
 		}
 
