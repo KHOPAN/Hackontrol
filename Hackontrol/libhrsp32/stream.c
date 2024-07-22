@@ -11,9 +11,28 @@
 #define QOI_OP_LUMA  0b10000000
 #define QOI_OP_RUN   0b11000000
 
-DWORD WINAPI StreamThread(_In_ LPVOID parameter) {
-	printf("Hello, world! from another thread\n");
-	_flushall();
+DWORD WINAPI StreamThread(_In_ PSTREAMPARAMETER parameter) {
+	if(!parameter) {
+		return 1;
+	}
+
+	JavaVM* virtualMachine = parameter->virtualMachine;
+	JNIEnv* environment = NULL;
+	JavaVMAttachArgs arguments = {0};
+	arguments.version = JNI_VERSION_21;
+
+	if((*virtualMachine)->AttachCurrentThread(virtualMachine, (void**) &environment, &arguments) != JNI_OK) {
+		return 1;
+	}
+
+	KHJavaStandardOutputW(environment, L"Hello, world! from another thread");
+detachThread:
+	if((*virtualMachine)->DetachCurrentThread(virtualMachine) != JNI_OK) {
+		SetLastError(ERROR_FUNCTION_FAILED);
+		HackontrolThrowWin32Error(environment, L"JavaVM::DetachCurrentThread");
+		return 1;
+	}
+
 	return 0;
 }
 

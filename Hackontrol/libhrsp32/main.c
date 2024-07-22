@@ -171,7 +171,18 @@ freeQOIBuffer:
 	LocalFree(qoiBuffer);
 freeScreenshotBuffer:
 	LocalFree(screenshotBuffer);*/
-	HANDLE streamThread = CreateThread(NULL, 0, StreamThread, NULL, 0, NULL);
+	JavaVM* virtualMachine;
+
+	if((*environment)->GetJavaVM(environment, &virtualMachine) != JNI_OK) {
+		SetLastError(ERROR_FUNCTION_FAILED);
+		HackontrolThrowWin32Error(environment, L"JNIEnv::GetJavaVM");
+		goto closeSocket;
+	}
+
+	STREAMPARAMETER streamParameter;
+	streamParameter.virtualMachine = virtualMachine;
+	streamParameter.clientSocket = clientSocket;
+	HANDLE streamThread = CreateThread(NULL, 0, StreamThread, &streamParameter, 0, NULL);
 
 	if(!streamThread) {
 		HackontrolThrowWin32Error(environment, L"CreateThread");
