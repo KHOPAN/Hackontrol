@@ -197,13 +197,17 @@ freeScreenshotBuffer:
 			goto closeStreamThread;
 		}
 
-		printf("Data: %d\n", packet.size);
-		_flushall();
+		if(packet.packetType == PACKET_TYPE_INFORMATION) {
+			goto disconnect;
+		}
 
 		if(packet.data) {
 			LocalFree(packet.data);
 		}
 	}
+
+disconnect:
+	(*environment)->CallObjectMethod(environment, callback, acceptMethod, (*environment)->NewStringUTF(environment, "**Disconnected**"));
 closeStreamThread:
 	CloseHandle(streamThread);
 closeSocket:

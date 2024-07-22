@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -23,15 +24,17 @@ public class RemoteSession {
 	private final Socket socket;
 	private final InputStream inputStream;
 	private final OutputStream outputStream;
+	private final DefaultListModel<RemoteSession> model;
 	private final String displayName;
 	private final JFrame frame;
 
 	private StreamView streamView;
 
-	public RemoteSession(Socket socket, InputStream inputStream, OutputStream outputStream, Runnable onClose, int width, int height, String username) {
+	public RemoteSession(Socket socket, InputStream inputStream, OutputStream outputStream, DefaultListModel<RemoteSession> model, Runnable onClose, int width, int height, String username) {
 		this.socket = socket;
 		this.inputStream = inputStream;
 		this.outputStream = outputStream;
+		this.model = model;
 		String address = this.socket.getInetAddress().getHostAddress();
 		this.displayName = username + " (" + address + ')';
 		this.frame = new JFrame();
@@ -68,6 +71,15 @@ public class RemoteSession {
 
 	public void open() {
 		this.frame.setVisible(true);
+	}
+
+	public void disconnect() {
+		try {
+			Packet.writePacket(this.outputStream, Packet.of(null, Packet.PACKET_TYPE_INFORMATION));
+			this.model.removeElement(this);
+		} catch(Throwable Errors) {
+			throw new RuntimeException(Errors);
+		}
 	}
 
 	@Override

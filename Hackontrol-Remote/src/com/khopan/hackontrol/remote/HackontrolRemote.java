@@ -141,7 +141,9 @@ public class HackontrolRemote {
 			});
 
 			popupMenu.add(openItem);
-			popupMenu.add(new JMenuItem("Disconnect"));
+			JMenuItem disconnectItem = new JMenuItem("Disconnect");
+			disconnectItem.addActionListener(action -> session.disconnect());
+			popupMenu.add(disconnectItem);
 			popupMenu.show(this.list, point.x, point.y);
 		}
 	}

@@ -13,8 +13,8 @@
 
 static LRESULT CALLBACK mouseProcedure(_In_ int code, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	MSLLHOOKSTRUCT* hook = (MSLLHOOKSTRUCT*) lparam;
-	printf("X: %d Y: %d\n", hook->pt.x, hook->pt.y);
-	_flushall();
+	//printf("X: %d Y: %d\n", hook->pt.x, hook->pt.y);
+	//_flushall();
 	return CallNextHookEx(NULL, code, wparam, lparam);
 }
 
