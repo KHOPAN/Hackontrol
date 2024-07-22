@@ -21,7 +21,7 @@
     <ClCompile Include="exception.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="screenshot.c">
+    <ClCompile Include="stream.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="packet.c">
@@ -32,7 +32,7 @@
     <ClInclude Include="exception.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="screenshot.h">
+    <ClInclude Include="stream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="packet.h">

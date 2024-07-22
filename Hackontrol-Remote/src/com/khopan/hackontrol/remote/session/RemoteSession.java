@@ -23,19 +23,23 @@ public class RemoteSession {
 	private final Socket socket;
 	private final InputStream inputStream;
 	private final OutputStream outputStream;
-	private final String name;
+	private final int screenWidth;
+	private final int screenHeight;
+	private final String displayName;
 	private final JFrame frame;
 
 	private StreamView streamView;
 
-	public RemoteSession(Socket socket, InputStream inputStream, OutputStream outputStream, Runnable onClose, String name) {
+	public RemoteSession(Socket socket, InputStream inputStream, OutputStream outputStream, Runnable onClose, int width, int height, String username) {
 		this.socket = socket;
 		this.inputStream = inputStream;
 		this.outputStream = outputStream;
+		this.screenWidth = width;
+		this.screenHeight = height;
 		String address = this.socket.getInetAddress().getHostAddress();
-		this.name = name + " (" + address + ')';
+		this.displayName = username + " (" + address + ')';
 		this.frame = new JFrame();
-		this.frame.setTitle(HackontrolRemote.NAME + " - " + name + ' ' + address);
+		this.frame.setTitle(HackontrolRemote.NAME + " - " + username + ' ' + address);
 		this.frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		this.frame.setLayout(new BorderLayout());
 		this.frame.setLayout(new GridLayout(1, 2));
@@ -68,6 +72,6 @@ public class RemoteSession {
 
 	@Override
 	public String toString() {
-		return this.name;
+		return this.displayName;
 	}
 }

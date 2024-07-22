@@ -1,8 +1,44 @@
 #include <WS2tcpip.h>
 #include <khopanjava.h>
+#include <lmcons.h>
 #include "exception.h"
-#include "screenshot.h"
+#include "stream.h"
 #include "packet.h"
+
+static BOOL sendInformationPacket(JNIEnv* const environment, const SOCKET clientSocket) {
+	HDC context = GetDC(NULL);
+	int width = GetDeviceCaps(context, HORZRES);
+	int height = GetDeviceCaps(context, VERTRES);
+	BYTE buffer[UNLEN + 9];
+	DWORD pointer = 0;
+	buffer[pointer++] = (width >> 24) & 0xFF;
+	buffer[pointer++] = (width >> 16) & 0xFF;
+	buffer[pointer++] = (width >> 8) & 0xFF;
+	buffer[pointer++] = width & 0xFF;
+	buffer[pointer++] = (height >> 24) & 0xFF;
+	buffer[pointer++] = (height >> 16) & 0xFF;
+	buffer[pointer++] = (height >> 8) & 0xFF;
+	buffer[pointer++] = height & 0xFF;
+	DWORD usernameSize = UNLEN + 1;
+
+	if(!GetUserNameA(buffer + pointer, &usernameSize)) {
+		HackontrolThrowWin32Error(environment, L"GetUserNameA");
+		return FALSE;
+	}
+
+	pointer += usernameSize - 1;
+	PACKET packet;
+	packet.size = (long) pointer;
+	packet.packetType = PACKET_TYPE_INFORMATION;
+	packet.data = buffer;
+
+	if(!SendPacket(clientSocket, &packet)) {
+		HackontrolThrowWin32Error(environment, L"SendPacket");
+		return FALSE;
+	}
+
+	return TRUE;
+}
 
 _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment, LPCSTR hostName, LPCSTR port, const jobject callback) {
 	jclass consumerClass = (*environment)->FindClass(environment, "java/util/function/Consumer");
@@ -94,51 +130,12 @@ _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment,
 	}
 
 	(*environment)->CallObjectMethod(environment, callback, acceptMethod, (*environment)->NewStringUTF(environment, "**Connected**"));
-	/*HDC context = GetDC(NULL);
-	int width = GetDeviceCaps(context, HORZRES);
-	int height = GetDeviceCaps(context, VERTRES);
-	BYTE screenInfoBuffer[8];
-	screenInfoBuffer[0] = (width >> 24) & 0xFF;
-	screenInfoBuffer[1] = (width >> 16) & 0xFF;
-	screenInfoBuffer[2] = (width >> 8) & 0xFF;
-	screenInfoBuffer[3] = width & 0xFF;
-	screenInfoBuffer[4] = (height >> 24) & 0xFF;
-	screenInfoBuffer[5] = (height >> 16) & 0xFF;
-	screenInfoBuffer[6] = (height >> 8) & 0xFF;
-	screenInfoBuffer[7] = height & 0xFF;*/
-	/*DWORD usernameSize = 0;
-
-	if(!GetUserNameA(NULL, &usernameSize) && GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
-		HackontrolThrowWin32Error(environment, L"GetUserNameA");
+	
+	if(!sendInformationPacket(environment, clientSocket)) {
 		goto closeSocket;
 	}
 
-	LPSTR username = LocalAlloc(LMEM_FIXED, usernameSize);
-
-	if(!username) {
-		HackontrolThrowWin32Error(environment, L"LocalAlloc");
-		goto closeSocket;
-	}
-
-	if(!GetUserNameA(username, &usernameSize)) {
-		HackontrolThrowWin32Error(environment, L"GetUserNameA");
-		LocalFree(username);
-		goto closeSocket;
-	}
-
-	PACKET packet;
-	packet.size = (long) (usernameSize - 1);
-	packet.packetType = PACKET_TYPE_INFORMATION;
-	packet.data = username;
-	BOOL errorCode = SendPacket(clientSocket, &packet);
-	LocalFree(username);
-
-	if(!errorCode) {
-		HackontrolThrowWin32Error(environment, L"SendPacket");
-		goto closeSocket;
-	}
-
-	int width = 1366;
+	/*int width = 1366;
 	int height = 768;
 	size_t baseSize = width* height;
 	size_t bufferSize = baseSize * 4;

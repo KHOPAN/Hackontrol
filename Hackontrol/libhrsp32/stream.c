@@ -2,7 +2,7 @@
 #include <khopanstring.h>
 #include <khopanjava.h>
 #include <khopandatastream.h>
-#include "screenshot.h"
+#include "stream.h"
 #include "exception.h"
 
 #define QOI_OP_RGB   0b11111110
