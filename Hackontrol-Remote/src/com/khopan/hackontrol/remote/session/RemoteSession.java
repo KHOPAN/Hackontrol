@@ -77,6 +77,7 @@ public class RemoteSession {
 		try {
 			Packet.writePacket(this.outputStream, Packet.of(null, Packet.PACKET_TYPE_INFORMATION));
 			this.model.removeElement(this);
+			this.frame.dispose();
 		} catch(Throwable Errors) {
 			throw new RuntimeException(Errors);
 		}

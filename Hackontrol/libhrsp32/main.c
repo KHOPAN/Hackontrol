@@ -209,8 +209,12 @@ freeScreenshotBuffer:
 			goto closeInputStreamThread;
 		}
 
-		if(packet.packetType == PACKET_TYPE_INFORMATION) {
+		switch(packet.packetType) {
+		case PACKET_TYPE_INFORMATION:
 			goto disconnect;
+		case PACKET_TYPE_STREAM_FRAME:
+			SetStreamParameter(packet.data ? ((unsigned char*) packet.data)[0] : 0);
+			break;
 		}
 
 		if(packet.data) {

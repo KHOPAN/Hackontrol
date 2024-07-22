@@ -11,6 +11,15 @@
 #define QOI_OP_LUMA  0b10000000
 #define QOI_OP_RUN   0b11000000
 
+/*
+ *       /-- Send frame with color differences from previous frame
+ *       |
+ * 76543210
+ *        |
+ *        \-- Send frame with only the boundary differences
+ */
+static unsigned char globalStreamSettings = 0;
+
 static void drawCursor(const HDC context) {
 	CURSORINFO cursorInformation;
 	cursorInformation.cbSize = sizeof(CURSORINFO);
@@ -258,6 +267,10 @@ DWORD WINAPI ScreenStreamThread(_In_ PSTREAMPARAMETER parameter) {
 	packet.packetType = PACKET_TYPE_STREAM_FRAME;
 
 	while(TRUE) {
+		if(!(globalStreamSettings & 0b11)) {
+			continue;
+		}
+
 		if(!takeScreenshot(environment, &packet, width, height, screenshotBuffer, qoiBuffer, previousBuffer)) {
 			goto freePreviousBuffer;
 		}
@@ -333,4 +346,8 @@ detachThread:
 	}
 
 	return returnValue;
+}
+
+void SetStreamParameter(unsigned char streamSettings) {
+	globalStreamSettings = streamSettings;
 }
