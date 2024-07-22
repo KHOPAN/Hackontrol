@@ -26,6 +26,12 @@ DWORD WINAPI StreamThread(_In_ PSTREAMPARAMETER parameter) {
 	}
 
 	KHJavaStandardOutputW(environment, L"Hello, world! from another thread");
+	MSG message;
+
+	while(GetMessageW(&message, NULL, 0, 0)) {
+		TranslateMessage(&message);
+		DispatchMessageW(&message);
+	}
 detachThread:
 	if((*virtualMachine)->DetachCurrentThread(virtualMachine) != JNI_OK) {
 		SetLastError(ERROR_FUNCTION_FAILED);
