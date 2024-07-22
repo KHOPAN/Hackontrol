@@ -8,4 +8,5 @@ typedef struct {
 	SOCKET clientSocket;
 } STREAMPARAMETER, *PSTREAMPARAMETER;
 
-DWORD WINAPI StreamThread(_In_ PSTREAMPARAMETER parameter);
+DWORD WINAPI ScreenStreamThread(_In_ PSTREAMPARAMETER parameter);
+DWORD WINAPI InputStreamThread(_In_ PSTREAMPARAMETER parameter);

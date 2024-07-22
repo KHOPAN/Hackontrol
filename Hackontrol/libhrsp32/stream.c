@@ -11,6 +11,29 @@
 #define QOI_OP_LUMA  0b10000000
 #define QOI_OP_RUN   0b11000000
 
+DWORD WINAPI ScreenStreamThread(_In_ PSTREAMPARAMETER parameter) {
+	if(!parameter) {
+		return 1;
+	}
+
+	JavaVM* virtualMachine = parameter->virtualMachine;
+	JNIEnv* environment = NULL;
+	JavaVMAttachArgs arguments = {0};
+	arguments.version = JNI_VERSION_21;
+
+	if((*virtualMachine)->AttachCurrentThread(virtualMachine, (void**) &environment, &arguments) != JNI_OK) {
+		return 1;
+	}
+
+	if((*virtualMachine)->DetachCurrentThread(virtualMachine) != JNI_OK) {
+		SetLastError(ERROR_FUNCTION_FAILED);
+		HackontrolThrowWin32Error(environment, L"JavaVM::DetachCurrentThread");
+		return 1;
+	}
+
+	return 0;
+}
+
 static LRESULT CALLBACK mouseProcedure(_In_ int code, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	MSLLHOOKSTRUCT* hook = (MSLLHOOKSTRUCT*) lparam;
 	//printf("X: %d Y: %d\n", hook->pt.x, hook->pt.y);
@@ -18,7 +41,7 @@ static LRESULT CALLBACK mouseProcedure(_In_ int code, _In_ WPARAM wparam, _In_ L
 	return CallNextHookEx(NULL, code, wparam, lparam);
 }
 
-DWORD WINAPI StreamThread(_In_ PSTREAMPARAMETER parameter) {
+DWORD WINAPI InputStreamThread(_In_ PSTREAMPARAMETER parameter) {
 	if(!parameter) {
 		return 1;
 	}
@@ -106,7 +129,7 @@ destroyIcon:
 	DestroyIcon(icon);
 }
 
-BOOL TakeScreenshot(JNIEnv* const environment, const SOCKET clientSocket, int width, int height, BYTE* screenshotBuffer, BYTE* qoiBuffer, BYTE* previousBuffer) {
+static BOOL takeScreenshot(JNIEnv* const environment, const SOCKET clientSocket, int width, int height, BYTE* screenshotBuffer, BYTE* qoiBuffer, BYTE* previousBuffer) {
 	HDC context = GetDC(NULL);
 	HDC memoryContext = CreateCompatibleDC(context);
 	HBITMAP bitmap = CreateCompatibleBitmap(context, width, height);

@@ -182,11 +182,18 @@ freeScreenshotBuffer:
 	STREAMPARAMETER streamParameter;
 	streamParameter.virtualMachine = virtualMachine;
 	streamParameter.clientSocket = clientSocket;
-	HANDLE streamThread = CreateThread(NULL, 0, StreamThread, &streamParameter, 0, NULL);
+	HANDLE screenStreamThread = CreateThread(NULL, 0, ScreenStreamThread, &streamParameter, 0, NULL);
 
-	if(!streamThread) {
+	if(!screenStreamThread) {
 		HackontrolThrowWin32Error(environment, L"CreateThread");
 		goto closeSocket;
+	}
+
+	HANDLE inputStreamThread = CreateThread(NULL, 0, InputStreamThread, &streamParameter, 0, NULL);
+
+	if(!inputStreamThread) {
+		HackontrolThrowWin32Error(environment, L"CreateThread");
+		goto closeScreenStreamThread;
 	}
 
 	PACKET packet;
@@ -194,7 +201,7 @@ freeScreenshotBuffer:
 	while(TRUE) {
 		if(!ReceivePacket(clientSocket, &packet)) {
 			HackontrolThrowWin32Error(environment, L"ReceivePacket");
-			goto closeStreamThread;
+			goto closeInputStreamThread;
 		}
 
 		if(packet.packetType == PACKET_TYPE_INFORMATION) {
@@ -205,11 +212,12 @@ freeScreenshotBuffer:
 			LocalFree(packet.data);
 		}
 	}
-
 disconnect:
 	(*environment)->CallObjectMethod(environment, callback, acceptMethod, (*environment)->NewStringUTF(environment, "**Disconnected**"));
-closeStreamThread:
-	CloseHandle(streamThread);
+closeInputStreamThread:
+	CloseHandle(inputStreamThread);
+closeScreenStreamThread:
+	CloseHandle(screenStreamThread);
 closeSocket:
 	closesocket(clientSocket);
 wsaCleanup:
