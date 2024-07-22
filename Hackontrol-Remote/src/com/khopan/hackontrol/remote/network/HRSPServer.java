@@ -64,7 +64,6 @@ public class HRSPServer {
 			int width = ((informationStream.read() & 0xFF) << 24) | ((informationStream.read() & 0xFF) << 16) | ((informationStream.read() & 0xFF) << 8) | (informationStream.read() & 0xFF);
 			int height = ((informationStream.read() & 0xFF) << 24) | ((informationStream.read() & 0xFF) << 16) | ((informationStream.read() & 0xFF) << 8) | (informationStream.read() & 0xFF);
 			String username = new String(informationStream.readAllBytes(), StandardCharsets.UTF_8);
-			System.out.println("Width: " + width + " Height: " + height + " Name: " + username);
 			session = new RemoteSession(socket, inputStream, outputStream, onClose, width, height, username);
 			model.addElement(session);
 			session.start();

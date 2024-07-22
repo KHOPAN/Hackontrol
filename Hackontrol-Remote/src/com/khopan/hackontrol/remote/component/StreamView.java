@@ -9,10 +9,7 @@ import java.awt.image.DataBufferInt;
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 
-import com.khopan.hackontrol.remote.network.Packet;
-import com.khopan.hackontrol.remote.network.PacketProcessor;
-
-public class StreamView extends Component implements PacketProcessor {
+public class StreamView extends Component {
 	private static final long serialVersionUID = 2380631139944740419L;
 
 	private static final int QOI_OP_RGB   = 0b11111110;
@@ -22,23 +19,22 @@ public class StreamView extends Component implements PacketProcessor {
 	private static final int QOI_OP_RUN   = 0b11000000;
 	private static final int OP_MASK      = 0b11000000;
 
+	private final int sourceWidth;
+	private final int sourceHeight;
 	private final int[] indexTable;
+	private final BufferedImage sourceImage;
+	private final int[] receiveBuffer;
 
 	private int width;
 	private int height;
 	private Image image;
 	private int x;
 	private int y;
-	private int sourceWidth;
-	private int sourceHeight;
-	private BufferedImage sourceImage;
-	private int[] receiveBuffer;
 
-	public StreamView() {
+	public StreamView(int width, int height) {
+		this.sourceWidth = width;
+		this.sourceHeight = height;
 		this.indexTable = new int[64];
-
-		this.sourceWidth = 1366;
-		this.sourceHeight = 768;
 		this.sourceImage = new BufferedImage(this.sourceWidth, this.sourceHeight, BufferedImage.TYPE_INT_RGB);
 		this.receiveBuffer = ((DataBufferInt) this.sourceImage.getRaster().getDataBuffer()).getData();
 	}
@@ -62,20 +58,8 @@ public class StreamView extends Component implements PacketProcessor {
 		}
 	}
 
-	@Override
-	public boolean processPacket(Packet packet) {
-		ByteArrayInputStream stream = new ByteArrayInputStream(packet.getData());
-
-		switch(packet.getType()) {
-		case Packet.PACKET_TYPE_STREAM_FRAME:
-			this.decodeImage(stream);
-			return true;
-		}
-
-		return false;
-	}
-
-	private void decodeImage(ByteArrayInputStream stream) {
+	public void decode(byte[] data) {
+		ByteArrayInputStream stream = new ByteArrayInputStream(data);
 		int startX = ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
 		int startY = ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
 		int width = ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);

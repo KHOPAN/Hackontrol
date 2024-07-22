@@ -23,8 +23,6 @@ public class RemoteSession {
 	private final Socket socket;
 	private final InputStream inputStream;
 	private final OutputStream outputStream;
-	private final int screenWidth;
-	private final int screenHeight;
 	private final String displayName;
 	private final JFrame frame;
 
@@ -34,8 +32,6 @@ public class RemoteSession {
 		this.socket = socket;
 		this.inputStream = inputStream;
 		this.outputStream = outputStream;
-		this.screenWidth = width;
-		this.screenHeight = height;
 		String address = this.socket.getInetAddress().getHostAddress();
 		this.displayName = username + " (" + address + ')';
 		this.frame = new JFrame();
@@ -46,7 +42,7 @@ public class RemoteSession {
 		JPanel streamPanel = new JPanel();
 		streamPanel.setBorder(new TitledBorder("Stream"));
 		streamPanel.setLayout(new GridLayout(2, 1));
-		this.streamView = new StreamView();
+		this.streamView = new StreamView(width, height);
 		streamPanel.add(this.streamView);
 		this.frame.add(streamPanel);
 		this.frame.add(new JButton("Button"));
@@ -62,7 +58,11 @@ public class RemoteSession {
 
 	public void start() throws IOException {
 		while(true) {
-			this.streamView.processPacket(Packet.readPacket(this.inputStream));
+			Packet packet = Packet.readPacket(this.inputStream);
+
+			if(packet.getType() == Packet.PACKET_TYPE_STREAM_FRAME) {
+				this.streamView.decode(packet.getData());
+			}
 		}
 	}
 
