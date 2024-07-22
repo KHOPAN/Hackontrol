@@ -19,7 +19,7 @@ BOOL SendPacket(const SOCKET socket, const PACKET* packet) {
 		return FALSE;
 	}
 
-	if(!KHDataStreamAdd(&stream, packet->data, packet->size)) {
+	if(packet->size > 0 && !KHDataStreamAdd(&stream, packet->data, packet->size)) {
 		return FALSE;
 	}
 
@@ -48,6 +48,14 @@ BOOL ReceivePacket(const SOCKET socket, PACKET* packet) {
 	}
 
 	long size = ((header[0] & 0xFF) << 24) | ((header[1] & 0xFF) << 16) | ((header[2] & 0xFF) << 8) | (header[3] & 0xFF);
+	
+	if(size < 1) {
+		packet->size = 0;
+		packet->packetType = header[4];
+		packet->data = NULL;
+		return TRUE;
+	}
+
 	void* buffer = LocalAlloc(LMEM_FIXED, size);
 	
 	if(!buffer) {

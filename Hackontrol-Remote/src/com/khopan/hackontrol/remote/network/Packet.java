@@ -44,6 +44,11 @@ public class Packet {
 		int type = bytes[4] & 0xFF;
 		Packet.checkPacketType(type);
 		int size = ((bytes[0] & 0xFF) << 24) | ((bytes[1] & 0xFF) << 16) | ((bytes[2] & 0xFF) << 8) | (bytes[3] & 0xFF);
+
+		if(size < 1) {
+			return new Packet(0, type, null);
+		}
+
 		return new Packet(size, type, stream.readNBytes(size));
 	}
 
@@ -61,16 +66,15 @@ public class Packet {
 		stream.write((packet.size >> 8) & 0xFF);
 		stream.write(packet.size & 0xFF);
 		stream.write(packet.type & 0xFF);
-		stream.write(packet.data);
+
+		if(packet.size > 0) {
+			stream.write(packet.data);
+		}
 	}
 
 	public static Packet of(byte[] data, int type) {
-		if(data == null) {
-			throw new NullPointerException("Data cannot be null");
-		}
-
 		Packet.checkPacketType(type);
-		return new Packet(data.length, type, data);
+		return new Packet(data == null ? 0 : data.length, type, data);
 	}
 
 	private static void checkPacketType(int type) {

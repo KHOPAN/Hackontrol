@@ -181,7 +181,10 @@ freeScreenshotBuffer:
 
 		printf("Data: %d\n", packet.size);
 		_flushall();
-		LocalFree(packet.data);
+
+		if(packet.data) {
+			LocalFree(packet.data);
+		}
 	}
 closeSocket:
 	closesocket(clientSocket);
