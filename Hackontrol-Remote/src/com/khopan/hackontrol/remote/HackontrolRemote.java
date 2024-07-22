@@ -1,27 +1,23 @@
 package com.khopan.hackontrol.remote;
 
 import java.awt.BorderLayout;
-import java.awt.Point;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JFrame;
-import javax.swing.JList;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
-import javax.swing.border.TitledBorder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.khopan.hackontrol.remote.network.HRSPServer;
+import com.khopan.hackontrol.remote.component.StreamView;
+import com.khopan.hackontrol.remote.network.Packet;
 import com.khopan.hackontrol.remote.session.RemoteSession;
 
 public class HackontrolRemote {
@@ -32,7 +28,7 @@ public class HackontrolRemote {
 
 	private HackontrolRemote() {
 		HackontrolRemote.INSTANCE = this;
-		JFrame frame = new JFrame();
+		/*JFrame frame = new JFrame();
 		frame.setTitle(HackontrolRemote.NAME);
 		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		frame.setLayout(new BorderLayout());
@@ -84,7 +80,54 @@ public class HackontrolRemote {
 		frame.setLocationRelativeTo(null);
 		frame.setAlwaysOnTop(true);
 		frame.setVisible(true);
-		HRSPServer.start(model, () -> frame.setVisible(true));
+		HRSPServer.start(model, () -> frame.setVisible(true));*/
+		JFrame frame = new JFrame();
+		frame.setTitle(HackontrolRemote.NAME);
+		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+		frame.setLayout(new BorderLayout());
+		StreamView streamView = new StreamView(1366, 768);
+		frame.add(streamView, BorderLayout.CENTER);
+		frame.setSize(600, 400);
+		frame.setLocationRelativeTo(null);
+		frame.setAlwaysOnTop(true);
+		frame.setVisible(true);
+
+		try {
+			HackontrolRemote.LOGGER.info("Wait for incoming connection...");
+			ServerSocket server = new ServerSocket(42485);
+			Socket socket = server.accept();
+			HackontrolRemote.LOGGER.info("Client connected: {}", socket.getInetAddress().getHostAddress());
+			InputStream inputStream = socket.getInputStream();
+			String response = new String(inputStream.readNBytes(16), StandardCharsets.UTF_8);
+
+			if(!"HRSP 1.0 CONNECT".equals(response)) {
+				socket.close();
+				server.close();
+				return;
+			}
+
+			OutputStream outputStream = socket.getOutputStream();
+			outputStream.write("HRSP 1.0 OK".getBytes(StandardCharsets.UTF_8));
+			outputStream.flush();
+			Packet packet = Packet.readPacket(inputStream);
+
+			if(packet.getType() != Packet.PACKET_TYPE_INFORMATION) {
+				server.close();
+				throw new IllegalArgumentException("Invalid packet type, the first packet sent must be PACKET_TYPE_INFORMATION");
+			}
+
+			ByteArrayInputStream informationStream = new ByteArrayInputStream(packet.getData());
+			int width = ((informationStream.read() & 0xFF) << 24) | ((informationStream.read() & 0xFF) << 16) | ((informationStream.read() & 0xFF) << 8) | (informationStream.read() & 0xFF);
+			int height = ((informationStream.read() & 0xFF) << 24) | ((informationStream.read() & 0xFF) << 16) | ((informationStream.read() & 0xFF) << 8) | (informationStream.read() & 0xFF);
+			String username = new String(informationStream.readAllBytes(), StandardCharsets.UTF_8);
+			HackontrolRemote.LOGGER.info("Width: {} Height: {} Username: {}", width, height, username);
+			RemoteSession session = new RemoteSession(socket, inputStream, outputStream, new DefaultListModel<>(), () -> {}, width, height, username);
+			session.start();
+			session.open();
+			server.close();
+		} catch(Throwable Errors) {
+			throw new RuntimeException(Errors);
+		}
 	}
 
 	public static void main(String[] args) throws Throwable {
@@ -101,7 +144,7 @@ public class HackontrolRemote {
 		return HackontrolRemote.INSTANCE;
 	}
 
-	private static class ListListener extends MouseAdapter {
+	/*private static class ListListener extends MouseAdapter {
 		private final JFrame frame;
 		private final JList<RemoteSession> list;
 
@@ -146,5 +189,5 @@ public class HackontrolRemote {
 			popupMenu.add(disconnectItem);
 			popupMenu.show(this.list, point.x, point.y);
 		}
-	}
+	}*/
 }
