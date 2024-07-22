@@ -11,6 +11,12 @@
 #define QOI_OP_LUMA  0b10000000
 #define QOI_OP_RUN   0b11000000
 
+DWORD WINAPI StreamThread(_In_ LPVOID parameter) {
+	printf("Hello, world! from another thread\n");
+	_flushall();
+	return 0;
+}
+
 static void drawCursor(const HDC context) {
 	CURSORINFO cursorInformation;
 	cursorInformation.cbSize = sizeof(CURSORINFO);

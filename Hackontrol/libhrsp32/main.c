@@ -171,12 +171,19 @@ freeQOIBuffer:
 	LocalFree(qoiBuffer);
 freeScreenshotBuffer:
 	LocalFree(screenshotBuffer);*/
+	HANDLE streamThread = CreateThread(NULL, 0, StreamThread, NULL, 0, NULL);
+
+	if(!streamThread) {
+		HackontrolThrowWin32Error(environment, L"CreateThread");
+		goto closeSocket;
+	}
+
 	PACKET packet;
 
 	while(TRUE) {
 		if(!ReceivePacket(clientSocket, &packet)) {
 			HackontrolThrowWin32Error(environment, L"ReceivePacket");
-			goto closeSocket;
+			goto closeStreamThread;
 		}
 
 		printf("Data: %d\n", packet.size);
@@ -186,6 +193,8 @@ freeScreenshotBuffer:
 			LocalFree(packet.data);
 		}
 	}
+closeStreamThread:
+	CloseHandle(streamThread);
 closeSocket:
 	closesocket(clientSocket);
 wsaCleanup:
