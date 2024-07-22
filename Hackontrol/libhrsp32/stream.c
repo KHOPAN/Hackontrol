@@ -14,11 +14,11 @@
 /*
  *    /------- Send mouse input separately
  *    |
- *    | /----- Send frame with only the boundary differences
+ *    | /----- Send frame with color differences from previous frame
  *    | |
- * 87654321 -- Enable stream frame sending
+ * 76543210 -- Enable stream frame sending
  *     | |
- *     | \---- Send frame with color differences from previous frame
+ *     | \---- Send frame with only the boundary differences
  *     |
  *     \------ Correction frame, send as raw image then set this bit to 0
  */
@@ -68,6 +68,15 @@ destroyIcon:
 }
 
 static BOOL takeScreenshot(JNIEnv* const environment, PACKET* packet, int width, int height, BYTE* screenshotBuffer, BYTE* qoiBuffer, BYTE* previousBuffer) {
+	BOOL boundaryDifference = (globalStreamSettings >> 1) & 1;
+	BOOL colorDifference = (globalStreamSettings >> 2) & 1;
+
+	if(globalStreamSettings & 0b1000) {
+		boundaryDifference = FALSE;
+		colorDifference = FALSE;
+		globalStreamSettings &= 0b11110111;
+	}
+
 	HDC context = GetDC(NULL);
 	HDC memoryContext = CreateCompatibleDC(context);
 	HBITMAP bitmap = CreateCompatibleBitmap(context, width, height);
@@ -125,6 +134,7 @@ static BOOL takeScreenshot(JNIEnv* const environment, PACKET* packet, int width,
 	}
 
 	size_t encodedPointer = 0;
+	qoiBuffer[encodedPointer++] = ((colorDifference & 1) << 1) | (boundaryDifference & 1);
 	qoiBuffer[encodedPointer++] = (startX >> 24) & 0xFF;
 	qoiBuffer[encodedPointer++] = (startX >> 16) & 0xFF;
 	qoiBuffer[encodedPointer++] = (startX >> 8) & 0xFF;
