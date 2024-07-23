@@ -232,7 +232,26 @@ public class StreamView extends Component {
 		private static final long serialVersionUID = 59381208011157379L;
 
 		private PopupComponent() {
+			PopupListener listener = new PopupListener();
+			this.addMouseListener(listener);
+			this.addMouseMotionListener(listener);
+		}
 
+		private class PopupListener extends MouseAdapter {
+			private int pressedX;
+			private int pressedY;
+
+			@Override
+			public void mousePressed(MouseEvent Event) {
+				this.pressedX = Event.getX();
+				this.pressedY = Event.getY();
+			}
+
+			@Override
+			public void mouseDragged(MouseEvent Event) {
+				Point point = Event.getLocationOnScreen();
+				StreamView.this.popOutWindow.setLocation(point.x - this.pressedX, point.y - this.pressedY);
+			}
 		}
 	}
 }
