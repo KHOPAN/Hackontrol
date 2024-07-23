@@ -1,22 +1,28 @@
 package com.khopan.hackontrol.remote;
 
 import java.awt.BorderLayout;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.nio.charset.StandardCharsets;
+import java.awt.Point;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
+import javax.swing.DefaultListModel;
 import javax.swing.JFrame;
+import javax.swing.JList;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
+import javax.swing.border.TitledBorder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.khopan.hackontrol.remote.component.StreamView;
-import com.khopan.hackontrol.remote.network.Packet;
+import com.khopan.hackontrol.remote.network.HRSPServer;
+import com.khopan.hackontrol.remote.session.RemoteSession;
 
 public class HackontrolRemote {
 	public static final String NAME = "Hackontrol Remote";
@@ -26,7 +32,7 @@ public class HackontrolRemote {
 
 	private HackontrolRemote() {
 		HackontrolRemote.INSTANCE = this;
-		/*JFrame frame = new JFrame();
+		JFrame frame = new JFrame();
 		frame.setTitle(HackontrolRemote.NAME);
 		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		frame.setLayout(new BorderLayout());
@@ -78,8 +84,8 @@ public class HackontrolRemote {
 		frame.setLocationRelativeTo(null);
 		frame.setAlwaysOnTop(true);
 		frame.setVisible(true);
-		HRSPServer.start(model, () -> frame.setVisible(true));*/
-		JFrame frame = new JFrame();
+		HRSPServer.start(model, () -> frame.setVisible(true));
+		/*JFrame frame = new JFrame();
 		frame.setTitle(HackontrolRemote.NAME);
 		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		frame.setLayout(new BorderLayout());
@@ -135,7 +141,7 @@ public class HackontrolRemote {
 			server.close();
 		} catch(Throwable Errors) {
 			throw new RuntimeException(Errors);
-		}
+		}*/
 	}
 
 	public static void main(String[] args) throws Throwable {
@@ -152,7 +158,7 @@ public class HackontrolRemote {
 		return HackontrolRemote.INSTANCE;
 	}
 
-	/*private static class ListListener extends MouseAdapter {
+	private static class ListListener extends MouseAdapter {
 		private final JFrame frame;
 		private final JList<RemoteSession> list;
 
@@ -197,5 +203,5 @@ public class HackontrolRemote {
 			popupMenu.add(disconnectItem);
 			popupMenu.show(this.list, point.x, point.y);
 		}
-	}*/
+	}
 }

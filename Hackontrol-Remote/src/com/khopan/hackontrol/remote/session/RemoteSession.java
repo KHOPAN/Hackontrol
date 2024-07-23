@@ -12,12 +12,9 @@ import java.net.Socket;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JPanel;
 import javax.swing.WindowConstants;
-import javax.swing.border.TitledBorder;
 
 import com.khopan.hackontrol.remote.HackontrolRemote;
-import com.khopan.hackontrol.remote.component.StreamView;
 import com.khopan.hackontrol.remote.network.Packet;
 
 public class RemoteSession {
@@ -27,8 +24,7 @@ public class RemoteSession {
 	private final DefaultListModel<RemoteSession> model;
 	private final String displayName;
 	private final JFrame frame;
-
-	private StreamView streamView;
+	private final StreamPanel streamPanel;
 
 	public RemoteSession(Socket socket, InputStream inputStream, OutputStream outputStream, DefaultListModel<RemoteSession> model, Runnable onClose, int width, int height, String username) {
 		this.socket = socket;
@@ -42,12 +38,8 @@ public class RemoteSession {
 		this.frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		this.frame.setLayout(new BorderLayout());
 		this.frame.setLayout(new GridLayout(1, 2));
-		JPanel streamPanel = new JPanel();
-		streamPanel.setBorder(new TitledBorder("Stream"));
-		streamPanel.setLayout(new GridLayout(2, 1));
-		this.streamView = new StreamView(width, height);
-		streamPanel.add(this.streamView);
-		this.frame.add(streamPanel);
+		this.streamPanel = new StreamPanel(width, height);
+		this.frame.add(this.streamPanel);
 		this.frame.add(new JButton("Button"));
 		this.frame.setSize(600, 400);
 		this.frame.setLocationRelativeTo(null);
@@ -64,7 +56,7 @@ public class RemoteSession {
 			Packet packet = Packet.readPacket(this.inputStream);
 
 			if(packet.getType() == Packet.PACKET_TYPE_STREAM_FRAME) {
-				this.streamView.decode(packet.getData());
+				this.streamPanel.streamView.decode(packet.getData());
 			}
 		}
 	}
