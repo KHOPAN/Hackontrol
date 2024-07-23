@@ -53,11 +53,13 @@ public class StreamView extends Component {
 	private int x;
 	private int y;
 	private boolean pictureInPicture;
+	private int scalingAlgorithm;
 
 	public StreamView(int width, int height) {
 		this.sourceWidth = width;
 		this.sourceHeight = height;
 		this.indexTable = new int[64];
+		this.scalingAlgorithm = Image.SCALE_DEFAULT;
 		this.sourceImage = new BufferedImage(this.sourceWidth, this.sourceHeight, BufferedImage.TYPE_INT_RGB);
 		this.receiveBuffer = ((DataBufferInt) this.sourceImage.getRaster().getDataBuffer()).getData();
 		this.popOutWindow = new JFrame();
@@ -88,18 +90,44 @@ public class StreamView extends Component {
 		JMenu scalingAlgorithmMenu = new JMenu("Scaling Algorithm");
 		ButtonGroup scalingAlgorithmGroup = new ButtonGroup();
 		JRadioButtonMenuItem scaleAreaAveragingItem = new JRadioButtonMenuItem("Area Averaging");
+		scaleAreaAveragingItem.addActionListener(Event -> {
+			this.scalingAlgorithm = Image.SCALE_AREA_AVERAGING;
+			this.updateImage();
+		});
+
 		scalingAlgorithmMenu.add(scaleAreaAveragingItem);
 		scalingAlgorithmGroup.add(scaleAreaAveragingItem);
 		JRadioButtonMenuItem scaleDefaultItem = new JRadioButtonMenuItem("Default");
+		scaleDefaultItem.addActionListener(Event -> {
+			this.scalingAlgorithm = Image.SCALE_DEFAULT;
+			this.updateImage();
+		});
+
 		scalingAlgorithmMenu.add(scaleDefaultItem);
 		scalingAlgorithmGroup.add(scaleDefaultItem);
+		scalingAlgorithmGroup.setSelected(scaleDefaultItem.getModel(), true);
 		JRadioButtonMenuItem scaleFastItem = new JRadioButtonMenuItem("Fast");
+		scaleFastItem.addActionListener(Event -> {
+			this.scalingAlgorithm = Image.SCALE_FAST;
+			this.updateImage();
+		});
+
 		scalingAlgorithmMenu.add(scaleFastItem);
 		scalingAlgorithmGroup.add(scaleFastItem);
 		JRadioButtonMenuItem scaleReplicateItem = new JRadioButtonMenuItem("Replicate");
+		scaleReplicateItem.addActionListener(Event -> {
+			this.scalingAlgorithm = Image.SCALE_REPLICATE;
+			this.updateImage();
+		});
+
 		scalingAlgorithmMenu.add(scaleReplicateItem);
 		scalingAlgorithmGroup.add(scaleReplicateItem);
 		JRadioButtonMenuItem scaleSmoothItem = new JRadioButtonMenuItem("Smooth");
+		scaleSmoothItem.addActionListener(Event -> {
+			this.scalingAlgorithm = Image.SCALE_SMOOTH;
+			this.updateImage();
+		});
+
 		scalingAlgorithmMenu.add(scaleSmoothItem);
 		scalingAlgorithmGroup.add(scaleSmoothItem);
 		this.popupMenu.add(scalingAlgorithmMenu);
@@ -270,7 +298,7 @@ public class StreamView extends Component {
 			this.y = (int) Math.round((((double) height) - ((double) newHeight)) * 0.5d);
 		}
 
-		this.image = this.sourceImage.getScaledInstance(newWidth, newHeight, Image.SCALE_FAST);
+		this.image = this.sourceImage.getScaledInstance(newWidth, newHeight, this.scalingAlgorithm);
 
 		if(this.pictureInPicture) {
 			this.popupComponent.repaint();
