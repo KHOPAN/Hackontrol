@@ -85,63 +85,6 @@ public class HackontrolRemote {
 		frame.setAlwaysOnTop(true);
 		frame.setVisible(true);
 		HRSPServer.start(model, () -> frame.setVisible(true));
-		/*JFrame frame = new JFrame();
-		frame.setTitle(HackontrolRemote.NAME);
-		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-		frame.setLayout(new BorderLayout());
-		StreamView streamView = new StreamView(1366, 768);
-		frame.add(streamView, BorderLayout.CENTER);
-		streamView.setVisible(true);
-		frame.setSize(600, 400);
-		frame.setLocationRelativeTo(null);
-		frame.setAlwaysOnTop(true);
-		frame.setVisible(true);
-
-		try {
-			HackontrolRemote.LOGGER.info("Wait for incoming connection...");
-			ServerSocket server = new ServerSocket(42485);
-			Socket socket = server.accept();
-			HackontrolRemote.LOGGER.info("Client connected: {}", socket.getInetAddress().getHostAddress());
-			InputStream inputStream = socket.getInputStream();
-			String response = new String(inputStream.readNBytes(16), StandardCharsets.UTF_8);
-
-			if(!"HRSP 1.0 CONNECT".equals(response)) {
-				socket.close();
-				server.close();
-				return;
-			}
-
-			OutputStream outputStream = socket.getOutputStream();
-			outputStream.write("HRSP 1.0 OK".getBytes(StandardCharsets.UTF_8));
-			outputStream.flush();
-			Packet packet = Packet.readPacket(inputStream);
-
-			if(packet.getType() != Packet.PACKET_TYPE_INFORMATION) {
-				server.close();
-				throw new IllegalArgumentException("Invalid packet type, the first packet sent must be PACKET_TYPE_INFORMATION");
-			}
-
-			ByteArrayInputStream informationStream = new ByteArrayInputStream(packet.getData());
-			int width = ((informationStream.read() & 0xFF) << 24) | ((informationStream.read() & 0xFF) << 16) | ((informationStream.read() & 0xFF) << 8) | (informationStream.read() & 0xFF);
-			int height = ((informationStream.read() & 0xFF) << 24) | ((informationStream.read() & 0xFF) << 16) | ((informationStream.read() & 0xFF) << 8) | (informationStream.read() & 0xFF);
-			String username = new String(informationStream.readAllBytes(), StandardCharsets.UTF_8);
-			HackontrolRemote.LOGGER.info("Width: {} Height: {} Username: {}", width, height, username);
-			Packet.writePacket(outputStream, Packet.of(new byte[] {0b00000001}, Packet.PACKET_TYPE_STREAM_FRAME));
-
-			while(true) {
-				packet = Packet.readPacket(inputStream);
-
-				if(packet.getType() != Packet.PACKET_TYPE_STREAM_FRAME) {
-					break;
-				}
-
-				streamView.decode(packet.getData());
-			}
-
-			server.close();
-		} catch(Throwable Errors) {
-			throw new RuntimeException(Errors);
-		}*/
 	}
 
 	public static void main(String[] args) throws Throwable {
