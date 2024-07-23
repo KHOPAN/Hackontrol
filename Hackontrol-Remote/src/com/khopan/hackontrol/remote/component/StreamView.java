@@ -241,6 +241,7 @@ public class StreamView extends Component {
 
 		private class PopupListener extends MouseAdapter {
 			private final int border;
+			private final int minimumSize;
 
 			private int pressedX;
 			private int pressedY;
@@ -249,6 +250,7 @@ public class StreamView extends Component {
 
 			private PopupListener() {
 				this.border = 10;
+				this.minimumSize = this.border * 2;
 			}
 
 			@Override
@@ -264,8 +266,11 @@ public class StreamView extends Component {
 				Rectangle bounds = StreamView.this.popOutWindow.getBounds();
 
 				if(this.cursor == Cursor.N_RESIZE_CURSOR || this.cursor == Cursor.NW_RESIZE_CURSOR || this.cursor == Cursor.NE_RESIZE_CURSOR) {
-					bounds.y = point.y - this.pressedY;
 					bounds.height = this.bounds.y + this.bounds.height - bounds.y;
+
+					if(this.bounds.y + this.bounds.height - point.y + this.pressedY >= this.minimumSize) {
+						bounds.y = point.y - this.pressedY;
+					}
 				}
 
 				if(this.cursor == Cursor.E_RESIZE_CURSOR || this.cursor == Cursor.NE_RESIZE_CURSOR || this.cursor == Cursor.SE_RESIZE_CURSOR) {
@@ -277,8 +282,11 @@ public class StreamView extends Component {
 				}
 
 				if(this.cursor == Cursor.W_RESIZE_CURSOR || this.cursor == Cursor.SW_RESIZE_CURSOR || this.cursor == Cursor.NW_RESIZE_CURSOR) {
-					bounds.x = point.x - this.pressedX;
 					bounds.width = this.bounds.x + this.bounds.width - bounds.x;
+
+					if(this.bounds.x + this.bounds.width - point.x + this.pressedX >= this.minimumSize) {
+						bounds.x = point.x - this.pressedX;
+					}
 				}
 
 				if(this.cursor == Cursor.DEFAULT_CURSOR) {
@@ -286,6 +294,8 @@ public class StreamView extends Component {
 					bounds.y = point.y - this.pressedY;
 				}
 
+				bounds.width = Math.max(bounds.width, this.minimumSize);
+				bounds.height = Math.max(bounds.height, this.minimumSize);
 				StreamView.this.popOutWindow.setBounds(bounds);
 			}
 
@@ -295,10 +305,10 @@ public class StreamView extends Component {
 				int y = Event.getY();
 				int width = PopupComponent.this.getWidth();
 				int height = PopupComponent.this.getHeight();
-				boolean north = y > 0 && y <= this.border;
+				boolean north = y >= 0 && y <= this.border;
 				boolean east = x >= width - this.border && x < width;
 				boolean south = y >= height - this.border && y < height;
-				boolean west = x > 0 && x <= this.border;
+				boolean west = x >= 0 && x <= this.border;
 				this.cursor = north ? west ? Cursor.NW_RESIZE_CURSOR : east ? Cursor.NE_RESIZE_CURSOR : Cursor.N_RESIZE_CURSOR : south ? west ? Cursor.SW_RESIZE_CURSOR : east ? Cursor.SE_RESIZE_CURSOR : Cursor.S_RESIZE_CURSOR : west ? Cursor.W_RESIZE_CURSOR : east ? Cursor.E_RESIZE_CURSOR : Cursor.DEFAULT_CURSOR;
 				PopupComponent.this.setCursor(Cursor.getPredefinedCursor(this.cursor));
 			}
