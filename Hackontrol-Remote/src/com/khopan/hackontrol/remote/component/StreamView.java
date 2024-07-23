@@ -80,32 +80,18 @@ public class StreamView extends Component {
 			return;
 		}
 
-		int startX;
-		int startY;
-		int width;
-		int height;
-
-		if(boundaryDifference) {
-			startX = ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
-			startY = ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
-			width = ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
-			height = ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
-		} else {
-			startX = 0;
-			startY = 0;
-			width = this.sourceWidth;
-			height = this.sourceHeight;
-		}
-
+		int startX = boundaryDifference ? ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF) : 0;
+		int startY = boundaryDifference ? ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF) : 0;
+		int endX = boundaryDifference ? ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF) : this.sourceWidth - 1;
+		int endY = boundaryDifference ? ((stream.read() & 0xFF) << 24) | ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF) : this.sourceHeight - 1;
 		Arrays.fill(this.indexTable, 0);
 		int red = 0;
 		int green = 0;
 		int blue = 0;
 		int run = 0;
-		//Arrays.fill(this.receiveBuffer, 0x000000);
 
-		for(int y = startY; y < startY + height; y++) {
-			for(int x = startX; x < startX + width; x++) {
+		for(int y = startY; y <= endY; y++) {
+			for(int x = startX; x <= endX; x++) {
 				int pixelIndex = y * this.sourceWidth + x;
 
 				if(run > 0) {

@@ -121,50 +121,23 @@ static BOOL takeScreenshot(JNIEnv* const environment, PACKET* packet, int width,
 	int endX = boundaryDifference ? 0 : width - 1;
 	int endY = boundaryDifference ? 0 : height - 1;
 
-	for(int y = 0; y < height; y++) {
-		for(int x = 0; x < width; x++) {
-			int baseIndex = (height - y - 1) * width + x;
-			int screenshotIndex = baseIndex * 4;
-			int previousIndex = baseIndex * 3;
-
-			if(boundaryDifference && screenshotBuffer[screenshotIndex + 2] != previousBuffer[previousIndex] || screenshotBuffer[screenshotIndex + 1] != previousBuffer[previousIndex + 1] || screenshotBuffer[screenshotIndex] != previousBuffer[previousIndex + 2]) {
-				startX = min(startX, x);
-				startY = min(startY, y);
-				endX = max(endX, x);
-				endY = max(endY, y);
-			}
-
-			/*previousBuffer[previousIndex] = screenshotBuffer[screenshotIndex + 2];
-			previousBuffer[previousIndex + 1] = screenshotBuffer[screenshotIndex + 1];
-			previousBuffer[previousIndex + 2] = screenshotBuffer[screenshotIndex];*/
-			/*if(colorDifference) {
-				screenshotBuffer[screenshotIndex + 2] = previousBuffer[previousIndex] - screenshotBuffer[screenshotIndex + 2];
-				screenshotBuffer[screenshotIndex + 1] = previousBuffer[previousIndex + 1] - screenshotBuffer[screenshotIndex + 1];
-				screenshotBuffer[screenshotIndex] = previousBuffer[previousIndex + 2] - screenshotBuffer[screenshotIndex];
-			}
-
-			if(boundaryDifference && screenshotBuffer[screenshotIndex + 2] != 0 || screenshotBuffer[screenshotIndex + 1] != 0 || screenshotBuffer[screenshotIndex] != 0) {
-				startX = min(startX, x);
-				startY = min(startY, y);
-				endX = max(endX, x);
-				endY = max(endY, y);
-			}
-
-			previousBuffer[previousIndex] = red;
-			previousBuffer[previousIndex + 1] = green;
-			previousBuffer[previousIndex + 2] = blue;*/
-		}
-	}
-
-	int startWidth = endX - startX + 1;
-	int startHeight = endY - startY + 1;
-
-	if(startWidth < 1 || startHeight < 1) {
-		returnValue = TRUE;
-		goto cleanup;
-	}
-
 	if(boundaryDifference) {
+		for(int y = 0; y < height; y++) {
+			for(int x = 0; x < width; x++) {
+				int baseIndex = (height - y - 1) * width + x;
+				int screenshotIndex = baseIndex * 4;
+				int previousIndex = baseIndex * 3;
+				if(screenshotBuffer[screenshotIndex + 2] == previousBuffer[previousIndex] && screenshotBuffer[screenshotIndex + 1] == previousBuffer[previousIndex + 1] && screenshotBuffer[screenshotIndex] == previousBuffer[previousIndex + 2]) continue;
+				previousBuffer[previousIndex] = screenshotBuffer[screenshotIndex + 2];
+				previousBuffer[previousIndex + 1] = screenshotBuffer[screenshotIndex + 1];
+				previousBuffer[previousIndex + 2] = screenshotBuffer[screenshotIndex];
+				startX = min(startX, x);
+				startY = min(startY, y);
+				endX = max(endX, x);
+				endY = max(endY, y);
+			}
+		}
+
 		qoiBuffer[encodedPointer++] = (startX >> 24) & 0xFF;
 		qoiBuffer[encodedPointer++] = (startX >> 16) & 0xFF;
 		qoiBuffer[encodedPointer++] = (startX >> 8) & 0xFF;
@@ -173,14 +146,14 @@ static BOOL takeScreenshot(JNIEnv* const environment, PACKET* packet, int width,
 		qoiBuffer[encodedPointer++] = (startY >> 16) & 0xFF;
 		qoiBuffer[encodedPointer++] = (startY >> 8) & 0xFF;
 		qoiBuffer[encodedPointer++] = startY & 0xFF;
-		qoiBuffer[encodedPointer++] = (startWidth >> 24) & 0xFF;
-		qoiBuffer[encodedPointer++] = (startWidth >> 16) & 0xFF;
-		qoiBuffer[encodedPointer++] = (startWidth >> 8) & 0xFF;
-		qoiBuffer[encodedPointer++] = startWidth & 0xFF;
-		qoiBuffer[encodedPointer++] = (startHeight >> 24) & 0xFF;
-		qoiBuffer[encodedPointer++] = (startHeight >> 16) & 0xFF;
-		qoiBuffer[encodedPointer++] = (startHeight >> 8) & 0xFF;
-		qoiBuffer[encodedPointer++] = startHeight & 0xFF;
+		qoiBuffer[encodedPointer++] = (endX >> 24) & 0xFF;
+		qoiBuffer[encodedPointer++] = (endX >> 16) & 0xFF;
+		qoiBuffer[encodedPointer++] = (endX >> 8) & 0xFF;
+		qoiBuffer[encodedPointer++] = endX & 0xFF;
+		qoiBuffer[encodedPointer++] = (endY >> 24) & 0xFF;
+		qoiBuffer[encodedPointer++] = (endY >> 16) & 0xFF;
+		qoiBuffer[encodedPointer++] = (endY >> 8) & 0xFF;
+		qoiBuffer[encodedPointer++] = endY & 0xFF;
 	}
 
 	BYTE seenRed[64];
@@ -196,20 +169,23 @@ static BOOL takeScreenshot(JNIEnv* const environment, PACKET* packet, int width,
 
 	for(int y = startY; y <= endY; y++) {
 		for(int x = startX; x <= endX; x++) {
-			int screenshotIndex = ((height - y - 1) * width + x) * 4;
-			int previousIndex = ((height - y - 1) * width + x) * 3;
-			BYTE red = previousBuffer[previousIndex] - screenshotBuffer[screenshotIndex + 2];
-			BYTE green = previousBuffer[previousIndex + 1] - screenshotBuffer[screenshotIndex + 1];
-			BYTE blue = previousBuffer[previousIndex + 2] - screenshotBuffer[screenshotIndex];
-			previousBuffer[previousIndex] -= red;
-			previousBuffer[previousIndex + 1] -= green;
-			previousBuffer[previousIndex + 2] -= blue;
-			qoiBuffer[encodedPointer++] = QOI_OP_RGB;
-			qoiBuffer[encodedPointer++] = red;
-			qoiBuffer[encodedPointer++] = green;
-			qoiBuffer[encodedPointer++] = blue;
+			int baseIndex = (height - y - 1) * width + x;
+			int screenshotIndex = baseIndex * 4;
+			int previousIndex = baseIndex * 3;
+			BYTE red = screenshotBuffer[screenshotIndex + 2];
+			BYTE green = screenshotBuffer[screenshotIndex + 1];
+			BYTE blue = screenshotBuffer[screenshotIndex];
 
-			/*if(red == previousRed && green == previousGreen && blue == previousBlue) {
+			if(colorDifference) {
+				red = previousBuffer[previousIndex] - screenshotBuffer[screenshotIndex + 2];
+				green = previousBuffer[previousIndex + 1] - screenshotBuffer[screenshotIndex + 1];
+				blue = previousBuffer[previousIndex + 2] - screenshotBuffer[screenshotIndex];
+				previousBuffer[previousIndex] = screenshotBuffer[screenshotIndex + 2];
+				previousBuffer[previousIndex + 1] = screenshotBuffer[screenshotIndex + 1];
+				previousBuffer[previousIndex + 2] = screenshotBuffer[screenshotIndex];
+			}
+
+			if(red == previousRed && green == previousGreen && blue == previousBlue) {
 				run++;
 
 				if(run == 62) {
@@ -261,25 +237,13 @@ static BOOL takeScreenshot(JNIEnv* const environment, PACKET* packet, int width,
 
 			previousRed = red;
 			previousGreen = green;
-			previousBlue = blue;*/
+			previousBlue = blue;
 		}
 	}
 
 	if(run > 0) {
 		qoiBuffer[encodedPointer++] = QOI_OP_RUN | ((run - 1) & 0b111111);
 	}
-
-	/*for(int y = 0; y < height; y++) {
-		for(int x = 0; x < width; x++) {
-			int baseIndex = (height - y - 1) * width + x;
-			int screenshotIndex = baseIndex * 4;
-			int previousIndex = baseIndex * 3;
-			previousBuffer[previousIndex] = screenshotBuffer[screenshotIndex + 2];
-			previousBuffer[previousIndex + 1] = screenshotBuffer[screenshotIndex + 1];
-			previousBuffer[previousIndex + 2] = screenshotBuffer[screenshotIndex];
-		}
-	}*/
-
 sendFrame:
 	packet->size = (long) encodedPointer;
 	packet->data = qoiBuffer;
