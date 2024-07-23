@@ -16,6 +16,7 @@ import java.awt.image.DataBufferInt;
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
@@ -242,15 +243,29 @@ public class StreamView extends Component {
 		private class PopupListener extends MouseAdapter {
 			private final int border;
 			private final int minimumSize;
+			private final JPopupMenu popupMenu;
 
 			private int pressedX;
 			private int pressedY;
 			private Rectangle bounds;
 			private int cursor;
+			private boolean limitScreen;
 
 			private PopupListener() {
 				this.border = 10;
 				this.minimumSize = this.border * 2;
+				this.popupMenu = new JPopupMenu();
+				JCheckBoxMenuItem limitToScreenBoundsBox = new JCheckBoxMenuItem("Limit to screen bounds");
+				limitToScreenBoundsBox.addActionListener(Event -> {
+					this.limitScreen = limitToScreenBoundsBox.isSelected();
+					Rectangle bounds = StreamView.this.popOutWindow.getBounds();
+					this.limitToScreenBounds(bounds);
+					StreamView.this.popOutWindow.setBounds(bounds);
+				});
+
+				this.limitScreen = true;
+				limitToScreenBoundsBox.setSelected(this.limitScreen);
+				this.popupMenu.add(limitToScreenBoundsBox);
 			}
 
 			@Override
@@ -296,6 +311,7 @@ public class StreamView extends Component {
 
 				bounds.width = Math.max(bounds.width, this.minimumSize);
 				bounds.height = Math.max(bounds.height, this.minimumSize);
+				this.limitToScreenBounds(bounds);
 				StreamView.this.popOutWindow.setBounds(bounds);
 			}
 
@@ -311,6 +327,24 @@ public class StreamView extends Component {
 				boolean west = x >= 0 && x <= this.border;
 				this.cursor = north ? west ? Cursor.NW_RESIZE_CURSOR : east ? Cursor.NE_RESIZE_CURSOR : Cursor.N_RESIZE_CURSOR : south ? west ? Cursor.SW_RESIZE_CURSOR : east ? Cursor.SE_RESIZE_CURSOR : Cursor.S_RESIZE_CURSOR : west ? Cursor.W_RESIZE_CURSOR : east ? Cursor.E_RESIZE_CURSOR : Cursor.DEFAULT_CURSOR;
 				PopupComponent.this.setCursor(Cursor.getPredefinedCursor(this.cursor));
+			}
+
+			@Override
+			public void mouseClicked(MouseEvent Event) {
+				if(!SwingUtilities.isRightMouseButton(Event)) {
+					return;
+				}
+
+				this.popupMenu.show(PopupComponent.this, Event.getX(), Event.getY());
+			}
+
+			private void limitToScreenBounds(Rectangle bounds) {
+				if(!this.limitScreen) {
+					return;
+				}
+
+				bounds.x = Math.min(Math.max(bounds.x, 0), StreamView.this.sourceWidth - bounds.width);
+				bounds.y = Math.min(Math.max(bounds.y, 0), StreamView.this.sourceHeight - bounds.height);
 			}
 		}
 	}
