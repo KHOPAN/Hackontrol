@@ -4,10 +4,16 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
+
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.SwingUtilities;
 
 public class StreamView extends Component {
 	private static final long serialVersionUID = 2380631139944740419L;
@@ -38,6 +44,7 @@ public class StreamView extends Component {
 		this.indexTable = new int[64];
 		this.sourceImage = new BufferedImage(this.sourceWidth, this.sourceHeight, BufferedImage.TYPE_INT_RGB);
 		this.receiveBuffer = ((DataBufferInt) this.sourceImage.getRaster().getDataBuffer()).getData();
+		this.addMouseListener(new Listener());
 	}
 
 	@SuppressWarnings("deprecation")
@@ -174,7 +181,20 @@ public class StreamView extends Component {
 			this.y = (int) Math.round((((double) this.height) - ((double) newHeight)) * 0.5d);
 		}
 
-		this.image = this.sourceImage.getScaledInstance(newWidth, newHeight, Image.SCALE_DEFAULT);
+		this.image = this.sourceImage.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
 		this.repaint();
+	}
+
+	private class Listener extends MouseAdapter {
+		@Override
+		public void mouseClicked(MouseEvent Event) {
+			if(!SwingUtilities.isRightMouseButton(Event)) {
+				return;
+			}
+
+			JPopupMenu popupMenu = new JPopupMenu();
+			popupMenu.add(new JMenuItem("Pop Out"));
+			popupMenu.show(StreamView.this, Event.getX(), Event.getY());
+		}
 	}
 }
