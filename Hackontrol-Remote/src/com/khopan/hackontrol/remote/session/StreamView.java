@@ -15,10 +15,13 @@ import java.awt.image.DataBufferInt;
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 
+import javax.swing.ButtonGroup;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.SwingUtilities;
 
 public class StreamView extends Component {
@@ -82,6 +85,24 @@ public class StreamView extends Component {
 		this.limitToScreenBoundsBox.addActionListener(Event -> this.popupComponent.listener.limitToScreenCheckBox());
 		this.limitToScreenBoundsBox.setSelected(true);
 		this.popupMenu.add(this.limitToScreenBoundsBox);
+		JMenu scalingAlgorithmMenu = new JMenu("Scaling Algorithm");
+		ButtonGroup scalingAlgorithmGroup = new ButtonGroup();
+		JRadioButtonMenuItem scaleAreaAveragingItem = new JRadioButtonMenuItem("Area Averaging");
+		scalingAlgorithmMenu.add(scaleAreaAveragingItem);
+		scalingAlgorithmGroup.add(scaleAreaAveragingItem);
+		JRadioButtonMenuItem scaleDefaultItem = new JRadioButtonMenuItem("Default");
+		scalingAlgorithmMenu.add(scaleDefaultItem);
+		scalingAlgorithmGroup.add(scaleDefaultItem);
+		JRadioButtonMenuItem scaleFastItem = new JRadioButtonMenuItem("Fast");
+		scalingAlgorithmMenu.add(scaleFastItem);
+		scalingAlgorithmGroup.add(scaleFastItem);
+		JRadioButtonMenuItem scaleReplicateItem = new JRadioButtonMenuItem("Replicate");
+		scalingAlgorithmMenu.add(scaleReplicateItem);
+		scalingAlgorithmGroup.add(scaleReplicateItem);
+		JRadioButtonMenuItem scaleSmoothItem = new JRadioButtonMenuItem("Smooth");
+		scalingAlgorithmMenu.add(scaleSmoothItem);
+		scalingAlgorithmGroup.add(scaleSmoothItem);
+		this.popupMenu.add(scalingAlgorithmMenu);
 		this.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent Event) {
