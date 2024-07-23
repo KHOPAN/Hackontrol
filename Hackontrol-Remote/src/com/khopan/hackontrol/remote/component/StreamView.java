@@ -1,9 +1,12 @@
 package com.khopan.hackontrol.remote.component;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.Point;
+import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -30,6 +33,7 @@ public class StreamView extends Component {
 	private final int[] indexTable;
 	private final BufferedImage sourceImage;
 	private final int[] receiveBuffer;
+	private final Window popOutWindow;
 
 	private volatile int width;
 	private volatile int height;
@@ -37,6 +41,7 @@ public class StreamView extends Component {
 	private Image image;
 	private int x;
 	private int y;
+	private boolean pictureInPicture;
 
 	public StreamView(int width, int height) {
 		this.sourceWidth = width;
@@ -45,6 +50,10 @@ public class StreamView extends Component {
 		this.sourceImage = new BufferedImage(this.sourceWidth, this.sourceHeight, BufferedImage.TYPE_INT_RGB);
 		this.receiveBuffer = ((DataBufferInt) this.sourceImage.getRaster().getDataBuffer()).getData();
 		this.addMouseListener(new Listener());
+		this.popOutWindow = new Window(null);
+		this.popOutWindow.setLayout(new BorderLayout());
+		this.popOutWindow.add(new PopupComponent(), BorderLayout.CENTER);
+		this.popOutWindow.setAlwaysOnTop(true);
 	}
 
 	@SuppressWarnings("deprecation")
@@ -63,6 +72,18 @@ public class StreamView extends Component {
 
 		if(this.image != null) {
 			Graphics.drawImage(this.image, this.x, this.y, null);
+		}
+	}
+
+	public void showWindow() {
+		if(this.pictureInPicture) {
+			this.popOutWindow.setVisible(true);
+		}
+	}
+
+	public void hideWindow() {
+		if(this.pictureInPicture) {
+			this.popOutWindow.dispose();
 		}
 	}
 
@@ -185,6 +206,13 @@ public class StreamView extends Component {
 		this.repaint();
 	}
 
+	private void popOut() {
+		Point location = this.getLocationOnScreen();
+		this.popOutWindow.setBounds(location.x, location.y, this.width, this.height);
+		this.popOutWindow.setVisible(true);
+		this.pictureInPicture = true;
+	}
+
 	private class Listener extends MouseAdapter {
 		@Override
 		public void mouseClicked(MouseEvent Event) {
@@ -193,8 +221,18 @@ public class StreamView extends Component {
 			}
 
 			JPopupMenu popupMenu = new JPopupMenu();
-			popupMenu.add(new JMenuItem("Pop Out"));
+			JMenuItem popOutItem = new JMenuItem("Pop Out");
+			popOutItem.addActionListener(action -> StreamView.this.popOut());
+			popupMenu.add(popOutItem);
 			popupMenu.show(StreamView.this, Event.getX(), Event.getY());
+		}
+	}
+
+	private class PopupComponent extends Component {
+		private static final long serialVersionUID = 59381208011157379L;
+
+		private PopupComponent() {
+
 		}
 	}
 }

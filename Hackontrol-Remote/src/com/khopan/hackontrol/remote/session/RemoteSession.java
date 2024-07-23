@@ -46,6 +46,7 @@ public class RemoteSession {
 		this.frame.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent Event) {
+				RemoteSession.this.streamPanel.streamView.hideWindow();
 				onClose.run();
 			}
 		});
@@ -63,6 +64,7 @@ public class RemoteSession {
 
 	public void open() {
 		this.frame.setVisible(true);
+		RemoteSession.this.streamPanel.streamView.showWindow();
 	}
 
 	public void disconnect() {
