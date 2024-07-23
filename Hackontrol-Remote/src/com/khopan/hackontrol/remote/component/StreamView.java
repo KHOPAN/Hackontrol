@@ -40,6 +40,7 @@ public class StreamView extends Component {
 	private final JPopupMenu popupMenu;
 	private final JMenuItem popInOutItem;
 	private final JCheckBoxMenuItem limitToScreenBoundsBox;
+	private final JCheckBoxMenuItem lockBox;
 
 	private volatile int width;
 	private volatile int height;
@@ -71,6 +72,9 @@ public class StreamView extends Component {
 		});
 
 		this.popupMenu.add(this.popInOutItem);
+		this.lockBox = new JCheckBoxMenuItem("Lock frame");
+		this.lockBox.addActionListener(Event -> popupComponent.listener.lock = this.lockBox.isSelected());
+		this.popupMenu.add(this.lockBox);
 		this.limitToScreenBoundsBox = new JCheckBoxMenuItem("Limit to screen bounds");
 		this.limitToScreenBoundsBox.addActionListener(Event -> popupComponent.listener.limitToScreenCheckBox());
 		this.limitToScreenBoundsBox.setSelected(true);
@@ -83,6 +87,7 @@ public class StreamView extends Component {
 				}
 
 				StreamView.this.popInOutItem.setText(StreamView.this.pictureInPicture ? "Pop In" : "Pop Out");
+				StreamView.this.lockBox.setVisible(false);
 				StreamView.this.limitToScreenBoundsBox.setVisible(false);
 				StreamView.this.popupMenu.show(StreamView.this, Event.getX(), Event.getY());
 			}
@@ -271,6 +276,7 @@ public class StreamView extends Component {
 			private Rectangle bounds;
 			private int cursor;
 			private boolean limitScreen;
+			private boolean lock;
 
 			private PopupListener() {
 				this.border = 10;
@@ -294,6 +300,10 @@ public class StreamView extends Component {
 
 			@Override
 			public void mouseDragged(MouseEvent Event) {
+				if(this.lock) {
+					return;
+				}
+
 				Point point = Event.getLocationOnScreen();
 				Rectangle bounds = StreamView.this.popOutWindow.getBounds();
 
@@ -334,6 +344,10 @@ public class StreamView extends Component {
 
 			@Override
 			public void mouseMoved(MouseEvent Event) {
+				if(this.lock) {
+					return;
+				}
+
 				int x = Event.getX();
 				int y = Event.getY();
 				int width = PopupComponent.this.getWidth();
@@ -353,6 +367,7 @@ public class StreamView extends Component {
 				}
 
 				StreamView.this.popInOutItem.setText("Pop In");
+				StreamView.this.lockBox.setVisible(true);
 				StreamView.this.limitToScreenBoundsBox.setVisible(true);
 				StreamView.this.popupMenu.show(PopupComponent.this, Event.getX(), Event.getY());
 			}
