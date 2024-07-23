@@ -295,34 +295,12 @@ public class StreamView extends Component {
 				int y = Event.getY();
 				int width = PopupComponent.this.getWidth();
 				int height = PopupComponent.this.getHeight();
-				this.cursor = this.getCursor(y > 0 && y <= this.border, x >= width - this.border && x < width, y >= height - this.border && y < height, x > 0 && x <= this.border);
+				boolean north = y > 0 && y <= this.border;
+				boolean east = x >= width - this.border && x < width;
+				boolean south = y >= height - this.border && y < height;
+				boolean west = x > 0 && x <= this.border;
+				this.cursor = north ? west ? Cursor.NW_RESIZE_CURSOR : east ? Cursor.NE_RESIZE_CURSOR : Cursor.N_RESIZE_CURSOR : south ? west ? Cursor.SW_RESIZE_CURSOR : east ? Cursor.SE_RESIZE_CURSOR : Cursor.S_RESIZE_CURSOR : west ? Cursor.W_RESIZE_CURSOR : east ? Cursor.E_RESIZE_CURSOR : Cursor.DEFAULT_CURSOR;
 				PopupComponent.this.setCursor(Cursor.getPredefinedCursor(this.cursor));
-			}
-
-			private int getCursor(boolean north, boolean east, boolean south, boolean west) {
-				if(north) {
-					if(west) {
-						return Cursor.NW_RESIZE_CURSOR;
-					} else if(east) {
-						return Cursor.NE_RESIZE_CURSOR;
-					}
-
-					return Cursor.N_RESIZE_CURSOR;
-				} else if(south) {
-					if(west) {
-						return Cursor.SW_RESIZE_CURSOR;
-					} else if(east) {
-						return Cursor.SE_RESIZE_CURSOR;
-					}
-
-					return Cursor.S_RESIZE_CURSOR;
-				} else if(west) {
-					return Cursor.W_RESIZE_CURSOR;
-				} else if(east) {
-					return Cursor.E_RESIZE_CURSOR;
-				}
-
-				return Cursor.DEFAULT_CURSOR;
 			}
 		}
 	}
