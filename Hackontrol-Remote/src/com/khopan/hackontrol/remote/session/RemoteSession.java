@@ -38,7 +38,7 @@ public class RemoteSession {
 		this.frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		this.frame.setLayout(new BorderLayout());
 		this.frame.setLayout(new GridLayout(1, 2));
-		this.streamPanel = new StreamPanel(width, height);
+		this.streamPanel = new StreamPanel(this.outputStream, width, height);
 		this.frame.add(this.streamPanel);
 		this.frame.add(new JButton("Button"));
 		this.frame.setSize(600, 400);
