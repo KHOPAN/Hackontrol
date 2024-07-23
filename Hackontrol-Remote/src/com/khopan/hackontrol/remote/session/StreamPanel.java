@@ -9,7 +9,6 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.border.TitledBorder;
 
-import com.khopan.hackontrol.remote.component.StreamView;
 import com.khopan.hackontrol.remote.network.Packet;
 
 public class StreamPanel extends JPanel {

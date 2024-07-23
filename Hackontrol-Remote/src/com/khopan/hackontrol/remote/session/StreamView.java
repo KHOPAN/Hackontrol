@@ -1,4 +1,4 @@
-package com.khopan.hackontrol.remote.component;
+package com.khopan.hackontrol.remote.session;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
