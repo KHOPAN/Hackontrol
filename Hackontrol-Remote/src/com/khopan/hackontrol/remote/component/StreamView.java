@@ -37,6 +37,9 @@ public class StreamView extends Component {
 	private final BufferedImage sourceImage;
 	private final int[] receiveBuffer;
 	private final Window popOutWindow;
+	private final JPopupMenu popupMenu;
+	private final JMenuItem popInOutItem;
+	private final JCheckBoxMenuItem limitToScreenBoundsBox;
 
 	private volatile int width;
 	private volatile int height;
@@ -52,11 +55,38 @@ public class StreamView extends Component {
 		this.indexTable = new int[64];
 		this.sourceImage = new BufferedImage(this.sourceWidth, this.sourceHeight, BufferedImage.TYPE_INT_RGB);
 		this.receiveBuffer = ((DataBufferInt) this.sourceImage.getRaster().getDataBuffer()).getData();
-		this.addMouseListener(new Listener());
 		this.popOutWindow = new Window(null);
 		this.popOutWindow.setLayout(new BorderLayout());
-		this.popOutWindow.add(new PopupComponent(), BorderLayout.CENTER);
+		PopupComponent popupComponent = new PopupComponent();
+		this.popOutWindow.add(popupComponent, BorderLayout.CENTER);
 		this.popOutWindow.setAlwaysOnTop(true);
+		this.popupMenu = new JPopupMenu();
+		this.popInOutItem = new JMenuItem("Pop Out");
+		this.popInOutItem.addActionListener(Event -> {
+			if(this.pictureInPicture) {
+				this.popIn();
+			} else {
+				this.popOut();
+			}
+		});
+
+		this.popupMenu.add(this.popInOutItem);
+		this.limitToScreenBoundsBox = new JCheckBoxMenuItem("Limit to screen bounds");
+		this.limitToScreenBoundsBox.addActionListener(Event -> popupComponent.listener.limitToScreenCheckBox());
+		this.limitToScreenBoundsBox.setSelected(true);
+		this.popupMenu.add(this.limitToScreenBoundsBox);
+		this.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent Event) {
+				if(!SwingUtilities.isRightMouseButton(Event)) {
+					return;
+				}
+
+				StreamView.this.popInOutItem.setText(StreamView.this.pictureInPicture ? "Pop In" : "Pop Out");
+				StreamView.this.limitToScreenBoundsBox.setVisible(false);
+				StreamView.this.popupMenu.show(StreamView.this, Event.getX(), Event.getY());
+			}
+		});
 	}
 
 	@SuppressWarnings("deprecation")
@@ -216,34 +246,25 @@ public class StreamView extends Component {
 		this.pictureInPicture = true;
 	}
 
-	private class Listener extends MouseAdapter {
-		@Override
-		public void mouseClicked(MouseEvent Event) {
-			if(!SwingUtilities.isRightMouseButton(Event)) {
-				return;
-			}
-
-			JPopupMenu popupMenu = new JPopupMenu();
-			JMenuItem popOutItem = new JMenuItem("Pop Out");
-			popOutItem.addActionListener(action -> StreamView.this.popOut());
-			popupMenu.add(popOutItem);
-			popupMenu.show(StreamView.this, Event.getX(), Event.getY());
-		}
+	private void popIn() {
+		this.pictureInPicture = false;
+		this.popOutWindow.dispose();
 	}
 
 	private class PopupComponent extends Component {
 		private static final long serialVersionUID = 59381208011157379L;
 
+		private final PopupListener listener;
+
 		private PopupComponent() {
-			PopupListener listener = new PopupListener();
-			this.addMouseListener(listener);
-			this.addMouseMotionListener(listener);
+			this.listener = new PopupListener();
+			this.addMouseListener(this.listener);
+			this.addMouseMotionListener(this.listener);
 		}
 
 		private class PopupListener extends MouseAdapter {
 			private final int border;
 			private final int minimumSize;
-			private final JPopupMenu popupMenu;
 
 			private int pressedX;
 			private int pressedY;
@@ -254,18 +275,14 @@ public class StreamView extends Component {
 			private PopupListener() {
 				this.border = 10;
 				this.minimumSize = this.border * 2;
-				this.popupMenu = new JPopupMenu();
-				JCheckBoxMenuItem limitToScreenBoundsBox = new JCheckBoxMenuItem("Limit to screen bounds");
-				limitToScreenBoundsBox.addActionListener(Event -> {
-					this.limitScreen = limitToScreenBoundsBox.isSelected();
-					Rectangle bounds = StreamView.this.popOutWindow.getBounds();
-					this.limitToScreenBounds(bounds);
-					StreamView.this.popOutWindow.setBounds(bounds);
-				});
-
 				this.limitScreen = true;
-				limitToScreenBoundsBox.setSelected(this.limitScreen);
-				this.popupMenu.add(limitToScreenBoundsBox);
+			}
+
+			private void limitToScreenCheckBox() {
+				this.limitScreen = StreamView.this.limitToScreenBoundsBox.isSelected();
+				Rectangle bounds = StreamView.this.popOutWindow.getBounds();
+				this.limitToScreenBounds(bounds);
+				StreamView.this.popOutWindow.setBounds(bounds);
 			}
 
 			@Override
@@ -335,7 +352,9 @@ public class StreamView extends Component {
 					return;
 				}
 
-				this.popupMenu.show(PopupComponent.this, Event.getX(), Event.getY());
+				StreamView.this.popInOutItem.setText("Pop In");
+				StreamView.this.limitToScreenBoundsBox.setVisible(true);
+				StreamView.this.popupMenu.show(PopupComponent.this, Event.getX(), Event.getY());
 			}
 
 			private void limitToScreenBounds(Rectangle bounds) {
