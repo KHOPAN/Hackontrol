@@ -8,7 +8,6 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -17,6 +16,7 @@ import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
@@ -36,7 +36,8 @@ public class StreamView extends Component {
 	private final int[] indexTable;
 	private final BufferedImage sourceImage;
 	private final int[] receiveBuffer;
-	private final Window popOutWindow;
+	private final JFrame popOutWindow;
+	private final PopupComponent popupComponent;
 	private final JPopupMenu popupMenu;
 	private final JMenuItem popInOutItem;
 	private final JCheckBoxMenuItem limitToScreenBoundsBox;
@@ -56,10 +57,12 @@ public class StreamView extends Component {
 		this.indexTable = new int[64];
 		this.sourceImage = new BufferedImage(this.sourceWidth, this.sourceHeight, BufferedImage.TYPE_INT_RGB);
 		this.receiveBuffer = ((DataBufferInt) this.sourceImage.getRaster().getDataBuffer()).getData();
-		this.popOutWindow = new Window(null);
+		this.popOutWindow = new JFrame();
+		this.popOutWindow.setTitle("Hackontrol Remote - Picture In Picture");
+		this.popOutWindow.setUndecorated(true);
 		this.popOutWindow.setLayout(new BorderLayout());
-		PopupComponent popupComponent = new PopupComponent();
-		this.popOutWindow.add(popupComponent, BorderLayout.CENTER);
+		this.popupComponent = new PopupComponent();
+		this.popOutWindow.add(this.popupComponent, BorderLayout.CENTER);
 		this.popOutWindow.setAlwaysOnTop(true);
 		this.popupMenu = new JPopupMenu();
 		this.popInOutItem = new JMenuItem("Pop Out");
@@ -73,10 +76,10 @@ public class StreamView extends Component {
 
 		this.popupMenu.add(this.popInOutItem);
 		this.lockBox = new JCheckBoxMenuItem("Lock frame");
-		this.lockBox.addActionListener(Event -> popupComponent.listener.lock = this.lockBox.isSelected());
+		this.lockBox.addActionListener(Event -> this.popupComponent.listener.lock = this.lockBox.isSelected());
 		this.popupMenu.add(this.lockBox);
 		this.limitToScreenBoundsBox = new JCheckBoxMenuItem("Limit to screen bounds");
-		this.limitToScreenBoundsBox.addActionListener(Event -> popupComponent.listener.limitToScreenCheckBox());
+		this.limitToScreenBoundsBox.addActionListener(Event -> this.popupComponent.listener.limitToScreenCheckBox());
 		this.limitToScreenBoundsBox.setSelected(true);
 		this.popupMenu.add(this.limitToScreenBoundsBox);
 		this.addMouseListener(new MouseAdapter() {
@@ -100,7 +103,10 @@ public class StreamView extends Component {
 		super.reshape(x, y, width, height);
 		this.width = width;
 		this.height = height;
-		this.updateImage();
+
+		if(!this.pictureInPicture) {
+			this.updateImage();
+		}
 	}
 
 	@Override
@@ -108,7 +114,7 @@ public class StreamView extends Component {
 		Graphics.setColor(new Color(0x000000));
 		Graphics.fillRect(0, 0, this.width, this.height);
 
-		if(this.image != null) {
+		if(!this.pictureInPicture && this.image != null) {
 			Graphics.drawImage(this.image, this.x, this.y, null);
 		}
 	}
@@ -221,38 +227,49 @@ public class StreamView extends Component {
 	}
 
 	private void updateImage() {
-		if(this.sourceImage == null || !this.isVisible() || this.width < 1 || this.height < 1) {
+		int width = this.pictureInPicture ? this.popupComponent.width : this.width;
+		int height = this.pictureInPicture ? this.popupComponent.height : this.height;
+
+		if(this.sourceImage == null || !this.isVisible() || width < 1 || height < 1) {
 			return;
 		}
 
 		int imageWidth = this.sourceImage.getWidth();
 		int imageHeight = this.sourceImage.getHeight();
-		int newWidth = (int) Math.round(((double) imageWidth) / ((double) imageHeight) * ((double) this.height));
-		int newHeight = (int) Math.round(((double) imageHeight) / ((double) imageWidth) * ((double) this.width));
+		int newWidth = (int) Math.round(((double) imageWidth) / ((double) imageHeight) * ((double) height));
+		int newHeight = (int) Math.round(((double) imageHeight) / ((double) imageWidth) * ((double) width));
 
-		if(newWidth < this.width) {
-			newHeight = this.height;
-			this.x = (int) Math.round((((double) this.width) - ((double) newWidth)) * 0.5d);
+		if(newWidth < width) {
+			newHeight = height;
+			this.x = (int) Math.round((((double) width) - ((double) newWidth)) * 0.5d);
 			this.y = 0;
 		} else {
-			newWidth = this.width;
+			newWidth = width;
 			this.x = 0;
-			this.y = (int) Math.round((((double) this.height) - ((double) newHeight)) * 0.5d);
+			this.y = (int) Math.round((((double) height) - ((double) newHeight)) * 0.5d);
 		}
 
-		this.image = this.sourceImage.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
-		this.repaint();
+		this.image = this.sourceImage.getScaledInstance(newWidth, newHeight, Image.SCALE_FAST);
+
+		if(this.pictureInPicture) {
+			this.popupComponent.repaint();
+		} else {
+			this.repaint();
+		}
 	}
 
 	private void popOut() {
 		Point location = this.getLocationOnScreen();
 		this.popOutWindow.setBounds(location.x, location.y, this.width, this.height);
-		this.popOutWindow.setVisible(true);
 		this.pictureInPicture = true;
+		this.updateImage();
+		this.repaint();
+		this.popOutWindow.setVisible(true);
 	}
 
 	private void popIn() {
 		this.pictureInPicture = false;
+		this.updateImage();
 		this.popOutWindow.dispose();
 	}
 
@@ -261,10 +278,35 @@ public class StreamView extends Component {
 
 		private final PopupListener listener;
 
+		private int width;
+		private int height;
+
 		private PopupComponent() {
 			this.listener = new PopupListener();
 			this.addMouseListener(this.listener);
 			this.addMouseMotionListener(this.listener);
+		}
+
+		@SuppressWarnings("deprecation")
+		@Override
+		public void reshape(int x, int y, int width, int height) {
+			super.reshape(x, y, width, height);
+			this.width = width;
+			this.height = height;
+
+			if(StreamView.this.pictureInPicture) {
+				StreamView.this.updateImage();
+			}
+		}
+
+		@Override
+		public void paint(Graphics Graphics) {
+			Graphics.setColor(new Color(0x000000));
+			Graphics.fillRect(0, 0, this.width, this.height);
+
+			if(StreamView.this.pictureInPicture && StreamView.this.image != null) {
+				Graphics.drawImage(StreamView.this.image, StreamView.this.x, StreamView.this.y, null);
+			}
 		}
 
 		private class PopupListener extends MouseAdapter {
