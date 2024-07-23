@@ -3,9 +3,11 @@ package com.khopan.hackontrol.remote.component;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -238,19 +240,89 @@ public class StreamView extends Component {
 		}
 
 		private class PopupListener extends MouseAdapter {
+			private final int border;
+
 			private int pressedX;
 			private int pressedY;
+			private Rectangle bounds;
+			private int cursor;
+
+			private PopupListener() {
+				this.border = 10;
+			}
 
 			@Override
 			public void mousePressed(MouseEvent Event) {
 				this.pressedX = Event.getX();
 				this.pressedY = Event.getY();
+				this.bounds = StreamView.this.popOutWindow.getBounds();
 			}
 
 			@Override
 			public void mouseDragged(MouseEvent Event) {
 				Point point = Event.getLocationOnScreen();
-				StreamView.this.popOutWindow.setLocation(point.x - this.pressedX, point.y - this.pressedY);
+				Rectangle bounds = StreamView.this.popOutWindow.getBounds();
+
+				if(this.cursor == Cursor.N_RESIZE_CURSOR || this.cursor == Cursor.NW_RESIZE_CURSOR || this.cursor == Cursor.NE_RESIZE_CURSOR) {
+					bounds.y = point.y - this.pressedY;
+					bounds.height = this.bounds.y + this.bounds.height - bounds.y;
+				}
+
+				if(this.cursor == Cursor.E_RESIZE_CURSOR || this.cursor == Cursor.NE_RESIZE_CURSOR || this.cursor == Cursor.SE_RESIZE_CURSOR) {
+					bounds.width = point.x - this.bounds.x + this.bounds.width - this.pressedX;
+				}
+
+				if(this.cursor == Cursor.S_RESIZE_CURSOR || this.cursor == Cursor.SE_RESIZE_CURSOR || this.cursor == Cursor.SW_RESIZE_CURSOR) {
+					bounds.height = point.y - this.bounds.y + this.bounds.height - this.pressedY;
+				}
+
+				if(this.cursor == Cursor.W_RESIZE_CURSOR || this.cursor == Cursor.SW_RESIZE_CURSOR || this.cursor == Cursor.NW_RESIZE_CURSOR) {
+					bounds.x = point.x - this.pressedX;
+					bounds.width = this.bounds.x + this.bounds.width - bounds.x;
+				}
+
+				if(this.cursor == Cursor.DEFAULT_CURSOR) {
+					bounds.x = point.x - this.pressedX;
+					bounds.y = point.y - this.pressedY;
+				}
+
+				StreamView.this.popOutWindow.setBounds(bounds);
+			}
+
+			@Override
+			public void mouseMoved(MouseEvent Event) {
+				int x = Event.getX();
+				int y = Event.getY();
+				int width = PopupComponent.this.getWidth();
+				int height = PopupComponent.this.getHeight();
+				this.cursor = this.getCursor(y > 0 && y <= this.border, x >= width - this.border && x < width, y >= height - this.border && y < height, x > 0 && x <= this.border);
+				PopupComponent.this.setCursor(Cursor.getPredefinedCursor(this.cursor));
+			}
+
+			private int getCursor(boolean north, boolean east, boolean south, boolean west) {
+				if(north) {
+					if(west) {
+						return Cursor.NW_RESIZE_CURSOR;
+					} else if(east) {
+						return Cursor.NE_RESIZE_CURSOR;
+					}
+
+					return Cursor.N_RESIZE_CURSOR;
+				} else if(south) {
+					if(west) {
+						return Cursor.SW_RESIZE_CURSOR;
+					} else if(east) {
+						return Cursor.SE_RESIZE_CURSOR;
+					}
+
+					return Cursor.S_RESIZE_CURSOR;
+				} else if(west) {
+					return Cursor.W_RESIZE_CURSOR;
+				} else if(east) {
+					return Cursor.E_RESIZE_CURSOR;
+				}
+
+				return Cursor.DEFAULT_CURSOR;
 			}
 		}
 	}
