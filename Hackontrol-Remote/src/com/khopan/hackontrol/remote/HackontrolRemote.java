@@ -120,7 +120,7 @@ public class HackontrolRemote {
 			int height = ((informationStream.read() & 0xFF) << 24) | ((informationStream.read() & 0xFF) << 16) | ((informationStream.read() & 0xFF) << 8) | (informationStream.read() & 0xFF);
 			String username = new String(informationStream.readAllBytes(), StandardCharsets.UTF_8);
 			HackontrolRemote.LOGGER.info("Width: {} Height: {} Username: {}", width, height, username);
-			Packet.writePacket(outputStream, Packet.of(new byte[] {0b00000101}, Packet.PACKET_TYPE_STREAM_FRAME));
+			Packet.writePacket(outputStream, Packet.of(new byte[] {0b00000111}, Packet.PACKET_TYPE_STREAM_FRAME));
 
 			while(true) {
 				packet = Packet.readPacket(inputStream);

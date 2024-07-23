@@ -60,9 +60,26 @@ public class StreamView extends Component {
 	}
 
 	public void decode(byte[] data) {
+		if(data == null || data.length < 1) {
+			return;
+		}
+
 		ByteArrayInputStream stream = new ByteArrayInputStream(data);
 		int flags = stream.read() & 0xFF;
 		boolean boundaryDifference = (flags & 1) == 1;
+		boolean colorDifference = ((flags >> 1) & 1) == 1;
+
+		if(boundaryDifference && colorDifference) {
+			for(int y = 0; y < this.sourceHeight; y++) {
+				for(int x = 0; x < this.sourceWidth; x++) {
+					this.receiveBuffer[y * this.sourceWidth + x] = ((stream.read() & 0xFF) << 16) | ((stream.read() & 0xFF) << 8) | (stream.read() & 0xFF);
+				}
+			}
+
+			this.updateImage();
+			return;
+		}
+
 		int startX;
 		int startY;
 		int width;
@@ -85,14 +102,14 @@ public class StreamView extends Component {
 		int green = 0;
 		int blue = 0;
 		int run = 0;
-		Arrays.fill(this.receiveBuffer, 0x000000);
+		//Arrays.fill(this.receiveBuffer, 0x000000);
 
 		for(int y = startY; y < startY + height; y++) {
 			for(int x = startX; x < startX + width; x++) {
 				int pixelIndex = y * this.sourceWidth + x;
 
 				if(run > 0) {
-					this.subtract(pixelIndex, ((red & 0xFF) << 16) | ((green & 0xFF) << 8) | (blue & 0xFF));
+					this.subtract(colorDifference, pixelIndex, ((red & 0xFF) << 16) | ((green & 0xFF) << 8) | (blue & 0xFF));
 					run--;
 					continue;
 				}
@@ -103,7 +120,7 @@ public class StreamView extends Component {
 					red = stream.read();
 					green = stream.read();
 					blue = stream.read();
-					this.subtract(pixelIndex, this.indexTable[((red & 0xFF) * 3 + (green & 0xFF) * 5 + (blue & 0xFF) * 7 + 0xFF * 11) & 0b111111] = ((red & 0xFF) << 16) | ((green & 0xFF) << 8) | (blue & 0xFF));
+					this.subtract(colorDifference, pixelIndex, this.indexTable[((red & 0xFF) * 3 + (green & 0xFF) * 5 + (blue & 0xFF) * 7 + 0xFF * 11) & 0b111111] = ((red & 0xFF) << 16) | ((green & 0xFF) << 8) | (blue & 0xFF));
 					continue;
 				}
 
@@ -127,19 +144,24 @@ public class StreamView extends Component {
 					blue += differenceGreen - 8 + (next & 0b1111);
 					break;
 				case StreamView.QOI_OP_RUN:
-					this.subtract(pixelIndex, ((red & 0xFF) << 16) | ((green & 0xFF) << 8) | (blue & 0xFF));
+					this.subtract(colorDifference, pixelIndex, ((red & 0xFF) << 16) | ((green & 0xFF) << 8) | (blue & 0xFF));
 					run = (chunk & 0b111111);
 					continue;
 				}
 
-				this.subtract(pixelIndex, this.indexTable[((red & 0xFF) * 3 + (green & 0xFF) * 5 + (blue & 0xFF) * 7 + 0xFF * 11) & 0b111111] = ((red & 0xFF) << 16) | ((green & 0xFF) << 8) | (blue & 0xFF));
+				this.subtract(colorDifference, pixelIndex, this.indexTable[((red & 0xFF) * 3 + (green & 0xFF) * 5 + (blue & 0xFF) * 7 + 0xFF * 11) & 0b111111] = ((red & 0xFF) << 16) | ((green & 0xFF) << 8) | (blue & 0xFF));
 			}
 		}
 
 		this.updateImage();
 	}
 
-	private void subtract(int index, int color) {
+	private void subtract(boolean colorDifference, int index, int color) {
+		if(!colorDifference) {
+			this.receiveBuffer[index] = color;
+			return;
+		}
+
 		int red = ((this.receiveBuffer[index] >> 16) & 0xFF) - ((color >> 16) & 0xFF);
 		int green = ((this.receiveBuffer[index] >> 8) & 0xFF) - ((color >> 8) & 0xFF);
 		int blue = (this.receiveBuffer[index] & 0xFF) - (color & 0xFF);
