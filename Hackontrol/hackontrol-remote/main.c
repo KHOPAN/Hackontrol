@@ -4,9 +4,10 @@
 
 #define HACKONTROL_REMOTE L"HackontrolRemote"
 
+static int globalExitCode;
 static HWND globalWindow;
 static HWND globalTitledBorder;
-static int globalExitCode;
+static HWND globalListView;
 
 static LRESULT CALLBACK hackontrolRemoteProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	switch(message) {
@@ -16,9 +17,14 @@ static LRESULT CALLBACK hackontrolRemoteProcedure(_In_ HWND window, _In_ UINT me
 	case WM_DESTROY:
 		PostQuitMessage(globalExitCode);
 		return 0;
-	case WM_SIZE:
-		SetWindowPos(globalTitledBorder, HWND_TOP, 0, 0, LOWORD(lparam) - 10, HIWORD(lparam) - 5, SWP_NOMOVE);
+	case WM_SIZE: {
+		RECT bounds;
+		GetClientRect(window, &bounds);
+		SetWindowPos(globalTitledBorder, HWND_TOP, 0, 0, bounds.right - bounds.left - 10, bounds.bottom - bounds.top - 4, SWP_NOMOVE);
+		GetClientRect(globalTitledBorder, &bounds);
+		SetWindowPos(globalListView, HWND_TOP, bounds.left + 9, bounds.top + 15, bounds.right - bounds.left - 8, bounds.bottom - bounds.top - 20, 0);
 		return 0;
+	}
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
@@ -53,7 +59,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto unregisterWindowClass;
 	}
 
-	globalTitledBorder = CreateWindowExW(0, L"Button", L"Connected Devices", WS_CHILD | BS_GROUPBOX | WS_VISIBLE, 5, 0, 0, 0, globalWindow, NULL, NULL, NULL);
+	globalTitledBorder = CreateWindowExW(0, L"Button", L"Connected Devices", WS_CHILD | WS_VISIBLE | BS_GROUPBOX, 5, 0, 0, 0, globalWindow, NULL, NULL, NULL);
 
 	if(!globalTitledBorder) {
 		HackontrolRemoteError(GetLastError(), L"CreateWindowExW");
@@ -69,9 +75,9 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto closeServerThread;
 	}
 
-	HWND listView = CreateWindowExW(WS_EX_NOPARENTNOTIFY | WS_EX_CLIENTEDGE | LVS_EX_FULLROWSELECT, WC_LISTVIEW, L"Test", WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_TABSTOP | LVS_REPORT | LVS_SINGLESEL, 0, 0, 200, 200, globalTitledBorder, NULL, NULL, NULL);
+	globalListView = CreateWindowExW(WS_EX_NOPARENTNOTIFY | WS_EX_CLIENTEDGE | LVS_EX_FULLROWSELECT, WC_LISTVIEW, L"", WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_TABSTOP | LVS_REPORT | LVS_SINGLESEL, 0, 0, 0, 0, globalWindow, NULL, NULL, NULL);
 
-	if(!listView) {
+	if(!globalListView) {
 		HackontrolRemoteError(GetLastError(), L"CreateWindowExW");
 		goto closeServerThread;
 	}
