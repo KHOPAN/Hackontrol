@@ -5,6 +5,7 @@
 
 static HWND globalWindow;
 static HWND globalTitledBorder;
+static int globalExitCode;
 
 static LRESULT CALLBACK hackontrolRemoteProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	switch(message) {
@@ -12,7 +13,7 @@ static LRESULT CALLBACK hackontrolRemoteProcedure(_In_ HWND window, _In_ UINT me
 		DestroyWindow(window);
 		return 0;
 	case WM_DESTROY:
-		PostQuitMessage(0);
+		PostQuitMessage(globalExitCode);
 		return 0;
 	case WM_SIZE:
 		SetWindowPos(globalTitledBorder, HWND_TOP, 0, 0, LOWORD(lparam) - 10, HIWORD(lparam) - 5, SWP_NOMOVE);
@@ -88,7 +89,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		DispatchMessageW(&message);
 	}
 
-	returnValue = 0;
+	returnValue |= globalExitCode;
 deleteFont:
 	DeleteObject(font);
 closeServerThread:
@@ -102,9 +103,14 @@ unregisterWindowClass:
 	return returnValue;
 }
 
+void ExitHackontrolRemote(int exitCode) {
+	globalExitCode = exitCode;
+	SendMessageW(globalWindow, WM_CLOSE, 0, 0);
+}
+
 void HackontrolRemoteError(DWORD errorCode, const LPWSTR functionName) {
 	LPWSTR message = KHWin32GetErrorMessageW(errorCode, functionName);
 	MessageBoxW(globalWindow, message, L"Hackontrol Remote Error", MB_OK | MB_DEFBUTTON1 | MB_ICONERROR | MB_SYSTEMMODAL);
 	LocalFree(message);
-	SendMessageW(globalWindow, WM_CLOSE, 0, 0);
+	ExitHackontrolRemote(errorCode);
 }

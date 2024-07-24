@@ -7,10 +7,11 @@
 DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
 	WSADATA windowsSocketData;
 	int status = WSAStartup(MAKEWORD(2, 2), &windowsSocketData);
+	int returnValue = 1;
 
 	if(status) {
 		HackontrolRemoteError(status, L"WSAStartup");
-		return 1;
+		goto exit;
 	}
 
 	struct addrinfo hints = {0};
@@ -20,7 +21,6 @@ DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
 	hints.ai_flags = AI_PASSIVE;
 	struct addrinfo* result;
 	status = getaddrinfo(NULL, REMOTE_PORT, &hints, &result);
-	int returnValue = 1;
 
 	if(status) {
 		HackontrolRemoteError(status, L"getaddrinfo");
@@ -63,8 +63,9 @@ closeServerSocket:
 wsaCleanup:
 	if(WSACleanup() == SOCKET_ERROR) {
 		HackontrolRemoteError(status, L"WSACleanup");
-		return 1;
+		returnValue = 1;
 	}
-
+exit:
+	ExitHackontrolRemote(returnValue);
 	return returnValue;
 }
