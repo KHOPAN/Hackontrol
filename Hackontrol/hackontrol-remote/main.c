@@ -2,6 +2,8 @@
 
 #define HACKONTROL_REMOTE L"HackontrolRemote"
 
+static HWND globalTitledBorder;
+
 static LRESULT CALLBACK hackontrolRemoteProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	switch(message) {
 	case WM_CLOSE:
@@ -9,6 +11,9 @@ static LRESULT CALLBACK hackontrolRemoteProcedure(_In_ HWND window, _In_ UINT me
 		return 0;
 	case WM_DESTROY:
 		PostQuitMessage(0);
+		return 0;
+	case WM_SIZE:
+		SetWindowPos(globalTitledBorder, HWND_TOP, 0, 0, LOWORD(lparam) - 10, HIWORD(lparam) - 5, SWP_NOMOVE);
 		return 0;
 	}
 
@@ -37,9 +42,9 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto unregisterWindowClass;
 	}
 
-	HWND button = CreateWindowExW(0, L"Button", L"Press Me", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON, 10, 10, 100, 25, window, NULL, NULL, NULL);
+	globalTitledBorder = CreateWindowExW(0, L"Button", L"Connected Devices", WS_CHILD | BS_GROUPBOX | WS_VISIBLE, 5, 0, 0, 0, window, NULL, NULL, NULL);
 
-	if(!button) {
+	if(!globalTitledBorder) {
 		KHWin32DialogErrorW(GetLastError(), L"CreateWindowExW");
 		goto unregisterWindowClass;
 	}
@@ -59,7 +64,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto unregisterWindowClass;
 	}
 
-	SendMessageW(button, WM_SETFONT, (WPARAM) font, TRUE);
+	SendMessageW(globalTitledBorder, WM_SETFONT, (WPARAM) font, TRUE);
 	MSG message;
 
 	while(GetMessageW(&message, NULL, 0, 0)) {
