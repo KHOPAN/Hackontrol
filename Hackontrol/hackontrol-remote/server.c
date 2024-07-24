@@ -1,0 +1,70 @@
+#include <WS2tcpip.h>
+#include <khopanwin32.h>
+#include "server.h"
+
+#define REMOTE_PORT "42485"
+
+DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
+	WSADATA windowsSocketData;
+	int status = WSAStartup(MAKEWORD(2, 2), &windowsSocketData);
+
+	if(status) {
+		HackontrolRemoteError(status, L"WSAStartup");
+		return 1;
+	}
+
+	struct addrinfo hints = {0};
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = IPPROTO_TCP;
+	hints.ai_flags = AI_PASSIVE;
+	struct addrinfo* result;
+	status = getaddrinfo(NULL, REMOTE_PORT, &hints, &result);
+	int returnValue = 1;
+
+	if(status) {
+		HackontrolRemoteError(status, L"getaddrinfo");
+		goto wsaCleanup;
+	}
+
+	SOCKET serverSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+
+	if(serverSocket == INVALID_SOCKET) {
+		HackontrolRemoteError(WSAGetLastError(), L"socket");
+		freeaddrinfo(result);
+		goto wsaCleanup;
+	}
+
+	status = bind(serverSocket, result->ai_addr, (int) result->ai_addrlen);
+	freeaddrinfo(result);
+
+	if(status == SOCKET_ERROR) {
+		HackontrolRemoteError(WSAGetLastError(), L"bind");
+		goto closeServerSocket;
+	}
+
+	if(listen(serverSocket, SOMAXCONN) == SOCKET_ERROR) {
+		HackontrolRemoteError(WSAGetLastError(), L"listen");
+		goto closeServerSocket;
+	}
+
+	SOCKET clientSocket = accept(serverSocket, NULL, NULL);
+
+	if(clientSocket == INVALID_SOCKET) {
+		HackontrolRemoteError(WSAGetLastError(), L"accept");
+		goto closeServerSocket;
+	}
+
+	MessageBoxW(NULL, L"Connected", L"Hackontrol Remote", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+	returnValue = 0;
+	closesocket(clientSocket);
+closeServerSocket:
+	closesocket(serverSocket);
+wsaCleanup:
+	if(WSACleanup() == SOCKET_ERROR) {
+		HackontrolRemoteError(status, L"WSACleanup");
+		return 1;
+	}
+
+	return returnValue;
+}
