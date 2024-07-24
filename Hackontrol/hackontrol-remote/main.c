@@ -34,7 +34,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		return 1;
 	}
 
-	HWND window = CreateWindowExW(0, HACKONTROL_REMOTE, L"Hackontrol Remote", WS_OVERLAPPEDWINDOW | WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT, 400, 400, NULL, NULL, instance, NULL);
+	HWND window = CreateWindowExW(0, HACKONTROL_REMOTE, L"Hackontrol Remote", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, NULL, NULL, instance, NULL);
 	int returnValue = 1;
 
 	if(!window) {
@@ -65,6 +65,13 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	}
 
 	SendMessageW(globalTitledBorder, WM_SETFONT, (WPARAM) font, TRUE);
+
+	if(!SetWindowPos(window, HWND_TOP, 0, 0, 400, 400, SWP_NOMOVE)) {
+		KHWin32DialogErrorW(GetLastError(), L"SetWindowPos");
+		goto unregisterWindowClass;
+	}
+
+	ShowWindow(window, SW_NORMAL);
 	MSG message;
 
 	while(GetMessageW(&message, NULL, 0, 0)) {
