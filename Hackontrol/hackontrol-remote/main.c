@@ -1,4 +1,5 @@
 #include <khopanwin32.h>
+#include <CommCtrl.h>
 #include "server.h"
 
 #define HACKONTROL_REMOTE L"HackontrolRemote"
@@ -55,6 +56,22 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	globalTitledBorder = CreateWindowExW(0, L"Button", L"Connected Devices", WS_CHILD | BS_GROUPBOX | WS_VISIBLE, 5, 0, 0, 0, globalWindow, NULL, NULL, NULL);
 
 	if(!globalTitledBorder) {
+		HackontrolRemoteError(GetLastError(), L"CreateWindowExW");
+		goto closeServerThread;
+	}
+
+	INITCOMMONCONTROLSEX controls;
+	controls.dwSize = sizeof(INITCOMMONCONTROLSEX);
+	controls.dwICC = ICC_LISTVIEW_CLASSES;
+
+	if(!InitCommonControlsEx(&controls)) {
+		HackontrolRemoteError(ERROR_FUNCTION_FAILED, L"InitCommonControlsEx");
+		goto closeServerThread;
+	}
+
+	HWND listView = CreateWindowExW(WS_EX_NOPARENTNOTIFY | WS_EX_CLIENTEDGE | LVS_EX_FULLROWSELECT, WC_LISTVIEW, L"Test", WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_TABSTOP | LVS_REPORT | LVS_SINGLESEL, 0, 0, 200, 200, globalTitledBorder, NULL, NULL, NULL);
+
+	if(!listView) {
 		HackontrolRemoteError(GetLastError(), L"CreateWindowExW");
 		goto closeServerThread;
 	}
