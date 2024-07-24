@@ -37,6 +37,29 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto unregisterWindowClass;
 	}
 
+	HWND button = CreateWindowExW(0, L"Button", L"Press Me", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON, 10, 10, 100, 25, window, NULL, NULL, NULL);
+
+	if(!button) {
+		KHWin32DialogErrorW(GetLastError(), L"CreateWindowExW");
+		goto unregisterWindowClass;
+	}
+
+	NONCLIENTMETRICS metrics;
+	metrics.cbSize = sizeof(NONCLIENTMETRICS);
+	
+	if(!SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, metrics.cbSize, &metrics, 0)) {
+		KHWin32DialogErrorW(GetLastError(), L"SystemParametersInfoW");
+		goto unregisterWindowClass;
+	}
+
+	HFONT font = CreateFontIndirectW(&metrics.lfCaptionFont);
+
+	if(!font) {
+		KHWin32DialogErrorW(GetLastError(), L"CreateFontIndirectW");
+		goto unregisterWindowClass;
+	}
+
+	SendMessageW(button, WM_SETFONT, (WPARAM) font, TRUE);
 	MSG message;
 
 	while(GetMessageW(&message, NULL, 0, 0)) {
@@ -44,6 +67,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		DispatchMessageW(&message);
 	}
 
+	DeleteObject(font);
 	returnValue = 0;
 unregisterWindowClass:
 	if(!UnregisterClassW(HACKONTROL_REMOTE, instance)) {
