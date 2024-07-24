@@ -145,6 +145,7 @@
   <ItemGroup>
     <ClCompile Include="main.c" />
     <ClCompile Include="window.c" />
+    <ClCompile Include="window_main.c" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\KHOPAN Library\KHOPAN Library.vcxproj">
@@ -153,6 +154,9 @@
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="hackontrol-remote.exe.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
