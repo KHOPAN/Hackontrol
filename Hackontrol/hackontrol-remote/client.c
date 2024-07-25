@@ -61,11 +61,16 @@ DWORD WINAPI ClientThread(_In_ SOCKET* parameter) {
 	}
 
 	BYTE* data = packet.data;
-	LPWSTR username = getUsername(packet);
 	int width = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
 	int height = (data[4] << 24) | (data[5] << 16) | (data[6] << 8) | data[7];
-	MessageBoxW(NULL, username, L"Remote", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
-	if(username) LocalFree(username);
+	LPWSTR username = getUsername(packet);
+	RemoteAddListEntry(username);
+
+	if(username) {
+		LocalFree(username);
+	}
+
+	MessageBoxW(NULL, L"Connected", L"Remote", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 closeSocket:
 	closesocket(clientSocket);
 	return 0;

@@ -169,11 +169,11 @@ void RemoteHandleConnection(SOCKET clientSocket) {
 	}
 }
 
-void RemoteAddListEntry() {
+void RemoteAddListEntry(LPWSTR username) {
 	LVITEMW item = {0};
 	item.mask = LVIF_TEXT;
 	item.iSubItem = 0;
-	item.pszText = L"TargetUser";
+	item.pszText = username;
 
 	if(SendMessageW(globalListView, LVM_INSERTITEM, 0, (LPARAM) &item) == -1) {
 		RemoteError(ERROR_FUNCTION_FAILED, L"ListView_InsertItem");
