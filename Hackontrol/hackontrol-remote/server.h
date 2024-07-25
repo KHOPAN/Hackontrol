@@ -2,7 +2,7 @@
 
 #include <Windows.h>
 
-void ExitHackontrolRemote(int exitCode);
-void HackontrolRemoteError(DWORD errorCode, const LPWSTR functionName);
-void HackontrolAddListEntry();
+void ExitRemote(int exitCode);
+void RemoteError(DWORD errorCode, const LPWSTR functionName);
+void RemoteAddListEntry();
 DWORD WINAPI ServerThread(_In_ LPVOID parameter);

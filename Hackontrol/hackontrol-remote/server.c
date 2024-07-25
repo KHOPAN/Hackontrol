@@ -10,7 +10,7 @@ DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
 	int returnValue = 1;
 
 	if(status) {
-		HackontrolRemoteError(status, L"WSAStartup");
+		RemoteError(status, L"WSAStartup");
 		goto exit;
 	}
 
@@ -23,14 +23,14 @@ DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
 	status = getaddrinfo(NULL, REMOTE_PORT, &hints, &result);
 
 	if(status) {
-		HackontrolRemoteError(status, L"getaddrinfo");
+		RemoteError(status, L"getaddrinfo");
 		goto wsaCleanup;
 	}
 
 	SOCKET serverSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
 
 	if(serverSocket == INVALID_SOCKET) {
-		HackontrolRemoteError(WSAGetLastError(), L"socket");
+		RemoteError(WSAGetLastError(), L"socket");
 		freeaddrinfo(result);
 		goto wsaCleanup;
 	}
@@ -39,23 +39,23 @@ DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
 	freeaddrinfo(result);
 
 	if(status == SOCKET_ERROR) {
-		HackontrolRemoteError(WSAGetLastError(), L"bind");
+		RemoteError(WSAGetLastError(), L"bind");
 		goto closeServerSocket;
 	}
 
 	if(listen(serverSocket, SOMAXCONN) == SOCKET_ERROR) {
-		HackontrolRemoteError(WSAGetLastError(), L"listen");
+		RemoteError(WSAGetLastError(), L"listen");
 		goto closeServerSocket;
 	}
 
 	SOCKET clientSocket = accept(serverSocket, NULL, NULL);
 
 	if(clientSocket == INVALID_SOCKET) {
-		HackontrolRemoteError(WSAGetLastError(), L"accept");
+		RemoteError(WSAGetLastError(), L"accept");
 		goto closeServerSocket;
 	}
 
-	HackontrolAddListEntry();
+	RemoteAddListEntry();
 	MessageBoxW(NULL, L"Connected", L"Hackontrol Remote", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 	returnValue = 0;
 	closesocket(clientSocket);
@@ -63,10 +63,10 @@ closeServerSocket:
 	closesocket(serverSocket);
 wsaCleanup:
 	if(WSACleanup() == SOCKET_ERROR) {
-		HackontrolRemoteError(status, L"WSACleanup");
+		RemoteError(status, L"WSACleanup");
 		returnValue = 1;
 	}
 exit:
-	ExitHackontrolRemote(returnValue);
+	ExitRemote(returnValue);
 	return returnValue;
 }

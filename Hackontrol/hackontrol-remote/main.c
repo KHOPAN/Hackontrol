@@ -55,14 +55,14 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	HANDLE serverThread = CreateThread(NULL, 0, ServerThread, NULL, 0, NULL);
 
 	if(!serverThread) {
-		HackontrolRemoteError(GetLastError(), L"CreateThread");
+		RemoteError(GetLastError(), L"CreateThread");
 		goto unregisterWindowClass;
 	}
 
 	globalTitledBorder = CreateWindowExW(0, L"Button", L"Connected Devices", WS_CHILD | WS_VISIBLE | BS_GROUPBOX, 5, 0, 0, 0, globalWindow, NULL, NULL, NULL);
 
 	if(!globalTitledBorder) {
-		HackontrolRemoteError(GetLastError(), L"CreateWindowExW");
+		RemoteError(GetLastError(), L"CreateWindowExW");
 		goto closeServerThread;
 	}
 
@@ -71,14 +71,14 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	controls.dwICC = ICC_LISTVIEW_CLASSES;
 
 	if(!InitCommonControlsEx(&controls)) {
-		HackontrolRemoteError(ERROR_FUNCTION_FAILED, L"InitCommonControlsEx");
+		RemoteError(ERROR_FUNCTION_FAILED, L"InitCommonControlsEx");
 		goto closeServerThread;
 	}
 
 	globalListView = CreateWindowExW(WS_EX_NOPARENTNOTIFY | WS_EX_CLIENTEDGE, WC_LISTVIEW, L"", WS_CHILD | WS_VISIBLE | WS_VSCROLL | LVS_REPORT | LVS_SINGLESEL, 0, 0, 0, 0, globalWindow, NULL, NULL, NULL);
 
 	if(!globalListView) {
-		HackontrolRemoteError(GetLastError(), L"CreateWindowExW");
+		RemoteError(GetLastError(), L"CreateWindowExW");
 		goto closeServerThread;
 	}
 
@@ -90,14 +90,14 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	column.pszText = L"IP Address";
 
 	if(SendMessageW(globalListView, LVM_INSERTCOLUMN, 0, (LPARAM) &column) == -1) {
-		HackontrolRemoteError(GetLastError(), L"ListView_InsertColumn");
+		RemoteError(GetLastError(), L"ListView_InsertColumn");
 		goto closeServerThread;
 	}
 
 	column.pszText = L"User Name";
 
 	if(SendMessageW(globalListView, LVM_INSERTCOLUMN, 0, (LPARAM) &column) == 1) {
-		HackontrolRemoteError(GetLastError(), L"ListView_InsertColumn");
+		RemoteError(GetLastError(), L"ListView_InsertColumn");
 		goto closeServerThread;
 	}
 
@@ -105,14 +105,14 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	metrics.cbSize = sizeof(NONCLIENTMETRICS);
 
 	if(!SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, metrics.cbSize, &metrics, 0)) {
-		HackontrolRemoteError(GetLastError(), L"SystemParametersInfoW");
+		RemoteError(GetLastError(), L"SystemParametersInfoW");
 		goto closeServerThread;
 	}
 
 	HFONT font = CreateFontIndirectW(&metrics.lfCaptionFont);
 
 	if(!font) {
-		HackontrolRemoteError(GetLastError(), L"CreateFontIndirectW");
+		RemoteError(GetLastError(), L"CreateFontIndirectW");
 		goto closeServerThread;
 	}
 
@@ -123,7 +123,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	int height = (int) (((double) screenHeight) * 0.78125);
 
 	if(!SetWindowPos(globalWindow, HWND_TOP, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, SWP_SHOWWINDOW)) {
-		HackontrolRemoteError(GetLastError(), L"SetWindowPos");
+		RemoteError(GetLastError(), L"SetWindowPos");
 		goto deleteFont;
 	}
 
@@ -148,26 +148,26 @@ unregisterWindowClass:
 	return returnValue;
 }
 
-void ExitHackontrolRemote(int exitCode) {
+void ExitRemote(int exitCode) {
 	globalExitCode = exitCode;
 	SendMessageW(globalWindow, WM_CLOSE, 0, 0);
 }
 
-void HackontrolRemoteError(DWORD errorCode, const LPWSTR functionName) {
+void RemoteError(DWORD errorCode, const LPWSTR functionName) {
 	LPWSTR message = KHWin32GetErrorMessageW(errorCode, functionName);
 	MessageBoxW(globalWindow, message, L"Hackontrol Remote Error", MB_OK | MB_DEFBUTTON1 | MB_ICONERROR | MB_SYSTEMMODAL);
 	LocalFree(message);
-	ExitHackontrolRemote(errorCode);
+	ExitRemote(errorCode);
 }
 
-void HackontrolAddListEntry() {
+void RemoteAddListEntry() {
 	LVITEMW item = {0};
 	item.mask = LVIF_TEXT;
 	item.iSubItem = 0;
 	item.pszText = L"TargetUser";
 
 	if(SendMessageW(globalListView, LVM_INSERTITEM, 0, (LPARAM) &item) == -1) {
-		HackontrolRemoteError(ERROR_FUNCTION_FAILED, L"ListView_InsertItem");
+		RemoteError(ERROR_FUNCTION_FAILED, L"ListView_InsertItem");
 		return;
 	}
 
@@ -175,6 +175,6 @@ void HackontrolAddListEntry() {
 	item.pszText = L"127.0.0.1";
 	
 	if(!SendMessageW(globalListView, LVM_SETITEM, 0, (LPARAM) &item)) {
-		HackontrolRemoteError(ERROR_FUNCTION_FAILED, L"ListView_SetItem");
+		RemoteError(ERROR_FUNCTION_FAILED, L"ListView_SetItem");
 	}
 }
