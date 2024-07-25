@@ -95,7 +95,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto closeServerThread;
 	}
 
-	column.pszText = L"User Name";
+	column.pszText = L"Username";
 
 	if(SendMessageW(globalListView, LVM_INSERTCOLUMN, 0, (LPARAM) &column) == 1) {
 		RemoteError(GetLastError(), L"ListView_InsertColumn");
