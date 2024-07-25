@@ -145,6 +145,7 @@
   <ItemGroup>
     <ClCompile Include="client.c" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="packet.c" />
     <ClCompile Include="server.c" />
   </ItemGroup>
   <ItemGroup>
@@ -157,6 +158,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="connection.h" />
+    <ClInclude Include="packet.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
