@@ -1,6 +1,6 @@
+#include "server.h"
 #include <khopanwin32.h>
 #include <CommCtrl.h>
-#include "server.h"
 
 #define HACKONTROL_REMOTE L"HackontrolRemote"
 
@@ -158,6 +158,10 @@ void RemoteError(DWORD errorCode, const LPWSTR functionName) {
 	MessageBoxW(globalWindow, message, L"Hackontrol Remote Error", MB_OK | MB_DEFBUTTON1 | MB_ICONERROR | MB_SYSTEMMODAL);
 	LocalFree(message);
 	ExitRemote(errorCode);
+}
+
+void RemoteHandleConnection(const SOCKET clientSocket) {
+	closesocket(clientSocket);
 }
 
 void RemoteAddListEntry() {

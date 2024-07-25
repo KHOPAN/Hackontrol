@@ -1,13 +1,11 @@
-#include <WS2tcpip.h>
-#include <khopanwin32.h>
 #include "server.h"
+#include <khopanwin32.h>
 
 #define REMOTE_PORT "42485"
 
 DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
 	WSADATA windowsSocketData;
 	int status = WSAStartup(MAKEWORD(2, 2), &windowsSocketData);
-	int returnValue = 1;
 
 	if(status) {
 		RemoteError(status, L"WSAStartup");
@@ -48,25 +46,23 @@ DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
 		goto closeServerSocket;
 	}
 
-	SOCKET clientSocket = accept(serverSocket, NULL, NULL);
+	while(TRUE) {
+		SOCKET clientSocket = accept(serverSocket, NULL, NULL);
 
-	if(clientSocket == INVALID_SOCKET) {
-		RemoteError(WSAGetLastError(), L"accept");
-		goto closeServerSocket;
+		if(clientSocket == INVALID_SOCKET) {
+			KHWin32DialogErrorW(WSAGetLastError(), L"accept");
+			continue;
+		}
+
+		RemoteHandleConnection(clientSocket);
 	}
-
-	RemoteAddListEntry();
-	MessageBoxW(NULL, L"Connected", L"Hackontrol Remote", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
-	returnValue = 0;
-	closesocket(clientSocket);
 closeServerSocket:
 	closesocket(serverSocket);
 wsaCleanup:
 	if(WSACleanup() == SOCKET_ERROR) {
 		RemoteError(status, L"WSACleanup");
-		returnValue = 1;
 	}
 exit:
-	ExitRemote(returnValue);
-	return returnValue;
+	ExitRemote(1);
+	return 1;
 }
