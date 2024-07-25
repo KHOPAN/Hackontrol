@@ -160,7 +160,7 @@ void RemoteError(DWORD errorCode, const LPWSTR functionName) {
 	ExitRemote(errorCode);
 }
 
-void RemoteHandleConnection(SOCKET clientSocket) {
+void RemoteHandleConnection(SOCKET clientSocket, LPWSTR address) {
 	HANDLE clientThread = CreateThread(NULL, 0, ClientThread, &clientSocket, 0, NULL);
 
 	if(!clientThread) {

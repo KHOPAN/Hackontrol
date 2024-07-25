@@ -46,16 +46,32 @@ DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
 		goto closeServerSocket;
 	}
 
+	SOCKADDR_IN clientAddress;
+	int addressLength = sizeof(SOCKADDR_IN);
+	LPWSTR addressBuffer = LocalAlloc(LMEM_FIXED, sizeof(WCHAR) * 17);
+
+	if(!addressBuffer) {
+		RemoteError(GetLastError(), L"LocalAlloc");
+		goto closeServerSocket;
+	}
+
 	while(TRUE) {
-		SOCKET clientSocket = accept(serverSocket, NULL, NULL);
+		SOCKET clientSocket = accept(serverSocket, (struct sockaddr*) &clientAddress, &addressLength);
 
 		if(clientSocket == INVALID_SOCKET) {
 			KHWin32DialogErrorW(WSAGetLastError(), L"accept");
 			continue;
 		}
 
-		RemoteHandleConnection(clientSocket);
+		if(!InetNtopW(AF_INET, &clientAddress.sin_addr, addressBuffer, 16)) {
+			KHWin32DialogErrorW(WSAGetLastError(), L"InetNtopW");
+			continue;
+		}
+
+		RemoteHandleConnection(clientSocket, addressBuffer);
 	}
+
+	LocalFree(addressBuffer);
 closeServerSocket:
 	closesocket(serverSocket);
 wsaCleanup:
