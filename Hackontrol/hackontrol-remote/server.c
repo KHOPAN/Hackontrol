@@ -55,6 +55,7 @@ DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
 		goto closeServerSocket;
 	}
 
+	HackontrolAddListEntry();
 	MessageBoxW(NULL, L"Connected", L"Hackontrol Remote", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 	returnValue = 0;
 	closesocket(clientSocket);

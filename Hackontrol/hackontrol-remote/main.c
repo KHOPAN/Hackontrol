@@ -75,7 +75,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto closeServerThread;
 	}
 
-	globalListView = CreateWindowExW(WS_EX_NOPARENTNOTIFY | WS_EX_CLIENTEDGE, WC_LISTVIEW, L"", WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_TABSTOP | LVS_REPORT | LVS_SINGLESEL, 0, 0, 0, 0, globalWindow, NULL, NULL, NULL);
+	globalListView = CreateWindowExW(WS_EX_NOPARENTNOTIFY | WS_EX_CLIENTEDGE, WC_LISTVIEW, L"", WS_CHILD | WS_VISIBLE | WS_VSCROLL | LVS_REPORT | LVS_SINGLESEL, 0, 0, 0, 0, globalWindow, NULL, NULL, NULL);
 
 	if(!globalListView) {
 		HackontrolRemoteError(GetLastError(), L"CreateWindowExW");
@@ -90,14 +90,14 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	column.pszText = L"IP Address";
 
 	if(SendMessageW(globalListView, LVM_INSERTCOLUMN, 0, (LPARAM) &column) == -1) {
-		HackontrolRemoteError(GetLastError(), L"SendMessageW");
+		HackontrolRemoteError(GetLastError(), L"ListView_InsertColumn");
 		goto closeServerThread;
 	}
 
 	column.pszText = L"User Name";
 
 	if(SendMessageW(globalListView, LVM_INSERTCOLUMN, 0, (LPARAM) &column) == 1) {
-		HackontrolRemoteError(GetLastError(), L"SendMessageW");
+		HackontrolRemoteError(GetLastError(), L"ListView_InsertColumn");
 		goto closeServerThread;
 	}
 
@@ -158,4 +158,23 @@ void HackontrolRemoteError(DWORD errorCode, const LPWSTR functionName) {
 	MessageBoxW(globalWindow, message, L"Hackontrol Remote Error", MB_OK | MB_DEFBUTTON1 | MB_ICONERROR | MB_SYSTEMMODAL);
 	LocalFree(message);
 	ExitHackontrolRemote(errorCode);
+}
+
+void HackontrolAddListEntry() {
+	LVITEMW item = {0};
+	item.mask = LVIF_TEXT;
+	item.iSubItem = 0;
+	item.pszText = L"TargetUser";
+
+	if(SendMessageW(globalListView, LVM_INSERTITEM, 0, (LPARAM) &item) == -1) {
+		HackontrolRemoteError(ERROR_FUNCTION_FAILED, L"ListView_InsertItem");
+		return;
+	}
+
+	item.iSubItem = 1;
+	item.pszText = L"127.0.0.1";
+	
+	if(!SendMessageW(globalListView, LVM_SETITEM, 0, (LPARAM) &item)) {
+		HackontrolRemoteError(ERROR_FUNCTION_FAILED, L"ListView_SetItem");
+	}
 }
