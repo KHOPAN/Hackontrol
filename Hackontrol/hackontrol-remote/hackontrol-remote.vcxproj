@@ -143,6 +143,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="client.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="server.c" />
   </ItemGroup>

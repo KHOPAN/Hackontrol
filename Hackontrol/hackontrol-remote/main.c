@@ -160,8 +160,13 @@ void RemoteError(DWORD errorCode, const LPWSTR functionName) {
 	ExitRemote(errorCode);
 }
 
-void RemoteHandleConnection(const SOCKET clientSocket) {
-	closesocket(clientSocket);
+void RemoteHandleConnection(SOCKET clientSocket) {
+	HANDLE clientThread = CreateThread(NULL, 0, ClientThread, &clientSocket, 0, NULL);
+
+	if(!clientThread) {
+		KHWin32DialogErrorW(GetLastError(), L"CreateThread");
+		closesocket(clientSocket);
+	}
 }
 
 void RemoteAddListEntry() {
