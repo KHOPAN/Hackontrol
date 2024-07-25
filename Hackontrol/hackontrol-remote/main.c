@@ -1,4 +1,4 @@
-#include "server.h"
+#include "connection.h"
 #include <khopanwin32.h>
 #include <CommCtrl.h>
 

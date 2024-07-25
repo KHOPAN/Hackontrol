@@ -1,4 +1,4 @@
-#include "server.h"
+#include "connection.h"
 #include <khopanwin32.h>
 
 #define REMOTE_PORT "42485"
