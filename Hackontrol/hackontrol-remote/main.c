@@ -22,7 +22,7 @@ static LRESULT CALLBACK hackontrolRemoteProcedure(_In_ HWND window, _In_ UINT me
 		GetClientRect(window, &bounds);
 		SetWindowPos(globalTitledBorder, HWND_TOP, 0, 0, bounds.right - bounds.left - 10, bounds.bottom - bounds.top - 4, SWP_NOMOVE);
 		GetClientRect(globalTitledBorder, &bounds);
-		SetWindowPos(globalListView, HWND_TOP, bounds.left + 9, bounds.top + 15, bounds.right - bounds.left - 8, bounds.bottom - bounds.top - 20, 0);
+		SetWindowPos(globalListView, HWND_TOP, bounds.left + 9, bounds.top + 17, bounds.right - bounds.left - 8, bounds.bottom - bounds.top - 22, 0);
 		return 0;
 	}
 	}
@@ -75,10 +75,29 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto closeServerThread;
 	}
 
-	globalListView = CreateWindowExW(WS_EX_NOPARENTNOTIFY | WS_EX_CLIENTEDGE | LVS_EX_FULLROWSELECT, WC_LISTVIEW, L"", WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_TABSTOP | LVS_REPORT | LVS_SINGLESEL, 0, 0, 0, 0, globalWindow, NULL, NULL, NULL);
+	globalListView = CreateWindowExW(WS_EX_NOPARENTNOTIFY | WS_EX_CLIENTEDGE, WC_LISTVIEW, L"", WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_TABSTOP | LVS_REPORT | LVS_SINGLESEL, 0, 0, 0, 0, globalWindow, NULL, NULL, NULL);
 
 	if(!globalListView) {
 		HackontrolRemoteError(GetLastError(), L"CreateWindowExW");
+		goto closeServerThread;
+	}
+
+	SendMessageW(globalListView, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT);
+	LVCOLUMNW column = {0};
+	column.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
+	column.cx = 150;
+	column.fmt = LVCFMT_LEFT;
+	column.pszText = L"IP Address";
+
+	if(SendMessageW(globalListView, LVM_INSERTCOLUMN, 0, (LPARAM) &column) == -1) {
+		HackontrolRemoteError(GetLastError(), L"SendMessageW");
+		goto closeServerThread;
+	}
+
+	column.pszText = L"User Name";
+
+	if(SendMessageW(globalListView, LVM_INSERTCOLUMN, 0, (LPARAM) &column) == 1) {
+		HackontrolRemoteError(GetLastError(), L"SendMessageW");
 		goto closeServerThread;
 	}
 
