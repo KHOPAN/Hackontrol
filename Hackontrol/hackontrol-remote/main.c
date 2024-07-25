@@ -1,6 +1,7 @@
 #include "connection.h"
 #include <khopanwin32.h>
 #include <CommCtrl.h>
+#include <khopanstring.h>
 
 #define HACKONTROL_REMOTE L"HackontrolRemote"
 
@@ -161,15 +162,28 @@ void RemoteError(DWORD errorCode, const LPWSTR functionName) {
 }
 
 void RemoteHandleConnection(SOCKET clientSocket, LPWSTR address) {
-	HANDLE clientThread = CreateThread(NULL, 0, ClientThread, &clientSocket, 0, NULL);
+	CLIENTPARAMETER* parameter = LocalAlloc(LMEM_FIXED, sizeof(CLIENTPARAMETER));
+
+	if(!parameter) {
+		KHWin32DialogErrorW(GetLastError(), L"LocalAlloc");
+		LocalFree(address);
+		closesocket(clientSocket);
+		return;
+	}
+
+	parameter->clientSocket = clientSocket;
+	parameter->address = address;
+	HANDLE clientThread = CreateThread(NULL, 0, ClientThread, parameter, 0, NULL);
 
 	if(!clientThread) {
 		KHWin32DialogErrorW(GetLastError(), L"CreateThread");
+		LocalFree(parameter);
+		LocalFree(address);
 		closesocket(clientSocket);
 	}
 }
 
-void RemoteAddListEntry(LPWSTR username) {
+void RemoteAddListEntry(LPWSTR username, LPWSTR address) {
 	LVITEMW item = {0};
 	item.mask = LVIF_TEXT;
 	item.iSubItem = 0;
@@ -181,7 +195,7 @@ void RemoteAddListEntry(LPWSTR username) {
 	}
 
 	item.iSubItem = 1;
-	item.pszText = L"127.0.0.1";
+	item.pszText = address;
 	
 	if(!SendMessageW(globalListView, LVM_SETITEM, 0, (LPARAM) &item)) {
 		RemoteError(ERROR_FUNCTION_FAILED, L"ListView_SetItem");

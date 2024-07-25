@@ -65,6 +65,7 @@ DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
 
 		if(!InetNtopW(AF_INET, &clientAddress.sin_addr, addressBuffer, 16)) {
 			KHWin32DialogErrorW(WSAGetLastError(), L"InetNtopW");
+			closesocket(clientSocket);
 			continue;
 		}
 
