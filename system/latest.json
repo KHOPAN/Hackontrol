@@ -13,7 +13,7 @@
 		{
 			"file": "libnative32.dll",
 			"url": "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/libnative32.dll",
-			"sha384": "e418b871f70e85037b2814f184a3e044ab262e599ad8691a43690b70c258e18fe4730d20344be4808d4a6270f3228f65"
+			"sha384": "a59f89396fa207fafac10e5100a2f448dc822c2f84439d41c10437a35643d5b8660f83e2bbf58231acc51ebacb74c271"
 		},
 		{
 			"file": "libruntime32.dll",
