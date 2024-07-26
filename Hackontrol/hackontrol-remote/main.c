@@ -29,7 +29,8 @@ static LRESULT CALLBACK hackontrolRemoteProcedure(_In_ HWND window, _In_ UINT me
 	}
 	case WM_CONTEXTMENU: {
 		SetForegroundWindow(window);
-		TrackPopupMenuEx(globalPopupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
+		BOOL selection = TrackPopupMenuEx(globalPopupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
+		MessageBoxW(NULL, KHFormatMessageW(L"User select: %d", selection), L"Remote", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 		return 0;
 	}
 	}
@@ -132,12 +133,12 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto deleteFont;
 	}
 
-	if(!InsertMenuW(globalPopupMenu, 0, MF_BYPOSITION | MF_STRING, 0, L"Open")) {
+	if(!InsertMenuW(globalPopupMenu, 0, MF_BYPOSITION | MF_STRING, 1, L"Open")) {
 		RemoteError(GetLastError(), L"InsertMenuW");
 		goto destroyMenu;
 	}
 
-	if(!InsertMenuW(globalPopupMenu, 1, MF_BYPOSITION | MF_STRING, 1, L"Disconnect")) {
+	if(!InsertMenuW(globalPopupMenu, 1, MF_BYPOSITION | MF_STRING, 2, L"Disconnect")) {
 		RemoteError(GetLastError(), L"InsertMenuW");
 		goto destroyMenu;
 	}
