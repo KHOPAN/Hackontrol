@@ -9,6 +9,7 @@ static int globalExitCode;
 static HWND globalWindow;
 static HWND globalTitledBorder;
 static HWND globalListView;
+static HMENU globalPopupMenu;
 
 static LRESULT CALLBACK hackontrolRemoteProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	switch(message) {
@@ -27,19 +28,8 @@ static LRESULT CALLBACK hackontrolRemoteProcedure(_In_ HWND window, _In_ UINT me
 		return 0;
 	}
 	case WM_CONTEXTMENU: {
-		HMENU popupMenu = CreatePopupMenu();
-		InsertMenuW(popupMenu, 0, MF_BYPOSITION | MF_STRING, 0, L"First");
-		InsertMenuW(popupMenu, 1, MF_BYPOSITION | MF_STRING, 1, L"Second");
-		InsertMenuW(popupMenu, 2, MF_BYPOSITION | MF_STRING, 2, L"Third");
-		InsertMenuW(popupMenu, 3, MF_BYPOSITION | MF_STRING, 3, L"Forth");
-		InsertMenuW(popupMenu, 4, MF_BYPOSITION | MF_STRING, 4, L"Fifth");
-		InsertMenuW(popupMenu, 5, MF_BYPOSITION | MF_STRING, 5, L"Sixth");
-		InsertMenuW(popupMenu, 6, MF_BYPOSITION | MF_STRING, 6, L"Seventh");
-		InsertMenuW(popupMenu, 7, MF_BYPOSITION | MF_STRING, 7, L"Eighth");
-		InsertMenuW(popupMenu, 8, MF_BYPOSITION | MF_STRING, 8, L"Ninth");
-		InsertMenuW(popupMenu, 9, MF_BYPOSITION | MF_STRING, 9, L"Tenth");
 		SetForegroundWindow(window);
-		TrackPopupMenu(popupMenu, TPM_LEFTALIGN | TPM_TOPALIGN, LOWORD(lparam), HIWORD(lparam), 0, window, NULL);
+		TrackPopupMenuEx(globalPopupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
 		return 0;
 	}
 	}
@@ -135,13 +125,30 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	}
 
 	SendMessageW(globalTitledBorder, WM_SETFONT, (WPARAM) font, TRUE);
+	globalPopupMenu = CreatePopupMenu();
+
+	if(!globalPopupMenu) {
+		RemoteError(GetLastError(), L"CreatePopupMenu");
+		goto deleteFont;
+	}
+
+	if(!InsertMenuW(globalPopupMenu, 0, MF_BYPOSITION | MF_STRING, 0, L"Open")) {
+		RemoteError(GetLastError(), L"InsertMenuW");
+		goto destroyMenu;
+	}
+
+	if(!InsertMenuW(globalPopupMenu, 1, MF_BYPOSITION | MF_STRING, 1, L"Disconnect")) {
+		RemoteError(GetLastError(), L"InsertMenuW");
+		goto destroyMenu;
+	}
+
 	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	int width = (int) (((double) screenWidth) * 0.292825769);
 	int height = (int) (((double) screenHeight) * 0.78125);
 
 	if(!SetWindowPos(globalWindow, HWND_TOP, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, SWP_SHOWWINDOW)) {
 		RemoteError(GetLastError(), L"SetWindowPos");
-		goto deleteFont;
+		goto destroyMenu;
 	}
 
 	MSG message;
@@ -152,6 +159,8 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	}
 
 	returnValue |= globalExitCode;
+destroyMenu:
+	DestroyMenu(globalPopupMenu);
 deleteFont:
 	DeleteObject(font);
 closeServerThread:
