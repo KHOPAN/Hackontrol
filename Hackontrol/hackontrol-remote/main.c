@@ -26,6 +26,22 @@ static LRESULT CALLBACK hackontrolRemoteProcedure(_In_ HWND window, _In_ UINT me
 		SetWindowPos(globalListView, HWND_TOP, bounds.left + 9, bounds.top + 17, bounds.right - bounds.left - 8, bounds.bottom - bounds.top - 22, 0);
 		return 0;
 	}
+	case WM_CONTEXTMENU: {
+		HMENU popupMenu = CreatePopupMenu();
+		InsertMenuW(popupMenu, 0, MF_BYPOSITION | MF_STRING, 0, L"First");
+		InsertMenuW(popupMenu, 1, MF_BYPOSITION | MF_STRING, 1, L"Second");
+		InsertMenuW(popupMenu, 2, MF_BYPOSITION | MF_STRING, 2, L"Third");
+		InsertMenuW(popupMenu, 3, MF_BYPOSITION | MF_STRING, 3, L"Forth");
+		InsertMenuW(popupMenu, 4, MF_BYPOSITION | MF_STRING, 4, L"Fifth");
+		InsertMenuW(popupMenu, 5, MF_BYPOSITION | MF_STRING, 5, L"Sixth");
+		InsertMenuW(popupMenu, 6, MF_BYPOSITION | MF_STRING, 6, L"Seventh");
+		InsertMenuW(popupMenu, 7, MF_BYPOSITION | MF_STRING, 7, L"Eighth");
+		InsertMenuW(popupMenu, 8, MF_BYPOSITION | MF_STRING, 8, L"Ninth");
+		InsertMenuW(popupMenu, 9, MF_BYPOSITION | MF_STRING, 9, L"Tenth");
+		SetForegroundWindow(window);
+		TrackPopupMenu(popupMenu, TPM_LEFTALIGN | TPM_TOPALIGN, LOWORD(lparam), HIWORD(lparam), 0, window, NULL);
+		return 0;
+	}
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
