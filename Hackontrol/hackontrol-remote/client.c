@@ -26,7 +26,7 @@ static LPWSTR getUsername(const PACKET packet) {
 	return KHFormatMessageW(L"%S", buffer);
 }
 
-DWORD WINAPI ClientThread(_In_ CLIENTPARAMETER* parameter) {
+DWORD WINAPI ClientThread(_In_ CLIENTENTRY* parameter) {
 	if(!parameter) {
 		return 1;
 	}
@@ -35,44 +35,37 @@ DWORD WINAPI ClientThread(_In_ CLIENTPARAMETER* parameter) {
 
 	if(recv(parameter->clientSocket, buffer, 16, 0) == SOCKET_ERROR) {
 		KHWin32DialogErrorW(WSAGetLastError(), L"recv");
-		goto freeParameter;
+		goto closeSocket;
 	}
 
 	buffer[16] = 0;
 
 	if(strcmp(buffer, "HRSP 1.0 CONNECT")) {
 		MessageBoxW(NULL, L"The client has requested an invalid request", L"Hackontrol Remote", MB_OK | MB_DEFBUTTON1 | MB_ICONERROR | MB_SYSTEMMODAL);
-		goto freeParameter;
+		goto closeSocket;
 	}
 
 	const char* header = "HRSP 1.0 OK";
 
 	if(send(parameter->clientSocket, header, (int) strlen(header), 0) == SOCKET_ERROR) {
 		KHWin32DialogErrorW(WSAGetLastError(), L"send");
-		goto freeParameter;
+		goto closeSocket;
 	}
 
 	PACKET packet;
 
 	if(!ReceivePacket(parameter->clientSocket, &packet)) {
 		KHWin32DialogErrorW(GetLastError(), L"ReceivePacket");
-		goto freeParameter;
+		goto closeSocket;
 	}
 
 	BYTE* data = packet.data;
 	int width = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
 	int height = (data[4] << 24) | (data[5] << 16) | (data[6] << 8) | data[7];
-	LPWSTR username = getUsername(packet);
-	RemoteAddListEntry(username, parameter->address);
-
-	if(username) {
-		LocalFree(username);
-	}
-
+	parameter->username = getUsername(packet);
+	RemoteRefreshClientList();
 	MessageBoxW(NULL, L"Connected", L"Remote", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
-freeParameter:
+closeSocket:
 	closesocket(parameter->clientSocket);
-	LocalFree(parameter->address);
-	LocalFree(parameter);
 	return 0;
 }

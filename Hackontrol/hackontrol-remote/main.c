@@ -5,9 +5,7 @@
 
 #define HACKONTROL_REMOTE L"HackontrolRemote"
 
-typedef struct {
-	int x;
-} CLIENTENTRY;
+#pragma warning(disable: 6001)
 
 static ArrayList globalClientList;
 static int globalExitCode;
@@ -201,6 +199,20 @@ deleteFont:
 closeServerThread:
 	CloseHandle(serverThread);
 freeGlobalClientList:
+	for(size_t i = 0; i < globalClientList.elementCount; i++) {
+		CLIENTENTRY* entry;
+
+		if(!KHArrayGet(&globalClientList, i, &entry)) {
+			continue;
+		}
+
+		if(entry->username) {
+			LocalFree(entry->username);
+		}
+
+		LocalFree(entry->address);
+	}
+
 	KHArrayFree(&globalClientList);
 unregisterWindowClass:
 	if(!UnregisterClassW(HACKONTROL_REMOTE, instance)) {
@@ -224,42 +236,56 @@ void RemoteError(DWORD errorCode, const LPWSTR functionName) {
 }
 
 void RemoteHandleConnection(SOCKET clientSocket, LPWSTR address) {
-	CLIENTPARAMETER* parameter = LocalAlloc(LMEM_FIXED, sizeof(CLIENTPARAMETER));
+	CLIENTENTRY entry = {0};
 
-	if(!parameter) {
-		KHWin32DialogErrorW(GetLastError(), L"LocalAlloc");
-		LocalFree(address);
+	if(!KHArrayAdd(&globalClientList, &entry)) {
+		KHWin32DialogErrorW(GetLastError(), L"KHArrayAdd");
 		closesocket(clientSocket);
+		LocalFree(address);
 		return;
 	}
 
-	parameter->clientSocket = clientSocket;
-	parameter->address = address;
-	HANDLE clientThread = CreateThread(NULL, 0, ClientThread, parameter, 0, NULL);
+	CLIENTENTRY* entryPointer;
+
+	if(!KHArrayGet(&globalClientList, globalClientList.elementCount - 1, &entryPointer)) {
+		KHWin32DialogErrorW(GetLastError(), L"KHArrayGet");
+		closesocket(clientSocket);
+		LocalFree(address);
+		return;
+	}
+
+	entryPointer->clientSocket = clientSocket;
+	entryPointer->address = address;
+	HANDLE clientThread = CreateThread(NULL, 0, ClientThread, entryPointer, 0, NULL);
 
 	if(!clientThread) {
 		KHWin32DialogErrorW(GetLastError(), L"CreateThread");
-		LocalFree(parameter);
-		LocalFree(address);
 		closesocket(clientSocket);
+		LocalFree(address);
 	}
 }
 
-void RemoteAddListEntry(LPWSTR username, LPWSTR address) {
+void RemoteRefreshClientList() {
+	SendMessageW(globalListView, LVM_DELETEALLITEMS, 0, 0);
 	LVITEMW item = {0};
 	item.mask = LVIF_TEXT;
-	item.iSubItem = 0;
-	item.pszText = username;
 
-	if(SendMessageW(globalListView, LVM_INSERTITEM, 0, (LPARAM) &item) == -1) {
-		RemoteError(ERROR_FUNCTION_FAILED, L"ListView_InsertItem");
-		return;
-	}
+	for(size_t i = 0; i < globalClientList.elementCount; i++) {
+		CLIENTENTRY* entry;
 
-	item.iSubItem = 1;
-	item.pszText = address;
-	
-	if(!SendMessageW(globalListView, LVM_SETITEM, 0, (LPARAM) &item)) {
-		RemoteError(ERROR_FUNCTION_FAILED, L"ListView_SetItem");
+		if(!KHArrayGet(&globalClientList, i, &entry) || !entry->username || !entry->address) {
+			continue;
+		}
+
+		item.iSubItem = 0;
+		item.pszText = entry->username;
+
+		if(SendMessageW(globalListView, LVM_INSERTITEM, 0, (LPARAM) &item) == -1) {
+			continue;
+		}
+
+		item.iSubItem = 1;
+		item.pszText = entry->address;
+		SendMessageW(globalListView, LVM_SETITEM, 0, (LPARAM) &item);
 	}
 }

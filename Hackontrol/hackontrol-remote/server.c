@@ -47,13 +47,8 @@ DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
 	}
 
 	SOCKADDR_IN clientAddress;
+	WCHAR addressBuffer[17];
 	int addressLength = sizeof(SOCKADDR_IN);
-	LPWSTR addressBuffer = LocalAlloc(LMEM_FIXED, sizeof(WCHAR) * 17);
-
-	if(!addressBuffer) {
-		RemoteError(GetLastError(), L"LocalAlloc");
-		goto closeServerSocket;
-	}
 
 	while(TRUE) {
 		SOCKET clientSocket = accept(serverSocket, (struct sockaddr*) &clientAddress, &addressLength);
@@ -69,10 +64,20 @@ DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
 			continue;
 		}
 
-		RemoteHandleConnection(clientSocket, addressBuffer);
-	}
+		addressBuffer[16] = 0;
+		size_t addressSize = wcslen(addressBuffer);
+		LPWSTR displayAddress = LocalAlloc(LMEM_FIXED, (addressSize + 1) * sizeof(WCHAR));
 
-	LocalFree(addressBuffer);
+		if(!displayAddress) {
+			KHWin32DialogErrorW(GetLastError(), L"LocalAlloc");
+			closesocket(clientSocket);
+			continue;
+		}
+
+		memcpy(displayAddress, addressBuffer, addressSize * sizeof(WCHAR));
+		displayAddress[addressSize] = 0;
+		RemoteHandleConnection(clientSocket, displayAddress);
+	}
 closeServerSocket:
 	closesocket(serverSocket);
 wsaCleanup:
