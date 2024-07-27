@@ -72,7 +72,7 @@ BOOL KHArrayRemove(ArrayList* list, size_t index) {
 		return FALSE;
 	}
 
-	if(index < 0 || index >= list->elementCount) {
+	if(index >= list->elementCount) {
 		SetLastError(ERROR_INDEX_OUT_OF_BOUNDS);
 		return FALSE;
 	}
@@ -92,7 +92,7 @@ BOOL KHArrayGet(ArrayList* list, size_t index, void** data) {
 		return FALSE;
 	}
 
-	if(index < 0 || index >= list->elementCount) {
+	if(index >= list->elementCount) {
 		SetLastError(ERROR_INDEX_OUT_OF_BOUNDS);
 		return FALSE;
 	}
