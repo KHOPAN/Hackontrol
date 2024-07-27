@@ -4,10 +4,12 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -361,6 +363,7 @@ public class StreamView extends Component {
 		private class PopupListener extends MouseAdapter {
 			private final int border;
 			private final int minimumSize;
+			private final Dimension size;
 
 			private int pressedX;
 			private int pressedY;
@@ -372,6 +375,7 @@ public class StreamView extends Component {
 			private PopupListener() {
 				this.border = 10;
 				this.minimumSize = this.border * 2;
+				this.size = Toolkit.getDefaultToolkit().getScreenSize();
 				this.limitScreen = true;
 			}
 
@@ -468,8 +472,8 @@ public class StreamView extends Component {
 					return;
 				}
 
-				bounds.x = Math.min(Math.max(bounds.x, 0), StreamView.this.sourceWidth - bounds.width);
-				bounds.y = Math.min(Math.max(bounds.y, 0), StreamView.this.sourceHeight - bounds.height);
+				bounds.x = Math.min(Math.max(bounds.x, 0), this.size.width - bounds.width);
+				bounds.y = Math.min(Math.max(bounds.y, 0), this.size.height - bounds.height);
 			}
 		}
 	}
