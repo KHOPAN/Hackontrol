@@ -2,6 +2,7 @@
 #include <khopanwin32.h>
 #include <khopanarray.h>
 #include <CommCtrl.h>
+#include <khopanstring.h>
 
 #define HACKONTROL_REMOTE L"HackontrolRemote"
 
@@ -30,20 +31,15 @@ static LRESULT CALLBACK hackontrolRemoteProcedure(_In_ HWND window, _In_ UINT me
 		SetWindowPos(globalListView, HWND_TOP, bounds.left + 9, bounds.top + 17, bounds.right - bounds.left - 8, bounds.bottom - bounds.top - 22, 0);
 		return 0;
 	}
-	case WM_NOTIFY: {
-		LPNMHDR notification = (LPNMHDR) lparam;
-
-		if(notification->code != (UINT) -5) {
-			return 0;
-		}
-
-		POINT point;
-		GetCursorPos(&point);
+	case WM_CONTEXTMENU: {
+		int x = LOWORD(lparam);
+		int y = HIWORD(lparam);
 		LVHITTESTINFO hitTest = {0};
-		hitTest.pt = point;
-		ScreenToClient(notification->hwndFrom, &hitTest.pt);
+		hitTest.pt.x = x;
+		hitTest.pt.y = y;
+		ScreenToClient(globalListView, &hitTest.pt);
 
-		if(SendMessageW(notification->hwndFrom, LVM_HITTEST, 0, (LPARAM) &hitTest) == -1) {
+		if(SendMessageW(globalListView, LVM_HITTEST, 0, (LPARAM) &hitTest) == -1) {
 			return 0;
 		}
 
@@ -51,12 +47,13 @@ static LRESULT CALLBACK hackontrolRemoteProcedure(_In_ HWND window, _In_ UINT me
 		listItem.mask = LVIF_TEXT;
 		listItem.iItem = hitTest.iItem;
 
-		if(!SendMessageW(notification->hwndFrom, LVM_GETITEM, 0, (LPARAM) &listItem)) {
+		if(!SendMessageW(globalListView, LVM_GETITEM, 0, (LPARAM) &listItem)) {
 			return 0;
 		}
 
+		MessageBoxW(NULL, KHFormatMessageW(L"Item: %d", listItem.iItem), L"Remote", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 		SetForegroundWindow(window);
-		TrackPopupMenuEx(globalPopupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, point.x, point.y, window, NULL);
+		TrackPopupMenuEx(globalPopupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, x, y, window, NULL);
 		return 0;
 	}
 	}
