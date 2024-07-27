@@ -135,42 +135,6 @@ _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment,
 		goto closeSocket;
 	}
 
-	/*int width = 1366;
-	int height = 768;
-	size_t baseSize = width* height;
-	size_t bufferSize = baseSize * 4;
-	BYTE* screenshotBuffer = LocalAlloc(LMEM_FIXED, bufferSize);
-
-	if(!screenshotBuffer) {
-		HackontrolThrowWin32Error(environment, L"LocalAlloc");
-		goto closeSocket;
-	}
-
-	BYTE* qoiBuffer = LocalAlloc(LMEM_FIXED, bufferSize);
-
-	if(!qoiBuffer) {
-		HackontrolThrowWin32Error(environment, L"LocalAlloc");
-		goto freeScreenshotBuffer;
-	}
-
-	BYTE* previousBuffer = LocalAlloc(LMEM_FIXED, baseSize * 3);
-
-	if(!previousBuffer) {
-		HackontrolThrowWin32Error(environment, L"LocalAlloc");
-		goto freeQOIBuffer;
-	}
-
-	while(TRUE) {
-		if(!TakeScreenshot(environment, clientSocket, width, height, screenshotBuffer, qoiBuffer, previousBuffer)) {
-			goto freePreviousBuffer;
-		}
-	}
-freePreviousBuffer:
-	LocalFree(previousBuffer);
-freeQOIBuffer:
-	LocalFree(qoiBuffer);
-freeScreenshotBuffer:
-	LocalFree(screenshotBuffer);*/
 	JavaVM* virtualMachine;
 
 	if((*environment)->GetJavaVM(environment, &virtualMachine) != JNI_OK) {

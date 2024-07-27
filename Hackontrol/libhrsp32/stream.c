@@ -70,6 +70,10 @@ destroyIcon:
 }
 
 static BOOL takeScreenshot(JNIEnv* const environment, PACKET* packet, int width, int height, BYTE* screenshotBuffer, BYTE* qoiBuffer, BYTE* previousBuffer) {
+	if(!(globalStreamSettings & 1)) {
+		return TRUE;
+	}
+
 	BOOL boundaryDifference = (globalStreamSettings >> 1) & 1;
 	BOOL colorDifference = (globalStreamSettings >> 2) & 1;
 
@@ -293,14 +297,11 @@ DWORD WINAPI ScreenStreamThread(_In_ PSTREAMPARAMETER parameter) {
 		HackontrolThrowWin32Error(environment, L"LocalAlloc");
 		goto freeQOIBuffer;
 	}
+
 	PACKET packet;
 	packet.packetType = PACKET_TYPE_STREAM_FRAME;
 
 	while(TRUE) {
-		if(!(globalStreamSettings & 1)) {
-			continue;
-		}
-
 		if(!takeScreenshot(environment, &packet, width, height, screenshotBuffer, qoiBuffer, previousBuffer)) {
 			goto freePreviousBuffer;
 		}
