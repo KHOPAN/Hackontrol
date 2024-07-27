@@ -27,10 +27,33 @@ static LRESULT CALLBACK hackontrolRemoteProcedure(_In_ HWND window, _In_ UINT me
 		SetWindowPos(globalListView, HWND_TOP, bounds.left + 9, bounds.top + 17, bounds.right - bounds.left - 8, bounds.bottom - bounds.top - 22, 0);
 		return 0;
 	}
-	case WM_CONTEXTMENU: {
+	case WM_NOTIFY: {
+		LPNMHDR notification = (LPNMHDR) lparam;
+
+		if(notification->code != (UINT) -5) {
+			return 0;
+		}
+
+		POINT point;
+		GetCursorPos(&point);
+		LVHITTESTINFO hitTest = {0};
+		hitTest.pt = point;
+		ScreenToClient(notification->hwndFrom, &hitTest.pt);
+
+		if(SendMessageW(notification->hwndFrom, LVM_HITTEST, 0, (LPARAM) &hitTest) == -1) {
+			return 0;
+		}
+
+		LVITEMW listItem = {0};
+		listItem.mask = LVIF_TEXT;
+		listItem.iItem = hitTest.iItem;
+
+		if(!SendMessageW(notification->hwndFrom, LVM_GETITEM, 0, (LPARAM) &listItem)) {
+			return 0;
+		}
+
 		SetForegroundWindow(window);
-		BOOL selection = TrackPopupMenuEx(globalPopupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
-		MessageBoxW(NULL, KHFormatMessageW(L"User select: %d", selection), L"Remote", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+		TrackPopupMenuEx(globalPopupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, point.x, point.y, window, NULL);
 		return 0;
 	}
 	}
