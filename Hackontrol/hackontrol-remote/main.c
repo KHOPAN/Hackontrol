@@ -211,6 +211,10 @@ freeGlobalClientList:
 		}
 
 		LocalFree(entry->address);
+
+		if(entry->clientThread) {
+			CloseHandle(entry->clientThread);
+		}
 	}
 
 	KHArrayFree(&globalClientList);
@@ -263,6 +267,8 @@ void RemoteHandleConnection(SOCKET clientSocket, LPWSTR address) {
 		closesocket(clientSocket);
 		LocalFree(address);
 	}
+
+	entryPointer->clientThread = clientThread;
 }
 
 void RemoteRefreshClientList() {

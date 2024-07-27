@@ -6,6 +6,7 @@ typedef struct {
 	SOCKET clientSocket;
 	LPWSTR username;
 	LPWSTR address;
+	HANDLE clientThread;
 } CLIENTENTRY;
 
 void ExitRemote(int exitCode);
