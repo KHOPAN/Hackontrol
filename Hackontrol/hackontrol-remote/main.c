@@ -239,8 +239,9 @@ void RemoteError(DWORD errorCode, const LPWSTR functionName) {
 	ExitRemote(errorCode);
 }
 
-void RemoteHandleConnection(SOCKET clientSocket, LPWSTR address) {
+void RemoteHandleConnection(const SOCKET clientSocket, LPWSTR address) {
 	CLIENTENTRY entry = {0};
+	entry.clientSocket = clientSocket;
 
 	if(!KHArrayAdd(&globalClientList, &entry)) {
 		KHWin32DialogErrorW(GetLastError(), L"KHArrayAdd");
@@ -253,22 +254,35 @@ void RemoteHandleConnection(SOCKET clientSocket, LPWSTR address) {
 
 	if(!KHArrayGet(&globalClientList, globalClientList.elementCount - 1, &entryPointer)) {
 		KHWin32DialogErrorW(GetLastError(), L"KHArrayGet");
+		RemoteRemoveEntry(clientSocket);
 		closesocket(clientSocket);
 		LocalFree(address);
 		return;
 	}
 
-	entryPointer->clientSocket = clientSocket;
 	entryPointer->address = address;
 	HANDLE clientThread = CreateThread(NULL, 0, ClientThread, entryPointer, 0, NULL);
 
 	if(!clientThread) {
 		KHWin32DialogErrorW(GetLastError(), L"CreateThread");
+		RemoteRemoveEntry(clientSocket);
 		closesocket(clientSocket);
 		LocalFree(address);
+		return;
 	}
 
 	entryPointer->clientThread = clientThread;
+}
+
+void RemoteRemoveEntry(const SOCKET clientSocket) {
+	for(size_t i = 0; i < globalClientList.elementCount; i++) {
+		CLIENTENTRY* element;
+
+		if(KHArrayGet(&globalClientList, i, &element) && element->clientSocket == clientSocket) {
+			KHArrayRemove(&globalClientList, i);
+			return;
+		}
+	}
 }
 
 void RemoteRefreshClientList() {
