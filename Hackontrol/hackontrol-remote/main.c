@@ -1,10 +1,15 @@
 #include "connection.h"
 #include <khopanwin32.h>
+#include <khopanarray.h>
 #include <CommCtrl.h>
-#include <khopanstring.h>
 
 #define HACKONTROL_REMOTE L"HackontrolRemote"
 
+typedef struct {
+	int x;
+} CLIENTENTRY;
+
+static ArrayList globalClientList;
 static int globalExitCode;
 static HWND globalWindow;
 static HWND globalTitledBorder;
@@ -75,19 +80,25 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		return 1;
 	}
 
-	globalWindow = CreateWindowExW(0, HACKONTROL_REMOTE, L"Hackontrol Remote", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, NULL, NULL, instance, NULL);
 	int returnValue = 1;
+
+	if(!KHArrayInitialize(&globalClientList, sizeof(CLIENTENTRY))) {
+		KHWin32DialogErrorW(GetLastError(), L"KHArrayInitialize");
+		goto unregisterWindowClass;
+	}
+
+	globalWindow = CreateWindowExW(0, HACKONTROL_REMOTE, L"Hackontrol Remote", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, NULL, NULL, instance, NULL);
 
 	if(!globalWindow) {
 		KHWin32DialogErrorW(GetLastError(), L"CreateWindowExW");
-		goto unregisterWindowClass;
+		goto freeGlobalClientList;
 	}
 
 	HANDLE serverThread = CreateThread(NULL, 0, ServerThread, NULL, 0, NULL);
 
 	if(!serverThread) {
 		RemoteError(GetLastError(), L"CreateThread");
-		goto unregisterWindowClass;
+		goto freeGlobalClientList;
 	}
 
 	globalTitledBorder = CreateWindowExW(0, L"Button", L"Connected Devices", WS_CHILD | WS_VISIBLE | BS_GROUPBOX, 5, 0, 0, 0, globalWindow, NULL, NULL, NULL);
@@ -189,6 +200,8 @@ deleteFont:
 	DeleteObject(font);
 closeServerThread:
 	CloseHandle(serverThread);
+freeGlobalClientList:
+	KHArrayFree(&globalClientList);
 unregisterWindowClass:
 	if(!UnregisterClassW(HACKONTROL_REMOTE, instance)) {
 		KHWin32DialogErrorW(GetLastError(), L"UnregisterClassW");
