@@ -1,28 +1,36 @@
+#include <stdio.h>
 #include <khopanwin32.h>
+#include <khopanarray.h>
 
 int main(int argc, char** argv) {
-	HKEY key;
-	LSTATUS error = RegCreateKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\KHOPAN", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_SET_VALUE, NULL, &key, NULL);
-
-	if(error) {
-		KHWin32ConsoleErrorW(error, L"RegCreateKeyExW");
-		return 1;
-	}
-
+	ArrayList list;
 	int returnValue = 1;
 
-	if(!KHWin32RegistrySetStringValueW(key, NULL, L"Hello, world!")) {
-		KHWin32ConsoleErrorW(GetLastError(), L"KHWin32RegistrySetStringValueW");
-		goto closeKey;
+	if(!KHArrayInitialize(&list, sizeof(unsigned char))) {
+		KHWin32ConsoleErrorW(GetLastError(), L"KHArrayInitialize");
+		goto freeList;
 	}
 
-	if(!KHWin32RegistrySetStringValueW(key, L"TestKey", L"Test key value")) {
-		KHWin32ConsoleErrorW(GetLastError(), L"KHWin32RegistrySetStringValueW");
-		goto closeKey;
+	for(unsigned char i = 1; i <= 10; i++) {
+		if(!KHArrayAdd(&list, &i)) {
+			KHWin32ConsoleErrorW(GetLastError(), L"KHArrayAdd");
+			goto freeList;
+		}
+	}
+
+	for(size_t i = 0; i < list.elementCount; i++) {
+		unsigned char* number;
+		
+		if(!KHArrayGet(&list, i, &number)) {
+			KHWin32ConsoleErrorW(GetLastError(), L"KHArrayGet");
+			goto freeList;
+		}
+
+		printf("Number: %d\n", *number);
 	}
 
 	returnValue = 0;
-closeKey:
-	RegCloseKey(key);
+freeList:
+	KHArrayFree(&list);
 	return returnValue;
 }
