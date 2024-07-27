@@ -66,6 +66,10 @@ BOOL KHArrayAdd(ArrayList* list, void* data) {
 	return TRUE;
 }
 
+static BYTE* getDataPointerAtIndex(ArrayList* list, size_t index) {
+	return (BYTE*) list->data + list->elementSize * index;
+}
+
 BOOL KHArrayRemove(ArrayList* list, size_t index) {
 	if(!list) {
 		SetLastError(ERROR_INVALID_PARAMETER);
@@ -97,7 +101,7 @@ BOOL KHArrayGet(ArrayList* list, size_t index, void** data) {
 		return FALSE;
 	}
 
-	(*data) = (void*) (((size_t) (*list).data) + index * list->elementSize);
+	(*data) = getDataPointerAtIndex(list, index);
 	return TRUE;
 }
 
