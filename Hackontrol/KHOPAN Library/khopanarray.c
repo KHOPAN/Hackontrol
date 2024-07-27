@@ -66,7 +66,7 @@ BOOL KHArrayAdd(ArrayList* list, void* data) {
 	return TRUE;
 }
 
-static BYTE* getDataPointerAtIndex(ArrayList* list, size_t index) {
+static inline BYTE* getDataPointerAtIndex(ArrayList* list, size_t index) {
 	return (BYTE*) list->data + list->elementSize * index;
 }
 
@@ -85,6 +85,12 @@ BOOL KHArrayRemove(ArrayList* list, size_t index) {
 
 	if(!list->elementCount) {
 		return TRUE;
+	}
+
+	BYTE* removeTarget = getDataPointerAtIndex(list, index);
+
+	for(size_t i = 0; i < (list->elementCount - index) * list->elementSize; i++) {
+		removeTarget[i] = removeTarget[i + list->elementSize];
 	}
 
 	return TRUE;

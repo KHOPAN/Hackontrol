@@ -23,6 +23,11 @@ int main(int argc, char** argv) {
 		goto freeList;
 	}
 
+	if(!KHArrayRemove(&list, 8)) {
+		KHWin32ConsoleErrorW(GetLastError(), L"KHArrayRemove");
+		goto freeList;
+	}
+
 	for(size_t i = 0; i < list.elementCount; i++) {
 		unsigned long long* number;
 		
