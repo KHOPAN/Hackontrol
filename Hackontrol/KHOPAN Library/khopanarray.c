@@ -77,6 +77,12 @@ BOOL KHArrayRemove(ArrayList* list, size_t index) {
 		return FALSE;
 	}
 
+	list->elementCount--;
+
+	if(!list->elementCount) {
+		return TRUE;
+	}
+
 	return TRUE;
 }
 
