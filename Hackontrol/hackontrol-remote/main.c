@@ -7,6 +7,7 @@
 #define HACKONTROL_REMOTE L"HackontrolRemote"
 
 #pragma warning(disable: 6001)
+#pragma warning(disable: 6258)
 
 static ArrayList globalClientList;
 static int globalExitCode;
@@ -194,6 +195,7 @@ destroyMenu:
 deleteFont:
 	DeleteObject(font);
 closeServerThread:
+	TerminateThread(serverThread, 0);
 	CloseHandle(serverThread);
 freeGlobalClientList:
 	for(size_t i = 0; i < globalClientList.elementCount; i++) {
@@ -210,6 +212,7 @@ freeGlobalClientList:
 		LocalFree(entry->address);
 
 		if(entry->clientThread) {
+			TerminateThread(entry->clientThread, 0);
 			CloseHandle(entry->clientThread);
 		}
 	}
