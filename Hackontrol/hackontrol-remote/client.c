@@ -64,7 +64,14 @@ DWORD WINAPI ClientThread(_In_ CLIENTENTRY* parameter) {
 	int height = (data[4] << 24) | (data[5] << 16) | (data[6] << 8) | data[7];
 	parameter->username = getUsername(packet);
 	RemoteRefreshClientList();
-	MessageBoxW(NULL, L"Connected", L"Remote", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+	PACKET packet;
+
+	while(TRUE) {
+		if(!ReceivePacket(parameter->clientSocket, &packet)) {
+
+		}
+	}
+
 	RemoteRemoveEntry(parameter->clientSocket);
 	RemoteRefreshClientList();
 closeSocket:
