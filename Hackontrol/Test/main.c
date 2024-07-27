@@ -6,27 +6,32 @@ int main(int argc, char** argv) {
 	ArrayList list;
 	int returnValue = 1;
 
-	if(!KHArrayInitialize(&list, sizeof(unsigned char))) {
+	if(!KHArrayInitialize(&list, sizeof(unsigned long long))) {
 		KHWin32ConsoleErrorW(GetLastError(), L"KHArrayInitialize");
 		goto freeList;
 	}
 
-	for(unsigned char i = 1; i <= 10; i++) {
+	for(unsigned long long i = 0; i < 10; i++) {
 		if(!KHArrayAdd(&list, &i)) {
 			KHWin32ConsoleErrorW(GetLastError(), L"KHArrayAdd");
 			goto freeList;
 		}
 	}
 
+	if(!KHArrayRemove(&list, 5)) {
+		KHWin32ConsoleErrorW(GetLastError(), L"KHArrayRemove");
+		goto freeList;
+	}
+
 	for(size_t i = 0; i < list.elementCount; i++) {
-		unsigned char* number;
+		unsigned long long* number;
 		
 		if(!KHArrayGet(&list, i, &number)) {
 			KHWin32ConsoleErrorW(GetLastError(), L"KHArrayGet");
 			goto freeList;
 		}
 
-		printf("Number: %d\n", *number);
+		printf("Number: %llu\n", *number);
 	}
 
 	returnValue = 0;

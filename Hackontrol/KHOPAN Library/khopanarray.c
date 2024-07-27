@@ -66,6 +66,20 @@ BOOL KHArrayAdd(ArrayList* list, void* data) {
 	return TRUE;
 }
 
+BOOL KHArrayRemove(ArrayList* list, size_t index) {
+	if(!list) {
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	if(index < 0 || index >= list->elementCount) {
+		SetLastError(ERROR_INDEX_OUT_OF_BOUNDS);
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
 BOOL KHArrayGet(ArrayList* list, size_t index, void** data) {
 	if(!list || !data) {
 		SetLastError(ERROR_INVALID_PARAMETER);

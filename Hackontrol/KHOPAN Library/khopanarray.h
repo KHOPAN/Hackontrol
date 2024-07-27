@@ -19,6 +19,7 @@ BOOL KHArrayInitialize(ArrayList* list, size_t elementSize);
 BOOL KHArraySize(ArrayList* list, size_t* arraySize);
 BOOL KHArrayIsEmpty(ArrayList* list, LPBOOL isEmpty);
 BOOL KHArrayAdd(ArrayList* list, void* data);
+BOOL KHArrayRemove(ArrayList* list, size_t index);
 BOOL KHArrayGet(ArrayList* list, size_t index, void** data);
 BOOL KHArrayFree(ArrayList* list);
 #ifdef __cplusplus
