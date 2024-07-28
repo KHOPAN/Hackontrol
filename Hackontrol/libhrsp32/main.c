@@ -46,7 +46,7 @@ static BOOL sendInformationPacket(JNIEnv* const environment, const SOCKET client
 
 _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment, LPCSTR hostName, LPCSTR port, const jobject callback) {
 	jclass consumerClass = (*environment)->FindClass(environment, "java/util/function/Consumer");
-	
+
 	if(!consumerClass) {
 		return;
 	}
@@ -72,6 +72,7 @@ _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment,
 	hints.ai_protocol = IPPROTO_TCP;
 	struct addrinfo* result;
 	status = getaddrinfo(hostName, port, &hints, &result);
+	BOOL disconnect = FALSE;
 
 	if(status) {
 		SetLastError(status);
@@ -134,7 +135,7 @@ _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment,
 	}
 
 	(*environment)->CallObjectMethod(environment, callback, acceptMethod, (*environment)->NewStringUTF(environment, "**Connected**"));
-	
+
 	if(!sendInformationPacket(environment, clientSocket)) {
 		goto closeSocket;
 	}
@@ -172,7 +173,9 @@ _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment,
 
 		switch(packet.packetType) {
 		case PACKET_TYPE_INFORMATION:
-			goto disconnect;
+			SetStreamParameter(1, 0);
+			disconnect = TRUE;
+			goto closeScreenStreamThread;
 		case PACKET_TYPE_STREAM_FRAME:
 			SetStreamParameter(0, packet.data ? ((unsigned char*) packet.data)[0] : 0);
 			break;
@@ -182,15 +185,16 @@ _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment,
 			LocalFree(packet.data);
 		}
 	}
-disconnect:
-	SetStreamParameter(1, 0);
-	WaitForSingleObject(screenStreamThread, WAIT_MAXIMUM);
-	(*environment)->CallObjectMethod(environment, callback, acceptMethod, (*environment)->NewStringUTF(environment, "**Disconnected**"));
 closeScreenStreamThread:
+	WaitForSingleObject(screenStreamThread, WAIT_MAXIMUM);
 	TerminateThread(screenStreamThread, 0);
 	CloseHandle(screenStreamThread);
 closeSocket:
 	closesocket(clientSocket);
 wsaCleanup:
 	WSACleanup();
+
+	if(disconnect) {
+		(*environment)->CallObjectMethod(environment, callback, acceptMethod, (*environment)->NewStringUTF(environment, "**Disconnected**"));
+	}
 }
