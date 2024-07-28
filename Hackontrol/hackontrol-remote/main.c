@@ -1,5 +1,9 @@
+#define DEBUG_WINDOW
+
 #include "connection.h"
-#include <CommCtrl.h>
+#ifdef DEBUG_WINDOW
+#include <stdio.h>
+#endif
 #include <hackontrolpacket.h>
 #include <khopanwin32.h>
 #include <khopanstring.h>
@@ -20,7 +24,7 @@ static HWND globalTitledBorder;
 static HWND globalListView;
 static HMENU globalPopupMenu;
 
-static LRESULT CALLBACK hackontrolRemoteProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
+/*static LRESULT CALLBACK hackontrolRemoteProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	switch(message) {
 	case WM_CLOSE:
 		DestroyWindow(globalWindow);
@@ -88,9 +92,21 @@ static LRESULT CALLBACK hackontrolRemoteProcedure(_In_ HWND window, _In_ UINT me
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
-}
+}*/
 
 int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance, _In_ LPSTR argument, _In_ int commandLineShow) {
+#ifdef DEBUG_WINDOW
+	if(!AllocConsole()) {
+		KHWin32DialogErrorW(GetLastError(), L"AllocConsole");
+		return 1;
+	}
+
+	FILE* standardOutput = stdout;
+	FILE* standardError = stderr;
+	freopen_s(&standardOutput, "CONOUT$", "w", stdout);
+	freopen_s(&standardError, "CONOUT$", "w", stderr);
+	SetWindowTextW(GetConsoleWindow(), L"Hackontrol Remote Debug Log");
+#endif
 	if(!InitializeMainWindow(instance)) {
 		return 1;
 	}
@@ -229,7 +245,7 @@ void RemoteRemoveEntry(const SOCKET clientSocket) {
 }
 
 void RemoteRefreshClientList() {
-	SendMessageW(globalListView, LVM_DELETEALLITEMS, 0, 0);
+	/*SendMessageW(globalListView, LVM_DELETEALLITEMS, 0, 0);
 	LVITEMW item = {0};
 	item.mask = LVIF_TEXT;
 
@@ -250,5 +266,5 @@ void RemoteRefreshClientList() {
 		item.iSubItem = 1;
 		item.pszText = entry->address;
 		SendMessageW(globalListView, LVM_SETITEM, 0, (LPARAM) &item);
-	}
+	}*/
 }
