@@ -95,19 +95,20 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		return 1;
 	}
 
+	HANDLE serverThread = CreateThread(NULL, 0, ServerThread, NULL, 0, NULL);
+
+	if(!serverThread) {
+		KHWin32DialogErrorW(GetLastError(), L"CreateThread");
+		return 1;
+	}
+
+	CloseHandle(serverThread);
 	return MainWindowMessageLoop();
 	/*int returnValue = 1;
 
 	if(!KHArrayInitialize(&globalClientList, sizeof(CLIENTENTRY))) {
 		KHWin32DialogErrorW(GetLastError(), L"KHArrayInitialize");
 		goto unregisterWindowClass;
-	}
-
-	HANDLE serverThread = CreateThread(NULL, 0, ServerThread, NULL, 0, NULL);
-
-	if(!serverThread) {
-		RemoteError(GetLastError(), L"CreateThread");
-		goto freeGlobalClientList;
 	}
 
 	HMENU systemMenu = GetSystemMenu(globalWindow, FALSE);

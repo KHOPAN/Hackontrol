@@ -146,6 +146,7 @@
     <ClCompile Include="client.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="server.c" />
+    <ClCompile Include="thread_server.c" />
     <ClCompile Include="window_main.c" />
   </ItemGroup>
   <ItemGroup>
@@ -161,6 +162,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="connection.h" />
+    <ClInclude Include="thread_server.h" />
     <ClInclude Include="window_main.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

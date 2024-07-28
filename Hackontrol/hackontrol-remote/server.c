@@ -3,7 +3,7 @@
 
 #define REMOTE_PORT "42485"
 
-DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
+DWORD WINAPI NotServerThread(_In_ LPVOID parameter) {
 	WSADATA windowsSocketData;
 	int status = WSAStartup(MAKEWORD(2, 2), &windowsSocketData);
 
