@@ -1,5 +1,6 @@
 #include "connection.h"
 #include <CommCtrl.h>
+#include <hackontrolpacket.h>
 #include <khopanwin32.h>
 #include <khopanstring.h>
 #include <khopanarray.h>
@@ -7,6 +8,8 @@
 #define HACKONTROL_REMOTE L"HackontrolRemote"
 
 #define IDM_REMOTE_ALWAYS_ON_TOP 0xE000
+#define IDM_REMOTE_OPEN          0xE001
+#define IDM_REMOTE_DISCONNECT    0xE002
 
 #pragma warning(disable: 6001)
 #pragma warning(disable: 6258)
@@ -46,16 +49,24 @@ static LRESULT CALLBACK hackontrolRemoteProcedure(_In_ HWND window, _In_ UINT me
 			return 0;
 		}
 
-		LVITEMW listItem = {0};
-		listItem.mask = LVIF_TEXT;
-		listItem.iItem = hitTest.iItem;
+		CLIENTENTRY* entry;
 
-		if(!SendMessageW(globalListView, LVM_GETITEM, 0, (LPARAM) &listItem)) {
+		if(!KHArrayGet(&globalClientList, hitTest.iItem, &entry)) {
 			return 0;
 		}
 
 		SetForegroundWindow(globalWindow);
-		TrackPopupMenuEx(globalPopupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, x, y, window, NULL);
+		PACKET packet = {0};
+
+		switch(TrackPopupMenuEx(globalPopupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, x, y, window, NULL)) {
+		case IDM_REMOTE_DISCONNECT:
+			packet.packetType = PACKET_TYPE_INFORMATION;
+			SendPacket(entry->clientSocket, &packet);
+			RemoteRemoveEntry(entry->clientSocket);
+			RemoteRefreshClientList();
+			break;
+		}
+
 		return 0;
 	}
 	case WM_SYSCOMMAND:
@@ -193,12 +204,12 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto deleteFont;
 	}
 
-	if(!InsertMenuW(globalPopupMenu, 0, MF_BYPOSITION | MF_STRING, 1, L"Open")) {
+	if(!InsertMenuW(globalPopupMenu, 0, MF_BYPOSITION | MF_STRING, IDM_REMOTE_OPEN, L"Open")) {
 		RemoteError(GetLastError(), L"InsertMenuW");
 		goto destroyMenu;
 	}
 
-	if(!InsertMenuW(globalPopupMenu, 1, MF_BYPOSITION | MF_STRING, 2, L"Disconnect")) {
+	if(!InsertMenuW(globalPopupMenu, 1, MF_BYPOSITION | MF_STRING, IDM_REMOTE_DISCONNECT, L"Disconnect")) {
 		RemoteError(GetLastError(), L"InsertMenuW");
 		goto destroyMenu;
 	}

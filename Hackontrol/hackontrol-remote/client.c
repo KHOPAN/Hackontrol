@@ -71,8 +71,6 @@ DWORD WINAPI ClientThread(_In_ CLIENTENTRY* parameter) {
 
 	while(ReceivePacket(parameter->clientSocket, &packet)) {
 		switch(packet.packetType) {
-		case PACKET_TYPE_INFORMATION:
-			break;
 		case PACKET_TYPE_STREAM_FRAME:
 			break;
 		}
