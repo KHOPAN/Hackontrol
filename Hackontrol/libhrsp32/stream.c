@@ -1,3 +1,4 @@
+#include <hackontrolpacket.h>
 #include <hackontroljava.h>
 #include <khopanstring.h>
 #include <khopanjava.h>

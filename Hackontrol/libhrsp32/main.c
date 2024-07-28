@@ -1,4 +1,5 @@
 #include <WS2tcpip.h>
+#include <hackontrolpacket.h>
 #include <hackontroljava.h>
 #include <khopanjava.h>
 #include <lmcons.h>
