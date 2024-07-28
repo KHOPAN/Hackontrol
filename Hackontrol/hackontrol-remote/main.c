@@ -21,14 +21,14 @@ static HMENU globalPopupMenu;
 static LRESULT CALLBACK hackontrolRemoteProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	switch(message) {
 	case WM_CLOSE:
-		DestroyWindow(window);
+		DestroyWindow(globalWindow);
 		return 0;
 	case WM_DESTROY:
 		PostQuitMessage(globalExitCode);
 		return 0;
 	case WM_SIZE: {
 		RECT bounds;
-		GetClientRect(window, &bounds);
+		GetClientRect(globalWindow, &bounds);
 		SetWindowPos(globalTitledBorder, HWND_TOP, 0, 0, bounds.right - bounds.left - 10, bounds.bottom - bounds.top - 4, SWP_NOMOVE);
 		GetClientRect(globalTitledBorder, &bounds);
 		SetWindowPos(globalListView, HWND_TOP, bounds.left + 9, bounds.top + 17, bounds.right - bounds.left - 8, bounds.bottom - bounds.top - 22, 0);
@@ -54,17 +54,27 @@ static LRESULT CALLBACK hackontrolRemoteProcedure(_In_ HWND window, _In_ UINT me
 			return 0;
 		}
 
-		SetForegroundWindow(window);
+		SetForegroundWindow(globalWindow);
 		TrackPopupMenuEx(globalPopupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, x, y, window, NULL);
 		return 0;
 	}
 	case WM_SYSCOMMAND:
 		if(LOWORD(wparam) != IDM_REMOTE_ALWAYS_ON_TOP) {
-			return DefWindowProcW(window, message, wparam, lparam);
+			break;
 		}
 
-		SetWindowPos(window, (GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST) ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+		SetWindowPos(globalWindow, (GetWindowLongW(globalWindow, GWL_EXSTYLE) & WS_EX_TOPMOST) ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
 		return TRUE;
+	case WM_WINDOWPOSCHANGED: {
+		WINDOWPOS* position = (WINDOWPOS*) lparam;
+
+		if(!position || position->flags & SWP_NOZORDER) {
+			break;
+		}
+
+		CheckMenuItem(GetSystemMenu(globalWindow, FALSE), IDM_REMOTE_ALWAYS_ON_TOP, MF_BYCOMMAND | (GetWindowLongW(globalWindow, GWL_EXSTYLE) & WS_EX_TOPMOST ? MF_CHECKED : MF_UNCHECKED));
+		break;
+	}
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
@@ -91,7 +101,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto unregisterWindowClass;
 	}
 
-	globalWindow = CreateWindowExW(0, HACKONTROL_REMOTE, L"Hackontrol Remote", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, NULL, NULL, instance, NULL);
+	globalWindow = CreateWindowExW(WS_EX_TOPMOST, HACKONTROL_REMOTE, L"Hackontrol Remote", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, NULL, NULL, instance, NULL);
 
 	if(!globalWindow) {
 		KHWin32DialogErrorW(GetLastError(), L"CreateWindowExW");
@@ -107,7 +117,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 
 	HMENU systemMenu = GetSystemMenu(globalWindow, FALSE);
 
-	if(!InsertMenuW(systemMenu, SC_CLOSE, MF_BYCOMMAND | MF_ENABLED | MF_STRING, IDM_REMOTE_ALWAYS_ON_TOP, L"Always On Top")) {
+	if(!InsertMenuW(systemMenu, SC_CLOSE, MF_BYCOMMAND | MF_ENABLED | MF_STRING | (GetWindowLongW(globalWindow, GWL_EXSTYLE) & WS_EX_TOPMOST ? MF_CHECKED : MF_UNCHECKED), IDM_REMOTE_ALWAYS_ON_TOP, L"Always On Top")) {
 		RemoteError(GetLastError(), L"InsertMenuW");
 		goto closeServerThread;
 	}
