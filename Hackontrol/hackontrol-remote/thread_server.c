@@ -1,7 +1,7 @@
-#include <stdio.h>
 #include "thread_server.h"
+#include "logger.h"
 
 DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
-	printf("Hello from server thread\n");
+	LOG("[Server Thread]: Initializing Server Thread\n");
 	return 0;
 }

@@ -1,14 +1,10 @@
-#define DEBUG_WINDOW
-
 #include "connection.h"
-#ifdef DEBUG_WINDOW
-#include <stdio.h>
-#endif
 #include <hackontrolpacket.h>
 #include <khopanwin32.h>
 #include <khopanstring.h>
 #include <khopanarray.h>
 #include "window_main.h"
+#include "logger.h"
 
 #define IDM_REMOTE_ALWAYS_ON_TOP 0xE000
 #define IDM_REMOTE_OPEN          0xE001
@@ -95,7 +91,7 @@ static HMENU globalPopupMenu;
 }*/
 
 int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance, _In_ LPSTR argument, _In_ int commandLineShow) {
-#ifdef DEBUG_WINDOW
+#ifdef LOGGER_ENABLE
 	if(!AllocConsole()) {
 		KHWin32DialogErrorW(GetLastError(), L"AllocConsole");
 		return 1;
@@ -107,6 +103,8 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	freopen_s(&standardError, "CONOUT$", "w", stderr);
 	SetWindowTextW(GetConsoleWindow(), L"Hackontrol Remote Debug Log");
 #endif
+	LOG("[Hackontrol Remote]: Initializing Hackontrol Remote\n");
+
 	if(!InitializeMainWindow(instance)) {
 		return 1;
 	}
