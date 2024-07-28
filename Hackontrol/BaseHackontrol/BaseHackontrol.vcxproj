@@ -76,7 +76,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\library\libcurl-8.7.1\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;D:\library\libcurl-8.7.1\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -95,7 +95,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\library\libcurl-8.7.1\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;D:\library\libcurl-8.7.1\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -114,7 +114,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\library\libcurl-8.7.1\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;D:\library\libcurl-8.7.1\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -133,7 +133,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\library\libcurl-8.7.1\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;D:\library\libcurl-8.7.1\include;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -149,8 +149,10 @@
   <ItemGroup>
     <ClInclude Include="hackontrol.h" />
     <ClInclude Include="hackontrolcurl.h" />
+    <ClInclude Include="hackontroljava.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="hackontroljava.c" />
     <ClCompile Include="hackontrol_ensure_directory_existence.c" />
     <ClCompile Include="hackontrol_get_directory.c" />
     <ClCompile Include="hackontrol_download.c" />
