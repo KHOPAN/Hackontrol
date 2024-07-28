@@ -73,6 +73,25 @@ BOOL InitializeMainWindow(const HINSTANCE instance) {
 		return FALSE;
 	}
 
+	SendMessageW(listView, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT);
+	LVCOLUMNW column = {0};
+	column.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
+	column.cx = (int) (((double) GetSystemMetrics(SM_CXSCREEN)) * 0.109809663);
+	column.fmt = LVCFMT_LEFT;
+	column.pszText = L"IP Address";
+
+	if(SendMessageW(listView, LVM_INSERTCOLUMN, 0, (LPARAM) &column) == -1) {
+		KHWin32DialogErrorW(GetLastError(), L"ListView_InsertColumn");
+		return FALSE;
+	}
+
+	column.pszText = L"Username";
+
+	if(SendMessageW(listView, LVM_INSERTCOLUMN, 0, (LPARAM) &column) == 1) {
+		KHWin32DialogErrorW(GetLastError(), L"ListView_InsertColumn");
+		return FALSE;
+	}
+
 	return TRUE;
 }
 

@@ -125,25 +125,6 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto closeServerThread;
 	}
 
-	SendMessageW(globalListView, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT);
-	LVCOLUMNW column = {0};
-	column.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
-	column.cx = (int) (((double) screenWidth) * 0.109809663);
-	column.fmt = LVCFMT_LEFT;
-	column.pszText = L"IP Address";
-
-	if(SendMessageW(globalListView, LVM_INSERTCOLUMN, 0, (LPARAM) &column) == -1) {
-		RemoteError(GetLastError(), L"ListView_InsertColumn");
-		goto closeServerThread;
-	}
-
-	column.pszText = L"Username";
-
-	if(SendMessageW(globalListView, LVM_INSERTCOLUMN, 0, (LPARAM) &column) == 1) {
-		RemoteError(GetLastError(), L"ListView_InsertColumn");
-		goto closeServerThread;
-	}
-
 	NONCLIENTMETRICS metrics;
 	metrics.cbSize = sizeof(NONCLIENTMETRICS);
 
