@@ -18,24 +18,12 @@
     <ClCompile Include="main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="exception.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="stream.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="packet.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="exception.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="stream.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="packet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

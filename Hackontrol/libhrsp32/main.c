@@ -1,9 +1,8 @@
 #include <WS2tcpip.h>
+#include <hackontroljava.h>
 #include <khopanjava.h>
 #include <lmcons.h>
-#include "exception.h"
 #include "stream.h"
-#include "packet.h"
 
 #pragma warning(disable: 6258)
 
