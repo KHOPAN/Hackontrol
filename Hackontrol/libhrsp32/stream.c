@@ -266,6 +266,8 @@ DWORD WINAPI ScreenStreamThread(_In_ STREAMPARAMETER* parameter) {
 	}
 
 	JavaVM* virtualMachine = parameter->virtualMachine;
+	SOCKET clientSocket = parameter->clientSocket;
+	LocalFree(parameter);
 	JNIEnv* environment = NULL;
 	JavaVMAttachArgs arguments = {0};
 	arguments.version = JNI_VERSION_21;
@@ -307,7 +309,7 @@ DWORD WINAPI ScreenStreamThread(_In_ STREAMPARAMETER* parameter) {
 			goto freePreviousBuffer;
 		}
 
-		if(!SendPacket(parameter->clientSocket, &packet)) {
+		if(!SendPacket(clientSocket, &packet)) {
 			HackontrolThrowWin32Error(environment, L"SendPacket");
 			goto freePreviousBuffer;
 		}

@@ -148,13 +148,20 @@ _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment,
 		goto closeSocket;
 	}
 
-	STREAMPARAMETER streamParameter;
-	streamParameter.virtualMachine = virtualMachine;
-	streamParameter.clientSocket = clientSocket;
-	HANDLE screenStreamThread = CreateThread(NULL, 0, ScreenStreamThread, &streamParameter, 0, NULL);
+	STREAMPARAMETER* streamParameter = LocalAlloc(LMEM_FIXED, sizeof(STREAMPARAMETER));
+
+	if(!streamParameter) {
+		HackontrolThrowWin32Error(environment, L"LocalAlloc");
+		goto closeSocket;
+	}
+
+	streamParameter->virtualMachine = virtualMachine;
+	streamParameter->clientSocket = clientSocket;
+	HANDLE screenStreamThread = CreateThread(NULL, 0, ScreenStreamThread, streamParameter, 0, NULL);
 
 	if(!screenStreamThread) {
 		HackontrolThrowWin32Error(environment, L"CreateThread");
+		LocalFree(streamParameter);
 		goto closeSocket;
 	}
 
