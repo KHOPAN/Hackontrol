@@ -59,21 +59,27 @@ DWORD WINAPI ClientThread(_In_ CLIENTENTRY* parameter) {
 		goto closeSocket;
 	}
 
+	if(packet.packetType != PACKET_TYPE_INFORMATION) {
+		goto closeSocket;
+	}
+
 	BYTE* data = packet.data;
 	int width = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
 	int height = (data[4] << 24) | (data[5] << 16) | (data[6] << 8) | data[7];
 	parameter->username = getUsername(&packet);
 	RemoteRefreshClientList();
 
-	while(TRUE) {
-		if(!ReceivePacket(parameter->clientSocket, &packet)) {
-
+	while(ReceivePacket(parameter->clientSocket, &packet)) {
+		switch(packet.packetType) {
+		case PACKET_TYPE_INFORMATION:
+			break;
+		case PACKET_TYPE_STREAM_FRAME:
+			break;
 		}
 	}
-
-	RemoteRemoveEntry(parameter->clientSocket);
-	RemoteRefreshClientList();
 closeSocket:
+	RemoteRemoveEntry(parameter->clientSocket);
 	closesocket(parameter->clientSocket);
+	RemoteRefreshClientList();
 	return 0;
 }

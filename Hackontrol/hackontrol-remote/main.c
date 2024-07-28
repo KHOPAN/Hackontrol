@@ -52,7 +52,6 @@ static LRESULT CALLBACK hackontrolRemoteProcedure(_In_ HWND window, _In_ UINT me
 			return 0;
 		}
 
-		MessageBoxW(NULL, KHFormatMessageW(L"Item: %d", listItem.iItem), L"Remote", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 		SetForegroundWindow(window);
 		TrackPopupMenuEx(globalPopupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, x, y, window, NULL);
 		return 0;
