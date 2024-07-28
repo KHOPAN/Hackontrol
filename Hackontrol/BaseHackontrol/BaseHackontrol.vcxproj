@@ -150,6 +150,7 @@
     <ClInclude Include="hackontrol.h" />
     <ClInclude Include="hackontrolcurl.h" />
     <ClInclude Include="hackontroljava.h" />
+    <ClInclude Include="hackontrolpacket.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="hackontroljava.c" />
