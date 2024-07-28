@@ -6,6 +6,8 @@
 
 #define HACKONTROL_REMOTE L"HackontrolRemote"
 
+#define IDM_REMOTE_ALWAYS_ON_TOP 0x01
+
 #pragma warning(disable: 6001)
 #pragma warning(disable: 6258)
 
@@ -94,6 +96,18 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	if(!serverThread) {
 		RemoteError(GetLastError(), L"CreateThread");
 		goto freeGlobalClientList;
+	}
+
+	HMENU systemMenu = GetSystemMenu(globalWindow, FALSE);
+
+	if(!InsertMenuW(systemMenu, SC_CLOSE, MF_BYCOMMAND | MF_ENABLED | MF_STRING, IDM_REMOTE_ALWAYS_ON_TOP, L"Always On Top")) {
+		RemoteError(GetLastError(), L"InsertMenuW");
+		goto closeServerThread;
+	}
+
+	if(!InsertMenuW(systemMenu, SC_CLOSE, MF_BYCOMMAND | MF_SEPARATOR, 0, NULL)) {
+		RemoteError(GetLastError(), L"InsertMenuW");
+		goto closeServerThread;
 	}
 
 	globalTitledBorder = CreateWindowExW(0, L"Button", L"Connected Devices", WS_CHILD | WS_VISIBLE | BS_GROUPBOX, 5, 0, 0, 0, globalWindow, NULL, NULL, NULL);
