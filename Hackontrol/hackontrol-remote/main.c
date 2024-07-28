@@ -95,10 +95,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		return 1;
 	}
 
-	if(!MainWindowMessageLoop()) {
-		return 1;
-	}
-
+	return MainWindowMessageLoop();
 	/*int returnValue = 1;
 
 	if(!KHArrayInitialize(&globalClientList, sizeof(CLIENTENTRY))) {
