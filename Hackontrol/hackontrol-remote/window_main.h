@@ -5,4 +5,4 @@
 #define CLASS_HACKONTROL_REMOTE L"HackontrolRemote"
 
 BOOL InitializeMainWindow(const HINSTANCE instance);
-void MainWindowMessageLoop();
+BOOL MainWindowMessageLoop();
