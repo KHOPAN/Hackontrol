@@ -109,6 +109,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		return 1;
 	}
 
+	LOG("[Hackontrol Remote]: Starting server thread\n");
 	HANDLE serverThread = CreateThread(NULL, 0, ServerThread, NULL, 0, NULL);
 
 	if(!serverThread) {

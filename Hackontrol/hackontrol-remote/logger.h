@@ -4,7 +4,7 @@
 
 #ifdef LOGGER_ENABLE
 #include <stdio.h>
-#define LOG(x) printf(x)
+#define LOG(x) do{printf(x);_flushall();}while(0)
 #else
 #define LOG(x)
 #endif

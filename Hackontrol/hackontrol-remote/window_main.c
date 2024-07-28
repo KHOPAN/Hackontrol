@@ -1,6 +1,7 @@
 #include <khopanwin32.h>
 #include <CommCtrl.h>
 #include "window_main.h"
+#include "logger.h"
 
 static HINSTANCE windowInstance;
 static HWND window;
@@ -43,6 +44,7 @@ BOOL InitializeMainWindow(const HINSTANCE instance) {
 		return FALSE;
 	}
 
+	LOG("[Hackontrol Remote]: Creating the main window\n");
 	window = CreateWindowExW(0, CLASS_HACKONTROL_REMOTE, L"Hackontrol Remote", WS_OVERLAPPEDWINDOW, 0, 0, 0, 0, NULL, NULL, windowInstance, NULL);
 
 	if(!window) {
@@ -123,6 +125,7 @@ int MainWindowMessageLoop() {
 		return 1;
 	}
 
+	LOG("[Hackontrol Remote]: Starting the message loop\n");
 	MSG message;
 
 	while(GetMessageW(&message, NULL, 0, 0)) {
@@ -131,5 +134,6 @@ int MainWindowMessageLoop() {
 	}
 
 	DeleteObject(font);
+	LOG("[Hackontrol Remote]: Exiting\n");
 	return 0;
 }
