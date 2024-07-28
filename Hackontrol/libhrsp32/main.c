@@ -158,19 +158,12 @@ _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment,
 		goto closeScreenStreamThread;
 	}
 
-	HANDLE inputStreamThread = CreateThread(NULL, 0, InputStreamThread, &streamParameter, 0, NULL);
-
-	if(!inputStreamThread) {
-		HackontrolThrowWin32Error(environment, L"CreateThread");
-		goto closeScreenStreamThread;
-	}
-
 	PACKET packet;
 
 	while(TRUE) {
 		if(!ReceivePacket(clientSocket, &packet)) {
 			HackontrolThrowWin32Error(environment, L"ReceivePacket");
-			goto closeInputStreamThread;
+			goto closeScreenStreamThread;
 		}
 
 		switch(packet.packetType) {
@@ -187,8 +180,6 @@ _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment,
 	}
 disconnect:
 	(*environment)->CallObjectMethod(environment, callback, acceptMethod, (*environment)->NewStringUTF(environment, "**Disconnected**"));
-closeInputStreamThread:
-	CloseHandle(inputStreamThread);
 closeScreenStreamThread:
 	CloseHandle(screenStreamThread);
 closeSocket:
