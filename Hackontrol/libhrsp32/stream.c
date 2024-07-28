@@ -24,7 +24,8 @@
  * 
  * Note: If bit 1 and 2 were set, uncompresed frame will be send instead (for some reason, I can't get boundary and color difference to work together
  */
-static unsigned char globalStreamSettings = 0;
+static unsigned char globalStreamSettings;
+static unsigned char globalExit;
 
 static void drawCursor(const HDC context) {
 	CURSORINFO cursorInformation;
@@ -301,7 +302,7 @@ DWORD WINAPI ScreenStreamThread(_In_ STREAMPARAMETER* parameter) {
 	PACKET packet;
 	packet.packetType = PACKET_TYPE_STREAM_FRAME;
 
-	while(TRUE) {
+	while(!globalExit) {
 		if(!takeScreenshot(environment, &packet, width, height, screenshotBuffer, qoiBuffer, previousBuffer)) {
 			goto freePreviousBuffer;
 		}
@@ -327,6 +328,7 @@ detachThread:
 	return 0;
 }
 
-void SetStreamParameter(unsigned char streamSettings) {
+void SetStreamParameter(unsigned char exit, unsigned char streamSettings) {
 	globalStreamSettings = streamSettings;
+	globalExit = exit;
 }

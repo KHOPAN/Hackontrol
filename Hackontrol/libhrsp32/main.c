@@ -5,6 +5,10 @@
 #include "stream.h"
 #include "packet.h"
 
+#pragma warning(disable: 6258)
+
+#define WAIT_MAXIMUM 5000
+
 static BOOL sendInformationPacket(JNIEnv* const environment, const SOCKET clientSocket) {
 	HDC context = GetDC(NULL);
 	int width = GetDeviceCaps(context, HORZRES);
@@ -170,7 +174,7 @@ _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment,
 		case PACKET_TYPE_INFORMATION:
 			goto disconnect;
 		case PACKET_TYPE_STREAM_FRAME:
-			SetStreamParameter(packet.data ? ((unsigned char*) packet.data)[0] : 0);
+			SetStreamParameter(0, packet.data ? ((unsigned char*) packet.data)[0] : 0);
 			break;
 		}
 
@@ -179,8 +183,11 @@ _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment,
 		}
 	}
 disconnect:
+	SetStreamParameter(1, 0);
+	WaitForSingleObject(screenStreamThread, WAIT_MAXIMUM);
 	(*environment)->CallObjectMethod(environment, callback, acceptMethod, (*environment)->NewStringUTF(environment, "**Disconnected**"));
 closeScreenStreamThread:
+	TerminateThread(screenStreamThread, 0);
 	CloseHandle(screenStreamThread);
 closeSocket:
 	closesocket(clientSocket);

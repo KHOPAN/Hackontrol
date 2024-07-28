@@ -9,4 +9,4 @@ typedef struct {
 } STREAMPARAMETER;
 
 DWORD WINAPI ScreenStreamThread(_In_ STREAMPARAMETER* parameter);
-void SetStreamParameter(unsigned char streamSettings);
+void SetStreamParameter(unsigned char exit, unsigned char streamSettings);
