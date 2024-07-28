@@ -96,6 +96,22 @@ BOOL InitializeMainWindow(const HINSTANCE instance) {
 }
 
 BOOL MainWindowMessageLoop() {
+	NONCLIENTMETRICS metrics;
+	metrics.cbSize = sizeof(NONCLIENTMETRICS);
+
+	if(!SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, metrics.cbSize, &metrics, 0)) {
+		KHWin32DialogErrorW(GetLastError(), L"SystemParametersInfoW");
+		return FALSE;
+	}
+
+	HFONT font = CreateFontIndirectW(&metrics.lfCaptionFont);
+
+	if(!font) {
+		KHWin32DialogErrorW(GetLastError(), L"CreateFontIndirectW");
+		return FALSE;
+	}
+
+	SendMessageW(titledBorder, WM_SETFONT, (WPARAM) font, TRUE);
 	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
 	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	int width = (int) (((double) screenWidth) * 0.292825769);
@@ -104,6 +120,7 @@ BOOL MainWindowMessageLoop() {
 
 	if(!SetWindowPos(window, HWND_TOPMOST, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, SWP_SHOWWINDOW)) {
 		KHWin32DialogErrorW(GetLastError(), L"SetWindowPos");
+		DeleteObject(font);
 		return FALSE;
 	}
 
@@ -114,5 +131,6 @@ BOOL MainWindowMessageLoop() {
 		DispatchMessageW(&message);
 	}
 
+	DeleteObject(font);
 	return TRUE;
 }

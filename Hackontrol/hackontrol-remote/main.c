@@ -125,22 +125,6 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto closeServerThread;
 	}
 
-	NONCLIENTMETRICS metrics;
-	metrics.cbSize = sizeof(NONCLIENTMETRICS);
-
-	if(!SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, metrics.cbSize, &metrics, 0)) {
-		RemoteError(GetLastError(), L"SystemParametersInfoW");
-		goto closeServerThread;
-	}
-
-	HFONT font = CreateFontIndirectW(&metrics.lfCaptionFont);
-
-	if(!font) {
-		RemoteError(GetLastError(), L"CreateFontIndirectW");
-		goto closeServerThread;
-	}
-
-	SendMessageW(globalTitledBorder, WM_SETFONT, (WPARAM) font, TRUE);
 	globalPopupMenu = CreatePopupMenu();
 
 	if(!globalPopupMenu) {
@@ -161,8 +145,6 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	returnValue |= globalExitCode;
 destroyMenu:
 	DestroyMenu(globalPopupMenu);
-deleteFont:
-	DeleteObject(font);
 closeServerThread:
 	TerminateThread(serverThread, 0);
 	CloseHandle(serverThread);
