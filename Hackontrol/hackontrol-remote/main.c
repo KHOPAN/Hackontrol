@@ -125,29 +125,6 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto closeServerThread;
 	}
 
-	globalTitledBorder = CreateWindowExW(0, L"Button", L"Connected Devices", WS_CHILD | WS_VISIBLE | BS_GROUPBOX, 5, 0, 0, 0, globalWindow, NULL, NULL, NULL);
-
-	if(!globalTitledBorder) {
-		RemoteError(GetLastError(), L"CreateWindowExW");
-		goto closeServerThread;
-	}
-
-	INITCOMMONCONTROLSEX controls;
-	controls.dwSize = sizeof(INITCOMMONCONTROLSEX);
-	controls.dwICC = ICC_LISTVIEW_CLASSES;
-
-	if(!InitCommonControlsEx(&controls)) {
-		RemoteError(ERROR_FUNCTION_FAILED, L"InitCommonControlsEx");
-		goto closeServerThread;
-	}
-
-	globalListView = CreateWindowExW(WS_EX_NOPARENTNOTIFY | WS_EX_CLIENTEDGE, WC_LISTVIEW, L"", WS_CHILD | WS_VISIBLE | WS_VSCROLL | LVS_REPORT | LVS_SINGLESEL, 0, 0, 0, 0, globalWindow, NULL, NULL, NULL);
-
-	if(!globalListView) {
-		RemoteError(GetLastError(), L"CreateWindowExW");
-		goto closeServerThread;
-	}
-
 	SendMessageW(globalListView, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT);
 	LVCOLUMNW column = {0};
 	column.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;

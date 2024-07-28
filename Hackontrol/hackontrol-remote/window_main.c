@@ -1,14 +1,38 @@
 #include <khopanwin32.h>
+#include <CommCtrl.h>
 #include "window_main.h"
 
 static HINSTANCE windowInstance;
 static HWND window;
+static HWND titledBorder;
+static HWND listView;
+
+static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
+	switch(message) {
+	case WM_CLOSE:
+		DestroyWindow(window);
+		return 0;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+	case WM_SIZE: {
+		RECT bounds;
+		GetClientRect(window, &bounds);
+		SetWindowPos(titledBorder, HWND_TOP, 0, 0, bounds.right - bounds.left - 10, bounds.bottom - bounds.top - 4, SWP_NOMOVE);
+		GetClientRect(titledBorder, &bounds);
+		SetWindowPos(listView, HWND_TOP, bounds.left + 9, bounds.top + 17, bounds.right - bounds.left - 8, bounds.bottom - bounds.top - 22, 0);
+		return 0;
+	}
+	}
+
+	return DefWindowProcW(inputWindow, message, wparam, lparam);
+}
 
 BOOL InitializeMainWindow(const HINSTANCE instance) {
 	windowInstance = instance;
 	WNDCLASSEXW windowClass = {0};
 	windowClass.cbSize = sizeof(WNDCLASSEXW);
-	windowClass.lpfnWndProc = DefWindowProcW;
+	windowClass.lpfnWndProc = windowProcedure;
 	windowClass.hInstance = windowInstance;
 	windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
 	windowClass.hbrBackground = (HBRUSH) COLOR_WINDOW;
@@ -22,6 +46,29 @@ BOOL InitializeMainWindow(const HINSTANCE instance) {
 	window = CreateWindowExW(0, CLASS_HACKONTROL_REMOTE, L"Hackontrol Remote", WS_OVERLAPPEDWINDOW, 0, 0, 0, 0, NULL, NULL, windowInstance, NULL);
 
 	if(!window) {
+		KHWin32DialogErrorW(GetLastError(), L"CreateWindowExW");
+		return FALSE;
+	}
+
+	titledBorder = CreateWindowExW(0, L"Button", L"Connected Devices", WS_CHILD | WS_VISIBLE | BS_GROUPBOX, 5, 0, 0, 0, window, NULL, NULL, NULL);
+
+	if(!titledBorder) {
+		KHWin32DialogErrorW(GetLastError(), L"CreateWindowExW");
+		return FALSE;
+	}
+
+	INITCOMMONCONTROLSEX controls;
+	controls.dwSize = sizeof(INITCOMMONCONTROLSEX);
+	controls.dwICC = ICC_LISTVIEW_CLASSES;
+
+	if(!InitCommonControlsEx(&controls)) {
+		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"InitCommonControlsEx");
+		return FALSE;
+	}
+
+	listView = CreateWindowExW(WS_EX_NOPARENTNOTIFY | WS_EX_CLIENTEDGE, WC_LISTVIEW, L"", WS_CHILD | WS_VISIBLE | WS_VSCROLL | LVS_REPORT | LVS_SINGLESEL, 0, 0, 0, 0, window, NULL, NULL, NULL);
+
+	if(!listView) {
 		KHWin32DialogErrorW(GetLastError(), L"CreateWindowExW");
 		return FALSE;
 	}
