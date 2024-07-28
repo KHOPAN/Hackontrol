@@ -24,18 +24,12 @@
     <ClCompile Include="client.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="packet.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="hackontrol-remote.exe.manifest" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="connection.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="packet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

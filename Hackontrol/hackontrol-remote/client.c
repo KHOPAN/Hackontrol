@@ -1,10 +1,10 @@
 #include "connection.h"
 #include <khopanstring.h>
 #include <khopanwin32.h>
-#include "packet.h"
+#include <hackontrolpacket.h>
 
-static LPWSTR getUsername(const PACKET packet) {
-	int size = packet.size - 8;
+static LPWSTR getUsername(const PACKET* packet) {
+	int size = packet->size - 8;
 
 	if(size < 1) {
 		return NULL;
@@ -16,7 +16,7 @@ static LPWSTR getUsername(const PACKET packet) {
 		return NULL;
 	}
 
-	BYTE* data = packet.data;
+	BYTE* data = packet->data;
 
 	for(int i = 0; i < size; i++) {
 		buffer[i] = data[i + 8];
@@ -62,9 +62,8 @@ DWORD WINAPI ClientThread(_In_ CLIENTENTRY* parameter) {
 	BYTE* data = packet.data;
 	int width = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
 	int height = (data[4] << 24) | (data[5] << 16) | (data[6] << 8) | data[7];
-	parameter->username = getUsername(packet);
+	parameter->username = getUsername(&packet);
 	RemoteRefreshClientList();
-	PACKET packet;
 
 	while(TRUE) {
 		if(!ReceivePacket(parameter->clientSocket, &packet)) {
