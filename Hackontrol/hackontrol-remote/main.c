@@ -95,6 +95,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		return 1;
 	}
 
+	MainWindowMessageLoop();
 	/*int returnValue = 1;
 
 	if(!KHArrayInitialize(&globalClientList, sizeof(CLIENTENTRY))) {
@@ -147,7 +148,6 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	SendMessageW(globalListView, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT);
 	LVCOLUMNW column = {0};
 	column.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
-	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
 	column.cx = (int) (((double) screenWidth) * 0.109809663);
 	column.fmt = LVCFMT_LEFT;
 	column.pszText = L"IP Address";
@@ -195,22 +195,6 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	if(!InsertMenuW(globalPopupMenu, 1, MF_BYPOSITION | MF_STRING, IDM_REMOTE_DISCONNECT, L"Disconnect")) {
 		RemoteError(GetLastError(), L"InsertMenuW");
 		goto destroyMenu;
-	}
-
-	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
-	int width = (int) (((double) screenWidth) * 0.292825769);
-	int height = (int) (((double) screenHeight) * 0.78125);
-
-	if(!SetWindowPos(globalWindow, HWND_TOP, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, SWP_SHOWWINDOW)) {
-		RemoteError(GetLastError(), L"SetWindowPos");
-		goto destroyMenu;
-	}
-
-	MSG message;
-
-	while(GetMessageW(&message, NULL, 0, 0)) {
-		TranslateMessage(&message);
-		DispatchMessageW(&message);
 	}
 
 	returnValue |= globalExitCode;
