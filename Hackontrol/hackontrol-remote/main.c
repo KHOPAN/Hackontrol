@@ -1,8 +1,8 @@
 #include "connection.h"
-#include <khopanwin32.h>
-#include <khopanarray.h>
 #include <CommCtrl.h>
+#include <khopanwin32.h>
 #include <khopanstring.h>
+#include <khopanarray.h>
 
 #define HACKONTROL_REMOTE L"HackontrolRemote"
 
