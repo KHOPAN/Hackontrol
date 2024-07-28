@@ -6,7 +6,7 @@
 
 #define HACKONTROL_REMOTE L"HackontrolRemote"
 
-#define IDM_REMOTE_ALWAYS_ON_TOP 0x01
+#define IDM_REMOTE_ALWAYS_ON_TOP 0xE000
 
 #pragma warning(disable: 6001)
 #pragma warning(disable: 6258)
@@ -58,6 +58,13 @@ static LRESULT CALLBACK hackontrolRemoteProcedure(_In_ HWND window, _In_ UINT me
 		TrackPopupMenuEx(globalPopupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, x, y, window, NULL);
 		return 0;
 	}
+	case WM_SYSCOMMAND:
+		if(LOWORD(wparam) != IDM_REMOTE_ALWAYS_ON_TOP) {
+			return DefWindowProcW(window, message, wparam, lparam);
+		}
+
+		SetWindowPos(window, (GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST) ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+		return TRUE;
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
