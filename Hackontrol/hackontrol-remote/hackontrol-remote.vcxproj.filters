@@ -16,6 +16,9 @@
     <Filter Include="Source Files\window">
       <UniqueIdentifier>{6d764e4e-ccd8-42ff-a654-baed12937d2b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\window">
+      <UniqueIdentifier>{db15079f-1f73-4c26-85be-b9b816e25cf3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.c">
@@ -38,8 +41,8 @@
     <ClInclude Include="connection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="window.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="window_main.h">
+      <Filter>Header Files\window</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

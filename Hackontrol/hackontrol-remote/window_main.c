@@ -1,5 +1,7 @@
 #include <khopanwin32.h>
-#include "window.h"
+#include "window_main.h"
+
+static HWND window;
 
 BOOL InitializeMainWindow(const HINSTANCE instance) {
 	WNDCLASSEXW windowClass = {0};
@@ -15,5 +17,13 @@ BOOL InitializeMainWindow(const HINSTANCE instance) {
 		return FALSE;
 	}
 
+	window = CreateWindowExW(WS_EX_TOPMOST, CLASS_HACKONTROL_REMOTE, L"Hackontrol Remote", WS_OVERLAPPEDWINDOW, 0, 0, 0, 0, NULL, NULL, instance, NULL);
+
+	if(!window) {
+		KHWin32DialogErrorW(GetLastError(), L"CreateWindowExW");
+		goto unregisterClass;
+	}
+unregisterClass:
+	UnregisterClassW(CLASS_HACKONTROL_REMOTE, instance);
 	return TRUE;
 }

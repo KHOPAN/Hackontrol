@@ -4,9 +4,7 @@
 #include <khopanwin32.h>
 #include <khopanstring.h>
 #include <khopanarray.h>
-#include "window.h"
-
-#define HACKONTROL_REMOTE L"HackontrolRemote"
+#include "window_main.h"
 
 #define IDM_REMOTE_ALWAYS_ON_TOP 0xE000
 #define IDM_REMOTE_OPEN          0xE001
@@ -102,13 +100,6 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	if(!KHArrayInitialize(&globalClientList, sizeof(CLIENTENTRY))) {
 		KHWin32DialogErrorW(GetLastError(), L"KHArrayInitialize");
 		goto unregisterWindowClass;
-	}
-
-	globalWindow = CreateWindowExW(WS_EX_TOPMOST, HACKONTROL_REMOTE, L"Hackontrol Remote", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, NULL, NULL, instance, NULL);
-
-	if(!globalWindow) {
-		KHWin32DialogErrorW(GetLastError(), L"CreateWindowExW");
-		goto freeGlobalClientList;
 	}
 
 	HANDLE serverThread = CreateThread(NULL, 0, ServerThread, NULL, 0, NULL);
@@ -250,14 +241,7 @@ freeGlobalClientList:
 		}
 	}
 
-	KHArrayFree(&globalClientList);
-unregisterWindowClass:
-	if(!UnregisterClassW(HACKONTROL_REMOTE, instance)) {
-		KHWin32DialogErrorW(GetLastError(), L"UnregisterClassW");
-		return 1;
-	}
-
-	return returnValue;*/
+	KHArrayFree(&globalClientList);*/
 	return 0;
 }
 
