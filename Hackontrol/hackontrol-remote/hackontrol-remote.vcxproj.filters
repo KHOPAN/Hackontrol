@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\window">
+      <UniqueIdentifier>{6d764e4e-ccd8-42ff-a654-baed12937d2b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.c">
@@ -24,12 +27,18 @@
     <ClCompile Include="client.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="window_main.c">
+      <Filter>Source Files\window</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="hackontrol-remote.exe.manifest" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="connection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

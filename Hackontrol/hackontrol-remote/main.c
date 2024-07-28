@@ -4,6 +4,7 @@
 #include <khopanwin32.h>
 #include <khopanstring.h>
 #include <khopanarray.h>
+#include "window.h"
 
 #define HACKONTROL_REMOTE L"HackontrolRemote"
 
@@ -92,20 +93,11 @@ static LRESULT CALLBACK hackontrolRemoteProcedure(_In_ HWND window, _In_ UINT me
 }
 
 int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance, _In_ LPSTR argument, _In_ int commandLineShow) {
-	WNDCLASSEXW windowClass = {0};
-	windowClass.cbSize = sizeof(WNDCLASSEXW);
-	windowClass.lpfnWndProc = hackontrolRemoteProcedure;
-	windowClass.hInstance = instance;
-	windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
-	windowClass.hbrBackground = (HBRUSH) COLOR_WINDOW;
-	windowClass.lpszClassName = HACKONTROL_REMOTE;
-
-	if(!RegisterClassExW(&windowClass)) {
-		KHWin32DialogErrorW(GetLastError(), L"RegisterClassExW");
+	if(!InitializeMainWindow(instance)) {
 		return 1;
 	}
 
-	int returnValue = 1;
+	/*int returnValue = 1;
 
 	if(!KHArrayInitialize(&globalClientList, sizeof(CLIENTENTRY))) {
 		KHWin32DialogErrorW(GetLastError(), L"KHArrayInitialize");
@@ -265,7 +257,8 @@ unregisterWindowClass:
 		return 1;
 	}
 
-	return returnValue;
+	return returnValue;*/
+	return 0;
 }
 
 void ExitRemote(int exitCode) {
