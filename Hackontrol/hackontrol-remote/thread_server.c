@@ -12,10 +12,11 @@ DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
 	LOG("[Server Thread]: Hello from server thread\n");
 	WSADATA socketData;
 	int status = WSAStartup(MAKEWORD(2, 2), &socketData);
+	int returnValue = 1;
 
 	if(status) {
 		KHWin32DialogErrorW(status, L"WSAStartup");
-		return 0;
+		goto exit;
 	}
 
 	LOG("[Server Thread]: WSA Description: %s\n" COMMA socketData.szDescription);
@@ -85,12 +86,14 @@ DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
 	}
 
 	ExitMainWindow();
+	returnValue = 0;
 closeListenSocket:
 	closesocket(listenSocket);
 cleanup:
 	WSACleanup();
-	LOG("[Server Thread]: Exiting the server thread\n");
-	return 0;
+exit:
+	LOG("[Server Thread]: Exiting the server thread (Exit code: %d)\n" COMMA returnValue);
+	return returnValue;
 }
 
 void ExitServerThread() {
