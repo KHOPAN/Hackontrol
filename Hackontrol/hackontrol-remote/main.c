@@ -91,10 +91,11 @@ static HMENU globalPopupMenu;
 }*/
 
 int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance, _In_ LPSTR argument, _In_ int commandLineShow) {
+	int returnValue = 1;
 #ifdef LOGGER_ENABLE
 	if(!AllocConsole()) {
 		KHWin32DialogErrorW(GetLastError(), L"AllocConsole");
-		return 1;
+		goto exit;
 	}
 
 	FILE* standardOutput = stdout;
@@ -106,7 +107,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	LOG("[Hackontrol Remote]: Initializing Hackontrol Remote\n");
 
 	if(!InitializeMainWindow(instance)) {
-		return 1;
+		goto exit;
 	}
 
 	LOG("[Hackontrol Remote]: Starting server thread\n");
@@ -114,15 +115,16 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 
 	if(!serverThread) {
 		KHWin32DialogErrorW(GetLastError(), L"CreateThread");
-		return 1;
+		goto exit;
 	}
 
-	int returnValue = MainWindowMessageLoop();
+	returnValue = MainWindowMessageLoop();
 	LOG("[Hackontrol Remote]: Waiting for server thread to exit\n");
 	ExitServerThread();
 	WaitForSingleObject(serverThread, INFINITE);
 	CloseHandle(serverThread);
-	LOG("[Hackontrol Remote]: Exiting the main thread\n");
+exit:
+	LOG("[Hackontrol Remote]: Exiting the main thread (Exit code: %d)\n" COMMA returnValue);
 	return returnValue;
 	/*int returnValue = 1;
 
