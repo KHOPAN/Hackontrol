@@ -62,8 +62,15 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 
 		InsertMenuW(popupMenu, -1, MF_BYPOSITION | MF_STRING, IDM_REMOTE_REFRESH, L"Refresh");
 		SetForegroundWindow(window);
-		TrackPopupMenuEx(popupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, x, y, window, NULL);
+		BOOL response = TrackPopupMenuEx(popupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, x, y, window, NULL);
 		DestroyMenu(popupMenu);
+
+		switch(response) {
+		case IDM_REMOTE_REFRESH:
+			RefreshMainWindowListView();
+			break;
+		}
+
 		return 0;
 	}
 	}
