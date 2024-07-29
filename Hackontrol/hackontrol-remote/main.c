@@ -129,16 +129,28 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	}
 
 	returnValue = MainWindowMessageLoop();
+	LOG("[Hackontrol Remote]: Waiting for all client threads to exit\n");
+
+	for(size_t i = 0; i < clientList.elementCount; i++) {
+		PCLIENT client;
+
+		if(!KHArrayGet(&clientList, i, &client)) {
+			KHWin32DialogErrorW(GetLastError(), L"KHArrayGet");
+			continue;
+		}
+
+		closesocket(client->socket);
+		WaitForSingleObject(client->thread, INFINITE);
+	}
+
 	LOG("[Hackontrol Remote]: Waiting for server thread to exit\n");
 	ExitServerThread();
-	LOG("Count: %llu\n" COMMA clientList.elementCount);
 	WaitForSingleObject(serverThread, INFINITE);
 	CloseHandle(serverThread);
 freeClientList:
 	KHArrayFree(&clientList);
 exit:
 	LOG("[Hackontrol Remote]: Exiting the main thread (Exit code: %d)\n" COMMA returnValue);
-	Sleep(INFINITE);
 	return returnValue;
 	/*int returnValue = 1;
 
