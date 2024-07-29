@@ -93,6 +93,7 @@ static HMENU globalPopupMenu;
 int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance, _In_ LPSTR argument, _In_ int commandLineShow) {
 	int returnValue = 1;
 #ifdef LOGGER_ENABLE
+#ifndef NO_CONSOLE
 	if(!AllocConsole()) {
 		KHWin32DialogErrorW(GetLastError(), L"AllocConsole");
 		goto exit;
@@ -103,6 +104,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	freopen_s(&standardOutput, "CONOUT$", "w", stdout);
 	freopen_s(&standardError, "CONOUT$", "w", stderr);
 	SetWindowTextW(GetConsoleWindow(), L"Hackontrol Remote Debug Log");
+#endif
 #endif
 	LOG("[Hackontrol Remote]: Initializing Hackontrol Remote\n");
 
