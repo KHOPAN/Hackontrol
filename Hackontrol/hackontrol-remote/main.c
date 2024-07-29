@@ -3,6 +3,7 @@
 #include <khopanstring.h>
 #include <khopanarray.h>
 #include "thread_server.h"
+#include "thread_client.h"
 #include "window_main.h"
 #include "logger.h"
 
@@ -90,6 +91,8 @@ static HMENU globalPopupMenu;
 	return DefWindowProcW(window, message, wparam, lparam);
 }*/
 
+static ArrayList clientList;
+
 int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance, _In_ LPSTR argument, _In_ int commandLineShow) {
 	int returnValue = 1;
 #ifdef LOGGER_ENABLE
@@ -112,12 +115,17 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto exit;
 	}
 
+	if(!KHArrayInitialize(&clientList, sizeof(CLIENT))) {
+		KHWin32DialogErrorW(GetLastError(), L"KHArrayInitialize");
+		goto exit;
+	}
+
 	LOG("[Hackontrol Remote]: Starting server thread\n");
 	HANDLE serverThread = CreateThread(NULL, 0, ServerThread, NULL, 0, NULL);
 
 	if(!serverThread) {
 		KHWin32DialogErrorW(GetLastError(), L"CreateThread");
-		goto exit;
+		goto freeClientList;
 	}
 
 	returnValue = MainWindowMessageLoop();
@@ -125,6 +133,8 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	ExitServerThread();
 	WaitForSingleObject(serverThread, INFINITE);
 	CloseHandle(serverThread);
+freeClientList:
+	KHArrayFree(&clientList);
 exit:
 	LOG("[Hackontrol Remote]: Exiting the main thread (Exit code: %d)\n" COMMA returnValue);
 	return returnValue;

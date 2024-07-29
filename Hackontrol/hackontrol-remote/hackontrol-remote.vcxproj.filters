@@ -59,5 +59,8 @@
     <ClInclude Include="logger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="thread_client.h">
+      <Filter>Header Files\thread</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
