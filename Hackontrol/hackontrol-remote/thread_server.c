@@ -1,14 +1,11 @@
 #include <WS2tcpip.h>
 #include <khopanwin32.h>
-#include <khopanarray.h>
 #include "thread_server.h"
-#include "thread_client.h"
 #include "window_main.h"
+#include "main.h"
 #include "logger.h"
 
 #define REMOTE_PORT L"42485"
-
-extern ArrayList clientList;
 
 static SOCKET listenSocket;
 
@@ -88,7 +85,7 @@ DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
 
 		LOG("[Server Thread]: Client connected: %ws\n" COMMA client.address);
 
-		if(!KHArrayAdd(&clientList, &client)) {
+		if(!RemoteAddClient(&client)) {
 			KHWin32DialogErrorW(WSAGetLastError(), L"RemoteAddClient");
 			closesocket(socket);
 			continue;

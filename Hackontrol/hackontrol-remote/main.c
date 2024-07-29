@@ -3,8 +3,8 @@
 #include <khopanstring.h>
 #include <khopanarray.h>
 #include "thread_server.h"
-#include "thread_client.h"
 #include "window_main.h"
+#include "main.h"
 #include "logger.h"
 
 #define IDM_REMOTE_ALWAYS_ON_TOP 0xE000
@@ -91,7 +91,7 @@ static HMENU globalPopupMenu;
 	return DefWindowProcW(window, message, wparam, lparam);
 }*/
 
-ArrayList clientList;
+static ArrayList clientList;
 
 int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance, _In_ LPSTR argument, _In_ int commandLineShow) {
 	int returnValue = 1;
@@ -202,6 +202,10 @@ freeGlobalClientList:
 
 	KHArrayFree(&globalClientList);*/
 	return 0;
+}
+
+BOOL RemoteAddClient(PCLIENT client) {
+	return KHArrayAdd(&clientList, client);
 }
 
 void ExitRemote(int exitCode) {
