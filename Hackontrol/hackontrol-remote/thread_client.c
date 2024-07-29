@@ -95,6 +95,15 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 
 	RefreshMainWindowListView();
 
+	while(ReceivePacket(client->socket, &packet)) {
+		switch(packet.packetType) {
+		case PACKET_TYPE_STREAM_FRAME:
+			continue;
+		}
+
+		LOG("[Client Thread %ws]: Unknown packet type: %d\n" COMMA client->address COMMA packet.packetType);
+	}
+
 	for(size_t i = 0; i < clientList.elementCount; i++) {
 		PCLIENT instance;
 
