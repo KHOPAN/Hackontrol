@@ -30,13 +30,30 @@ DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
 	}
 
 	LOG("[Server Thread]: Starting the listening socket\n");
-	SOCKET listenSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
-	FreeAddrInfoW(result);
+	SOCKET listenSocket = WSASocketW(result->ai_family, result->ai_socktype, result->ai_protocol, NULL, 0, WSA_FLAG_OVERLAPPED);
 
 	if(listenSocket == INVALID_SOCKET) {
-		KHWin32DialogErrorW(WSAGetLastError(), L"socket");
+		KHWin32DialogErrorW(WSAGetLastError(), L"WSASocketW");
+		FreeAddrInfoW(result);
 		goto cleanup;
 	}
+
+	status = bind(listenSocket, result->ai_addr, (int) result->ai_addrlen);
+	FreeAddrInfoW(result);
+
+	if(status == SOCKET_ERROR) {
+		KHWin32DialogErrorW(WSAGetLastError(), L"bind");
+		goto closeListenSocket;
+	}
+
+	if(listen(listenSocket, SOMAXCONN) == SOCKET_ERROR) {
+		KHWin32DialogErrorW(WSAGetLastError(), L"listen");
+		goto closeListenSocket;
+	}
+
+	LOG("[Server Thread]: Listening for incoming connection...\n");
+closeListenSocket:
+	closesocket(listenSocket);
 cleanup:
 	WSACleanup();
 	return 0;
