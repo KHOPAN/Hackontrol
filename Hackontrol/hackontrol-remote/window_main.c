@@ -7,6 +7,7 @@
 
 #define IDM_REMOTE_OPEN       0xE001
 #define IDM_REMOTE_DISCONNECT 0xE002
+#define IDM_REMOTE_REFRESH    0xE003
 
 extern ArrayList clientList;
 
@@ -14,7 +15,6 @@ static HINSTANCE windowInstance;
 static HWND window;
 static HWND titledBorder;
 static HWND listView;
-static HMENU popupMenu;
 
 static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	switch(message) {
@@ -30,6 +30,40 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 		SetWindowPos(titledBorder, HWND_TOP, 0, 0, bounds.right - bounds.left - 10, bounds.bottom - bounds.top - 4, SWP_NOMOVE);
 		GetClientRect(titledBorder, &bounds);
 		SetWindowPos(listView, HWND_TOP, bounds.left + 9, bounds.top + 17, bounds.right - bounds.left - 8, bounds.bottom - bounds.top - 22, 0);
+		return 0;
+	}
+	case WM_CONTEXTMENU: {
+		int x = LOWORD(lparam);
+		int y = HIWORD(lparam);
+		LVHITTESTINFO hitTest = {0};
+		hitTest.pt.x = x;
+		hitTest.pt.y = y;
+		ScreenToClient(listView, &hitTest.pt);
+		RECT bounds;
+		GetClientRect(listView, &bounds);
+
+		if(hitTest.pt.x < bounds.left || hitTest.pt.x > bounds.right || hitTest.pt.y < bounds.top || hitTest.pt.y > bounds.bottom) {
+			return 0;
+		}
+
+		HMENU popupMenu = CreatePopupMenu();
+
+		if(!popupMenu) {
+			return 0;
+		}
+
+		PCLIENT client;
+
+		if(SendMessageW(listView, LVM_HITTEST, 0, (LPARAM) &hitTest) != -1 && KHArrayGet(&clientList, hitTest.iItem, &client)) {
+			InsertMenuW(popupMenu, -1, MF_BYPOSITION | MF_STRING, IDM_REMOTE_OPEN, L"Open");
+			InsertMenuW(popupMenu, -1, MF_BYPOSITION | MF_STRING, IDM_REMOTE_DISCONNECT, L"Disconnect");
+			InsertMenuW(popupMenu, -1, MF_BYPOSITION | MF_SEPARATOR, 0, NULL);
+		}
+
+		InsertMenuW(popupMenu, -1, MF_BYPOSITION | MF_STRING, IDM_REMOTE_REFRESH, L"Refresh");
+		SetForegroundWindow(window);
+		TrackPopupMenuEx(popupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, x, y, window, NULL);
+		DestroyMenu(popupMenu);
 		return 0;
 	}
 	}
@@ -126,29 +160,11 @@ int MainWindowMessageLoop() {
 	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	int width = (int) (((double) screenWidth) * 0.292825769);
 	int height = (int) (((double) screenHeight) * 0.78125);
+	int returnValue = 1;
 
 	if(!SetWindowPos(window, HWND_TOPMOST, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, SWP_SHOWWINDOW)) {
 		KHWin32DialogErrorW(GetLastError(), L"SetWindowPos");
-		DeleteObject(font);
-		return 1;
-	}
-
-	popupMenu = CreatePopupMenu();
-	int returnValue = 1;
-
-	if(!popupMenu) {
-		KHWin32DialogErrorW(GetLastError(), L"CreatePopupMenu");
 		goto deleteFont;
-	}
-
-	if(!InsertMenuW(popupMenu, 0, MF_BYPOSITION | MF_STRING, IDM_REMOTE_OPEN, L"Open")) {
-		KHWin32DialogErrorW(GetLastError(), L"InsertMenuW");
-		goto destroyMenu;
-	}
-
-	if(!InsertMenuW(popupMenu, 1, MF_BYPOSITION | MF_STRING, IDM_REMOTE_DISCONNECT, L"Disconnect")) {
-		KHWin32DialogErrorW(GetLastError(), L"InsertMenuW");
-		goto destroyMenu;
 	}
 
 	LOG("[Hackontrol Remote]: Starting the message loop\n");
@@ -160,8 +176,6 @@ int MainWindowMessageLoop() {
 	}
 
 	returnValue = 0;
-destroyMenu:
-	DestroyMenu(popupMenu);
 deleteFont:
 	DeleteObject(font);
 	return returnValue;
