@@ -22,6 +22,29 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 
 	RefreshMainWindowListView();
 	Sleep(5000);
+
+	for(size_t i = 0; i < clientList.elementCount; i++) {
+		PCLIENT instance;
+
+		if(!KHArrayGet(&clientList, i, &instance)) {
+			KHWin32DialogErrorW(GetLastError(), L"KHArrayGet");
+			break;
+		}
+
+		if(instance->socket != client->socket) {
+			continue;
+		}
+
+		if(!KHArrayRemove(&clientList, i)) {
+			KHWin32DialogErrorW(GetLastError(), L"KHArrayRemove");
+			break;
+		}
+
+		goto found;
+	}
+
+	LOG("[Client Thread]: Error: Client not found in the client list\n");
+found:
 	returnValue = 0;
 	closesocket(client->socket);
 	CloseHandle(client->thread);
