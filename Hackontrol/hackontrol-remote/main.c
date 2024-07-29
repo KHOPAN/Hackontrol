@@ -129,6 +129,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	}
 
 	returnValue = MainWindowMessageLoop();
+	ExitServerThread();
 	LOG("[Hackontrol Remote]: Waiting for all client threads to exit\n");
 
 	for(size_t i = 0; i < clientList.elementCount; i++) {
@@ -144,7 +145,6 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	}
 
 	LOG("[Hackontrol Remote]: Waiting for server thread to exit\n");
-	ExitServerThread();
 	WaitForSingleObject(serverThread, INFINITE);
 	CloseHandle(serverThread);
 freeClientList:
