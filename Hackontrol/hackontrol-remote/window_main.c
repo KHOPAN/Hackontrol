@@ -5,12 +5,16 @@
 #include "window_main.h"
 #include "logger.h"
 
+#define IDM_REMOTE_OPEN       0xE001
+#define IDM_REMOTE_DISCONNECT 0xE002
+
 extern ArrayList clientList;
 
 static HINSTANCE windowInstance;
 static HWND window;
 static HWND titledBorder;
 static HWND listView;
+static HMENU popupMenu;
 
 static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	switch(message) {
@@ -129,6 +133,24 @@ int MainWindowMessageLoop() {
 		return 1;
 	}
 
+	popupMenu = CreatePopupMenu();
+	int returnValue = 1;
+
+	if(!popupMenu) {
+		KHWin32DialogErrorW(GetLastError(), L"CreatePopupMenu");
+		goto deleteFont;
+	}
+
+	if(!InsertMenuW(popupMenu, 0, MF_BYPOSITION | MF_STRING, IDM_REMOTE_OPEN, L"Open")) {
+		KHWin32DialogErrorW(GetLastError(), L"InsertMenuW");
+		goto destroyMenu;
+	}
+
+	if(!InsertMenuW(popupMenu, 1, MF_BYPOSITION | MF_STRING, IDM_REMOTE_DISCONNECT, L"Disconnect")) {
+		KHWin32DialogErrorW(GetLastError(), L"InsertMenuW");
+		goto destroyMenu;
+	}
+
 	LOG("[Hackontrol Remote]: Starting the message loop\n");
 	MSG message;
 
@@ -137,8 +159,12 @@ int MainWindowMessageLoop() {
 		DispatchMessageW(&message);
 	}
 
+	returnValue = 0;
+destroyMenu:
+	DestroyMenu(popupMenu);
+deleteFont:
 	DeleteObject(font);
-	return 0;
+	return returnValue;
 }
 
 void RefreshMainWindowListView() {
