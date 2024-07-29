@@ -5,6 +5,8 @@
 
 #define REMOTE_PORT L"42485"
 
+static SOCKET listenSocket;
+
 DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
 	LOG("[Server Thread]: Hello from server thread\n");
 	WSADATA socketData;
@@ -30,7 +32,7 @@ DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
 	}
 
 	LOG("[Server Thread]: Starting the listening socket\n");
-	SOCKET listenSocket = WSASocketW(result->ai_family, result->ai_socktype, result->ai_protocol, NULL, 0, WSA_FLAG_OVERLAPPED);
+	listenSocket = WSASocketW(result->ai_family, result->ai_socktype, result->ai_protocol, NULL, 0, WSA_FLAG_OVERLAPPED);
 
 	if(listenSocket == INVALID_SOCKET) {
 		KHWin32DialogErrorW(WSAGetLastError(), L"WSASocketW");
@@ -59,7 +61,13 @@ DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
 		SOCKET socket = accept(listenSocket, (struct sockaddr*) &socketAddress, &socketAddressLength);
 
 		if(socket == INVALID_SOCKET) {
-			KHWin32DialogErrorW(WSAGetLastError(), L"accept");
+			int error = WSAGetLastError();
+
+			if(error == WSAEINTR) {
+				break;
+			}
+
+			KHWin32DialogErrorW(error, L"accept");
 			continue;
 		}
 
@@ -79,4 +87,10 @@ closeListenSocket:
 cleanup:
 	WSACleanup();
 	return 0;
+}
+
+void ExitServerThread() {
+	if(closesocket(listenSocket) == SOCKET_ERROR) {
+		KHWin32DialogErrorW(WSAGetLastError(), L"closesocket");
+	}
 }

@@ -1,8 +1,8 @@
-#include "connection.h"
 #include <hackontrolpacket.h>
 #include <khopanwin32.h>
 #include <khopanstring.h>
 #include <khopanarray.h>
+#include "thread_server.h"
 #include "window_main.h"
 #include "logger.h"
 
@@ -117,8 +117,12 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		return 1;
 	}
 
+	int returnValue = MainWindowMessageLoop();
+	LOG("[Hackontrol Remote]: Waiting for server thread to exit...\n");
+	ExitServerThread();
+	WaitForSingleObject(serverThread, INFINITE);
 	CloseHandle(serverThread);
-	return MainWindowMessageLoop();
+	return returnValue;
 	/*int returnValue = 1;
 
 	if(!KHArrayInitialize(&globalClientList, sizeof(CLIENTENTRY))) {
@@ -198,7 +202,7 @@ void RemoteError(DWORD errorCode, const LPWSTR functionName) {
 }
 
 void RemoteHandleConnection(const SOCKET clientSocket, LPWSTR address) {
-	CLIENTENTRY entry = {0};
+	/*CLIENTENTRY entry = {0};
 	entry.clientSocket = clientSocket;
 
 	if(!KHArrayAdd(&globalClientList, &entry)) {
@@ -229,18 +233,18 @@ void RemoteHandleConnection(const SOCKET clientSocket, LPWSTR address) {
 		return;
 	}
 
-	entryPointer->clientThread = clientThread;
+	entryPointer->clientThread = clientThread;*/
 }
 
 void RemoteRemoveEntry(const SOCKET clientSocket) {
-	for(size_t i = 0; i < globalClientList.elementCount; i++) {
+	/*for(size_t i = 0; i < globalClientList.elementCount; i++) {
 		CLIENTENTRY* element;
 
 		if(KHArrayGet(&globalClientList, i, &element) && element->clientSocket == clientSocket) {
 			KHArrayRemove(&globalClientList, i);
 			return;
 		}
-	}
+	}*/
 }
 
 void RemoteRefreshClientList() {
