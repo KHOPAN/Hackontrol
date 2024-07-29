@@ -11,7 +11,6 @@ static HWND listView;
 static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	switch(message) {
 	case WM_CLOSE:
-		LOG("[Main Window]: Closing...\n");
 		DestroyWindow(window);
 		return 0;
 	case WM_DESTROY:
@@ -135,6 +134,9 @@ int MainWindowMessageLoop() {
 	}
 
 	DeleteObject(font);
-	LOG("[Hackontrol Remote]: Exiting\n");
 	return 0;
+}
+
+void ExitMainWindow() {
+	PostMessageW(window, WM_CLOSE, 0, 0);
 }

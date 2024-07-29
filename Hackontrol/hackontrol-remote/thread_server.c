@@ -1,6 +1,7 @@
 #include <WS2tcpip.h>
 #include <khopanwin32.h>
 #include "thread_server.h"
+#include "window_main.h"
 #include "logger.h"
 
 #define REMOTE_PORT L"42485"
@@ -82,15 +83,24 @@ DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
 		socketAddressBuffer[16] = 0;
 		LOG("[Server Thread]: Client connected: %ws\n" COMMA socketAddressBuffer);
 	}
+
+	ExitMainWindow();
 closeListenSocket:
 	closesocket(listenSocket);
 cleanup:
 	WSACleanup();
+	LOG("[Server Thread]: Exiting the server thread\n");
 	return 0;
 }
 
 void ExitServerThread() {
 	if(closesocket(listenSocket) == SOCKET_ERROR) {
-		KHWin32DialogErrorW(WSAGetLastError(), L"closesocket");
+		int error = WSAGetLastError();
+
+		if(error == WSANOTINITIALISED) {
+			return;
+		}
+
+		KHWin32DialogErrorW(error, L"closesocket");
 	}
 }

@@ -118,10 +118,11 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	}
 
 	int returnValue = MainWindowMessageLoop();
-	LOG("[Hackontrol Remote]: Waiting for server thread to exit...\n");
+	LOG("[Hackontrol Remote]: Waiting for server thread to exit\n");
 	ExitServerThread();
 	WaitForSingleObject(serverThread, INFINITE);
 	CloseHandle(serverThread);
+	LOG("[Hackontrol Remote]: Exiting the main thread\n");
 	return returnValue;
 	/*int returnValue = 1;
 
