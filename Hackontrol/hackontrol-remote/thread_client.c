@@ -40,6 +40,7 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 			break;
 		}
 
+		RefreshMainWindowListView();
 		goto found;
 	}
 
