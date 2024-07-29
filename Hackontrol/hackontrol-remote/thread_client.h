@@ -5,6 +5,7 @@
 typedef struct {
 	SOCKET socket;
 	WCHAR address[16];
+	LPWSTR name;
 	HANDLE thread;
 } CLIENT, *PCLIENT;
 

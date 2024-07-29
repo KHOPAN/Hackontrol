@@ -1,10 +1,33 @@
 #include "thread_client.h"
 #include <khopanwin32.h>
+#include <khopanstring.h>
 #include <khopanarray.h>
+#include <hackontrolpacket.h>
 #include "window_main.h"
 #include "logger.h"
 
 extern ArrayList clientList;
+
+static LPWSTR decodeName(const BYTE* data, long size) {
+	size -= 8;
+
+	if(size < 1) {
+		return NULL;
+	}
+
+	LPSTR buffer = LocalAlloc(LMEM_FIXED, size + 1);
+
+	if(!buffer) {
+		return NULL;
+	}
+
+	for(int i = 0; i < size; i++) {
+		buffer[i] = data[i + 8];
+	}
+
+	buffer[size] = 0;
+	return KHFormatMessageW(L"%S", buffer);
+}
 
 DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 	if(!client) {
@@ -46,6 +69,23 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 	}
 
 	LOG("[Client Thread %ws]: HRSP handshake completed! Receiving the first packet...\n" COMMA client->address);
+	PACKET packet;
+
+	if(!ReceivePacket(client->socket, &packet)) {
+		KHWin32DialogErrorW(GetLastError(), L"ReceivePacket");
+		goto exit;
+	}
+
+	if(packet.packetType != PACKET_TYPE_INFORMATION) {
+		LOG("[Client Thread %ws]: Closing the connection, invalid first packet type: %d\n" COMMA client->address COMMA packet.packetType);
+		goto exit;
+	}
+
+	BYTE* data = packet.data;
+	int width = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
+	int height = (data[4] << 24) | (data[5] << 16) | (data[6] << 8) | data[7];
+	client->name = decodeName(data, packet.size);
+	LOG("[Client Thread %ws]: Username: '%ws' Screen: %dx%d\n" COMMA client->address COMMA client->name COMMA width COMMA height);
 	int returnValue = 1;
 
 	if(!KHArrayAdd(&clientList, client)) {
@@ -80,8 +120,14 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 	LOG("[Client Thread]: Error: Client not found in the client list\n");
 exit:
 	closesocket(client->socket);
-	CloseHandle(client->thread);
-	LOG("[Client Thread %ws]: Exiting the client thread (Exit code: %d)\n" COMMA client->address COMMA returnValue);
+
+	if(client->name) {
+		LocalFree(client->name);
+	}
+
+	HANDLE thread = client->thread;
 	LocalFree(client);
+	LOG("[Client Thread %ws]: Exiting the client thread (Exit code: %d)\n" COMMA client->address COMMA returnValue);
+	CloseHandle(thread);
 	return returnValue;
 }

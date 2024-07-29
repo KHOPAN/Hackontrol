@@ -150,7 +150,7 @@ void RefreshMainWindowListView() {
 		CLIENT* client = NULL;
 		KHArrayGet(&clientList, i, &client);
 		item.iSubItem = 0;
-		item.pszText = client ? L"" : L"(Missing name)";
+		item.pszText = client ? client->name : L"(Missing name)";
 		SendMessageW(listView, LVM_INSERTITEM, 0, (LPARAM) &item);
 		item.iSubItem = 1;
 		item.pszText = client ? client->address : L"(Missing address)";
