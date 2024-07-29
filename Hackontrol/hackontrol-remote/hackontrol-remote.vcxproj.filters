@@ -42,6 +42,9 @@
     <ClCompile Include="thread_server.c">
       <Filter>Source Files\thread</Filter>
     </ClCompile>
+    <ClCompile Include="thread_client.c">
+      <Filter>Source Files\thread</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="hackontrol-remote.exe.manifest" />

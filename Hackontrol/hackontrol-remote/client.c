@@ -26,7 +26,7 @@ static LPWSTR getUsername(const PACKET* packet) {
 	return KHFormatMessageW(L"%S", buffer);
 }
 
-DWORD WINAPI ClientThread(_In_ CLIENTENTRY* parameter) {
+DWORD WINAPI NotClientThread(_In_ CLIENTENTRY* parameter) {
 	if(!parameter) {
 		return 1;
 	}

@@ -1,14 +1,11 @@
 #include <WS2tcpip.h>
 #include <khopanwin32.h>
-#include <khopanarray.h>
 #include "thread_server.h"
 #include "thread_client.h"
 #include "window_main.h"
 #include "logger.h"
 
 #define REMOTE_PORT L"42485"
-
-extern ArrayList clientList;
 
 static SOCKET listenSocket;
 
@@ -77,24 +74,41 @@ DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
 			continue;
 		}
 
-		CLIENT client = {0};
-		client.socket = socket;
+		PCLIENT client = LocalAlloc(LMEM_FIXED, sizeof(CLIENT));
 
-		if(!InetNtopW(AF_INET, &socketAddress.sin_addr, client.address, 16)) {
+		if(!client) {
+			KHWin32DialogErrorW(GetLastError(), L"LocalAlloc");
+			goto closeSocket;
+		}
+
+		client->socket = socket;
+
+		if(!InetNtopW(AF_INET, &socketAddress.sin_addr, client->address, 16)) {
 			KHWin32DialogErrorW(WSAGetLastError(), L"InetNtopW");
-			closesocket(socket);
-			continue;
+			goto freeClient;
 		}
 
-		LOG("[Server Thread]: Client connected: %ws\n" COMMA client.address);
+		LOG("[Server Thread]: Client connected: %ws, starting the client thread\n" COMMA client->address);
+		HANDLE thread = CreateThread(NULL, 0, ClientThread, client, CREATE_SUSPENDED, NULL);
 
-		if(!KHArrayAdd(&clientList, &client)) {
-			KHWin32DialogErrorW(WSAGetLastError(), L"KHArrayAdd");
-			closesocket(socket);
-			continue;
+		if(!thread) {
+			KHWin32DialogErrorW(GetLastError(), L"CreateThread");
+			goto freeClient;
 		}
 
-		RefreshMainWindowListView();
+		client->thread = thread;
+
+		if(ResumeThread(thread) == -1) {
+			KHWin32DialogErrorW(GetLastError(), L"ResumeThread");
+			CloseHandle(thread);
+			goto freeClient;
+		}
+
+		continue;
+	freeClient:
+		LocalFree(client);
+	closeSocket:
+		closesocket(socket);
 	}
 
 	ExitMainWindow();

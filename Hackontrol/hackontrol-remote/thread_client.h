@@ -5,4 +5,7 @@
 typedef struct {
 	SOCKET socket;
 	WCHAR address[16];
+	HANDLE thread;
 } CLIENT, *PCLIENT;
+
+DWORD WINAPI ClientThread(_In_ PCLIENT client);
