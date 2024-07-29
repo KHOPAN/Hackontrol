@@ -52,6 +52,28 @@ DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
 	}
 
 	LOG("[Server Thread]: Listening for incoming connection...\n");
+
+	while(TRUE) {
+		SOCKADDR_IN socketAddress;
+		int socketAddressLength = sizeof(SOCKADDR_IN);
+		SOCKET socket = accept(listenSocket, (struct sockaddr*) &socketAddress, &socketAddressLength);
+
+		if(socket == INVALID_SOCKET) {
+			KHWin32DialogErrorW(WSAGetLastError(), L"accept");
+			continue;
+		}
+
+		WCHAR socketAddressBuffer[17];
+
+		if(!InetNtopW(AF_INET, &socketAddress.sin_addr, socketAddressBuffer, 16)) {
+			KHWin32DialogErrorW(WSAGetLastError(), L"InetNtopW");
+			closesocket(socket);
+			continue;
+		}
+
+		socketAddressBuffer[16] = 0;
+		LOG("[Server Thread]: Client connected: %ws\n" COMMA socketAddressBuffer);
+	}
 closeListenSocket:
 	closesocket(listenSocket);
 cleanup:
