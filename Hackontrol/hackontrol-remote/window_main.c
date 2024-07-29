@@ -52,7 +52,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 			return 0;
 		}
 
-		PCLIENT client;
+		PCLIENT client = NULL;
 
 		if(SendMessageW(listView, LVM_HITTEST, 0, (LPARAM) &hitTest) != -1 && KHArrayGet(&clientList, hitTest.iItem, &client)) {
 			InsertMenuW(popupMenu, -1, MF_BYPOSITION | MF_STRING, IDM_REMOTE_OPEN, L"Open");
@@ -66,7 +66,12 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 		DestroyMenu(popupMenu);
 
 		switch(response) {
+		case IDM_REMOTE_DISCONNECT:
+			LOG("[Main Window]: Disconnecting %ws\n" COMMA client ? client->address : L"(Missing address)");
+			ClientDisconnect(client);
+			break;
 		case IDM_REMOTE_REFRESH:
+			LOG("[Main Window]: Refreshing list view\n");
 			RefreshMainWindowListView();
 			break;
 		}

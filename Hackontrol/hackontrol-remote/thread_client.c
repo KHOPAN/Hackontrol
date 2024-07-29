@@ -140,3 +140,22 @@ exit:
 	CloseHandle(thread);
 	return returnValue;
 }
+
+void ClientDisconnect(PCLIENT client) {
+	PACKET packet = {0};
+	packet.packetType = PACKET_TYPE_INFORMATION;
+
+	if(!SendPacket(client->socket, &packet)) {
+		KHWin32DialogErrorW(GetLastError(), L"SendPacket");
+		return;
+	}
+
+	if(shutdown(client->socket, SD_BOTH) == SOCKET_ERROR) {
+		KHWin32DialogErrorW(WSAGetLastError(), L"shutdown");
+		return;
+	}
+
+	if(closesocket(client->socket) == SOCKET_ERROR) {
+		KHWin32DialogErrorW(WSAGetLastError(), L"closesocket");
+	}
+}
