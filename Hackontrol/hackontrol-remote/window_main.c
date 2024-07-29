@@ -1,7 +1,11 @@
+#include "thread_client.h"
 #include <khopanwin32.h>
+#include <khopanarray.h>
 #include <CommCtrl.h>
 #include "window_main.h"
 #include "logger.h"
+
+extern ArrayList clientList;
 
 static HINSTANCE windowInstance;
 static HWND window;
@@ -135,6 +139,23 @@ int MainWindowMessageLoop() {
 
 	DeleteObject(font);
 	return 0;
+}
+
+void RefreshMainWindowListView() {
+	SendMessageW(listView, LVM_DELETEALLITEMS, 0, 0);
+	LVITEMW item = {0};
+	item.mask = LVIF_TEXT;
+
+	for(size_t i = 0; i < clientList.elementCount; i++) {
+		CLIENT* client = NULL;
+		KHArrayGet(&clientList, i, &client);
+		item.iSubItem = 0;
+		item.pszText = client ? L"" : L"(Missing name)";
+		SendMessageW(listView, LVM_INSERTITEM, 0, (LPARAM) &item);
+		item.iSubItem = 1;
+		item.pszText = client ? client->address : L"(Missing address)";
+		SendMessageW(listView, LVM_SETITEM, 0, (LPARAM) &item);
+	}
 }
 
 void ExitMainWindow() {

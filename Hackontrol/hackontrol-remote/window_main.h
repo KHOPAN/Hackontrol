@@ -6,4 +6,5 @@
 
 BOOL InitializeMainWindow(const HINSTANCE instance);
 int MainWindowMessageLoop();
+void RefreshMainWindowListView();
 void ExitMainWindow();

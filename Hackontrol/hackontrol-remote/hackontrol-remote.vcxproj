@@ -163,7 +163,6 @@
   <ItemGroup>
     <ClInclude Include="connection.h" />
     <ClInclude Include="logger.h" />
-    <ClInclude Include="main.h" />
     <ClInclude Include="thread_client.h" />
     <ClInclude Include="thread_server.h" />
     <ClInclude Include="window_main.h" />

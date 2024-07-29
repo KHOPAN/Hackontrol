@@ -62,8 +62,5 @@
     <ClInclude Include="thread_client.h">
       <Filter>Header Files\thread</Filter>
     </ClInclude>
-    <ClInclude Include="main.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
