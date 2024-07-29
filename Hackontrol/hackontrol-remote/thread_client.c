@@ -37,6 +37,7 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 
 	LOG("[Client Thread %ws]: Hello from client thread\n" COMMA client->address);
 	char buffer[17];
+	int returnValue = 1;
 
 	if(recv(client->socket, buffer, sizeof(buffer) - 1, 0) == SOCKET_ERROR) {
 		KHWin32DialogErrorW(WSAGetLastError(), L"recv");
@@ -86,7 +87,6 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 	int height = (data[4] << 24) | (data[5] << 16) | (data[6] << 8) | data[7];
 	client->name = decodeName(data, packet.size);
 	LOG("[Client Thread %ws]: Username: '%ws' Screen: %dx%d\n" COMMA client->address COMMA client->name COMMA width COMMA height);
-	int returnValue = 1;
 
 	if(!KHArrayAdd(&clientList, client)) {
 		KHWin32DialogErrorW(GetLastError(), L"KHArrayAdd");
@@ -126,8 +126,8 @@ exit:
 	}
 
 	HANDLE thread = client->thread;
-	LocalFree(client);
 	LOG("[Client Thread %ws]: Exiting the client thread (Exit code: %d)\n" COMMA client->address COMMA returnValue);
+	LocalFree(client);
 	CloseHandle(thread);
 	return returnValue;
 }
