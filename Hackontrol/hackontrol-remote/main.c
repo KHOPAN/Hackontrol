@@ -91,7 +91,7 @@ static HMENU globalPopupMenu;
 	return DefWindowProcW(window, message, wparam, lparam);
 }*/
 
-static ArrayList clientList;
+ArrayList clientList;
 
 int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance, _In_ LPSTR argument, _In_ int commandLineShow) {
 	int returnValue = 1;

@@ -1,10 +1,14 @@
 #include <WS2tcpip.h>
 #include <khopanwin32.h>
+#include <khopanarray.h>
 #include "thread_server.h"
+#include "thread_client.h"
 #include "window_main.h"
 #include "logger.h"
 
 #define REMOTE_PORT L"42485"
+
+extern ArrayList clientList;
 
 static SOCKET listenSocket;
 
@@ -73,16 +77,22 @@ DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
 			continue;
 		}
 
-		WCHAR socketAddressBuffer[17];
+		CLIENT client = {0};
+		client.socket = socket;
 
-		if(!InetNtopW(AF_INET, &socketAddress.sin_addr, socketAddressBuffer, 16)) {
+		if(!InetNtopW(AF_INET, &socketAddress.sin_addr, client.address, 16)) {
 			KHWin32DialogErrorW(WSAGetLastError(), L"InetNtopW");
 			closesocket(socket);
 			continue;
 		}
 
-		socketAddressBuffer[16] = 0;
-		LOG("[Server Thread]: Client connected: %ws\n" COMMA socketAddressBuffer);
+		LOG("[Server Thread]: Client connected: %ws\n" COMMA client.address);
+
+		if(!KHArrayAdd(&clientList, &client)) {
+			KHWin32DialogErrorW(WSAGetLastError(), L"RemoteAddClient");
+			closesocket(socket);
+			continue;
+		}
 	}
 
 	ExitMainWindow();
