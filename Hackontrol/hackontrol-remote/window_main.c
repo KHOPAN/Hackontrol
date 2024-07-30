@@ -9,6 +9,8 @@
 #define IDM_REMOTE_DISCONNECT 0xE002
 #define IDM_REMOTE_REFRESH    0xE003
 
+#pragma warning(disable: 26454)
+
 extern ArrayList clientList;
 
 static HINSTANCE windowInstance;
@@ -81,6 +83,19 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 
 		return 0;
 	}
+	case WM_NOTIFY: {
+		if(((LPNMHDR) lparam)->code != NM_DBLCLK) {
+			return 0;
+		}
+
+		PCLIENT client;
+
+		if(!KHArrayGet(&clientList, ((LPNMITEMACTIVATE) lparam)->iItem, &client)) {
+			return 0;
+		}
+
+		LOG("[Main Window]: Opening %ws\n" COMMA client->address);
+	}
 	}
 
 	return DefWindowProcW(inputWindow, message, wparam, lparam);
@@ -109,7 +124,7 @@ BOOL InitializeMainWindow(const HINSTANCE instance) {
 		return FALSE;
 	}
 
-	titledBorder = CreateWindowExW(0, L"Button", L"Connected Devices", WS_CHILD | WS_VISIBLE | BS_GROUPBOX, 5, 0, 0, 0, window, NULL, NULL, NULL);
+	titledBorder = CreateWindowExW(WS_EX_NOPARENTNOTIFY, L"Button", L"Connected Devices", WS_CHILD | WS_VISIBLE | BS_GROUPBOX, 5, 0, 0, 0, window, NULL, NULL, NULL);
 
 	if(!titledBorder) {
 		KHWin32DialogErrorW(GetLastError(), L"CreateWindowExW");
@@ -125,7 +140,7 @@ BOOL InitializeMainWindow(const HINSTANCE instance) {
 		return FALSE;
 	}
 
-	listView = CreateWindowExW(WS_EX_NOPARENTNOTIFY | WS_EX_CLIENTEDGE, WC_LISTVIEW, L"", WS_CHILD | WS_VISIBLE | WS_VSCROLL | LVS_REPORT | LVS_SINGLESEL, 0, 0, 0, 0, window, NULL, NULL, NULL);
+	listView = CreateWindowExW(WS_EX_CLIENTEDGE, WC_LISTVIEW, L"", WS_CHILD | WS_VISIBLE | WS_VSCROLL | LVS_REPORT | LVS_SINGLESEL, 0, 0, 0, 0, window, NULL, NULL, NULL);
 
 	if(!listView) {
 		KHWin32DialogErrorW(GetLastError(), L"CreateWindowExW");
