@@ -66,6 +66,9 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 		DestroyMenu(popupMenu);
 
 		switch(response) {
+		case IDM_REMOTE_OPEN:
+			LOG("[Main Window]: Opening %ws\n" COMMA client ? client->address : L"(Missing address)");
+			break;
 		case IDM_REMOTE_DISCONNECT:
 			LOG("[Main Window]: Disconnecting %ws\n" COMMA client ? client->address : L"(Missing address)");
 			ClientDisconnect(client);
