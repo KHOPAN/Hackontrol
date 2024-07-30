@@ -10,4 +10,5 @@ typedef struct {
 } CLIENT, *PCLIENT;
 
 DWORD WINAPI ClientThread(_In_ PCLIENT client);
+void ClientOpen(PCLIENT client);
 void ClientDisconnect(PCLIENT client);

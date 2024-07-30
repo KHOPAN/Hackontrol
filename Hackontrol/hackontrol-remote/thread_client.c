@@ -141,6 +141,10 @@ exit:
 	return returnValue;
 }
 
+void ClientOpen(PCLIENT client) {
+	LOG("[Hackontrol Remote]: Opening %ws\n" COMMA client->address);
+}
+
 void ClientDisconnect(PCLIENT client) {
 	PACKET packet = {0};
 	packet.packetType = PACKET_TYPE_INFORMATION;

@@ -69,7 +69,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 
 		switch(response) {
 		case IDM_REMOTE_OPEN:
-			LOG("[Main Window]: Opening %ws\n" COMMA client ? client->address : L"(Missing address)");
+			ClientOpen(client);
 			break;
 		case IDM_REMOTE_DISCONNECT:
 			LOG("[Main Window]: Disconnecting %ws\n" COMMA client ? client->address : L"(Missing address)");
@@ -94,7 +94,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 			return 0;
 		}
 
-		LOG("[Main Window]: Opening %ws\n" COMMA client->address);
+		ClientOpen(client);
 	}
 	}
 
