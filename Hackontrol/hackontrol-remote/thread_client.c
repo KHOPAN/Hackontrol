@@ -144,12 +144,21 @@ exit:
 
 void ClientOpen(PCLIENT client) {
 	LOG("[Hackontrol Remote]: Opening %ws\n" COMMA client->address);
+
+	if(client->windowThread) {
+		WaitForSingleObject(client->windowThread, INFINITE);
+		CloseHandle(client->windowThread);
+		client->windowThread = NULL;
+	}
+
 	HANDLE thread = CreateThread(NULL, 0, WindowThread, client, CREATE_SUSPENDED, NULL);
 
 	if(!thread) {
 		KHWin32DialogErrorW(GetLastError(), L"CreateThread");
 		return;
 	}
+
+	client->windowThread = thread;
 
 	if(ResumeThread(thread) == -1) {
 		KHWin32DialogErrorW(GetLastError(), L"ResumeThread");
