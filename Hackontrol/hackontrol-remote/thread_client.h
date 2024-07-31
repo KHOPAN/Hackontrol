@@ -8,6 +8,7 @@ typedef struct {
 	LPWSTR name;
 	HANDLE thread;
 	HANDLE windowThread;
+	HWND clientWindow;
 } CLIENT, *PCLIENT;
 
 DWORD WINAPI ClientThread(_In_ PCLIENT client);
