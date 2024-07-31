@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -148,6 +148,7 @@
     <ClCompile Include="server.c" />
     <ClCompile Include="thread_client.c" />
     <ClCompile Include="thread_server.c" />
+    <ClCompile Include="window_client.c" />
     <ClCompile Include="window_main.c" />
   </ItemGroup>
   <ItemGroup>
@@ -166,6 +167,7 @@
     <ClInclude Include="logger.h" />
     <ClInclude Include="thread_client.h" />
     <ClInclude Include="thread_server.h" />
+    <ClInclude Include="window_client.h" />
     <ClInclude Include="window_main.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

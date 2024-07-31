@@ -45,6 +45,9 @@
     <ClCompile Include="thread_client.c">
       <Filter>Source Files\thread</Filter>
     </ClCompile>
+    <ClCompile Include="window_client.c">
+      <Filter>Source Files\window</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="hackontrol-remote.exe.manifest" />
@@ -64,6 +67,9 @@
     </ClInclude>
     <ClInclude Include="thread_client.h">
       <Filter>Header Files\thread</Filter>
+    </ClInclude>
+    <ClInclude Include="window_client.h">
+      <Filter>Header Files\window</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
