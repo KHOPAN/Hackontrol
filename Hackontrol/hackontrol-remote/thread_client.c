@@ -3,8 +3,8 @@
 #include <khopanstring.h>
 #include <khopanarray.h>
 #include <hackontrolpacket.h>
+#include "thread_window.h"
 #include "window_main.h"
-#include "window_client.h"
 #include "logger.h"
 
 extern ArrayList clientList;
@@ -144,7 +144,7 @@ exit:
 
 void ClientOpen(PCLIENT client) {
 	LOG("[Hackontrol Remote]: Opening %ws\n" COMMA client->address);
-	HANDLE thread = CreateThread(NULL, 0, ClientWindowThread, client, CREATE_SUSPENDED, NULL);
+	HANDLE thread = CreateThread(NULL, 0, WindowThread, client, CREATE_SUSPENDED, NULL);
 
 	if(!thread) {
 		KHWin32DialogErrorW(GetLastError(), L"CreateThread");

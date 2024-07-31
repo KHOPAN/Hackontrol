@@ -148,7 +148,7 @@
     <ClCompile Include="server.c" />
     <ClCompile Include="thread_client.c" />
     <ClCompile Include="thread_server.c" />
-    <ClCompile Include="window_client.c" />
+    <ClCompile Include="thread_window.c" />
     <ClCompile Include="window_main.c" />
   </ItemGroup>
   <ItemGroup>
@@ -167,7 +167,7 @@
     <ClInclude Include="logger.h" />
     <ClInclude Include="thread_client.h" />
     <ClInclude Include="thread_server.h" />
-    <ClInclude Include="window_client.h" />
+    <ClInclude Include="thread_window.h" />
     <ClInclude Include="window_main.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
