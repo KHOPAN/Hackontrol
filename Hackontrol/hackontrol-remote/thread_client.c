@@ -4,6 +4,7 @@
 #include <khopanarray.h>
 #include <hackontrolpacket.h>
 #include "window_main.h"
+#include "window_client.h"
 #include "logger.h"
 
 extern ArrayList clientList;
@@ -143,6 +144,17 @@ exit:
 
 void ClientOpen(PCLIENT client) {
 	LOG("[Hackontrol Remote]: Opening %ws\n" COMMA client->address);
+	HANDLE thread = CreateThread(NULL, 0, ClientWindowThread, client, CREATE_SUSPENDED, NULL);
+
+	if(!thread) {
+		KHWin32DialogErrorW(GetLastError(), L"CreateThread");
+		return;
+	}
+
+	if(ResumeThread(thread) == -1) {
+		KHWin32DialogErrorW(GetLastError(), L"ResumeThread");
+		CloseHandle(thread);
+	}
 }
 
 void ClientDisconnect(PCLIENT client) {
