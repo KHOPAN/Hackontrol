@@ -4,6 +4,7 @@
 #include <khopanarray.h>
 #include "thread_server.h"
 #include "thread_client.h"
+#include "thread_window.h"
 #include "window_main.h"
 #include "logger.h"
 
@@ -114,6 +115,10 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	LOG("[Hackontrol Remote]: Initializing Hackontrol Remote\n");
 
 	if(!InitializeMainWindow()) {
+		goto exit;
+	}
+
+	if(!WindowRegisterClass()) {
 		goto exit;
 	}
 
