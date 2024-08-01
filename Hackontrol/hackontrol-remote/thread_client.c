@@ -139,7 +139,6 @@ exit:
 		ExitClientWindow(client);
 		LOG("[Client Thread %ws]: Waiting for window thread to exit\n" COMMA client->address);
 		WaitForSingleObject(client->windowThread, INFINITE);
-		CloseHandle(client->windowThread);
 	}
 
 	HANDLE thread = client->thread;
@@ -155,7 +154,6 @@ void ClientOpen(PCLIENT client) {
 	if(client->windowThread) {
 		ExitClientWindow(client);
 		WaitForSingleObject(client->windowThread, INFINITE);
-		CloseHandle(client->windowThread);
 		client->windowThread = NULL;
 	}
 
