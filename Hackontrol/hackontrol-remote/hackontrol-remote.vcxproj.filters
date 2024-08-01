@@ -30,12 +30,6 @@
     <ClCompile Include="main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="server.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="client.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="window_main.c">
       <Filter>Source Files\window</Filter>
     </ClCompile>
@@ -53,9 +47,6 @@
     <Manifest Include="hackontrol-remote.exe.manifest" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="connection.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="window_main.h">
       <Filter>Header Files\window</Filter>
     </ClInclude>
