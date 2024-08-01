@@ -11,9 +11,9 @@
 
 #pragma warning(disable: 26454)
 
+extern HINSTANCE programInstance;
 extern ArrayList clientList;
 
-static HINSTANCE windowInstance;
 static HWND window;
 static HWND titledBorder;
 static HWND listView;
@@ -101,12 +101,11 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 	return DefWindowProcW(inputWindow, message, wparam, lparam);
 }
 
-BOOL InitializeMainWindow(const HINSTANCE instance) {
-	windowInstance = instance;
+BOOL InitializeMainWindow() {
 	WNDCLASSEXW windowClass = {0};
 	windowClass.cbSize = sizeof(WNDCLASSEXW);
 	windowClass.lpfnWndProc = windowProcedure;
-	windowClass.hInstance = windowInstance;
+	windowClass.hInstance = programInstance;
 	windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
 	windowClass.hbrBackground = (HBRUSH) COLOR_WINDOW;
 	windowClass.lpszClassName = CLASS_HACKONTROL_REMOTE;
@@ -117,7 +116,7 @@ BOOL InitializeMainWindow(const HINSTANCE instance) {
 	}
 
 	LOG("[Hackontrol Remote]: Creating the main window\n");
-	window = CreateWindowExW(0, CLASS_HACKONTROL_REMOTE, L"Hackontrol Remote", WS_OVERLAPPEDWINDOW, 0, 0, 0, 0, NULL, NULL, windowInstance, NULL);
+	window = CreateWindowExW(0, CLASS_HACKONTROL_REMOTE, L"Hackontrol Remote", WS_OVERLAPPEDWINDOW, 0, 0, 0, 0, NULL, NULL, programInstance, NULL);
 
 	if(!window) {
 		KHWin32DialogErrorW(GetLastError(), L"CreateWindowExW");

@@ -91,9 +91,11 @@ static HMENU globalPopupMenu;
 	return DefWindowProcW(window, message, wparam, lparam);
 }*/
 
+HINSTANCE programInstance;
 ArrayList clientList;
 
 int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance, _In_ LPSTR argument, _In_ int commandLineShow) {
+	programInstance = instance;
 	int returnValue = 1;
 #ifdef LOGGER_ENABLE
 #ifndef NO_CONSOLE
@@ -111,7 +113,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 #endif
 	LOG("[Hackontrol Remote]: Initializing Hackontrol Remote\n");
 
-	if(!InitializeMainWindow(instance)) {
+	if(!InitializeMainWindow()) {
 		goto exit;
 	}
 
