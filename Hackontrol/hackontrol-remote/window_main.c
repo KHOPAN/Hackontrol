@@ -5,9 +5,11 @@
 #include "window_main.h"
 #include "logger.h"
 
-#define IDM_REMOTE_OPEN       0xE001
-#define IDM_REMOTE_DISCONNECT 0xE002
-#define IDM_REMOTE_REFRESH    0xE003
+#define IDM_REMOTE_OPEN          0xE001
+#define IDM_REMOTE_DISCONNECT    0xE002
+#define IDM_REMOTE_REFRESH       0xE003
+#define IDM_REMOTE_ALWAYS_ON_TOP 0xE004
+#define IDM_REMOTE_EXIT          0xE005
 
 #pragma warning(disable: 26454)
 
@@ -63,6 +65,9 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 		}
 
 		InsertMenuW(popupMenu, -1, MF_BYPOSITION | MF_STRING, IDM_REMOTE_REFRESH, L"Refresh");
+		InsertMenuW(popupMenu, -1, MF_BYPOSITION | MF_SEPARATOR, 0, NULL);
+		InsertMenuW(popupMenu, -1, MF_BYPOSITION | MF_STRING, IDM_REMOTE_ALWAYS_ON_TOP, L"Always On Top");
+		InsertMenuW(popupMenu, -1, MF_BYPOSITION | MF_STRING, IDM_REMOTE_EXIT, L"Exit");
 		SetForegroundWindow(window);
 		BOOL response = TrackPopupMenuEx(popupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, x, y, window, NULL);
 		DestroyMenu(popupMenu);
