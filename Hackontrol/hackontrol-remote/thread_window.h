@@ -1,8 +1,8 @@
 #pragma once
 
-#include <Windows.h>
+#include "thread_client.h"
 
 #define CLASS_CLIENT_WINDOW L"HackontrolRemoteClientWindow"
 
 BOOL WindowRegisterClass();
-DWORD WINAPI WindowThread(_In_ LPVOID parameter);
+DWORD WINAPI WindowThread(_In_ PCLIENT client);

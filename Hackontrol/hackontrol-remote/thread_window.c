@@ -1,5 +1,6 @@
-#include <khopanwin32.h>
 #include "thread_window.h"
+#include <khopanwin32.h>
+#include <khopanstring.h>
 #include "logger.h"
 
 extern HINSTANCE programInstance;
@@ -34,12 +35,23 @@ BOOL WindowRegisterClass() {
 	return TRUE;
 }
 
-DWORD WINAPI WindowThread(_In_ LPVOID parameter) {
-	LOG("[Window Thread]: Hello from window thread\n");
-	HWND window = CreateWindowExW(0L, CLASS_CLIENT_WINDOW, L"Client Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, 0, 200, 200, NULL, NULL, programInstance, NULL);
+DWORD WINAPI WindowThread(_In_ PCLIENT client) {
+	if(!client) {
+		LOG("[Window Thread]: Exiting with an error: No client structure provided\n");
+		return 1;
+	}
+
+	LOG("[Window Thread %ws]: Hello from window thread\n" COMMA client->address);
+	LPWSTR windowName = KHFormatMessageW(L"%ws [%ws]", client->name, client->address);
+	client->clientWindow = CreateWindowExW(0L, CLASS_CLIENT_WINDOW, windowName ? windowName : L"Client Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, 0, 200, 200, NULL, NULL, programInstance, NULL);
+
+	if(windowName) {
+		LocalFree(windowName);
+	}
+
 	int returnValue = 1;
 
-	if(!window) {
+	if(!client->clientWindow) {
 		KHWin32DialogErrorW(GetLastError(), L"CreateWindowExW");
 		goto exit;
 	}
@@ -53,6 +65,6 @@ DWORD WINAPI WindowThread(_In_ LPVOID parameter) {
 
 	returnValue = 0;
 exit:
-	LOG("[Window Thread]: Exiting the window thread (Exit code: %d)\n" COMMA returnValue);
+	LOG("[Window Thread %ws]: Exiting the window thread (Exit code: %d)\n" COMMA client->address COMMA returnValue);
 	return returnValue;
 }
