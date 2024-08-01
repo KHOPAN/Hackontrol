@@ -105,10 +105,10 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto exit;
 	}
 
-	FILE* standardOutput = stdout;
-	FILE* standardError = stderr;
-	freopen_s(&standardOutput, "CONOUT$", "w", stdout);
-	freopen_s(&standardError, "CONOUT$", "w", stderr);
+	FILE* file = stdout;
+	freopen_s(&file, "CONOUT$", "w", stdout);
+	file = stderr;
+	freopen_s(&file, "CONOUT$", "w", stderr);
 	SetWindowTextW(GetConsoleWindow(), L"Hackontrol Remote Debug Log");
 #endif
 #endif
