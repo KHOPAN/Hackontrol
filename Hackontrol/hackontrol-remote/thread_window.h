@@ -6,3 +6,4 @@
 
 BOOL WindowRegisterClass();
 DWORD WINAPI WindowThread(_In_ PCLIENT client);
+void ExitClientWindow(const PCLIENT client);

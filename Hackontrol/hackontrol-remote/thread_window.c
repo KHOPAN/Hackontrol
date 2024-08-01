@@ -66,5 +66,12 @@ DWORD WINAPI WindowThread(_In_ PCLIENT client) {
 	returnValue = 0;
 exit:
 	LOG("[Window Thread %ws]: Exiting the window thread (Exit code: %d)\n" COMMA client->address COMMA returnValue);
+	CloseHandle(client->thread);
 	return returnValue;
+}
+
+void ExitClientWindow(const PCLIENT client) {
+	if(client->clientWindow) {
+		PostMessageW(client->clientWindow, WM_CLOSE, 0, 0);
+	}
 }

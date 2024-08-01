@@ -135,6 +135,13 @@ exit:
 		LocalFree(client->name);
 	}
 
+	if(client->windowThread) {
+		ExitClientWindow(client);
+		LOG("[Client Thread %ws]: Waiting for window thread to exit\n" COMMA client->address);
+		WaitForSingleObject(client->windowThread, INFINITE);
+		CloseHandle(client->windowThread);
+	}
+
 	HANDLE thread = client->thread;
 	LOG("[Client Thread %ws]: Exiting the client thread (Exit code: %d)\n" COMMA client->address COMMA returnValue);
 	LocalFree(client);
@@ -146,6 +153,7 @@ void ClientOpen(PCLIENT client) {
 	LOG("[Hackontrol Remote]: Opening %ws\n" COMMA client->address);
 
 	if(client->windowThread) {
+		ExitClientWindow(client);
 		WaitForSingleObject(client->windowThread, INFINITE);
 		CloseHandle(client->windowThread);
 		client->windowThread = NULL;
