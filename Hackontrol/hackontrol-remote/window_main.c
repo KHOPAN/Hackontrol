@@ -87,6 +87,8 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 		case IDM_REMOTE_ALWAYS_ON_TOP:
 			break;
 		case IDM_REMOTE_EXIT:
+			LOG("[Main Window]: Exiting\n");
+			ExitMainWindow();
 			break;
 		}
 
