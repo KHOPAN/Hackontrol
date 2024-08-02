@@ -89,7 +89,6 @@ DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
 		}
 
 		LOG("[Server Thread]: Client connected: %ws, starting the client thread\n" COMMA client->address);
-		client->windowThread = NULL;
 		HANDLE thread = CreateThread(NULL, 0, ClientThread, client, CREATE_SUSPENDED, NULL);
 
 		if(!thread) {
@@ -97,6 +96,7 @@ DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
 			goto freeClient;
 		}
 
+		client->windowThread = NULL;
 		client->thread = thread;
 
 		if(ResumeThread(thread) == -1) {

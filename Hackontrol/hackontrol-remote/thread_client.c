@@ -30,6 +30,26 @@ static LPWSTR decodeName(const BYTE* data, long size) {
 	return KHFormatMessageW(L"%S", buffer);
 }
 
+static BOOL findClient(const SOCKET socket, size_t* index) {
+	for(size_t i = 0; i < clientList.elementCount; i++) {
+		PCLIENT instance;
+
+		if(!KHArrayGet(&clientList, i, &instance)) {
+			KHWin32DialogErrorW(GetLastError(), L"KHArrayGet");
+			break;
+		}
+
+		if(instance->socket != socket) {
+			continue;
+		}
+
+		(*index) = i;
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
 DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 	if(!client) {
 		LOG("[Client Thread]: Exiting with an error: No client structure provided\n");
@@ -39,6 +59,8 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 	LOG("[Client Thread %ws]: Hello from client thread\n" COMMA client->address);
 	char buffer[17];
 	int returnValue = 1;
+	HANDLE thread = client->thread;
+	WCHAR addressName[16];
 
 	if(recv(client->socket, buffer, sizeof(buffer) - 1, 0) == SOCKET_ERROR) {
 		KHWin32DialogErrorW(WSAGetLastError(), L"recv");
@@ -88,9 +110,17 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 	int height = (data[4] << 24) | (data[5] << 16) | (data[6] << 8) | data[7];
 	client->name = decodeName(data, packet.size);
 	LOG("[Client Thread %ws]: Username: '%ws' Screen: %dx%d\n" COMMA client->address COMMA client->name COMMA width COMMA height);
+	memcpy(addressName, client->name, sizeof(addressName));
 
 	if(!KHArrayAdd(&clientList, client)) {
 		KHWin32DialogErrorW(GetLastError(), L"KHArrayAdd");
+		goto exit;
+	}
+
+	LocalFree(client);
+
+	if(!KHArrayGet(&clientList, clientList.elementCount - 1, &client)) {
+		KHWin32DialogErrorW(GetLastError(), L"KHArrayGet");
 		goto exit;
 	}
 
@@ -105,34 +135,11 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 		LOG("[Client Thread %ws]: Unknown packet type: %d\n" COMMA client->address COMMA packet.packetType);
 	}
 
-	for(size_t i = 0; i < clientList.elementCount; i++) {
-		PCLIENT instance;
+	size_t index;
 
-		if(!KHArrayGet(&clientList, i, &instance)) {
-			KHWin32DialogErrorW(GetLastError(), L"KHArrayGet");
-			break;
-		}
-
-		if(instance->socket != client->socket) {
-			continue;
-		}
-
-		if(!KHArrayRemove(&clientList, i)) {
-			KHWin32DialogErrorW(GetLastError(), L"KHArrayRemove");
-			break;
-		}
-
-		RefreshMainWindowListView();
-		returnValue = 0;
+	if(!findClient(client->socket, &index)) {
+		LOG("[Client Thread %ws]: Error: Client not found in the client list\n" COMMA client->address);
 		goto exit;
-	}
-
-	LOG("[Client Thread]: Error: Client not found in the client list\n");
-exit:
-	closesocket(client->socket);
-
-	if(client->name) {
-		LocalFree(client->name);
 	}
 
 	if(client->windowThread) {
@@ -141,9 +148,21 @@ exit:
 		WaitForSingleObject(client->windowThread, INFINITE);
 	}
 
-	HANDLE thread = client->thread;
-	LOG("[Client Thread %ws]: Exiting the client thread (Exit code: %d)\n" COMMA client->address COMMA returnValue);
-	LocalFree(client);
+	if(!KHArrayRemove(&clientList, index)) {
+		KHWin32DialogErrorW(GetLastError(), L"KHArrayRemove");
+		goto exit;
+	}
+
+	closesocket(client->socket);
+
+	if(client->name) {
+		LocalFree(client->name);
+	}
+
+	RefreshMainWindowListView();
+	returnValue = 0;
+exit:
+	LOG("[Client Thread %ws]: Exiting the client thread (Exit code: %d)\n" COMMA addressName COMMA returnValue);
 	CloseHandle(thread);
 	return returnValue;
 }
@@ -157,18 +176,10 @@ void ClientOpen(PCLIENT client) {
 		client->windowThread = NULL;
 	}
 
-	HANDLE thread = CreateThread(NULL, 0, WindowThread, client, CREATE_SUSPENDED, NULL);
+	client->windowThread = CreateThread(NULL, 0, WindowThread, client, 0, NULL);
 
-	if(!thread) {
+	if(!client->windowThread) {
 		KHWin32DialogErrorW(GetLastError(), L"CreateThread");
-		return;
-	}
-
-	client->windowThread = thread;
-
-	if(ResumeThread(thread) == -1) {
-		KHWin32DialogErrorW(GetLastError(), L"ResumeThread");
-		CloseHandle(thread);
 	}
 }
 
