@@ -17,6 +17,7 @@
 
 HINSTANCE programInstance;
 ArrayList clientList;
+HANDLE listMutex;
 
 int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance, _In_ LPSTR argument, _In_ int commandLineShow) {
 	programInstance = instance;
@@ -50,12 +51,19 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto exit;
 	}
 
+	listMutex = CreateMutexExW(NULL, NULL, 0, DELETE | SYNCHRONIZE);
+
+	if(!listMutex) {
+		KHWin32DialogErrorW(GetLastError(), L"CreateMutexExW");
+		goto freeClientList;
+	}
+
 	LOG("[Hackontrol Remote]: Starting server thread\n");
 	HANDLE serverThread = CreateThread(NULL, 0, ServerThread, NULL, 0, NULL);
 
 	if(!serverThread) {
 		KHWin32DialogErrorW(GetLastError(), L"CreateThread");
-		goto freeClientList;
+		goto closeMutex;
 	}
 
 	returnValue = MainWindowMessageLoop();
@@ -77,6 +85,8 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	LOG("[Hackontrol Remote]: Waiting for server thread to exit\n");
 	WaitForSingleObject(serverThread, INFINITE);
 	CloseHandle(serverThread);
+closeMutex:
+	CloseHandle(listMutex);
 freeClientList:
 	KHArrayFree(&clientList);
 exit:

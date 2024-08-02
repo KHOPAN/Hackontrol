@@ -8,6 +8,7 @@
 #include "logger.h"
 
 extern ArrayList clientList;
+extern HANDLE listMutex;
 
 static LPWSTR decodeName(const BYTE* data, long size) {
 	size -= 8;
@@ -111,15 +112,29 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 	client->name = decodeName(data, packet.size);
 	LOG("[Client Thread %ws]: Username: '%ws' Screen: %dx%d\n" COMMA client->address COMMA client->name COMMA width COMMA height);
 	memcpy(addressName, client->name, sizeof(addressName));
+	WaitForSingleObject(listMutex, INFINITE);
+	BOOL result = KHArrayAdd(&clientList, client);
 
-	if(!KHArrayAdd(&clientList, client)) {
+	if(!ReleaseMutex(listMutex)) {
+		KHWin32DialogErrorW(GetLastError(), L"ReleaseMutex");
+		goto exit;
+	}
+
+	if(!result) {
 		KHWin32DialogErrorW(GetLastError(), L"KHArrayAdd");
 		goto exit;
 	}
 
 	LocalFree(client);
+	WaitForSingleObject(listMutex, INFINITE);
+	result = KHArrayGet(&clientList, clientList.elementCount - 1, &client);
 
-	if(!KHArrayGet(&clientList, clientList.elementCount - 1, &client)) {
+	if(!ReleaseMutex(listMutex)) {
+		KHWin32DialogErrorW(GetLastError(), L"ReleaseMutex");
+		goto exit;
+	}
+
+	if(!result) {
 		KHWin32DialogErrorW(GetLastError(), L"KHArrayGet");
 		goto exit;
 	}
@@ -135,9 +150,16 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 		LOG("[Client Thread %ws]: Unknown packet type: %d\n" COMMA client->address COMMA packet.packetType);
 	}
 
+	WaitForSingleObject(listMutex, INFINITE);
 	size_t index;
+	result = findClient(client->socket, &index);
 
-	if(!findClient(client->socket, &index)) {
+	if(!ReleaseMutex(listMutex)) {
+		KHWin32DialogErrorW(GetLastError(), L"ReleaseMutex");
+		goto exit;
+	}
+
+	if(!result) {
 		LOG("[Client Thread %ws]: Error: Client not found in the client list\n" COMMA client->address);
 		goto exit;
 	}
@@ -148,7 +170,15 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 		WaitForSingleObject(client->windowThread, INFINITE);
 	}
 
-	if(!KHArrayRemove(&clientList, index)) {
+	WaitForSingleObject(listMutex, INFINITE);
+	result = KHArrayRemove(&clientList, index);
+
+	if(!ReleaseMutex(listMutex)) {
+		KHWin32DialogErrorW(GetLastError(), L"ReleaseMutex");
+		goto exit;
+	}
+
+	if(!result) {
 		KHWin32DialogErrorW(GetLastError(), L"KHArrayRemove");
 		goto exit;
 	}
