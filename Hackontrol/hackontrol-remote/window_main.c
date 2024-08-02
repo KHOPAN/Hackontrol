@@ -15,6 +15,7 @@
 
 extern HINSTANCE programInstance;
 extern ArrayList clientList;
+extern HANDLE listMutex;
 
 static HWND window;
 static HWND titledBorder;
@@ -100,8 +101,15 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 		}
 
 		PCLIENT client;
+		WaitForSingleObject(listMutex, INFINITE);
+		BOOL result = KHArrayGet(&clientList, ((LPNMITEMACTIVATE) lparam)->iItem, &client);
 
-		if(!KHArrayGet(&clientList, ((LPNMITEMACTIVATE) lparam)->iItem, &client)) {
+		if(!ReleaseMutex(listMutex)) {
+			KHWin32DialogErrorW(GetLastError(), L"ReleaseMutex");
+			return 0;
+		}
+
+		if(!result) {
 			return 0;
 		}
 
