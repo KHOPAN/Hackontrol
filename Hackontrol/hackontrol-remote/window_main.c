@@ -84,6 +84,10 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 			LOG("[Main Window]: Refreshing list view\n");
 			RefreshMainWindowListView();
 			break;
+		case IDM_REMOTE_ALWAYS_ON_TOP:
+			break;
+		case IDM_REMOTE_EXIT:
+			break;
 		}
 
 		return 0;
