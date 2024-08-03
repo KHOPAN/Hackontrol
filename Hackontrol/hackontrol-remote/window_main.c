@@ -21,6 +21,32 @@ static HWND window;
 static HWND titledBorder;
 static HWND listView;
 
+static BOOL getActiveItem(size_t index, PCLIENT* client) {
+	size_t runningIndex = 0;
+
+	for(size_t i = 0; i < clientList.elementCount; i++) {
+		PCLIENT instance;
+
+		if(!KHArrayGet(&clientList, i, &instance)) {
+			return FALSE;
+		}
+
+		if(!instance->active) {
+			continue;
+		}
+
+		if(runningIndex == index) {
+			(*client) = instance;
+			return TRUE;
+		}
+
+		runningIndex++;
+	}
+
+	SetLastError(ERROR_NOT_FOUND);
+	return FALSE;
+}
+
 static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	switch(message) {
 	case WM_CLOSE:
@@ -59,7 +85,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 
 		PCLIENT client = NULL;
 
-		if(SendMessageW(listView, LVM_HITTEST, 0, (LPARAM) &hitTest) != -1 && KHArrayGet(&clientList, hitTest.iItem, &client)) {
+		if(SendMessageW(listView, LVM_HITTEST, 0, (LPARAM) &hitTest) != -1 && getActiveItem(hitTest.iItem, &client)) {
 			InsertMenuW(popupMenu, -1, MF_BYPOSITION | MF_STRING, IDM_REMOTE_OPEN, L"Open");
 			InsertMenuW(popupMenu, -1, MF_BYPOSITION | MF_STRING, IDM_REMOTE_DISCONNECT, L"Disconnect");
 			InsertMenuW(popupMenu, -1, MF_BYPOSITION | MF_SEPARATOR, 0, NULL);
@@ -100,20 +126,18 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 			return 0;
 		}
 
-		PCLIENT client;
 		WaitForSingleObject(listMutex, INFINITE);
-		BOOL result = KHArrayGet(&clientList, ((LPNMITEMACTIVATE) lparam)->iItem, &client);
+		PCLIENT client;
+		BOOL result = getActiveItem(((LPNMITEMACTIVATE) lparam)->iItem, &client);
 
 		if(!ReleaseMutex(listMutex)) {
 			KHWin32DialogErrorW(GetLastError(), L"ReleaseMutex");
 			return 0;
 		}
 
-		if(!result) {
-			return 0;
+		if(result) {
+			ClientOpen(client);
 		}
-
-		ClientOpen(client);
 	}
 	}
 
@@ -235,10 +259,9 @@ void RefreshMainWindowListView() {
 	item.mask = LVIF_TEXT;
 
 	for(size_t i = 0; i < clientList.elementCount; i++) {
-		CLIENT* client = NULL;
-		KHArrayGet(&clientList, i, &client);
+		CLIENT* client;
 
-		if(client->active) {
+		if(KHArrayGet(&clientList, i, &client) && client->active) {
 			item.iSubItem = 0;
 			item.pszText = client ? client->name : L"(Missing name)";
 			SendMessageW(listView, LVM_INSERTITEM, 0, (LPARAM) &item);
