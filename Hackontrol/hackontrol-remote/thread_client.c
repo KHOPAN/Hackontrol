@@ -105,6 +105,7 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 	LocalFree(client);
 	WaitForSingleObject(listMutex, INFINITE);
 	result = KHArrayGet(&clientList, clientList.elementCount - 1, &client);
+	RefreshMainWindowListView();
 
 	if(!ReleaseMutex(listMutex)) {
 		KHWin32DialogErrorW(GetLastError(), L"ReleaseMutex");
@@ -115,8 +116,6 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 		KHWin32DialogErrorW(GetLastError(), L"KHArrayGet");
 		goto exit;
 	}
-
-	RefreshMainWindowListView();
 
 	while(ReceivePacket(client->socket, &packet)) {
 		switch(packet.packetType) {
@@ -143,6 +142,15 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 exit:
 	LOG("[Client Thread %ws]: Exiting the client thread (Exit code: %d)\n" COMMA client->address COMMA returnValue);
 	CloseHandle(client->thread);
+	client->active = FALSE;
+	WaitForSingleObject(listMutex, INFINITE);
+	RefreshMainWindowListView();
+
+	if(!ReleaseMutex(listMutex)) {
+		KHWin32DialogErrorW(GetLastError(), L"ReleaseMutex");
+		return 1;
+	}
+
 	return returnValue;
 }
 

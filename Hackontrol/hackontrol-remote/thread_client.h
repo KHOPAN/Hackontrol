@@ -3,6 +3,7 @@
 #include <WinSock2.h>
 
 typedef struct {
+	BOOL active;
 	SOCKET socket;
 	WCHAR address[16];
 	LPWSTR name;

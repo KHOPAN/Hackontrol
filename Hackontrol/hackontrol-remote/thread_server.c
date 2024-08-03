@@ -81,6 +81,7 @@ DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
 			goto closeSocket;
 		}
 
+		client->active = TRUE;
 		client->socket = socket;
 
 		if(!InetNtopW(AF_INET, &socketAddress.sin_addr, client->address, 16)) {
