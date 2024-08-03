@@ -93,7 +93,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 
 		InsertMenuW(popupMenu, -1, MF_BYPOSITION | MF_STRING, IDM_REMOTE_REFRESH, L"Refresh");
 		InsertMenuW(popupMenu, -1, MF_BYPOSITION | MF_SEPARATOR, 0, NULL);
-		InsertMenuW(popupMenu, -1, MF_BYPOSITION | MF_STRING, IDM_REMOTE_ALWAYS_ON_TOP, L"Always On Top");
+		InsertMenuW(popupMenu, -1, MF_BYPOSITION | MF_STRING | (GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST ? MF_CHECKED : MF_UNCHECKED), IDM_REMOTE_ALWAYS_ON_TOP, L"Always On Top");
 		InsertMenuW(popupMenu, -1, MF_BYPOSITION | MF_STRING, IDM_REMOTE_EXIT, L"Exit");
 		SetForegroundWindow(window);
 		BOOL response = TrackPopupMenuEx(popupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, x, y, window, NULL);
@@ -112,6 +112,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 			RefreshMainWindowListView();
 			break;
 		case IDM_REMOTE_ALWAYS_ON_TOP:
+			SetWindowPos(window, (GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST) ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
 			break;
 		case IDM_REMOTE_EXIT:
 			LOG("[Main Window]: Exiting\n");
@@ -259,7 +260,7 @@ void RefreshMainWindowListView() {
 	item.mask = LVIF_TEXT;
 
 	for(size_t i = 0; i < clientList.elementCount; i++) {
-		CLIENT* client;
+		PCLIENT client;
 
 		if(KHArrayGet(&clientList, i, &client) && client->active) {
 			item.iSubItem = 0;
