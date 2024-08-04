@@ -5,6 +5,14 @@
 
 extern HINSTANCE programInstance;
 
+static void paintWindow(HDC context, HWND window) {
+	RECT bounds;
+	GetClientRect(window, &bounds);
+	HBRUSH brush = GetStockObject(DC_BRUSH);
+	SetDCBrushColor(context, 0x0000FF);
+	FillRect(context, &bounds, brush);
+}
+
 static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	switch(message) {
 	case WM_CLOSE:
@@ -13,6 +21,12 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
+	case WM_PAINT: {
+		PAINTSTRUCT paintStruct;
+		paintWindow(BeginPaint(window, &paintStruct), window);
+		EndPaint(window, &paintStruct);
+		return 0;
+	}
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
@@ -24,7 +38,6 @@ BOOL WindowRegisterClass() {
 	windowClass.lpfnWndProc = windowProcedure;
 	windowClass.hInstance = programInstance;
 	windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
-	windowClass.hbrBackground = (HBRUSH) COLOR_WINDOW;
 	windowClass.lpszClassName = CLASS_CLIENT_WINDOW;
 
 	if(!RegisterClassExW(&windowClass)) {
