@@ -55,8 +55,12 @@ DWORD WINAPI WindowThread(_In_ PCLIENT client) {
 	}
 
 	LOG("[Window Thread %ws]: Hello from window thread\n" COMMA client->address);
+	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+	int width = (int) (((double) screenWidth) * 0.439238653);
+	int height = (int) (((double) screenHeight) * 0.520833333);
 	LPWSTR windowName = KHFormatMessageW(L"%ws [%ws]", client->name, client->address);
-	client->clientWindow = CreateWindowExW(0L, CLASS_CLIENT_WINDOW, windowName ? windowName : L"Client Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, 0, 200, 200, NULL, NULL, NULL, NULL);
+	client->clientWindow = CreateWindowExW(0L, CLASS_CLIENT_WINDOW, windowName ? windowName : L"Client Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, NULL, NULL);
 
 	if(windowName) {
 		LocalFree(windowName);
