@@ -27,6 +27,10 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		EndPaint(window, &paintStruct);
 		return 0;
 	}
+	case WM_CONTEXTMENU: {
+		LOG("Context menu\n");
+		return 0;
+	}
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
