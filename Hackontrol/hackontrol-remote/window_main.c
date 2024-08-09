@@ -86,15 +86,15 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 		PCLIENT client = NULL;
 
 		if(SendMessageW(listView, LVM_HITTEST, 0, (LPARAM) &hitTest) != -1 && getActiveItem(hitTest.iItem, &client)) {
-			InsertMenuW(popupMenu, -1, MF_BYPOSITION | MF_STRING, IDM_REMOTE_OPEN, L"Open");
-			InsertMenuW(popupMenu, -1, MF_BYPOSITION | MF_STRING, IDM_REMOTE_DISCONNECT, L"Disconnect");
-			InsertMenuW(popupMenu, -1, MF_BYPOSITION | MF_SEPARATOR, 0, NULL);
+			AppendMenuW(popupMenu, MF_BYPOSITION | MF_STRING, IDM_REMOTE_OPEN, L"Open");
+			AppendMenuW(popupMenu, MF_BYPOSITION | MF_STRING, IDM_REMOTE_DISCONNECT, L"Disconnect");
+			AppendMenuW(popupMenu, MF_BYPOSITION | MF_SEPARATOR, 0, NULL);
 		}
 
-		InsertMenuW(popupMenu, -1, MF_BYPOSITION | MF_STRING, IDM_REMOTE_REFRESH, L"Refresh");
-		InsertMenuW(popupMenu, -1, MF_BYPOSITION | MF_SEPARATOR, 0, NULL);
-		InsertMenuW(popupMenu, -1, MF_BYPOSITION | MF_STRING | (GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST ? MF_CHECKED : MF_UNCHECKED), IDM_REMOTE_ALWAYS_ON_TOP, L"Always On Top");
-		InsertMenuW(popupMenu, -1, MF_BYPOSITION | MF_STRING, IDM_REMOTE_EXIT, L"Exit");
+		AppendMenuW(popupMenu, MF_BYPOSITION | MF_STRING, IDM_REMOTE_REFRESH, L"Refresh");
+		AppendMenuW(popupMenu, MF_BYPOSITION | MF_SEPARATOR, 0, NULL);
+		AppendMenuW(popupMenu, MF_BYPOSITION | MF_STRING | (GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST ? MF_CHECKED : MF_UNCHECKED), IDM_REMOTE_ALWAYS_ON_TOP, L"Always On Top");
+		AppendMenuW(popupMenu, MF_BYPOSITION | MF_STRING, IDM_REMOTE_EXIT, L"Exit");
 		SetForegroundWindow(window);
 		BOOL response = TrackPopupMenuEx(popupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, x, y, window, NULL);
 		DestroyMenu(popupMenu);
