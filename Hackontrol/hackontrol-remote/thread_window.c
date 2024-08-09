@@ -51,6 +51,14 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		SetForegroundWindow(window);
 		BOOL response = TrackPopupMenuEx(popupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
 		DestroyMenu(popupMenu);
+
+		switch(response) {
+		case IDM_WINDOW_EXIT:
+			LOG("[Window Thread %ws]: Exiting\n" COMMA client->address);
+			ClientDisconnect(client);
+			break;
+		}
+
 		return 0;
 	}
 	}
