@@ -48,8 +48,8 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			return 0;
 		}
 
-		AppendMenuW(popupMenu, MF_BYPOSITION | MF_STRING | (client->streaming ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_ENABLE_STREAMING, L"Enable Streaming");
-		AppendMenuW(popupMenu, MF_BYPOSITION | MF_STRING, IDM_WINDOW_EXIT, L"Exit");
+		AppendMenuW(popupMenu, MF_STRING | (client->streaming ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_ENABLE_STREAMING, L"Enable Streaming");
+		AppendMenuW(popupMenu, MF_STRING, IDM_WINDOW_EXIT, L"Exit");
 		SetForegroundWindow(window);
 		BOOL response = TrackPopupMenuEx(popupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
 		DestroyMenu(popupMenu);
