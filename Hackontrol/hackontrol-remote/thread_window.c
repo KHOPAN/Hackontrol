@@ -3,7 +3,8 @@
 #include <khopanstring.h>
 #include "logger.h"
 
-#define IDM_WINDOW_EXIT 0xE001
+#define IDM_WINDOW_ENABLE_STREAMING 0xE001
+#define IDM_WINDOW_EXIT             0xE002
 
 extern HINSTANCE programInstance;
 
@@ -47,12 +48,16 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			return 0;
 		}
 
+		InsertMenuW(popupMenu, -1, MF_BYPOSITION | MF_STRING | (client->streaming ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_ENABLE_STREAMING, L"Enable Streaming");
 		InsertMenuW(popupMenu, -1, MF_BYPOSITION | MF_STRING, IDM_WINDOW_EXIT, L"Exit");
 		SetForegroundWindow(window);
 		BOOL response = TrackPopupMenuEx(popupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
 		DestroyMenu(popupMenu);
 
 		switch(response) {
+		case IDM_WINDOW_ENABLE_STREAMING:
+			client->streaming = !client->streaming;
+			break;
 		case IDM_WINDOW_EXIT:
 			LOG("[Window Thread %ws]: Exiting\n" COMMA client->address);
 			ClientDisconnect(client);
