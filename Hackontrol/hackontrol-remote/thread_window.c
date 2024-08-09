@@ -16,6 +16,17 @@ static void paintWindow(HDC context, HWND window) {
 }
 
 static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
+	PCLIENT client = (PCLIENT) GetWindowLongPtrW(window, GWLP_USERDATA);
+
+	if(!client) {
+		if(message != WM_CREATE) {
+			return DefWindowProcW(window, message, wparam, lparam);
+		}
+
+		client = (PCLIENT) (((CREATESTRUCT*) lparam)->lpCreateParams);
+		SetWindowLongPtrW(window, GWLP_USERDATA, (LONG_PTR) client);
+	}
+
 	switch(message) {
 	case WM_CLOSE:
 		DestroyWindow(window);
@@ -75,7 +86,7 @@ DWORD WINAPI WindowThread(_In_ PCLIENT client) {
 	int width = (int) (((double) screenWidth) * 0.439238653);
 	int height = (int) (((double) screenHeight) * 0.520833333);
 	LPWSTR windowName = KHFormatMessageW(L"%ws [%ws]", client->name, client->address);
-	client->clientWindow = CreateWindowExW(0L, CLASS_CLIENT_WINDOW, windowName ? windowName : L"Client Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, NULL, NULL);
+	client->clientWindow = CreateWindowExW(0L, CLASS_CLIENT_WINDOW, windowName ? windowName : L"Client Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, NULL, client);
 
 	if(windowName) {
 		LocalFree(windowName);
