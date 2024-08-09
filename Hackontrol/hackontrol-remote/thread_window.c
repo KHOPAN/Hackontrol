@@ -3,6 +3,8 @@
 #include <khopanstring.h>
 #include "logger.h"
 
+#define IDM_WINDOW_EXIT 0xE001
+
 extern HINSTANCE programInstance;
 
 static void paintWindow(HDC context, HWND window) {
@@ -28,7 +30,16 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		return 0;
 	}
 	case WM_CONTEXTMENU: {
-		LOG("Context menu\n");
+		HMENU popupMenu = CreatePopupMenu();
+
+		if(!popupMenu) {
+			return 0;
+		}
+
+		InsertMenuW(popupMenu, -1, MF_BYPOSITION | MF_STRING, IDM_WINDOW_EXIT, L"Exit");
+		SetForegroundWindow(window);
+		BOOL response = TrackPopupMenuEx(popupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
+		DestroyMenu(popupMenu);
 		return 0;
 	}
 	}
