@@ -3,8 +3,12 @@
 #include <khopanstring.h>
 #include "logger.h"
 
-#define IDM_WINDOW_EXIT             0xE001
-#define IDM_WINDOW_STREAMING_ENABLE 0xE002
+#define IDM_WINDOW_EXIT                     0xE001
+#define IDM_WINDOW_STREAMING_ENABLE         0xE002
+#define IDM_WINDOW_SEND_METHOD_FULL         0xE003
+#define IDM_WINDOW_SEND_METHOD_BOUNDARY     0xE004
+#define IDM_WINDOW_SEND_METHOD_COLOR        0xE005
+#define IDM_WINDOW_SEND_METHOD_UNCOMPRESSED 0xE006
 
 extern HINSTANCE programInstance;
 
@@ -55,11 +59,25 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			return 0;
 		}
 
+		HMENU sendMethod = CreateMenu();
+
+		if(!sendMethod) {
+			DestroyMenu(streamingMenu);
+			DestroyMenu(popupMenu);
+			return 0;
+		}
+
 		AppendMenuW(streamingMenu, MF_STRING | (client->streaming ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_STREAMING_ENABLE, L"Enable");
+		AppendMenuW(sendMethod, MF_STRING, IDM_WINDOW_SEND_METHOD_FULL, L"Full");
+		AppendMenuW(sendMethod, MF_STRING, IDM_WINDOW_SEND_METHOD_BOUNDARY, L"Boundary Differences");
+		AppendMenuW(sendMethod, MF_STRING, IDM_WINDOW_SEND_METHOD_COLOR, L"Color Differences");
+		AppendMenuW(sendMethod, MF_STRING, IDM_WINDOW_SEND_METHOD_UNCOMPRESSED, L"Uncompressed");
+		AppendMenuW(streamingMenu, MF_POPUP, (UINT_PTR) sendMethod, L"Send Method");
 		AppendMenuW(popupMenu, MF_POPUP, (UINT_PTR) streamingMenu, L"Streaming");
 		AppendMenuW(popupMenu, MF_STRING, IDM_WINDOW_EXIT, L"Exit");
 		SetForegroundWindow(window);
 		BOOL response = TrackPopupMenuEx(popupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
+		DestroyMenu(sendMethod);
 		DestroyMenu(streamingMenu);
 		DestroyMenu(popupMenu);
 
