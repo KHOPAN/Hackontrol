@@ -68,11 +68,11 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		}
 
 		AppendMenuW(streamingMenu, MF_STRING | (client->streaming ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_STREAMING_ENABLE, L"Enable");
-		AppendMenuW(sendMethod, MF_STRING, IDM_WINDOW_SEND_METHOD_FULL, L"Full");
-		AppendMenuW(sendMethod, MF_STRING, IDM_WINDOW_SEND_METHOD_BOUNDARY, L"Boundary Differences");
-		AppendMenuW(sendMethod, MF_STRING, IDM_WINDOW_SEND_METHOD_COLOR, L"Color Differences");
-		AppendMenuW(sendMethod, MF_STRING, IDM_WINDOW_SEND_METHOD_UNCOMPRESSED, L"Uncompressed");
-		AppendMenuW(streamingMenu, MF_POPUP, (UINT_PTR) sendMethod, L"Send Method");
+		AppendMenuW(sendMethod, MF_STRING | (client->sendMethod == SEND_METHOD_FULL ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_FULL, L"Full");
+		AppendMenuW(sendMethod, MF_STRING | (client->sendMethod == SEND_METHOD_BOUNDARY ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_BOUNDARY, L"Boundary Differences");
+		AppendMenuW(sendMethod, MF_STRING | (client->sendMethod == SEND_METHOD_COLOR ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_COLOR, L"Color Differences");
+		AppendMenuW(sendMethod, MF_STRING | (client->sendMethod == SEND_METHOD_UNCOMPRESSED ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_UNCOMPRESSED, L"Uncompressed");
+		AppendMenuW(streamingMenu, MF_POPUP | (client->streaming ? MF_ENABLED : MF_DISABLED), (UINT_PTR) sendMethod, L"Send Method");
 		AppendMenuW(popupMenu, MF_POPUP, (UINT_PTR) streamingMenu, L"Streaming");
 		AppendMenuW(popupMenu, MF_STRING, IDM_WINDOW_EXIT, L"Exit");
 		SetForegroundWindow(window);
@@ -88,6 +88,18 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			break;
 		case IDM_WINDOW_STREAMING_ENABLE:
 			client->streaming = !client->streaming;
+			break;
+		case IDM_WINDOW_SEND_METHOD_FULL:
+			client->sendMethod = SEND_METHOD_FULL;
+			break;
+		case IDM_WINDOW_SEND_METHOD_BOUNDARY:
+			client->sendMethod = SEND_METHOD_BOUNDARY;
+			break;
+		case IDM_WINDOW_SEND_METHOD_COLOR:
+			client->sendMethod = SEND_METHOD_COLOR;
+			break;
+		case IDM_WINDOW_SEND_METHOD_UNCOMPRESSED:
+			client->sendMethod = SEND_METHOD_UNCOMPRESSED;
 			break;
 		}
 
