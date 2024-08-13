@@ -118,8 +118,13 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 	}
 
 	while(ReceivePacket(client->socket, &packet)) {
+		if(packet.size < 1) {
+			continue;
+		}
+
 		switch(packet.packetType) {
 		case PACKET_TYPE_STREAM_FRAME:
+			LOG("[Client Thread %ws]: Stream frame\n" COMMA client->address);
 			continue;
 		}
 
