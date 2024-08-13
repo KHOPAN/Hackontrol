@@ -122,6 +122,8 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 			continue;
 		}
 
+		LocalFree(packet.data);
+
 		switch(packet.packetType) {
 		case PACKET_TYPE_STREAM_FRAME:
 			LOG("[Client Thread %ws]: Stream frame\n" COMMA client->address);
