@@ -5,6 +5,7 @@
 #include <hackontrolpacket.h>
 #include "thread_window.h"
 #include "window_main.h"
+#include "frame_decoder.h"
 #include "logger.h"
 
 extern ArrayList clientList;
@@ -122,15 +123,24 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 			continue;
 		}
 
-		LocalFree(packet.data);
-
 		switch(packet.packetType) {
-		case PACKET_TYPE_STREAM_FRAME:
+		case PACKET_TYPE_STREAM_FRAME: {
 			LOG("[Client Thread %ws]: Stream frame\n" COMMA client->address);
-			continue;
+			HBITMAP bitmap;
+
+			if(!DecodeHRSPFrame(packet.data, packet.size, &bitmap)) {
+				KHWin32DialogErrorW(GetLastError(), L"DecodeHRSPFrame");
+				break;
+			}
+
+			break;
+		}
+		default:
+			LOG("[Client Thread %ws]: Unknown packet type: %d\n" COMMA client->address COMMA packet.packetType);
+			break;
 		}
 
-		LOG("[Client Thread %ws]: Unknown packet type: %d\n" COMMA client->address COMMA packet.packetType);
+		LocalFree(packet.data);
 	}
 
 	if(client->windowThread) {
