@@ -128,11 +128,12 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 			LOG("[Client Thread %ws]: Stream frame\n" COMMA client->address);
 			HBITMAP bitmap;
 
-			if(!DecodeHRSPFrame(packet.data, packet.size, &bitmap)) {
+			if(!DecodeHRSPFrame(packet.data, packet.size, width, height, &bitmap)) {
 				KHWin32DialogErrorW(GetLastError(), L"DecodeHRSPFrame");
 				break;
 			}
 
+			DeleteObject(bitmap);
 			break;
 		}
 		default:
