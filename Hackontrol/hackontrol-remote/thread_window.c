@@ -17,7 +17,7 @@ static void paintWindow(HDC context, HWND window) {
 	RECT bounds;
 	GetClientRect(window, &bounds);
 	HBRUSH brush = GetStockObject(DC_BRUSH);
-	SetDCBrushColor(context, 0x0000FF);
+	SetDCBrushColor(context, 0x000000);
 	FillRect(context, &bounds, brush);
 }
 
