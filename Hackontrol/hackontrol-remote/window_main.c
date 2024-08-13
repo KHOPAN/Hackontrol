@@ -160,7 +160,7 @@ BOOL InitializeMainWindow() {
 	}
 
 	LOG("[Hackontrol Remote]: Creating the main window\n");
-	window = CreateWindowExW(0, CLASS_HACKONTROL_REMOTE, L"Hackontrol Remote", WS_OVERLAPPEDWINDOW, 0, 0, 0, 0, NULL, NULL, programInstance, NULL);
+	window = CreateWindowExW(WS_EX_TOPMOST, CLASS_HACKONTROL_REMOTE, L"Hackontrol Remote", WS_OVERLAPPEDWINDOW, 0, 0, 0, 0, NULL, NULL, programInstance, NULL);
 
 	if(!window) {
 		KHWin32DialogErrorW(GetLastError(), L"CreateWindowExW");
