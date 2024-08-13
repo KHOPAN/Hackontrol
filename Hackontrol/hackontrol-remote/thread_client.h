@@ -3,10 +3,10 @@
 #include <WinSock2.h>
 
 typedef enum {
-	SEND_METHOD_FULL         = 1,
-	SEND_METHOD_BOUNDARY     = 2,
-	SEND_METHOD_COLOR        = 3,
-	SEND_METHOD_UNCOMPRESSED = 4
+	SEND_METHOD_FULL         = 0,
+	SEND_METHOD_BOUNDARY     = 1,
+	SEND_METHOD_COLOR        = 2,
+	SEND_METHOD_UNCOMPRESSED = 3
 } SENDMETHOD;
 
 typedef struct {
