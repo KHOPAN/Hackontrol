@@ -13,14 +13,6 @@
 
 extern HINSTANCE programInstance;
 
-static void paintWindow(HDC context, HWND window) {
-	RECT bounds;
-	GetClientRect(window, &bounds);
-	HBRUSH brush = GetStockObject(DC_BRUSH);
-	SetDCBrushColor(context, 0x000000);
-	FillRect(context, &bounds, brush);
-}
-
 static void sendStreamCode(const PCLIENT client) {
 	unsigned char flags = ((client->sendMethod & 0b11) << 1) | (client->streaming & 1);
 	LOG("[Window Thread %ws]: Flags: %c%c%c%c%c%c%c%c\n" COMMA client->address COMMA flags & 0x80 ? '1' : '0' COMMA flags & 0x40 ? '1' : '0' COMMA flags & 0x20 ? '1' : '0' COMMA flags & 0x10 ? '1' : '0' COMMA flags & 0x08 ? '1' : '0' COMMA flags & 0x04 ? '1' : '0' COMMA flags & 0x02 ? '1' : '0' COMMA flags & 0x01 ? '1' : '0');
@@ -55,7 +47,12 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		return 0;
 	case WM_PAINT: {
 		PAINTSTRUCT paintStruct;
-		paintWindow(BeginPaint(window, &paintStruct), window);
+		HDC context = BeginPaint(window, &paintStruct);
+		RECT bounds;
+		GetClientRect(window, &bounds);
+		HBRUSH brush = GetStockObject(DC_BRUSH);
+		SetDCBrushColor(context, 0x000000);
+		FillRect(context, &bounds, brush);
 		EndPaint(window, &paintStruct);
 		return 0;
 	}
