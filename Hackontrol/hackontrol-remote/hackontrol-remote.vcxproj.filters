@@ -42,6 +42,9 @@
     <ClCompile Include="thread_window.c">
       <Filter>Source Files\thread</Filter>
     </ClCompile>
+    <ClCompile Include="frame_decoder.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="hackontrol-remote.exe.manifest" />
@@ -61,6 +64,9 @@
     </ClInclude>
     <ClInclude Include="thread_window.h">
       <Filter>Header Files\thread</Filter>
+    </ClInclude>
+    <ClInclude Include="frame_decoder.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

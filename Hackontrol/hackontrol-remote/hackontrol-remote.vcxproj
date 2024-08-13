@@ -147,6 +147,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="frame_decoder.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="thread_client.c" />
     <ClCompile Include="thread_server.c" />
@@ -165,6 +166,7 @@
     <Manifest Include="hackontrol-remote.exe.manifest" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="frame_decoder.h" />
     <ClInclude Include="logger.h" />
     <ClInclude Include="thread_client.h" />
     <ClInclude Include="thread_server.h" />
