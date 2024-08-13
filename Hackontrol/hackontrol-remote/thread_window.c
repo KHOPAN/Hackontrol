@@ -1,6 +1,7 @@
 #include "thread_window.h"
 #include <khopanwin32.h>
 #include <khopanstring.h>
+#include <hackontrolpacket.h>
 #include "logger.h"
 
 #define IDM_WINDOW_EXIT                     0xE001
@@ -23,6 +24,14 @@ static void paintWindow(HDC context, HWND window) {
 static void sendStreamCode(const PCLIENT client) {
 	unsigned char flags = ((client->sendMethod & 0b11) << 1) | (client->streaming & 1);
 	LOG("[Window Thread %ws]: Flags: %c%c%c%c%c%c%c%c\n" COMMA client->address COMMA flags & 0x80 ? '1' : '0' COMMA flags & 0x40 ? '1' : '0' COMMA flags & 0x20 ? '1' : '0' COMMA flags & 0x10 ? '1' : '0' COMMA flags & 0x08 ? '1' : '0' COMMA flags & 0x04 ? '1' : '0' COMMA flags & 0x02 ? '1' : '0' COMMA flags & 0x01 ? '1' : '0');
+	PACKET packet;
+	packet.size = 1;
+	packet.packetType = PACKET_TYPE_STREAM_FRAME;
+	packet.data = &flags;
+
+	if(!SendPacket(client->socket, &packet)) {
+		KHWin32DialogErrorW(GetLastError(), L"SendPacket");
+	}
 }
 
 static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
