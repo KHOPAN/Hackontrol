@@ -20,6 +20,10 @@ static void paintWindow(HDC context, HWND window) {
 	FillRect(context, &bounds, brush);
 }
 
+static void sendStreamCode(const PCLIENT client) {
+	LOG("Stream Code\n");
+}
+
 static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	PCLIENT client = (PCLIENT) GetWindowLongPtrW(window, GWLP_USERDATA);
 
@@ -88,18 +92,23 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			break;
 		case IDM_WINDOW_STREAMING_ENABLE:
 			client->streaming = !client->streaming;
+			sendStreamCode(client);
 			break;
 		case IDM_WINDOW_SEND_METHOD_FULL:
 			client->sendMethod = SEND_METHOD_FULL;
+			sendStreamCode(client);
 			break;
 		case IDM_WINDOW_SEND_METHOD_BOUNDARY:
 			client->sendMethod = SEND_METHOD_BOUNDARY;
+			sendStreamCode(client);
 			break;
 		case IDM_WINDOW_SEND_METHOD_COLOR:
 			client->sendMethod = SEND_METHOD_COLOR;
+			sendStreamCode(client);
 			break;
 		case IDM_WINDOW_SEND_METHOD_UNCOMPRESSED:
 			client->sendMethod = SEND_METHOD_UNCOMPRESSED;
+			sendStreamCode(client);
 			break;
 		}
 
