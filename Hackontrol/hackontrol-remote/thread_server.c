@@ -83,8 +83,11 @@ DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
 
 		client->active = TRUE;
 		client->socket = socket;
-		client->streaming = FALSE;
-		client->sendMethod = SEND_METHOD_COLOR;
+		client->stream.streaming = FALSE;
+		client->stream.method = SEND_METHOD_COLOR;
+		client->stream.width = 0;
+		client->stream.height = 0;
+		client->stream.frame = NULL;
 
 		if(!InetNtopW(AF_INET, &socketAddress.sin_addr, client->address, 16)) {
 			KHWin32DialogErrorW(WSAGetLastError(), L"InetNtopW");

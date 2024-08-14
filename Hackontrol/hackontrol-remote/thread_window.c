@@ -14,7 +14,7 @@
 extern HINSTANCE programInstance;
 
 static void sendStreamCode(const PCLIENT client) {
-	unsigned char flags = ((client->sendMethod & 0b11) << 1) | (client->streaming & 1);
+	unsigned char flags = ((client->stream.method & 0b11) << 1) | (client->stream.method & 1);
 	LOG("[Window Thread %ws]: Flags: %c%c%c%c%c%c%c%c\n" COMMA client->address COMMA flags & 0x80 ? '1' : '0' COMMA flags & 0x40 ? '1' : '0' COMMA flags & 0x20 ? '1' : '0' COMMA flags & 0x10 ? '1' : '0' COMMA flags & 0x08 ? '1' : '0' COMMA flags & 0x04 ? '1' : '0' COMMA flags & 0x02 ? '1' : '0' COMMA flags & 0x01 ? '1' : '0');
 	PACKET packet;
 	packet.size = 1;
@@ -54,9 +54,9 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		SetDCBrushColor(context, 0x000000);
 		FillRect(context, &bounds, brush);
 		HDC memoryContext = CreateCompatibleDC(context);
-		HBITMAP oldBitmap = SelectObject(memoryContext, client->streamFrame);
+		HBITMAP oldBitmap = SelectObject(memoryContext, client->stream.frame);
 		BITMAP bitmap;
-		GetObjectW(client->streamFrame, sizeof(bitmap), &bitmap);
+		GetObjectW(client->stream.frame, sizeof(bitmap), &bitmap);
 		BitBlt(context, 0, 0, bitmap.bmWidth, bitmap.bmHeight, memoryContext, 0, 0, SRCCOPY);
 		SelectObject(memoryContext, oldBitmap);
 		DeleteDC(memoryContext);
@@ -85,12 +85,12 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			return 0;
 		}
 
-		AppendMenuW(streamingMenu, MF_STRING | (client->streaming ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_STREAMING_ENABLE, L"Enable");
-		AppendMenuW(sendMethod, MF_STRING | (client->sendMethod == SEND_METHOD_FULL ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_FULL, L"Full");
-		AppendMenuW(sendMethod, MF_STRING | (client->sendMethod == SEND_METHOD_BOUNDARY ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_BOUNDARY, L"Boundary Differences");
-		AppendMenuW(sendMethod, MF_STRING | (client->sendMethod == SEND_METHOD_COLOR ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_COLOR, L"Color Differences");
-		AppendMenuW(sendMethod, MF_STRING | (client->sendMethod == SEND_METHOD_UNCOMPRESSED ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_UNCOMPRESSED, L"Uncompressed");
-		AppendMenuW(streamingMenu, MF_POPUP | (client->streaming ? MF_ENABLED : MF_DISABLED), (UINT_PTR) sendMethod, L"Send Method");
+		AppendMenuW(streamingMenu, MF_STRING | (client->stream.streaming ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_STREAMING_ENABLE, L"Enable");
+		AppendMenuW(sendMethod, MF_STRING | (client->stream.method == SEND_METHOD_FULL ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_FULL, L"Full");
+		AppendMenuW(sendMethod, MF_STRING | (client->stream.method == SEND_METHOD_BOUNDARY ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_BOUNDARY, L"Boundary Differences");
+		AppendMenuW(sendMethod, MF_STRING | (client->stream.method == SEND_METHOD_COLOR ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_COLOR, L"Color Differences");
+		AppendMenuW(sendMethod, MF_STRING | (client->stream.method == SEND_METHOD_UNCOMPRESSED ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_UNCOMPRESSED, L"Uncompressed");
+		AppendMenuW(streamingMenu, MF_POPUP | (client->stream.streaming ? MF_ENABLED : MF_DISABLED), (UINT_PTR) sendMethod, L"Send Method");
 		AppendMenuW(popupMenu, MF_POPUP, (UINT_PTR) streamingMenu, L"Streaming");
 		AppendMenuW(popupMenu, MF_STRING, IDM_WINDOW_EXIT, L"Exit");
 		SetForegroundWindow(window);
@@ -105,23 +105,23 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			ClientDisconnect(client);
 			break;
 		case IDM_WINDOW_STREAMING_ENABLE:
-			client->streaming = !client->streaming;
+			client->stream.streaming = !client->stream.streaming;
 			sendStreamCode(client);
 			break;
 		case IDM_WINDOW_SEND_METHOD_FULL:
-			client->sendMethod = SEND_METHOD_FULL;
+			client->stream.method = SEND_METHOD_FULL;
 			sendStreamCode(client);
 			break;
 		case IDM_WINDOW_SEND_METHOD_BOUNDARY:
-			client->sendMethod = SEND_METHOD_BOUNDARY;
+			client->stream.method = SEND_METHOD_BOUNDARY;
 			sendStreamCode(client);
 			break;
 		case IDM_WINDOW_SEND_METHOD_COLOR:
-			client->sendMethod = SEND_METHOD_COLOR;
+			client->stream.method = SEND_METHOD_COLOR;
 			sendStreamCode(client);
 			break;
 		case IDM_WINDOW_SEND_METHOD_UNCOMPRESSED:
-			client->sendMethod = SEND_METHOD_UNCOMPRESSED;
+			client->stream.method = SEND_METHOD_UNCOMPRESSED;
 			sendStreamCode(client);
 			break;
 		}
@@ -156,10 +156,10 @@ DWORD WINAPI WindowThread(_In_ PCLIENT client) {
 	}
 
 	LOG("[Window Thread %ws]: Hello from window thread\n" COMMA client->address);
-	client->streamFrame = LoadImageW(NULL, L"D:\\image.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
+	client->stream.frame = LoadImageW(NULL, L"D:\\image.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
 	int returnValue = 1;
 
-	if(!client->streamFrame) {
+	if(!client->stream.frame) {
 		KHWin32DialogErrorW(GetLastError(), L"LoadImageW");
 		goto exit;
 	}

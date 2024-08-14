@@ -10,6 +10,14 @@ typedef enum {
 } SENDMETHOD;
 
 typedef struct {
+	BOOL streaming;
+	SENDMETHOD method;
+	UINT width;
+	UINT height;
+	HBITMAP frame;
+} STREAMDATA;
+
+typedef struct {
 	BOOL active;
 	SOCKET socket;
 	WCHAR address[16];
@@ -17,9 +25,7 @@ typedef struct {
 	HANDLE thread;
 	HANDLE windowThread;
 	HWND clientWindow;
-	BOOL streaming;
-	SENDMETHOD sendMethod;
-	HBITMAP streamFrame;
+	STREAMDATA stream;
 } CLIENT, *PCLIENT;
 
 DWORD WINAPI ClientThread(_In_ PCLIENT client);
