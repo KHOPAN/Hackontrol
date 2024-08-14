@@ -19,6 +19,7 @@ typedef struct {
 	HWND clientWindow;
 	BOOL streaming;
 	SENDMETHOD sendMethod;
+	HBITMAP streamFrame;
 } CLIENT, *PCLIENT;
 
 DWORD WINAPI ClientThread(_In_ PCLIENT client);

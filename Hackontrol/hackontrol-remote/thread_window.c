@@ -149,6 +149,14 @@ DWORD WINAPI WindowThread(_In_ PCLIENT client) {
 	}
 
 	LOG("[Window Thread %ws]: Hello from window thread\n" COMMA client->address);
+	client->streamFrame = LoadImageW(NULL, L"D:\\image.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
+	int returnValue = 1;
+
+	if(!client->streamFrame) {
+		KHWin32DialogErrorW(GetLastError(), L"LoadImageW");
+		goto exit;
+	}
+
 	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
 	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	int width = (int) (((double) screenWidth) * 0.439238653);
@@ -159,8 +167,6 @@ DWORD WINAPI WindowThread(_In_ PCLIENT client) {
 	if(windowName) {
 		LocalFree(windowName);
 	}
-
-	int returnValue = 1;
 
 	if(!client->clientWindow) {
 		KHWin32DialogErrorW(GetLastError(), L"CreateWindowExW");
