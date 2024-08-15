@@ -1,5 +1,5 @@
 #pragma once
 
-#include <Windows.h>
+#include "thread_client.h"
 
-BOOL DecodeHRSPFrame(const BYTE* data, size_t size, int width, int height, HBITMAP* output);
+BOOL DecodeHRSPFrame(const BYTE* data, size_t size, STREAMDATA* stream);
