@@ -54,9 +54,8 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		SetDCBrushColor(context, 0x000000);
 		FillRect(context, &bounds, brush);
 		HDC memoryContext = CreateCompatibleDC(context);
-		HBITMAP bitmap = SelectObject(memoryContext, client->stream.frame);
+		SelectObject(memoryContext, client->stream.frame);
 		BitBlt(context, 0, 0, client->stream.width, client->stream.height, memoryContext, 0, 0, SRCCOPY);
-		SelectObject(memoryContext, bitmap);
 		DeleteDC(memoryContext);
 		EndPaint(window, &paintStruct);
 		return 0;
