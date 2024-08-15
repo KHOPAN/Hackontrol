@@ -119,21 +119,23 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 	}
 
 	while(ReceivePacket(client->socket, &packet)) {
+		LOG("[Client Thread %ws]: Stream frame: %d Size: %ld\n" COMMA client->address COMMA packet.packetType COMMA packet.size);
+
 		if(packet.size < 1) {
 			continue;
 		}
 
 		switch(packet.packetType) {
 		case PACKET_TYPE_STREAM_FRAME: {
-			LOG("[Client Thread %ws]: Stream frame\n" COMMA client->address);
-			HBITMAP bitmap;
+			//LOG("[Client Thread %ws]: Stream frame\n" COMMA client->address);
+			/*HBITMAP bitmap;
 
 			if(!DecodeHRSPFrame(packet.data, packet.size, width, height, &bitmap)) {
 				KHWin32DialogErrorW(GetLastError(), L"DecodeHRSPFrame");
 				break;
 			}
 
-			DeleteObject(bitmap);
+			DeleteObject(bitmap);*/
 			break;
 		}
 		default:
