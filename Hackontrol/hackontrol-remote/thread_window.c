@@ -55,8 +55,25 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		FillRect(context, &bounds, brush);
 		HDC memoryContext = CreateCompatibleDC(context);
 		SelectObject(memoryContext, client->stream.frame);
+		int width = bounds.right - bounds.left;
+		int height = bounds.bottom - bounds.top;
+		int newWidth = (int) (((double) client->stream.width) / ((double) client->stream.height) * ((double) height));
+		int newHeight = (int) (((double) client->stream.height) / ((double) client->stream.width) * ((double) width));
+		int x;
+		int y;
+
+		if(newWidth < width) {
+			newHeight = height;
+			x = (int) ((((double) width) - ((double) newWidth)) / 2.0);
+			y = 0;
+		} else {
+			newWidth = width;
+			x = 0;
+			y = (int) ((((double) height) - ((double) newHeight)) / 2.0);
+		}
+
 		SetStretchBltMode(context, HALFTONE);
-		StretchBlt(context, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, memoryContext, 0, 0, client->stream.width, client->stream.height, SRCCOPY);
+		StretchBlt(context, x, y, newWidth, newHeight, memoryContext, 0, 0, client->stream.width, client->stream.height, SRCCOPY);
 		DeleteDC(memoryContext);
 		EndPaint(window, &paintStruct);
 		return 0;
