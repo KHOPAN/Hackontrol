@@ -161,6 +161,10 @@ DWORD WINAPI WindowThread(_In_ PCLIENT client) {
 		goto exit;
 	}
 
+	BITMAP bitmap = {0};
+	GetObjectW(client->stream.frame, sizeof(BITMAP), &bitmap);
+	client->stream.width = bitmap.bmWidth;
+	client->stream.height = bitmap.bmHeight;
 	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
 	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	int width = (int) (((double) screenWidth) * 0.439238653);
