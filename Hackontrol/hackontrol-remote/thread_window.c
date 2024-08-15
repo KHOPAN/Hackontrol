@@ -55,7 +55,8 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		FillRect(context, &bounds, brush);
 		HDC memoryContext = CreateCompatibleDC(context);
 		SelectObject(memoryContext, client->stream.frame);
-		BitBlt(context, 0, 0, client->stream.width, client->stream.height, memoryContext, 0, 0, SRCCOPY);
+		SetStretchBltMode(context, HALFTONE);
+		StretchBlt(context, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, memoryContext, 0, 0, client->stream.width, client->stream.height, SRCCOPY);
 		DeleteDC(memoryContext);
 		EndPaint(window, &paintStruct);
 		return 0;
@@ -133,6 +134,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 BOOL WindowRegisterClass() {
 	WNDCLASSEXW windowClass = {0};
 	windowClass.cbSize = sizeof(WNDCLASSEXW);
+	windowClass.style = CS_HREDRAW | CS_VREDRAW;
 	windowClass.lpfnWndProc = windowProcedure;
 	windowClass.hInstance = programInstance;
 	windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
