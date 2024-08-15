@@ -10,29 +10,16 @@
 #define WAIT_MAXIMUM 5000
 
 static BOOL sendInformationPacket(JNIEnv* const environment, const SOCKET clientSocket) {
-	HDC context = GetDC(NULL);
-	int width = GetDeviceCaps(context, HORZRES);
-	int height = GetDeviceCaps(context, VERTRES);
-	BYTE buffer[UNLEN + 9];
-	DWORD pointer = 0;
-	buffer[pointer++] = (width >> 24) & 0xFF;
-	buffer[pointer++] = (width >> 16) & 0xFF;
-	buffer[pointer++] = (width >> 8) & 0xFF;
-	buffer[pointer++] = width & 0xFF;
-	buffer[pointer++] = (height >> 24) & 0xFF;
-	buffer[pointer++] = (height >> 16) & 0xFF;
-	buffer[pointer++] = (height >> 8) & 0xFF;
-	buffer[pointer++] = height & 0xFF;
+	BYTE buffer[UNLEN + 1];
 	DWORD usernameSize = UNLEN + 1;
 
-	if(!GetUserNameA(buffer + pointer, &usernameSize)) {
+	if(!GetUserNameA(buffer, &usernameSize)) {
 		HackontrolThrowWin32Error(environment, L"GetUserNameA");
 		return FALSE;
 	}
 
-	pointer += usernameSize - 1;
 	PACKET packet;
-	packet.size = (long) pointer;
+	packet.size = (long) usernameSize - 1;
 	packet.packetType = PACKET_TYPE_INFORMATION;
 	packet.data = buffer;
 
