@@ -70,7 +70,9 @@ destroyIcon:
 	DestroyIcon(icon);
 }
 
-static BOOL takeScreenshot(JNIEnv* const environment, PACKET* packet, int width, int height, BYTE* screenshotBuffer, BYTE* qoiBuffer, BYTE* previousBuffer) {
+static BOOL sendScreenshot(JNIEnv* const environment, const SOCKET socket, int width, int height, BYTE* screenshotBuffer, BYTE* qoiBuffer, BYTE* previousBuffer) {
+	PACKET packet;
+
 	if(!(globalStreamSettings & 1)) {
 		return TRUE;
 	}
@@ -250,8 +252,15 @@ static BOOL takeScreenshot(JNIEnv* const environment, PACKET* packet, int width,
 		qoiBuffer[encodedPointer++] = QOI_OP_RUN | ((run - 1) & 0b111111);
 	}
 sendFrame:
-	packet->size = (long) encodedPointer;
-	packet->data = qoiBuffer;
+	packet.size = (long) encodedPointer;
+	packet.packetType = PACKET_TYPE_STREAM_FRAME;
+	packet.data = qoiBuffer;
+
+	if(!SendPacket(socket, &packet)) {
+		HackontrolThrowWin32Error(environment, L"SendPacket");
+		goto cleanup;
+	}
+
 	returnValue = TRUE;
 cleanup:
 	DeleteObject(bitmap);
@@ -301,16 +310,8 @@ DWORD WINAPI ScreenStreamThread(_In_ STREAMPARAMETER* parameter) {
 		goto freeQOIBuffer;
 	}
 
-	PACKET packet;
-	packet.packetType = PACKET_TYPE_STREAM_FRAME;
-
 	while(!globalExit) {
-		if(!takeScreenshot(environment, &packet, width, height, screenshotBuffer, qoiBuffer, previousBuffer)) {
-			goto freePreviousBuffer;
-		}
-
-		if(!SendPacket(clientSocket, &packet)) {
-			HackontrolThrowWin32Error(environment, L"SendPacket");
+		if(!sendScreenshot(environment, clientSocket, width, height, screenshotBuffer, qoiBuffer, previousBuffer)) {
 			goto freePreviousBuffer;
 		}
 	}
