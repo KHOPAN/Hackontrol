@@ -124,19 +124,10 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			sendStreamCode(client);
 			break;
 		case IDM_WINDOW_SEND_METHOD_FULL:
-			client->stream->method = SEND_METHOD_FULL;
-			sendStreamCode(client);
-			break;
 		case IDM_WINDOW_SEND_METHOD_BOUNDARY:
-			client->stream->method = SEND_METHOD_BOUNDARY;
-			sendStreamCode(client);
-			break;
 		case IDM_WINDOW_SEND_METHOD_COLOR:
-			client->stream->method = SEND_METHOD_COLOR;
-			sendStreamCode(client);
-			break;
 		case IDM_WINDOW_SEND_METHOD_UNCOMPRESSED:
-			client->stream->method = SEND_METHOD_UNCOMPRESSED;
+			client->stream->method = response == IDM_WINDOW_SEND_METHOD_FULL ? SEND_METHOD_FULL : response == IDM_WINDOW_SEND_METHOD_BOUNDARY ? SEND_METHOD_BOUNDARY : response == IDM_WINDOW_SEND_METHOD_COLOR ? SEND_METHOD_COLOR : SEND_METHOD_UNCOMPRESSED;
 			sendStreamCode(client);
 			break;
 		}
