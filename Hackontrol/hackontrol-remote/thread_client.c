@@ -12,8 +12,6 @@ extern ArrayList clientList;
 extern HANDLE listMutex;
 
 static LPWSTR decodeName(const BYTE* data, long size) {
-	size -= 8;
-
 	if(size < 1) {
 		return NULL;
 	}
@@ -25,7 +23,7 @@ static LPWSTR decodeName(const BYTE* data, long size) {
 	}
 
 	for(int i = 0; i < size; i++) {
-		buffer[i] = data[i + 8];
+		buffer[i] = data[i];
 	}
 
 	buffer[size] = 0;
@@ -85,11 +83,9 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 		goto exit;
 	}
 
-	BYTE* data = packet.data;
-	int width = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
-	int height = (data[4] << 24) | (data[5] << 16) | (data[6] << 8) | data[7];
-	client->name = decodeName(data, packet.size);
-	LOG("[Client Thread %ws]: Username: '%ws' Screen: %dx%d\n" COMMA client->address COMMA client->name COMMA width COMMA height);
+	client->name = decodeName(packet.data, packet.size);
+	LocalFree(packet.data);
+	LOG("[Client Thread %ws]: Username: '%ws'\n" COMMA client->address COMMA client->name);
 	WaitForSingleObject(listMutex, INFINITE);
 	BOOL result = KHArrayAdd(&clientList, client);
 
