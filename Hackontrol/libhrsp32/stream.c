@@ -107,6 +107,14 @@ static BOOL sendScreenshot(JNIEnv* const environment, const SOCKET socket, int w
 
 	size_t encodedPointer = 0;
 	qoiBuffer[encodedPointer++] = ((colorDifference & 1) << 1) | (boundaryDifference & 1);
+	qoiBuffer[encodedPointer++] = (width >> 24) & 0xFF;
+	qoiBuffer[encodedPointer++] = (width >> 16) & 0xFF;
+	qoiBuffer[encodedPointer++] = (width >> 8) & 0xFF;
+	qoiBuffer[encodedPointer++] = width & 0xFF;
+	qoiBuffer[encodedPointer++] = (height >> 24) & 0xFF;
+	qoiBuffer[encodedPointer++] = (height >> 16) & 0xFF;
+	qoiBuffer[encodedPointer++] = (height >> 8) & 0xFF;
+	qoiBuffer[encodedPointer++] = height & 0xFF;
 
 	if(boundaryDifference && colorDifference) {
 		for(int y = 0; y < height; y++) {
