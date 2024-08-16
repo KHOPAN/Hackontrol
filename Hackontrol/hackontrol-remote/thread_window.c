@@ -83,6 +83,10 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			//SetStretchBltMode(context, HALFTONE);
 			BITMAPINFO information = {0};
 			information.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+			information.bmiHeader.biWidth = client->stream->width;
+			information.bmiHeader.biHeight = client->stream->height;
+			information.bmiHeader.biPlanes = 1;
+			information.bmiHeader.biBitCount = 24;
 			StretchDIBits(context, client->stream->x, client->stream->y, client->stream->imageWidth, client->stream->imageHeight, 0, 0, client->stream->width, client->stream->height, client->stream->pixels, &information, DIB_RGB_COLORS, SRCCOPY);
 		}
 
@@ -210,6 +214,10 @@ DWORD WINAPI WindowThread(_In_ PCLIENT client) {
 	while(GetMessageW(&message, NULL, 0, 0)) {
 		TranslateMessage(&message);
 		DispatchMessageW(&message);
+	}
+
+	if(client->stream->pixels) {
+		LocalFree(client->stream->pixels);
 	}
 
 	if(client->stream) {
