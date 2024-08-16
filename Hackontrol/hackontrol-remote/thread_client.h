@@ -12,10 +12,14 @@ typedef enum {
 typedef struct {
 	BOOL streaming;
 	SENDMETHOD method;
-	UINT width;
-	UINT height;
-	HBITMAP frame;
-} STREAMDATA;
+	int width;
+	int height;
+	int x;
+	int y;
+	int imageWidth;
+	int imageHeight;
+	PBYTE pixels;
+} STREAMDATA, *PSTREAMDATA;
 
 typedef struct {
 	BOOL active;
@@ -25,7 +29,7 @@ typedef struct {
 	HANDLE thread;
 	HANDLE windowThread;
 	HWND clientWindow;
-	STREAMDATA stream;
+	PSTREAMDATA stream;
 } CLIENT, *PCLIENT;
 
 DWORD WINAPI ClientThread(_In_ PCLIENT client);
