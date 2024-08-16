@@ -1,7 +1,7 @@
 #include "frame_decoder.h"
 #include "logger.h"
 
-void DecodeHRSPFrame(const BYTE* data, size_t size, PSTREAMDATA stream) {
+void DecodeHRSPFrame(const BYTE* data, size_t size, PSTREAMDATA stream, HWND window) {
 	if(!data || size < 9 || !stream) {
 		return;
 	}
@@ -41,5 +41,5 @@ void DecodeHRSPFrame(const BYTE* data, size_t size, PSTREAMDATA stream) {
 		stream->pixels[i] = data[i + 9];
 	}
 
-	LOG("Updated\n");
+	InvalidateRect(window, NULL, FALSE);
 }
