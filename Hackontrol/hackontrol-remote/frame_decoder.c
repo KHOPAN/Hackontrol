@@ -16,7 +16,6 @@ void DecodeHRSPFrame(const BYTE* data, size_t size, PSTREAMDATA stream, HWND win
 
 	int width = (data[1] << 24) | (data[2] << 16) | (data[3] << 8) | data[4];
 	int height = (data[5] << 24) | (data[6] << 16) | (data[7] << 8) | data[8];
-	long bytes = width * height * 3;
 
 	if(stream->width != width || stream->height != height) {
 		stream->width = width;
@@ -26,19 +25,25 @@ void DecodeHRSPFrame(const BYTE* data, size_t size, PSTREAMDATA stream, HWND win
 			LocalFree(stream->pixels);
 		}
 
-		stream->pixels = LocalAlloc(LMEM_FIXED, bytes);
+		stream->pixels = LocalAlloc(LMEM_FIXED, width * height * 4);
 
 		if(!stream->pixels) {
 			return;
 		}
 	}
 
-	if(size - 9 < bytes) {
+	if(size - 9 < width * height * 3) {
 		return;
 	}
 
-	for(long i = 0; i < bytes; i++) {
-		stream->pixels[i] = data[i + 9];
+	for(int y = 0; y < height; y++) {
+		for(int x = 0; x < width; x++) {
+			int pixelIndex = (y * width + x) * 4;
+			int dataIndex = ((height - y - 1) * width + x) * 3;
+			stream->pixels[pixelIndex] = data[dataIndex + 11];
+			stream->pixels[pixelIndex + 1] = data[dataIndex + 10];
+			stream->pixels[pixelIndex + 2] = data[dataIndex + 9];
+		}
 	}
 
 	InvalidateRect(window, NULL, FALSE);
