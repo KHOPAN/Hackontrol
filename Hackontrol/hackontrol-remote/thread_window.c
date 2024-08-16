@@ -45,6 +45,8 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
+	case WM_ERASEBKGND:
+		return 1;
 	case WM_SIZE: {
 		unsigned int width = LOWORD(lparam);
 		unsigned int height = HIWORD(lparam);
@@ -73,23 +75,30 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 	case WM_PAINT: {
 		PAINTSTRUCT paintStruct;
 		HDC context = BeginPaint(window, &paintStruct);
+		HDC bufferContext = CreateCompatibleDC(context);
 		RECT bounds;
 		GetClientRect(window, &bounds);
+		HBITMAP bitmap = CreateCompatibleBitmap(context, bounds.right - bounds.left, bounds.bottom - bounds.top);
+		HBITMAP oldBitmap = SelectObject(bufferContext, bitmap);
 		HBRUSH brush = GetStockObject(DC_BRUSH);
-		SetDCBrushColor(context, 0x000000);
-		FillRect(context, &bounds, brush);
+		SetDCBrushColor(bufferContext, 0x000000);
+		FillRect(bufferContext, &bounds, brush);
 
 		if(client->stream->pixels) {
-			SetStretchBltMode(context, HALFTONE);
+			SetStretchBltMode(bufferContext, HALFTONE);
 			BITMAPINFO information = {0};
 			information.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 			information.bmiHeader.biWidth = client->stream->width;
 			information.bmiHeader.biHeight = client->stream->height;
 			information.bmiHeader.biPlanes = 1;
 			information.bmiHeader.biBitCount = 32;
-			StretchDIBits(context, client->stream->x, client->stream->y, client->stream->imageWidth, client->stream->imageHeight, 0, 0, client->stream->width, client->stream->height, client->stream->pixels, &information, DIB_RGB_COLORS, SRCCOPY);
+			StretchDIBits(bufferContext, client->stream->x, client->stream->y, client->stream->imageWidth, client->stream->imageHeight, 0, 0, client->stream->width, client->stream->height, client->stream->pixels, &information, DIB_RGB_COLORS, SRCCOPY);
 		}
 
+		BitBlt(context, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, bufferContext, 0, 0, SRCCOPY);
+		SelectObject(bufferContext, oldBitmap);
+		DeleteObject(bitmap);
+		DeleteDC(bufferContext);
 		EndPaint(window, &paintStruct);
 		return 0;
 	}
