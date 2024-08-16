@@ -122,12 +122,7 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 		switch(packet.packetType) {
 		case PACKET_TYPE_STREAM_FRAME: {
 			LOG("[Client Thread %ws]: Stream frame\n" COMMA client->address);
-
-			if(!DecodeHRSPFrame(packet.data, packet.size, &client->stream)) {
-				KHWin32DialogErrorW(GetLastError(), L"DecodeHRSPFrame");
-				break;
-			}
-
+			DecodeHRSPFrame(packet.data, packet.size, client->stream);
 			break;
 		}
 		default:

@@ -82,7 +82,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		if(client->stream->pixels) {
 			//SetStretchBltMode(context, HALFTONE);
 			BITMAPINFO information = {0};
-			information.bmiHeader.biSize = sizeof(BITMAPINFO);
+			information.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 			StretchDIBits(context, client->stream->x, client->stream->y, client->stream->imageWidth, client->stream->imageHeight, 0, 0, client->stream->width, client->stream->height, client->stream->pixels, &information, DIB_RGB_COLORS, SRCCOPY);
 		}
 
