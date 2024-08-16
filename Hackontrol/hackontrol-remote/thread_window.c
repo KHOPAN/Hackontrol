@@ -45,6 +45,31 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
+	case WM_SIZE: {
+		unsigned int width = LOWORD(lparam);
+		unsigned int height = HIWORD(lparam);
+
+		if(!width || !height) {
+			return 0;
+		}
+
+		unsigned int newWidth = (unsigned int) (((double) client->stream->width) / ((double) client->stream->height) * ((double) height));
+		unsigned int newHeight = (unsigned int) (((double) client->stream->height) / ((double) client->stream->width) * ((double) width));
+
+		if(newWidth < width) {
+			newHeight = height;
+			client->stream->x = (int) ((((double) width) - ((double) newWidth)) / 2.0);
+			client->stream->y = 0;
+		} else {
+			newWidth = width;
+			client->stream->x = 0;
+			client->stream->y = (int) ((((double) height) - ((double) newHeight)) / 2.0);
+		}
+
+		client->stream->imageWidth = newWidth;
+		client->stream->imageHeight = newHeight;
+		return 0;
+	}
 	case WM_PAINT: {
 		PAINTSTRUCT paintStruct;
 		HDC context = BeginPaint(window, &paintStruct);
@@ -53,28 +78,14 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		HBRUSH brush = GetStockObject(DC_BRUSH);
 		SetDCBrushColor(context, 0x000000);
 		FillRect(context, &bounds, brush);
-		/*HDC memoryContext = CreateCompatibleDC(context);
-		SelectObject(memoryContext, client->stream.frame);
-		int width = bounds.right - bounds.left;
-		int height = bounds.bottom - bounds.top;
-		int newWidth = (int) (((double) client->stream.width) / ((double) client->stream.height) * ((double) height));
-		int newHeight = (int) (((double) client->stream.height) / ((double) client->stream.width) * ((double) width));
-		int x;
-		int y;
 
-		if(newWidth < width) {
-			newHeight = height;
-			x = (int) ((((double) width) - ((double) newWidth)) / 2.0);
-			y = 0;
-		} else {
-			newWidth = width;
-			x = 0;
-			y = (int) ((((double) height) - ((double) newHeight)) / 2.0);
+		if(client->stream->pixels) {
+			//SetStretchBltMode(context, HALFTONE);
+			BITMAPINFO information = {0};
+			information.bmiHeader.biSize = sizeof(BITMAPINFO);
+			StretchDIBits(context, client->stream->x, client->stream->y, client->stream->imageWidth, client->stream->imageHeight, 0, 0, client->stream->width, client->stream->height, client->stream->pixels, &information, DIB_RGB_COLORS, SRCCOPY);
 		}
 
-		SetStretchBltMode(context, HALFTONE);
-		StretchBlt(context, x, y, newWidth, newHeight, memoryContext, 0, 0, client->stream->width, client->stream->height, SRCCOPY);
-		DeleteDC(memoryContext);*/
 		EndPaint(window, &paintStruct);
 		return 0;
 	}
