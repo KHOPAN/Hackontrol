@@ -80,9 +80,6 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		GetClientRect(window, &bounds);
 		HBITMAP bitmap = CreateCompatibleBitmap(context, bounds.right - bounds.left, bounds.bottom - bounds.top);
 		HBITMAP oldBitmap = SelectObject(bufferContext, bitmap);
-		HBRUSH brush = GetStockObject(DC_BRUSH);
-		SetDCBrushColor(bufferContext, 0x000000);
-		FillRect(bufferContext, &bounds, brush);
 
 		if(client->stream->pixels) {
 			SetStretchBltMode(bufferContext, HALFTONE);
