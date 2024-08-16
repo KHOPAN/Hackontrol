@@ -178,8 +178,6 @@ DWORD WINAPI WindowThread(_In_ PCLIENT client) {
 	}
 
 	client->stream = LocalAlloc(LMEM_FIXED, sizeof(STREAMDATA));
-	memset(client->stream, 0, sizeof(STREAMDATA));
-	client->stream->method = SEND_METHOD_COLOR;
 	int returnValue = 1;
 
 	if(!client->stream) {
@@ -187,6 +185,8 @@ DWORD WINAPI WindowThread(_In_ PCLIENT client) {
 		goto exit;
 	}
 
+	memset(client->stream, 0, sizeof(STREAMDATA));
+	client->stream->method = SEND_METHOD_COLOR;
 	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
 	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	int width = (int) (((double) screenWidth) * 0.439238653);
