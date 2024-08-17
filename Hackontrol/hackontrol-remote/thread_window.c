@@ -138,6 +138,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		AppendMenuW(popupMenu, MF_POPUP, (UINT_PTR) streamingMenu, L"Streaming");
 		AppendMenuW(popupMenu, MF_STRING, IDM_WINDOW_EXIT, L"Exit");
 		SetForegroundWindow(window);
+		ReleaseMutex(client->stream->lock);
 		BOOL response = TrackPopupMenuEx(popupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
 		DestroyMenu(sendMethod);
 		DestroyMenu(streamingMenu);
@@ -149,19 +150,22 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			ClientDisconnect(client);
 			break;
 		case IDM_WINDOW_STREAMING_ENABLE:
+			WaitForSingleObject(client->stream->lock, INFINITE);
 			client->stream->streaming = !client->stream->streaming;
 			sendStreamCode(client);
+			ReleaseMutex(client->stream->lock);
 			break;
 		case IDM_WINDOW_SEND_METHOD_FULL:
 		case IDM_WINDOW_SEND_METHOD_BOUNDARY:
 		case IDM_WINDOW_SEND_METHOD_COLOR:
 		case IDM_WINDOW_SEND_METHOD_UNCOMPRESSED:
+			WaitForSingleObject(client->stream->lock, INFINITE);
 			client->stream->method = response == IDM_WINDOW_SEND_METHOD_FULL ? SEND_METHOD_FULL : response == IDM_WINDOW_SEND_METHOD_BOUNDARY ? SEND_METHOD_BOUNDARY : response == IDM_WINDOW_SEND_METHOD_COLOR ? SEND_METHOD_COLOR : SEND_METHOD_UNCOMPRESSED;
 			sendStreamCode(client);
+			ReleaseMutex(client->stream->lock);
 			break;
 		}
 
-		ReleaseMutex(client->stream->lock);
 		return 0;
 	}
 	}
