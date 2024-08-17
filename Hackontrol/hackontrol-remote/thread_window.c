@@ -14,7 +14,7 @@
 extern HINSTANCE programInstance;
 
 static void sendStreamCode(const PCLIENT client) {
-	unsigned char flags = ((client->stream->method & 0b11) << 1) | (client->stream->streaming & 1);
+	unsigned char flags = ((client->stream->method & 0b11) << 1) | (client->stream->streaming ? 0b10001 : 0);
 	LOG("[Window Thread %ws]: Flags: %c%c%c%c%c%c%c%c\n" COMMA client->address COMMA flags & 0x80 ? '1' : '0' COMMA flags & 0x40 ? '1' : '0' COMMA flags & 0x20 ? '1' : '0' COMMA flags & 0x10 ? '1' : '0' COMMA flags & 0x08 ? '1' : '0' COMMA flags & 0x04 ? '1' : '0' COMMA flags & 0x02 ? '1' : '0' COMMA flags & 0x01 ? '1' : '0');
 	PACKET packet;
 	packet.size = 1;
