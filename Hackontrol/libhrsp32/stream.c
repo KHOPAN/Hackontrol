@@ -81,8 +81,8 @@ static BOOL sendScreenshot(JNIEnv* const environment, const SOCKET socket, int w
 	BOOL colorDifference = (globalStreamSettings >> 2) & 1;
 
 	if(globalStreamSettings & 0b1000) {
-		boundaryDifference = FALSE;
-		colorDifference = FALSE;
+		boundaryDifference = TRUE;
+		colorDifference = TRUE;
 		globalStreamSettings &= 0b11110111;
 	}
 
