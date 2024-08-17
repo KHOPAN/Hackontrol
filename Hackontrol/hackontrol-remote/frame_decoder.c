@@ -61,11 +61,10 @@ void DecodeHRSPFrame(const BYTE* data, size_t size, PSTREAMDATA stream, HWND win
 		goto releaseMutex;
 	}
 
-	size_t pointer = 9;
-	int startX = boundaryDifference ? (data[pointer++] << 24) | (data[pointer++] << 16) | (data[pointer++] << 8) | data[pointer++] : 0;
-	int startY = boundaryDifference ? (data[pointer++] << 24) | (data[pointer++] << 16) | (data[pointer++] << 8) | data[pointer++] : 0;
-	int endX = boundaryDifference ? (data[pointer++] << 24) | (data[pointer++] << 16) | (data[pointer++] << 8) | data[pointer++] : width - 1;
-	int endY = boundaryDifference ? (data[pointer++] << 24) | (data[pointer++] << 16) | (data[pointer++] << 8) | data[pointer++] : height - 1;
+	int startX = boundaryDifference ? (data[9] << 24) | (data[10] << 16) | (data[11] << 8) | data[12] : 0;
+	int startY = boundaryDifference ? (data[13] << 24) | (data[14] << 16) | (data[15] << 8) | data[16] : 0;
+	int endX = boundaryDifference ? (data[17] << 24) | (data[18] << 16) | (data[19] << 8) | data[20] : width - 1;
+	int endY = boundaryDifference ? (data[21] << 24) | (data[22] << 16) | (data[23] << 8) | data[24] : height - 1;
 	BYTE seenRed[64];
 	BYTE seenGreen[64];
 	BYTE seenBlue[64];
@@ -76,11 +75,12 @@ void DecodeHRSPFrame(const BYTE* data, size_t size, PSTREAMDATA stream, HWND win
 	int green = 0;
 	int blue = 0;
 	int run = 0;
+	size_t pointer = boundaryDifference ? 25 : 9;
 #define SUBTRACT do{if(colorDifference){stream->pixels[pixelIndex]-=blue;stream->pixels[pixelIndex+1]-=green;stream->pixels[pixelIndex+2]-=red;}else{stream->pixels[pixelIndex]=blue;stream->pixels[pixelIndex+1]=green;stream->pixels[pixelIndex+2]=red;}}while(0)
 
-	for(int y = endY; y >= startY; y--) {
+	for(int y = startY; y <= endY; y++) {
 		for(int x = startX; x <= endX; x++) {
-			int pixelIndex = (y * width + x) * 4;
+			int pixelIndex = ((height - y - 1) * width + x) * 4;
 
 			if(run > 0) {
 				SUBTRACT;
