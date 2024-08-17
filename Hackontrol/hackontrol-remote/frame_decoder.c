@@ -65,6 +65,9 @@ void DecodeHRSPFrame(const BYTE* data, size_t size, PSTREAMDATA stream, HWND win
 	BYTE seenRed[64];
 	BYTE seenGreen[64];
 	BYTE seenBlue[64];
+	memset(seenRed, 0, sizeof(seenRed));
+	memset(seenGreen, 0, sizeof(seenGreen));
+	memset(seenBlue, 0, sizeof(seenBlue));
 	int red = 0;
 	int green = 0;
 	int blue = 0;
