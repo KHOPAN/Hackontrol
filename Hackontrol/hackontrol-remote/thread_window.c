@@ -22,7 +22,11 @@ static void sendStreamCode(const PCLIENT client) {
 	packet.data = &flags;
 
 	if(!SendPacket(client->socket, &packet)) {
-		KHWin32DialogErrorW(GetLastError(), L"SendPacket");
+		DWORD error = GetLastError();
+
+		if(error != WSAECONNRESET) {
+			KHWin32DialogErrorW(error, L"SendPacket");
+		}
 	}
 }
 
