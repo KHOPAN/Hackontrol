@@ -55,6 +55,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			return 0;
 		}
 
+		WaitForSingleObject(client->stream->lock, INFINITE);
 		unsigned int newWidth = (unsigned int) (((double) client->stream->width) / ((double) client->stream->height) * ((double) height));
 		unsigned int newHeight = (unsigned int) (((double) client->stream->height) / ((double) client->stream->width) * ((double) width));
 
@@ -70,6 +71,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 
 		client->stream->imageWidth = newWidth;
 		client->stream->imageHeight = newHeight;
+		ReleaseMutex(client->stream->lock);
 		return 0;
 	}
 	case WM_PAINT: {
@@ -83,6 +85,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		HBRUSH brush = GetStockObject(DC_BRUSH);
 		SetDCBrushColor(bufferContext, 0x000000);
 		FillRect(bufferContext, &bounds, brush);
+		WaitForSingleObject(client->stream->lock, INFINITE);
 
 		if(client->stream->pixels) {
 			SetStretchBltMode(bufferContext, HALFTONE);
@@ -95,6 +98,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			StretchDIBits(bufferContext, client->stream->x, client->stream->y, client->stream->imageWidth, client->stream->imageHeight, 0, 0, client->stream->width, client->stream->height, client->stream->pixels, &information, DIB_RGB_COLORS, SRCCOPY);
 		}
 
+		ReleaseMutex(client->stream->lock);
 		BitBlt(context, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, bufferContext, 0, 0, SRCCOPY);
 		SelectObject(bufferContext, oldBitmap);
 		DeleteObject(bitmap);
@@ -124,6 +128,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			return 0;
 		}
 
+		WaitForSingleObject(client->stream->lock, INFINITE);
 		AppendMenuW(streamingMenu, MF_STRING | (client->stream->streaming ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_STREAMING_ENABLE, L"Enable");
 		AppendMenuW(sendMethod, MF_STRING | (client->stream->method == SEND_METHOD_FULL ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_FULL, L"Full");
 		AppendMenuW(sendMethod, MF_STRING | (client->stream->method == SEND_METHOD_BOUNDARY ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_BOUNDARY, L"Boundary Differences");
@@ -156,6 +161,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			break;
 		}
 
+		ReleaseMutex(client->stream->lock);
 		return 0;
 	}
 	}
@@ -202,6 +208,13 @@ DWORD WINAPI WindowThread(_In_ PCLIENT client) {
 
 	memset(client->stream, 0, sizeof(STREAMDATA));
 	client->stream->method = SEND_METHOD_COLOR;
+	client->stream->lock = CreateMutexExW(NULL, NULL, 0, DELETE | SYNCHRONIZE);
+
+	if(!client->stream->lock) {
+		KHWin32DialogErrorW(GetLastError(), L"CreateMutexExW");
+		goto freeStream;
+	}
+
 	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
 	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	int width = (int) (((double) screenWidth) * 0.439238653);
@@ -215,7 +228,7 @@ DWORD WINAPI WindowThread(_In_ PCLIENT client) {
 
 	if(!client->clientWindow) {
 		KHWin32DialogErrorW(GetLastError(), L"CreateWindowExW");
-		goto exit;
+		goto closeMutex;
 	}
 
 	MSG message;
@@ -225,16 +238,23 @@ DWORD WINAPI WindowThread(_In_ PCLIENT client) {
 		DispatchMessageW(&message);
 	}
 
+	WaitForSingleObject(client->stream->lock, INFINITE);
+	client->stream->streaming = FALSE;
+	sendStreamCode(client);
+
 	if(client->stream->pixels) {
 		LocalFree(client->stream->pixels);
 	}
 
+	client->clientWindow = NULL;
+	returnValue = 0;
+closeMutex:
+	CloseHandle(client->stream->lock);
+freeStream:
 	if(client->stream) {
 		LocalFree(client->stream);
 		client->stream = NULL;
 	}
-
-	returnValue = 0;
 exit:
 	LOG("[Window Thread %ws]: Exiting the window thread (Exit code: %d)\n" COMMA client->address COMMA returnValue);
 	CloseHandle(client->windowThread);

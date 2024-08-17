@@ -19,6 +19,7 @@ typedef struct {
 	int imageWidth;
 	int imageHeight;
 	PBYTE pixels;
+	HANDLE lock;
 } STREAMDATA, *PSTREAMDATA;
 
 typedef struct {
