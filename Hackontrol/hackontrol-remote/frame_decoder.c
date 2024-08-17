@@ -74,7 +74,7 @@ void DecodeHRSPFrame(const BYTE* data, size_t size, PSTREAMDATA stream, HWND win
 	int run = 0;
 #define SUBTRACT(x,y,z) do{if(colorDifference){stream->pixels[pixelIndex]-=x;stream->pixels[pixelIndex+1]-=y;stream->pixels[pixelIndex+2]-=z;}else{stream->pixels[pixelIndex]=x;stream->pixels[pixelIndex+1]=y;stream->pixels[pixelIndex+2]=z;}}while(0)
 
-	for(int y = startY; y <= endY; y++) {
+	for(int y = endY; y >= startY; y--) {
 		for(int x = startX; x <= endX; x++) {
 			int pixelIndex = (y * width + x) * 4;
 
