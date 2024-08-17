@@ -33,6 +33,10 @@ void DecodeHRSPFrame(const BYTE* data, size_t size, PSTREAMDATA stream, HWND win
 		if(!stream->pixels) {
 			goto releaseMutex;
 		}
+
+		RECT bounds;
+		GetClientRect(window, &bounds);
+		PostMessageW(window, WM_SIZE, 0, MAKELONG(bounds.right - bounds.left, bounds.bottom - bounds.top));
 	}
 
 	if(boundaryDifference && colorDifference) {
@@ -58,10 +62,10 @@ void DecodeHRSPFrame(const BYTE* data, size_t size, PSTREAMDATA stream, HWND win
 	}
 
 	size_t pointer = 9;
-	int startX = boundaryDifference ? (data[pointer++] << 24) | ((data[pointer++] & 0xFF) << 16) | ((data[pointer++] & 0xFF) << 8) | (data[pointer++] & 0xFF) : 0;
-	int startY = boundaryDifference ? (data[pointer++] << 24) | ((data[pointer++] & 0xFF) << 16) | ((data[pointer++] & 0xFF) << 8) | (data[pointer++] & 0xFF) : 0;
-	int endX = boundaryDifference ? (data[pointer++] << 24) | ((data[pointer++] & 0xFF) << 16) | ((data[pointer++] & 0xFF) << 8) | (data[pointer++] & 0xFF) : width - 1;
-	int endY = boundaryDifference ? (data[pointer++] << 24) | ((data[pointer++] & 0xFF) << 16) | ((data[pointer++] & 0xFF) << 8) | (data[pointer++] & 0xFF) : height - 1;
+	int startX = boundaryDifference ? (data[pointer++] << 24) | (data[pointer++] << 16) | (data[pointer++] << 8) | data[pointer++] : 0;
+	int startY = boundaryDifference ? (data[pointer++] << 24) | (data[pointer++] << 16) | (data[pointer++] << 8) | data[pointer++] : 0;
+	int endX = boundaryDifference ? (data[pointer++] << 24) | (data[pointer++] << 16) | (data[pointer++] << 8) | data[pointer++] : width - 1;
+	int endY = boundaryDifference ? (data[pointer++] << 24) | (data[pointer++] << 16) | (data[pointer++] << 8) | data[pointer++] : height - 1;
 	BYTE seenRed[64];
 	BYTE seenGreen[64];
 	BYTE seenBlue[64];

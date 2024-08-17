@@ -61,14 +61,12 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 
 		if(newWidth < width) {
 			newHeight = height;
-			client->stream->x = (int) ((((double) width) - ((double) newWidth)) / 2.0);
-			client->stream->y = 0;
 		} else {
 			newWidth = width;
-			client->stream->x = 0;
-			client->stream->y = (int) ((((double) height) - ((double) newHeight)) / 2.0);
 		}
 
+		client->stream->x = newWidth < width ? (int) ((((double) width) - ((double) newWidth)) / 2.0) : 0;
+		client->stream->y = newWidth < height ? 0 : (int) ((((double) height) - ((double) newHeight)) / 2.0);
 		client->stream->imageWidth = newWidth;
 		client->stream->imageHeight = newHeight;
 		ReleaseMutex(client->stream->lock);
