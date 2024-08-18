@@ -207,7 +207,6 @@ BOOL WindowRegisterClass() {
 	windowClass.style = CS_HREDRAW | CS_VREDRAW;
 	windowClass.lpfnWndProc = windowProcedure;
 	windowClass.hInstance = programInstance;
-	windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
 	windowClass.lpszClassName = CLASS_CLIENT_WINDOW;
 
 	if(!RegisterClassExW(&windowClass)) {
