@@ -21,8 +21,6 @@ typedef struct {
 	int imageHeight;
 	int pressedX;
 	int pressedY;
-	int pressedWindowX;
-	int pressedWindowY;
 	PBYTE pixels;
 	HANDLE lock;
 } STREAMDATA, *PSTREAMDATA;

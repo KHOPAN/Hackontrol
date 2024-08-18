@@ -54,29 +54,32 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		return 1;
 	}
 
+	RECT bounds;
+	GetClientRect(window, &bounds);
+	bounds.right -= bounds.left;
+	bounds.bottom -= bounds.top;
+
+	if(bounds.right < 1 || bounds.bottom < 1) {
+		return DefWindowProcW(window, message, wparam, lparam);
+	}
+
 	WaitForSingleObject(client->stream->lock, INFINITE);
 	LRESULT returnValue = 0;
+	POINT position;
 
 	switch(message) {
 	case WM_SIZE: {
-		int width = LOWORD(lparam);
-		int height = HIWORD(lparam);
+		client->stream->imageWidth = (int) (((double) client->stream->width) / ((double) client->stream->height) * ((double) bounds.bottom));
+		client->stream->imageHeight = (int) (((double) client->stream->height) / ((double) client->stream->width) * ((double) bounds.right));
 
-		if(!width || !height) {
-			goto releaseMutex;
-		}
-
-		client->stream->imageWidth = (int) (((double) client->stream->width) / ((double) client->stream->height) * ((double) height));
-		client->stream->imageHeight = (int) (((double) client->stream->height) / ((double) client->stream->width) * ((double) width));
-
-		if(client->stream->imageWidth < width) {
-			client->stream->imageHeight = height;
-			client->stream->x = (int) ((((double) width) - ((double) client->stream->imageWidth)) / 2.0);
+		if(client->stream->imageWidth < bounds.right) {
+			client->stream->imageHeight = bounds.bottom;
+			client->stream->x = (int) ((((double) bounds.right) - ((double) client->stream->imageWidth)) / 2.0);
 			client->stream->y = 0;
 		} else {
-			client->stream->imageWidth = width;
+			client->stream->imageWidth = bounds.right;
 			client->stream->x = 0;
-			client->stream->y = (int) ((((double) height) - ((double) client->stream->imageHeight)) / 2.0);
+			client->stream->y = (int) ((((double) bounds.bottom) - ((double) client->stream->imageHeight)) / 2.0);
 		}
 
 		goto releaseMutex;
@@ -84,30 +87,28 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 	case WM_PAINT: {
 		PAINTSTRUCT paintStruct;
 		HDC context = BeginPaint(window, &paintStruct);
-		HDC bufferContext = CreateCompatibleDC(context);
-		RECT bounds;
-		GetClientRect(window, &bounds);
-		HBITMAP bitmap = CreateCompatibleBitmap(context, bounds.right - bounds.left, bounds.bottom - bounds.top);
-		HBITMAP oldBitmap = SelectObject(bufferContext, bitmap);
+		HDC memoryContext = CreateCompatibleDC(context);
+		HBITMAP bitmap = CreateCompatibleBitmap(context, bounds.right, bounds.bottom);
+		HBITMAP oldBitmap = SelectObject(memoryContext, bitmap);
 		HBRUSH brush = GetStockObject(DC_BRUSH);
-		SetDCBrushColor(bufferContext, 0x000000);
-		FillRect(bufferContext, &bounds, brush);
+		SetDCBrushColor(memoryContext, 0x000000);
+		FillRect(memoryContext, &bounds, brush);
 
 		if(client->stream->pixels) {
-			SetStretchBltMode(bufferContext, HALFTONE);
+			SetStretchBltMode(memoryContext, HALFTONE);
 			BITMAPINFO information = {0};
 			information.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 			information.bmiHeader.biWidth = client->stream->width;
 			information.bmiHeader.biHeight = client->stream->height;
 			information.bmiHeader.biPlanes = 1;
 			information.bmiHeader.biBitCount = 32;
-			StretchDIBits(bufferContext, client->stream->x, client->stream->y, client->stream->imageWidth, client->stream->imageHeight, 0, 0, client->stream->width, client->stream->height, client->stream->pixels, &information, DIB_RGB_COLORS, SRCCOPY);
+			StretchDIBits(memoryContext, client->stream->x, client->stream->y, client->stream->imageWidth, client->stream->imageHeight, 0, 0, client->stream->width, client->stream->height, client->stream->pixels, &information, DIB_RGB_COLORS, SRCCOPY);
 		}
 
-		BitBlt(context, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, bufferContext, 0, 0, SRCCOPY);
-		SelectObject(bufferContext, oldBitmap);
+		BitBlt(context, 0, 0, bounds.right, bounds.bottom, memoryContext, 0, 0, SRCCOPY);
+		SelectObject(memoryContext, oldBitmap);
 		DeleteObject(bitmap);
-		DeleteDC(bufferContext);
+		DeleteDC(memoryContext);
 		EndPaint(window, &paintStruct);
 		goto releaseMutex;
 	}
@@ -144,19 +145,17 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		AppendMenuW(popupMenu, MF_STRING, IDM_WINDOW_EXIT, L"Exit");
 		SetForegroundWindow(window);
 		ReleaseMutex(client->stream->lock);
-		BOOL response = TrackPopupMenuEx(popupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
+		position.x = TrackPopupMenuEx(popupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
 		DestroyMenu(sendMethod);
 		DestroyMenu(streamingMenu);
 		DestroyMenu(popupMenu);
 		WaitForSingleObject(client->stream->lock, INFINITE);
 
-		switch(response) {
+		switch(position.x) {
 		case IDM_PICTURE_IN_PICTURE:
 			client->stream->pictureInPicture = !client->stream->pictureInPicture;
 			SetWindowLongPtrW(client->clientWindow, GWL_STYLE, (client->stream->pictureInPicture ? WS_POPUP : WS_OVERLAPPEDWINDOW) | WS_VISIBLE);
-			RECT bounds;
-			GetClientRect(window, &bounds);
-			PostMessageW(window, WM_SIZE, 0, MAKELONG(bounds.right - bounds.left, bounds.bottom - bounds.top));
+			PostMessageW(window, WM_SIZE, 0, MAKELONG(bounds.right, bounds.bottom));
 			break;
 		case IDM_WINDOW_EXIT:
 			LOG("[Window Thread %ws]: Exiting\n" COMMA client->address);
@@ -170,7 +169,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		case IDM_WINDOW_SEND_METHOD_BOUNDARY:
 		case IDM_WINDOW_SEND_METHOD_COLOR:
 		case IDM_WINDOW_SEND_METHOD_UNCOMPRESSED:
-			client->stream->method = response == IDM_WINDOW_SEND_METHOD_FULL ? SEND_METHOD_FULL : response == IDM_WINDOW_SEND_METHOD_BOUNDARY ? SEND_METHOD_BOUNDARY : response == IDM_WINDOW_SEND_METHOD_COLOR ? SEND_METHOD_COLOR : SEND_METHOD_UNCOMPRESSED;
+			client->stream->method = position.x == IDM_WINDOW_SEND_METHOD_FULL ? SEND_METHOD_FULL : position.x == IDM_WINDOW_SEND_METHOD_BOUNDARY ? SEND_METHOD_BOUNDARY : position.x == IDM_WINDOW_SEND_METHOD_COLOR ? SEND_METHOD_COLOR : SEND_METHOD_UNCOMPRESSED;
 			sendStreamCode(client);
 			break;
 		}
@@ -178,34 +177,25 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		goto releaseMutex;
 	}
 	case WM_MOUSEMOVE: {
-		int x = LOWORD(lparam);
-		int y = HIWORD(lparam);
-		RECT bounds;
-		GetClientRect(window, &bounds);
-		int width = bounds.right - bounds.left;
-		int height = bounds.bottom - bounds.top;
-
-		if(wparam == MK_LBUTTON) {
-			POINT cursor;
-			GetCursorPos(&cursor);
-			SetWindowPos(window, HWND_TOP, cursor.x - client->stream->pressedX, cursor.y - client->stream->pressedY, 0, 0, SWP_NOSIZE);
+		if(wparam != MK_LBUTTON) {
+		#define BORDER 10
+			position.x = LOWORD(lparam);
+			position.y = HIWORD(lparam);
+			BOOL north = position.y >= 0 && position.y <= BORDER;
+			BOOL east = position.x >= bounds.right - BORDER && position.x < bounds.right;
+			BOOL south = position.y >= bounds.bottom - BORDER && position.y < bounds.bottom;
+			BOOL west = position.x >= 0 && position.x <= BORDER;
+			SetCursor(LoadCursorW(NULL, north ? west ? IDC_SIZENWSE : east ? IDC_SIZENESW : IDC_SIZENS : south ? west ? IDC_SIZENESW : east ? IDC_SIZENWSE : IDC_SIZENS : west ? IDC_SIZEWE : east ? IDC_SIZEWE : IDC_ARROW));
 			break;
 		}
-	#define BORDER 10
-		BOOL north = y >= 0 && y <= BORDER;
-		BOOL east = x >= width - BORDER && x < width;
-		BOOL south = y >= height - BORDER && y < height;
-		BOOL west = x >= 0 && x <= BORDER;
-		SetCursor(LoadCursorW(NULL, north ? west ? IDC_SIZENWSE : east ? IDC_SIZENESW : IDC_SIZENS : south ? west ? IDC_SIZENESW : east ? IDC_SIZENWSE : IDC_SIZENS : west ? IDC_SIZEWE : east ? IDC_SIZEWE : IDC_ARROW));
+
+		GetCursorPos(&position);
+		SetWindowPos(window, HWND_TOP, position.x - client->stream->pressedX, position.y - client->stream->pressedY, 0, 0, SWP_NOSIZE);
 		break;
 	}
 	case WM_LBUTTONDOWN:
 		client->stream->pressedX = LOWORD(lparam);
 		client->stream->pressedY = HIWORD(lparam);
-		RECT bounds;
-		GetWindowRect(window, &bounds);
-		client->stream->pressedWindowX = bounds.left;
-		client->stream->pressedWindowY = bounds.top;
 		break;
 	}
 
