@@ -153,6 +153,9 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			WaitForSingleObject(client->stream->lock, INFINITE);
 			client->stream->pictureInPicture = !client->stream->pictureInPicture;
 			SetWindowLongPtrW(client->clientWindow, GWL_STYLE, (client->stream->pictureInPicture ? WS_POPUP : WS_OVERLAPPEDWINDOW) | WS_VISIBLE);
+			RECT bounds;
+			GetClientRect(window, &bounds);
+			PostMessageW(window, WM_SIZE, 0, MAKELONG(bounds.right - bounds.left, bounds.bottom - bounds.top));
 			ReleaseMutex(client->stream->lock);
 			break;
 		case IDM_WINDOW_EXIT:
