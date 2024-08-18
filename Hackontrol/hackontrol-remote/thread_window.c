@@ -52,30 +52,34 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		return 0;
 	case WM_ERASEBKGND:
 		return 1;
+	}
+
+	WaitForSingleObject(client->stream->lock, INFINITE);
+	LRESULT returnValue = 0;
+
+	switch(message) {
 	case WM_SIZE: {
-		unsigned int width = LOWORD(lparam);
-		unsigned int height = HIWORD(lparam);
+		int width = LOWORD(lparam);
+		int height = HIWORD(lparam);
 
 		if(!width || !height) {
-			return 0;
+			goto releaseMutex;
 		}
 
-		WaitForSingleObject(client->stream->lock, INFINITE);
-		unsigned int newWidth = (unsigned int) (((double) client->stream->width) / ((double) client->stream->height) * ((double) height));
-		unsigned int newHeight = (unsigned int) (((double) client->stream->height) / ((double) client->stream->width) * ((double) width));
+		client->stream->imageWidth = (int) (((double) client->stream->width) / ((double) client->stream->height) * ((double) height));
+		client->stream->imageHeight = (int) (((double) client->stream->height) / ((double) client->stream->width) * ((double) width));
 
-		if(newWidth < width) {
-			newHeight = height;
+		if(client->stream->imageWidth < width) {
+			client->stream->imageHeight = height;
+			client->stream->x = (int) ((((double) width) - ((double) client->stream->imageWidth)) / 2.0);
+			client->stream->y = 0;
 		} else {
-			newWidth = width;
+			client->stream->imageWidth = width;
+			client->stream->x = 0;
+			client->stream->y = (int) ((((double) height) - ((double) client->stream->imageHeight)) / 2.0);
 		}
 
-		client->stream->x = newWidth < width ? (int) ((((double) width) - ((double) newWidth)) / 2.0) : 0;
-		client->stream->y = newWidth < width ? 0 : (int) ((((double) height) - ((double) newHeight)) / 2.0);
-		client->stream->imageWidth = newWidth;
-		client->stream->imageHeight = newHeight;
-		ReleaseMutex(client->stream->lock);
-		return 0;
+		goto releaseMutex;
 	}
 	case WM_PAINT: {
 		PAINTSTRUCT paintStruct;
@@ -88,7 +92,6 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		HBRUSH brush = GetStockObject(DC_BRUSH);
 		SetDCBrushColor(bufferContext, 0x000000);
 		FillRect(bufferContext, &bounds, brush);
-		WaitForSingleObject(client->stream->lock, INFINITE);
 
 		if(client->stream->pixels) {
 			SetStretchBltMode(bufferContext, HALFTONE);
@@ -101,26 +104,25 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			StretchDIBits(bufferContext, client->stream->x, client->stream->y, client->stream->imageWidth, client->stream->imageHeight, 0, 0, client->stream->width, client->stream->height, client->stream->pixels, &information, DIB_RGB_COLORS, SRCCOPY);
 		}
 
-		ReleaseMutex(client->stream->lock);
 		BitBlt(context, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, bufferContext, 0, 0, SRCCOPY);
 		SelectObject(bufferContext, oldBitmap);
 		DeleteObject(bitmap);
 		DeleteDC(bufferContext);
 		EndPaint(window, &paintStruct);
-		return 0;
+		goto releaseMutex;
 	}
 	case WM_CONTEXTMENU: {
 		HMENU popupMenu = CreatePopupMenu();
 
 		if(!popupMenu) {
-			return 0;
+			goto releaseMutex;
 		}
 
 		HMENU streamingMenu = CreateMenu();
 
 		if(!streamingMenu) {
 			DestroyMenu(popupMenu);
-			return 0;
+			goto releaseMutex;
 		}
 
 		HMENU sendMethod = CreateMenu();
@@ -128,10 +130,9 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		if(!sendMethod) {
 			DestroyMenu(streamingMenu);
 			DestroyMenu(popupMenu);
-			return 0;
+			goto releaseMutex;
 		}
 
-		WaitForSingleObject(client->stream->lock, INFINITE);
 		AppendMenuW(streamingMenu, MF_STRING | (client->stream->streaming ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_STREAMING_ENABLE, L"Enable");
 		AppendMenuW(sendMethod, MF_STRING | (client->stream->method == SEND_METHOD_FULL ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_FULL, L"Full");
 		AppendMenuW(sendMethod, MF_STRING | (client->stream->method == SEND_METHOD_BOUNDARY ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_BOUNDARY, L"Boundary Differences");
@@ -147,39 +148,34 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		DestroyMenu(sendMethod);
 		DestroyMenu(streamingMenu);
 		DestroyMenu(popupMenu);
+		WaitForSingleObject(client->stream->lock, INFINITE);
 
 		switch(response) {
 		case IDM_PICTURE_IN_PICTURE:
-			WaitForSingleObject(client->stream->lock, INFINITE);
 			client->stream->pictureInPicture = !client->stream->pictureInPicture;
 			SetWindowLongPtrW(client->clientWindow, GWL_STYLE, (client->stream->pictureInPicture ? WS_POPUP : WS_OVERLAPPEDWINDOW) | WS_VISIBLE);
 			RECT bounds;
 			GetClientRect(window, &bounds);
-			ReleaseMutex(client->stream->lock);
-			SendMessageW(window, WM_SIZE, 0, MAKELONG(bounds.right - bounds.left, bounds.bottom - bounds.top));
+			PostMessageW(window, WM_SIZE, 0, MAKELONG(bounds.right - bounds.left, bounds.bottom - bounds.top));
 			break;
 		case IDM_WINDOW_EXIT:
 			LOG("[Window Thread %ws]: Exiting\n" COMMA client->address);
 			ClientDisconnect(client);
 			break;
 		case IDM_WINDOW_STREAMING_ENABLE:
-			WaitForSingleObject(client->stream->lock, INFINITE);
 			client->stream->streaming = !client->stream->streaming;
 			sendStreamCode(client);
-			ReleaseMutex(client->stream->lock);
 			break;
 		case IDM_WINDOW_SEND_METHOD_FULL:
 		case IDM_WINDOW_SEND_METHOD_BOUNDARY:
 		case IDM_WINDOW_SEND_METHOD_COLOR:
 		case IDM_WINDOW_SEND_METHOD_UNCOMPRESSED:
-			WaitForSingleObject(client->stream->lock, INFINITE);
 			client->stream->method = response == IDM_WINDOW_SEND_METHOD_FULL ? SEND_METHOD_FULL : response == IDM_WINDOW_SEND_METHOD_BOUNDARY ? SEND_METHOD_BOUNDARY : response == IDM_WINDOW_SEND_METHOD_COLOR ? SEND_METHOD_COLOR : SEND_METHOD_UNCOMPRESSED;
 			sendStreamCode(client);
-			ReleaseMutex(client->stream->lock);
 			break;
 		}
 
-		return 0;
+		goto releaseMutex;
 	}
 	case WM_MOUSEMOVE: {
 		int x = LOWORD(lparam);
@@ -213,7 +209,10 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		break;
 	}
 
-	return DefWindowProcW(window, message, wparam, lparam);
+	returnValue = DefWindowProcW(window, message, wparam, lparam);
+releaseMutex:
+	ReleaseMutex(client->stream->lock);
+	return returnValue;
 }
 
 BOOL WindowRegisterClass() {
