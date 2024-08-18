@@ -170,6 +170,32 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 
 		return 0;
 	}
+	case WM_NCACTIVATE:
+		lparam = -1;
+		break;
+	case WM_NCCALCSIZE: {
+		if(!wparam) {
+			break;
+		}
+
+		WINDOWPLACEMENT placement;
+		placement.length = sizeof(WINDOWPLACEMENT);
+		GetWindowPlacement(window, &placement);
+
+		if(placement.showCmd == SW_SHOWMAXIMIZED) {
+			break;
+		}
+
+		RECT borderThickness;
+		SetRectEmpty(&borderThickness);
+		AdjustWindowRectEx(&borderThickness, GetWindowLongPtrW(window, GWL_STYLE) & ~WS_CAPTION, FALSE, 0);
+		NCCALCSIZE_PARAMS* params = (NCCALCSIZE_PARAMS*) lparam;
+		params->rgrc[0].top += 1;
+		params->rgrc[0].left -= borderThickness.left;
+		params->rgrc[0].right -= borderThickness.right;
+		params->rgrc[0].bottom -= borderThickness.bottom;
+		return 0;
+	}
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
@@ -226,7 +252,7 @@ DWORD WINAPI WindowThread(_In_ PCLIENT client) {
 	int width = (int) (((double) screenWidth) * 0.439238653);
 	int height = (int) (((double) screenHeight) * 0.520833333);
 	LPWSTR windowName = KHFormatMessageW(L"%ws [%ws]", client->name, client->address);
-	client->clientWindow = CreateWindowExW(0L, CLASS_CLIENT_WINDOW, windowName ? windowName : L"Client Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, NULL, client);
+	client->clientWindow = CreateWindowExW(0L, CLASS_CLIENT_WINDOW, windowName ? windowName : L"Client Window", WS_BORDER | WS_POPUP | WS_SIZEBOX | WS_VISIBLE, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, NULL, client);
 
 	if(windowName) {
 		LocalFree(windowName);
