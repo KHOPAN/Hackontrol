@@ -4,12 +4,13 @@
 #include <hackontrolpacket.h>
 #include "logger.h"
 
-#define IDM_WINDOW_EXIT                     0xE001
-#define IDM_WINDOW_STREAMING_ENABLE         0xE002
-#define IDM_WINDOW_SEND_METHOD_FULL         0xE003
-#define IDM_WINDOW_SEND_METHOD_BOUNDARY     0xE004
-#define IDM_WINDOW_SEND_METHOD_COLOR        0xE005
-#define IDM_WINDOW_SEND_METHOD_UNCOMPRESSED 0xE006
+#define IDM_PICTURE_IN_PICTURE              0xE001
+#define IDM_WINDOW_EXIT                     0xE002
+#define IDM_WINDOW_STREAMING_ENABLE         0xE003
+#define IDM_WINDOW_SEND_METHOD_FULL         0xE004
+#define IDM_WINDOW_SEND_METHOD_BOUNDARY     0xE005
+#define IDM_WINDOW_SEND_METHOD_COLOR        0xE006
+#define IDM_WINDOW_SEND_METHOD_UNCOMPRESSED 0xE007
 
 extern HINSTANCE programInstance;
 
@@ -138,6 +139,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		AppendMenuW(sendMethod, MF_STRING | (client->stream->method == SEND_METHOD_UNCOMPRESSED ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_UNCOMPRESSED, L"Uncompressed");
 		AppendMenuW(streamingMenu, MF_POPUP | (client->stream->streaming ? MF_ENABLED : MF_DISABLED), (UINT_PTR) sendMethod, L"Send Method");
 		AppendMenuW(popupMenu, MF_POPUP, (UINT_PTR) streamingMenu, L"Streaming");
+		AppendMenuW(popupMenu, MF_STRING | (client->stream->pictureInPicture ? MF_CHECKED : MF_UNCHECKED), IDM_PICTURE_IN_PICTURE, L"Picture in Picture Mode");
 		AppendMenuW(popupMenu, MF_STRING, IDM_WINDOW_EXIT, L"Exit");
 		SetForegroundWindow(window);
 		ReleaseMutex(client->stream->lock);
@@ -147,6 +149,11 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		DestroyMenu(popupMenu);
 
 		switch(response) {
+		case IDM_PICTURE_IN_PICTURE:
+			WaitForSingleObject(client->stream->lock, INFINITE);
+			client->stream->pictureInPicture = !client->stream->pictureInPicture;
+			ReleaseMutex(client->stream->lock);
+			break;
 		case IDM_WINDOW_EXIT:
 			LOG("[Window Thread %ws]: Exiting\n" COMMA client->address);
 			ClientDisconnect(client);

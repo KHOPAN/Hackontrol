@@ -12,6 +12,7 @@ typedef enum {
 typedef struct {
 	BOOL streaming;
 	SENDMETHOD method;
+	BOOL pictureInPicture;
 	int width;
 	int height;
 	int x;
