@@ -155,8 +155,8 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			SetWindowLongPtrW(client->clientWindow, GWL_STYLE, (client->stream->pictureInPicture ? WS_POPUP : WS_OVERLAPPEDWINDOW) | WS_VISIBLE);
 			RECT bounds;
 			GetClientRect(window, &bounds);
-			PostMessageW(window, WM_SIZE, 0, MAKELONG(bounds.right - bounds.left, bounds.bottom - bounds.top));
 			ReleaseMutex(client->stream->lock);
+			SendMessageW(window, WM_SIZE, 0, MAKELONG(bounds.right - bounds.left, bounds.bottom - bounds.top));
 			break;
 		case IDM_WINDOW_EXIT:
 			LOG("[Window Thread %ws]: Exiting\n" COMMA client->address);
@@ -180,6 +180,21 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		}
 
 		return 0;
+	}
+	case WM_MOUSEMOVE: {
+		int x = LOWORD(lparam);
+		int y = HIWORD(lparam);
+		RECT bounds;
+		GetClientRect(window, &bounds);
+		int width = bounds.right - bounds.left;
+		int height = bounds.bottom - bounds.top;
+	#define BORDER 10
+		BOOL north = y >= 0 && y <= BORDER;
+		BOOL east = x >= width - BORDER && x < width;
+		BOOL south = y >= height - BORDER && y < height;
+		BOOL west = x >= 0 && x <= BORDER;
+		SetCursor(LoadCursorW(NULL, north ? west ? IDC_SIZENWSE : east ? IDC_SIZENESW : IDC_SIZENS : south ? west ? IDC_SIZENESW : east ? IDC_SIZENWSE : IDC_SIZENS : west ? IDC_SIZEWE : east ? IDC_SIZEWE : IDC_ARROW));
+		break;
 	}
 	}
 
