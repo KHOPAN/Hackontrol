@@ -188,6 +188,13 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		GetClientRect(window, &bounds);
 		int width = bounds.right - bounds.left;
 		int height = bounds.bottom - bounds.top;
+
+		if(wparam == MK_LBUTTON) {
+			POINT cursor;
+			GetCursorPos(&cursor);
+			SetWindowPos(window, HWND_TOP, cursor.x - client->stream->pressedX, cursor.y - client->stream->pressedY, 0, 0, SWP_NOSIZE);
+			break;
+		}
 	#define BORDER 10
 		BOOL north = y >= 0 && y <= BORDER;
 		BOOL east = x >= width - BORDER && x < width;
@@ -196,6 +203,14 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		SetCursor(LoadCursorW(NULL, north ? west ? IDC_SIZENWSE : east ? IDC_SIZENESW : IDC_SIZENS : south ? west ? IDC_SIZENESW : east ? IDC_SIZENWSE : IDC_SIZENS : west ? IDC_SIZEWE : east ? IDC_SIZEWE : IDC_ARROW));
 		break;
 	}
+	case WM_LBUTTONDOWN:
+		client->stream->pressedX = LOWORD(lparam);
+		client->stream->pressedY = HIWORD(lparam);
+		RECT bounds;
+		GetWindowRect(window, &bounds);
+		client->stream->pressedWindowX = bounds.left;
+		client->stream->pressedWindowY = bounds.top;
+		break;
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
