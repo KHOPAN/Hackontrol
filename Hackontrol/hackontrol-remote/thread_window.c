@@ -152,6 +152,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		case IDM_PICTURE_IN_PICTURE:
 			WaitForSingleObject(client->stream->lock, INFINITE);
 			client->stream->pictureInPicture = !client->stream->pictureInPicture;
+			SetWindowLongPtrW(client->clientWindow, GWL_STYLE, (client->stream->pictureInPicture ? WS_POPUP : WS_OVERLAPPEDWINDOW) | WS_VISIBLE);
 			ReleaseMutex(client->stream->lock);
 			break;
 		case IDM_WINDOW_EXIT:
