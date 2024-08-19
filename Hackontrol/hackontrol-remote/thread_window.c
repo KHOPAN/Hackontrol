@@ -183,7 +183,14 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		}
 
 		GetCursorPos(&position);
-		SetWindowPos(window, HWND_TOP, position.x - client->stream->pressedX, position.y - client->stream->pressedY, 0, 0, SWP_NOSIZE);
+
+		if(!client->stream->cursorNorth && !client->stream->cursorEast && !client->stream->cursorSouth && !client->stream->cursorWest) {
+			position.x -= client->stream->pressedX;
+			position.y -= client->stream->pressedY;
+			goto applyPosition;
+		}
+applyPosition:
+		SetWindowPos(window, HWND_TOP, position.x, position.y, 0, 0, SWP_NOSIZE);
 		break;
 	}
 	case WM_LBUTTONDOWN:
