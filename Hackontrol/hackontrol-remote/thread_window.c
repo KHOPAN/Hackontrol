@@ -181,11 +181,11 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		#define BORDER 10
 			position.x = LOWORD(lparam);
 			position.y = HIWORD(lparam);
-			BOOL north = position.y >= 0 && position.y <= BORDER;
-			BOOL east = position.x >= bounds.right - BORDER && position.x < bounds.right;
-			BOOL south = position.y >= bounds.bottom - BORDER && position.y < bounds.bottom;
-			BOOL west = position.x >= 0 && position.x <= BORDER;
-			SetCursor(LoadCursorW(NULL, north ? west ? IDC_SIZENWSE : east ? IDC_SIZENESW : IDC_SIZENS : south ? west ? IDC_SIZENESW : east ? IDC_SIZENWSE : IDC_SIZENS : west ? IDC_SIZEWE : east ? IDC_SIZEWE : IDC_ARROW));
+			client->stream->cursorNorth = position.y >= 0 && position.y <= BORDER;
+			client->stream->cursorEast = position.x >= bounds.right - BORDER && position.x < bounds.right;
+			client->stream->cursorSouth = position.y >= bounds.bottom - BORDER && position.y < bounds.bottom;
+			client->stream->cursorWest = position.x >= 0 && position.x <= BORDER;
+			SetCursor(LoadCursorW(NULL, client->stream->cursorNorth ? client->stream->cursorWest ? IDC_SIZENWSE : client->stream->cursorEast ? IDC_SIZENESW : IDC_SIZENS : client->stream->cursorSouth ? client->stream->cursorWest ? IDC_SIZENESW : client->stream->cursorEast ? IDC_SIZENWSE : IDC_SIZENS : client->stream->cursorWest ? IDC_SIZEWE : client->stream->cursorEast ? IDC_SIZEWE : IDC_ARROW));
 			break;
 		}
 

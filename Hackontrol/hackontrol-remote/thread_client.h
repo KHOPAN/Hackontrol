@@ -20,6 +20,10 @@ typedef struct {
 	int originalImageHeight;
 	int pressedX;
 	int pressedY;
+	BOOL cursorNorth;
+	BOOL cursorEast;
+	BOOL cursorSouth;
+	BOOL cursorWest;
 	BOOL streaming;
 	SENDMETHOD sendMethod;
 	BOOL pictureInPictureMode;
