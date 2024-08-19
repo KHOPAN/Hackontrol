@@ -21,14 +21,7 @@ static void sendStreamCode(const PCLIENT client) {
 	packet.size = 1;
 	packet.packetType = PACKET_TYPE_STREAM_FRAME;
 	packet.data = &flags;
-
-	if(!SendPacket(client->socket, &packet)) {
-		DWORD error = GetLastError();
-
-		if(error != WSAECONNRESET) {
-			KHWin32DialogErrorW(error, L"SendPacket");
-		}
-	}
+	SendPacket(client->socket, &packet);
 }
 
 static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {

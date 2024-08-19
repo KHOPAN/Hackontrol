@@ -78,8 +78,15 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 			continue;
 		}
 
+		if(!client) {
+			continue;
+		}
+
 		closesocket(client->socket);
-		WaitForSingleObject(client->thread, INFINITE);
+
+		if(client->thread) {
+			WaitForSingleObject(client->thread, INFINITE);
+		}
 	}
 
 	LOG("[Hackontrol Remote]: Waiting for server thread to exit\n");
