@@ -20,6 +20,8 @@ typedef struct {
 	int originalImageHeight;
 	int pressedX;
 	int pressedY;
+	int pressedOffsetX;
+	int pressedOffsetY;
 	BOOL cursorNorth;
 	BOOL cursorEast;
 	BOOL cursorSouth;

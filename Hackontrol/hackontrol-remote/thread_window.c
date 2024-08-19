@@ -190,7 +190,8 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		}
 
 		if(client->stream->cursorEast) {
-			SetWindowPos(window, HWND_TOP, 0, 0, position.x, position.y, SWP_NOMOVE);
+			GetWindowRect(window, &bounds);
+			SetWindowPos(window, HWND_TOP, 0, 0, position.x - bounds.left + client->stream->pressedOffsetX, bounds.bottom - bounds.top, SWP_NOMOVE);
 			break;
 		}
 
@@ -200,6 +201,8 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 	case WM_LBUTTONDOWN:
 		client->stream->pressedX = LOWORD(lparam);
 		client->stream->pressedY = HIWORD(lparam);
+		client->stream->pressedOffsetX = bounds.right - client->stream->pressedX;
+		client->stream->pressedOffsetY = bounds.bottom - client->stream->pressedY;
 		SetCapture(window);
 		break;
 	case WM_LBUTTONUP:
