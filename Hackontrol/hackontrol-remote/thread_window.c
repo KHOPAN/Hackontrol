@@ -185,11 +185,15 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		GetCursorPos(&position);
 
 		if(!client->stream->cursorNorth && !client->stream->cursorEast && !client->stream->cursorSouth && !client->stream->cursorWest) {
-			position.x -= client->stream->pressedX;
-			position.y -= client->stream->pressedY;
-			goto applyPosition;
+			SetWindowPos(window, HWND_TOP, position.x - client->stream->pressedX, position.y - client->stream->pressedY, 0, 0, SWP_NOSIZE);
+			break;
 		}
-applyPosition:
+
+		if(client->stream->cursorEast) {
+			SetWindowPos(window, HWND_TOP, 0, 0, position.x, position.y, SWP_NOMOVE);
+			break;
+		}
+
 		SetWindowPos(window, HWND_TOP, position.x, position.y, 0, 0, SWP_NOSIZE);
 		break;
 	}
