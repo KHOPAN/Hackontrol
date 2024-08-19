@@ -195,6 +195,12 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			break;
 		}
 
+		if(client->stream->cursorSouth) {
+			GetWindowRect(window, &bounds);
+			SetWindowPos(window, HWND_TOP, 0, 0, bounds.right - bounds.left, position.y - bounds.top + client->stream->pressedOffsetY, SWP_NOMOVE);
+			break;
+		}
+
 		SetWindowPos(window, HWND_TOP, position.x, position.y, 0, 0, SWP_NOSIZE);
 		break;
 	}
