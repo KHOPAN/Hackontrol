@@ -196,6 +196,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 	case WM_LBUTTONDOWN:
 		client->stream->pressedX = LOWORD(lparam);
 		client->stream->pressedY = HIWORD(lparam);
+		SetCapture(window);
 		break;
 	}
 
