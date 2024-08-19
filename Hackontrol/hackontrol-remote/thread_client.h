@@ -10,19 +10,19 @@ typedef enum {
 } SENDMETHOD;
 
 typedef struct {
-	BOOL streaming;
-	SENDMETHOD method;
-	BOOL pictureInPicture;
-	int width;
-	int height;
-	int x;
-	int y;
+	HANDLE lock;
+	PBYTE pixels;
+	int imageX;
+	int imageY;
 	int imageWidth;
 	int imageHeight;
+	int originalImageWidth;
+	int originalImageHeight;
 	int pressedX;
 	int pressedY;
-	PBYTE pixels;
-	HANDLE lock;
+	BOOL streaming;
+	SENDMETHOD sendMethod;
+	BOOL pictureInPictureMode;
 } STREAMDATA, *PSTREAMDATA;
 
 typedef struct {

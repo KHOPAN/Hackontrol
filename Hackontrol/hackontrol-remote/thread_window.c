@@ -15,7 +15,7 @@
 extern HINSTANCE programInstance;
 
 static void sendStreamCode(const PCLIENT client) {
-	unsigned char flags = ((client->stream->method & 0b11) << 1) | (client->stream->streaming ? 0b1001 : 0);
+	unsigned char flags = ((client->stream->sendMethod & 0b11) << 1) | (client->stream->streaming ? 0b1001 : 0);
 	LOG("[Window Thread %ws]: Flags: %c%c%c%c%c%c%c%c\n" COMMA client->address COMMA flags & 0x80 ? '1' : '0' COMMA flags & 0x40 ? '1' : '0' COMMA flags & 0x20 ? '1' : '0' COMMA flags & 0x10 ? '1' : '0' COMMA flags & 0x08 ? '1' : '0' COMMA flags & 0x04 ? '1' : '0' COMMA flags & 0x02 ? '1' : '0' COMMA flags & 0x01 ? '1' : '0');
 	PACKET packet;
 	packet.size = 1;
@@ -69,17 +69,17 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 
 	switch(message) {
 	case WM_SIZE: {
-		client->stream->imageWidth = (int) (((double) client->stream->width) / ((double) client->stream->height) * ((double) bounds.bottom));
-		client->stream->imageHeight = (int) (((double) client->stream->height) / ((double) client->stream->width) * ((double) bounds.right));
+		client->stream->imageWidth = (int) (((double) client->stream->originalImageWidth) / ((double) client->stream->originalImageHeight) * ((double) bounds.bottom));
+		client->stream->imageHeight = (int) (((double) client->stream->originalImageHeight) / ((double) client->stream->originalImageWidth) * ((double) bounds.right));
 
 		if(client->stream->imageWidth < bounds.right) {
 			client->stream->imageHeight = bounds.bottom;
-			client->stream->x = (int) ((((double) bounds.right) - ((double) client->stream->imageWidth)) / 2.0);
-			client->stream->y = 0;
+			client->stream->imageX = (int) ((((double) bounds.right) - ((double) client->stream->imageWidth)) / 2.0);
+			client->stream->imageY = 0;
 		} else {
 			client->stream->imageWidth = bounds.right;
-			client->stream->x = 0;
-			client->stream->y = (int) ((((double) bounds.bottom) - ((double) client->stream->imageHeight)) / 2.0);
+			client->stream->imageX = 0;
+			client->stream->imageY = (int) ((((double) bounds.bottom) - ((double) client->stream->imageHeight)) / 2.0);
 		}
 
 		goto releaseMutex;
@@ -98,11 +98,11 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			SetStretchBltMode(memoryContext, HALFTONE);
 			BITMAPINFO information = {0};
 			information.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-			information.bmiHeader.biWidth = client->stream->width;
-			information.bmiHeader.biHeight = client->stream->height;
+			information.bmiHeader.biWidth = client->stream->originalImageWidth;
+			information.bmiHeader.biHeight = client->stream->originalImageHeight;
 			information.bmiHeader.biPlanes = 1;
 			information.bmiHeader.biBitCount = 32;
-			StretchDIBits(memoryContext, client->stream->x, client->stream->y, client->stream->imageWidth, client->stream->imageHeight, 0, 0, client->stream->width, client->stream->height, client->stream->pixels, &information, DIB_RGB_COLORS, SRCCOPY);
+			StretchDIBits(memoryContext, client->stream->imageX, client->stream->imageY, client->stream->imageWidth, client->stream->imageHeight, 0, 0, client->stream->originalImageWidth, client->stream->originalImageHeight, client->stream->pixels, &information, DIB_RGB_COLORS, SRCCOPY);
 		}
 
 		BitBlt(context, 0, 0, bounds.right, bounds.bottom, memoryContext, 0, 0, SRCCOPY);
@@ -135,13 +135,13 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		}
 
 		AppendMenuW(streamingMenu, MF_STRING | (client->stream->streaming ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_STREAMING_ENABLE, L"Enable");
-		AppendMenuW(sendMethod, MF_STRING | (client->stream->method == SEND_METHOD_FULL ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_FULL, L"Full");
-		AppendMenuW(sendMethod, MF_STRING | (client->stream->method == SEND_METHOD_BOUNDARY ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_BOUNDARY, L"Boundary Differences");
-		AppendMenuW(sendMethod, MF_STRING | (client->stream->method == SEND_METHOD_COLOR ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_COLOR, L"Color Differences");
-		AppendMenuW(sendMethod, MF_STRING | (client->stream->method == SEND_METHOD_UNCOMPRESSED ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_UNCOMPRESSED, L"Uncompressed");
+		AppendMenuW(sendMethod, MF_STRING | (client->stream->sendMethod == SEND_METHOD_FULL ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_FULL, L"Full");
+		AppendMenuW(sendMethod, MF_STRING | (client->stream->sendMethod == SEND_METHOD_BOUNDARY ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_BOUNDARY, L"Boundary Differences");
+		AppendMenuW(sendMethod, MF_STRING | (client->stream->sendMethod == SEND_METHOD_COLOR ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_COLOR, L"Color Differences");
+		AppendMenuW(sendMethod, MF_STRING | (client->stream->sendMethod == SEND_METHOD_UNCOMPRESSED ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_UNCOMPRESSED, L"Uncompressed");
 		AppendMenuW(streamingMenu, MF_POPUP | (client->stream->streaming ? MF_ENABLED : MF_DISABLED), (UINT_PTR) sendMethod, L"Send Method");
 		AppendMenuW(popupMenu, MF_POPUP, (UINT_PTR) streamingMenu, L"Streaming");
-		AppendMenuW(popupMenu, MF_STRING | (client->stream->pictureInPicture ? MF_CHECKED : MF_UNCHECKED), IDM_PICTURE_IN_PICTURE, L"Picture in Picture Mode");
+		AppendMenuW(popupMenu, MF_STRING | (client->stream->pictureInPictureMode ? MF_CHECKED : MF_UNCHECKED), IDM_PICTURE_IN_PICTURE, L"Picture in Picture Mode");
 		AppendMenuW(popupMenu, MF_STRING, IDM_WINDOW_EXIT, L"Exit");
 		SetForegroundWindow(window);
 		ReleaseMutex(client->stream->lock);
@@ -153,8 +153,8 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 
 		switch(position.x) {
 		case IDM_PICTURE_IN_PICTURE:
-			client->stream->pictureInPicture = !client->stream->pictureInPicture;
-			SetWindowLongPtrW(client->clientWindow, GWL_STYLE, (client->stream->pictureInPicture ? WS_POPUP : WS_OVERLAPPEDWINDOW) | WS_VISIBLE);
+			client->stream->pictureInPictureMode = !client->stream->pictureInPictureMode;
+			SetWindowLongPtrW(client->clientWindow, GWL_STYLE, (client->stream->pictureInPictureMode ? WS_POPUP : WS_OVERLAPPEDWINDOW) | WS_VISIBLE);
 			PostMessageW(window, WM_SIZE, 0, MAKELONG(bounds.right, bounds.bottom));
 			break;
 		case IDM_WINDOW_EXIT:
@@ -169,7 +169,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		case IDM_WINDOW_SEND_METHOD_BOUNDARY:
 		case IDM_WINDOW_SEND_METHOD_COLOR:
 		case IDM_WINDOW_SEND_METHOD_UNCOMPRESSED:
-			client->stream->method = position.x == IDM_WINDOW_SEND_METHOD_FULL ? SEND_METHOD_FULL : position.x == IDM_WINDOW_SEND_METHOD_BOUNDARY ? SEND_METHOD_BOUNDARY : position.x == IDM_WINDOW_SEND_METHOD_COLOR ? SEND_METHOD_COLOR : SEND_METHOD_UNCOMPRESSED;
+			client->stream->sendMethod = position.x == IDM_WINDOW_SEND_METHOD_FULL ? SEND_METHOD_FULL : position.x == IDM_WINDOW_SEND_METHOD_BOUNDARY ? SEND_METHOD_BOUNDARY : position.x == IDM_WINDOW_SEND_METHOD_COLOR ? SEND_METHOD_COLOR : SEND_METHOD_UNCOMPRESSED;
 			sendStreamCode(client);
 			break;
 		}
@@ -242,7 +242,6 @@ DWORD WINAPI WindowThread(_In_ PCLIENT client) {
 	}
 
 	memset(client->stream, 0, sizeof(STREAMDATA));
-	client->stream->method = SEND_METHOD_COLOR;
 	client->stream->lock = CreateMutexExW(NULL, NULL, 0, DELETE | SYNCHRONIZE);
 
 	if(!client->stream->lock) {
@@ -250,6 +249,7 @@ DWORD WINAPI WindowThread(_In_ PCLIENT client) {
 		goto freeStream;
 	}
 
+	client->stream->sendMethod = SEND_METHOD_COLOR;
 	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
 	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	int width = (int) (((double) screenWidth) * 0.439238653);

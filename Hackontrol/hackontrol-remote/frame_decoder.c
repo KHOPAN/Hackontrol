@@ -20,9 +20,9 @@ void DecodeHRSPFrame(const BYTE* data, size_t size, PSTREAMDATA stream, HWND win
 	int width = (data[1] << 24) | (data[2] << 16) | (data[3] << 8) | data[4];
 	int height = (data[5] << 24) | (data[6] << 16) | (data[7] << 8) | data[8];
 
-	if(stream->width != width || stream->height != height) {
-		stream->width = width;
-		stream->height = height;
+	if(stream->originalImageWidth != width || stream->originalImageHeight != height) {
+		stream->originalImageWidth = width;
+		stream->originalImageHeight = height;
 
 		if(stream->pixels) {
 			LocalFree(stream->pixels);
