@@ -198,6 +198,9 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		client->stream->pressedY = HIWORD(lparam);
 		SetCapture(window);
 		break;
+	case WM_LBUTTONUP:
+		ReleaseCapture();
+		break;
 	}
 
 	returnValue = DefWindowProcW(window, message, wparam, lparam);
