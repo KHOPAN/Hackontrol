@@ -190,23 +190,24 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		}
 
 		GetWindowRect(window, &bounds);
-		bounds.right -= bounds.left;
-		bounds.bottom -= bounds.top;
+
+		if(client->stream->cursorNorth) {
+			bounds.top = position.y - client->stream->pressedY;
+		}
 
 		if(client->stream->cursorEast) {
-			bounds.right = position.x - bounds.left + client->stream->pressedOffsetX;
+			bounds.right = position.x + client->stream->pressedOffsetX;
 		}
 
 		if(client->stream->cursorSouth) {
-			bounds.bottom = position.y - bounds.top + client->stream->pressedOffsetY;
+			bounds.bottom = position.y + client->stream->pressedOffsetY;
 		}
 
 		if(client->stream->cursorWest) {
 			bounds.left = position.x - client->stream->pressedX;
-			bounds.right = position.x + client->stream->pressedOffsetX;
 		}
 
-		SetWindowPos(window, HWND_TOP, bounds.left, bounds.top, bounds.right, bounds.bottom, 0);
+		SetWindowPos(window, HWND_TOP, bounds.left, bounds.top, bounds.right - bounds.left, bounds.bottom - bounds.top, 0);
 		break;
 	}
 	case WM_LBUTTONDOWN:
