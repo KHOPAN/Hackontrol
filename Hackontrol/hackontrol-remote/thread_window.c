@@ -208,7 +208,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			bounds.left = position.x - client->stream->pressedX;
 		}
 
-		SetWindowPos(window, HWND_TOP, bounds.left, bounds.top, bounds.right - bounds.left, bounds.bottom - bounds.top, 0);
+		SetWindowPos(window, HWND_TOP, bounds.left, bounds.top, bounds.right - bounds.left, bounds.bottom - bounds.top, client->stream->cursorNorth && client->stream->cursorEast && client->stream->cursorSouth && client->stream->cursorWest ? SWP_NOSIZE : client->stream->cursorEast || client->stream->cursorSouth ? SWP_NOMOVE : 0);
 		break;
 	}
 	case WM_LBUTTONDOWN:
