@@ -8,13 +8,6 @@
 #include "window_main.h"
 #include "logger.h"
 
-#define IDM_REMOTE_ALWAYS_ON_TOP 0xE000
-#define IDM_REMOTE_OPEN          0xE001
-#define IDM_REMOTE_DISCONNECT    0xE002
-
-#pragma warning(disable: 6001)
-#pragma warning(disable: 6258)
-
 HINSTANCE programInstance;
 ArrayList clientList;
 HANDLE listMutex;
