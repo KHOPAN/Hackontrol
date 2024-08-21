@@ -5,6 +5,8 @@
 #include "window_main.h"
 #include "logger.h"
 
+#define CLASS_HACKONTROL_REMOTE L"HackontrolRemote"
+
 #define IDM_REMOTE_OPEN          0xE001
 #define IDM_REMOTE_DISCONNECT    0xE002
 #define IDM_REMOTE_REFRESH       0xE003
