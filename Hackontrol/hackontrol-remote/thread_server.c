@@ -5,6 +5,9 @@
 #include "window_main.h"
 #include "logger.h"
 
+#include <khopanarray.h>
+#include "thread_window.h"
+
 #define REMOTE_PORT L"42485"
 
 static SOCKET listenSocket;
@@ -135,4 +138,59 @@ void ExitServerThread() {
 
 		KHWin32DialogErrorW(error, L"closesocket");
 	}
+}
+
+HINSTANCE remoteInstance;
+ArrayList clients;
+HANDLE clientsLock;
+
+int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance, _In_ LPSTR argument, _In_ int commandLine) {
+	remoteInstance = instance;
+	int returnValue = 1;
+#ifdef LOGGER_ENABLE
+#ifndef NO_CONSOLE
+	if(!AllocConsole()) {
+		KHWin32DialogErrorW(GetLastError(), L"AllocConsole");
+		goto exit;
+	}
+
+	FILE* file = stdout;
+	freopen_s(&file, "CONOUT$", "w", stdout);
+	file = stderr;
+	freopen_s(&file, "CONOUT$", "w", stderr);
+	SetWindowTextW(GetConsoleWindow(), L"Remote Log");
+#endif
+#endif
+	if(!InitializeMainWindow() || !WindowRegisterClass()) {
+		goto exit;
+	}
+
+	if(!KHArrayInitialize(&clients, sizeof(CLIENT))) {
+		KHWin32DialogErrorW(GetLastError(), L"KHArrayInitialize");
+		goto exit;
+	}
+
+	clientsLock = CreateMutexExW(NULL, NULL, 0, SYNCHRONIZE | DELETE);
+
+	if(!clientsLock) {
+		KHWin32DialogErrorW(GetLastError(), L"CreateMutexExW");
+		goto freeClients;
+	}
+
+	HANDLE serverThread = CreateThread(NULL, 0, ServerThread, NULL, 0, NULL);
+
+	if(!serverThread) {
+		KHWin32DialogErrorW(GetLastError(), L"CreateThread");
+		goto closeLock;
+	}
+
+	returnValue = MainWindowMessageLoop();
+	ExitServerThread();
+closeLock:
+	CloseHandle(clientsLock);
+freeClients:
+	KHArrayFree(&clients);
+exit:
+	LOG("[Remote]: Exit with code: %d\n" COMMA returnValue);
+	return returnValue;
 }

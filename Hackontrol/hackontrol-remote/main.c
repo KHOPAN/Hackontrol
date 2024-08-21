@@ -8,7 +8,7 @@
 #include "window_main.h"
 #include "logger.h"
 
-HINSTANCE programInstance;
+/*HINSTANCE programInstance;
 ArrayList clientList;
 HANDLE listMutex;
 
@@ -92,4 +92,4 @@ freeClientList:
 exit:
 	LOG("[Hackontrol Remote]: Exiting the main thread (Exit code: %d)\n" COMMA returnValue);
 	return returnValue;
-}
+}*/
