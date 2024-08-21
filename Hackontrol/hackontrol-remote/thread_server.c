@@ -65,6 +65,10 @@ DWORD WINAPI serverThread(_In_ LPVOID parameter) {
 	PCLIENT client;
 
 	while(TRUE) {
+		if(!socketListen) {
+			break;
+		}
+
 		status = sizeof(SOCKADDR_IN);
 		socket = accept(socketListen, (struct sockaddr*) &address, &status);
 
@@ -172,6 +176,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto closeLock;
 	}
 
+	socketListen = 0;
 	LOG("[Remote]: Wait for all client threads to exit\n");
 	PCLIENT client;
 
