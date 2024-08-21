@@ -171,6 +171,34 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		KHWin32DialogErrorW(WSAGetLastError(), L"closesocket");
 		goto closeLock;
 	}
+
+	LOG("[Remote]: Wait for all client threads to exit\n");
+	PCLIENT client;
+
+	for(size_t i = 0; i < clients.elementCount; i++) {
+		if(!KHArrayGet(&clients, i, &client)) {
+			KHWin32DialogErrorW(GetLastError(), L"KHArrayGet");
+			continue;
+		}
+
+		if(!client) {
+			continue;
+		}
+
+		closesocket(client->socket);
+
+		if(client->thread) {
+			WaitForSingleObject(client->thread, INFINITE);
+		}
+	}
+
+	LOG("[Remote]: Wait for server thread to exit\n");
+
+	if(WaitForSingleObject(serverThreadHandle, INFINITE) == WAIT_FAILED) {
+		KHWin32DialogErrorW(GetLastError(), L"WaitForSingleObject");
+	}
+
+	CloseHandle(serverThreadHandle);
 closeLock:
 	CloseHandle(clientsLock);
 freeClients:

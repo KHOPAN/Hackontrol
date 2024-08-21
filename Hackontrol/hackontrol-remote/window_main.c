@@ -86,11 +86,9 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 		SetWindowPos(listView, HWND_TOP, bounds.left + 9, bounds.top + 17, bounds.right - bounds.left - 8, bounds.bottom - bounds.top - 22, 0);
 		return 0;
 	case WM_CONTEXTMENU: {
-		int x = LOWORD(lparam);
-		int y = HIWORD(lparam);
 		LVHITTESTINFO hitTest = {0};
-		hitTest.pt.x = x;
-		hitTest.pt.y = y;
+		hitTest.pt.x = LOWORD(lparam);
+		hitTest.pt.y = HIWORD(lparam);
 		ScreenToClient(listView, &hitTest.pt);
 		GetClientRect(listView, &bounds);
 
@@ -115,7 +113,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 		AppendMenuW(popupMenu, MF_STRING | (GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST ? MF_CHECKED : MF_UNCHECKED), IDM_REMOTE_ALWAYS_ON_TOP, L"Always On Top");
 		AppendMenuW(popupMenu, MF_STRING, IDM_REMOTE_EXIT, L"Exit");
 		SetForegroundWindow(window);
-		BOOL response = TrackPopupMenuEx(popupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, x, y, window, NULL);
+		BOOL response = TrackPopupMenuEx(popupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
 		DestroyMenu(popupMenu);
 
 		switch(response) {
