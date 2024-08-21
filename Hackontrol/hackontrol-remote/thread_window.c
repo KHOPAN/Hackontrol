@@ -12,8 +12,6 @@
 #define IDM_WINDOW_SEND_METHOD_COLOR        0xE006
 #define IDM_WINDOW_SEND_METHOD_UNCOMPRESSED 0xE007
 
-extern HINSTANCE programInstance;
-
 static void sendStreamCode(const PCLIENT client) {
 	unsigned char flags = ((client->stream->sendMethod & 0b11) << 1) | (client->stream->streaming ? 0b1001 : 0);
 	LOG("[Window Thread %ws]: Flags: %c%c%c%c%c%c%c%c\n" COMMA client->address COMMA flags & 0x80 ? '1' : '0' COMMA flags & 0x40 ? '1' : '0' COMMA flags & 0x20 ? '1' : '0' COMMA flags & 0x10 ? '1' : '0' COMMA flags & 0x08 ? '1' : '0' COMMA flags & 0x04 ? '1' : '0' COMMA flags & 0x02 ? '1' : '0' COMMA flags & 0x01 ? '1' : '0');
@@ -229,12 +227,12 @@ releaseMutex:
 	return returnValue;
 }
 
-BOOL WindowRegisterClass() {
+BOOL WindowRegisterClass(HINSTANCE instance) {
 	WNDCLASSEXW windowClass = {0};
 	windowClass.cbSize = sizeof(WNDCLASSEXW);
 	windowClass.style = CS_HREDRAW | CS_VREDRAW;
 	windowClass.lpfnWndProc = windowProcedure;
-	windowClass.hInstance = programInstance;
+	windowClass.hInstance = instance;
 	windowClass.lpszClassName = CLASS_CLIENT_WINDOW;
 
 	if(!RegisterClassExW(&windowClass)) {

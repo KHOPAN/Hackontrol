@@ -8,8 +8,8 @@
 #include "frame_decoder.h"
 #include "logger.h"
 
-extern ArrayList clientList;
-extern HANDLE listMutex;
+ArrayList clients;
+HANDLE clientsLock;
 
 static LPWSTR decodeName(const BYTE* data, long size) {
 	if(size < 1) {
@@ -86,10 +86,10 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 	client->name = decodeName(packet.data, packet.size);
 	LocalFree(packet.data);
 	LOG("[Client Thread %ws]: Username: '%ws'\n" COMMA client->address COMMA client->name);
-	WaitForSingleObject(listMutex, INFINITE);
-	BOOL result = KHArrayAdd(&clientList, client);
+	WaitForSingleObject(clientsLock, INFINITE);
+	BOOL result = KHArrayAdd(&clients, client);
 
-	if(!ReleaseMutex(listMutex)) {
+	if(!ReleaseMutex(clientsLock)) {
 		KHWin32DialogErrorW(GetLastError(), L"ReleaseMutex");
 		goto exit;
 	}
@@ -100,11 +100,11 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 	}
 
 	LocalFree(client);
-	WaitForSingleObject(listMutex, INFINITE);
-	result = KHArrayGet(&clientList, clientList.elementCount - 1, &client);
+	WaitForSingleObject(clientsLock, INFINITE);
+	result = KHArrayGet(&clients, clients.elementCount - 1, &client);
 	RefreshMainWindowListView();
 
-	if(!ReleaseMutex(listMutex)) {
+	if(!ReleaseMutex(clientsLock)) {
 		KHWin32DialogErrorW(GetLastError(), L"ReleaseMutex");
 		goto exit;
 	}
@@ -149,10 +149,10 @@ exit:
 	LOG("[Client Thread %ws]: Exiting the client thread (Exit code: %d)\n" COMMA client->address COMMA returnValue);
 	CloseHandle(client->thread);
 	client->active = FALSE;
-	WaitForSingleObject(listMutex, INFINITE);
+	WaitForSingleObject(clientsLock, INFINITE);
 	RefreshMainWindowListView();
 
-	if(!ReleaseMutex(listMutex)) {
+	if(!ReleaseMutex(clientsLock)) {
 		KHWin32DialogErrorW(GetLastError(), L"ReleaseMutex");
 		return 1;
 	}

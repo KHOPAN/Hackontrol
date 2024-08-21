@@ -140,12 +140,10 @@ void ExitServerThread() {
 	}
 }
 
-HINSTANCE remoteInstance;
 ArrayList clients;
 HANDLE clientsLock;
 
 int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance, _In_ LPSTR argument, _In_ int commandLine) {
-	remoteInstance = instance;
 	int returnValue = 1;
 #ifdef LOGGER_ENABLE
 #ifndef NO_CONSOLE
@@ -161,7 +159,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	SetWindowTextW(GetConsoleWindow(), L"Remote Log");
 #endif
 #endif
-	if(!InitializeMainWindow() || !WindowRegisterClass()) {
+	if(!InitializeMainWindow(instance) || !WindowRegisterClass(instance)) {
 		goto exit;
 	}
 

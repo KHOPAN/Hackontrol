@@ -13,9 +13,8 @@
 
 #pragma warning(disable: 26454)
 
-extern HINSTANCE programInstance;
-extern ArrayList clientList;
-extern HANDLE listMutex;
+extern ArrayList clients;
+extern HANDLE clientsLock;
 
 static HWND window;
 static HWND titledBorder;
@@ -24,10 +23,10 @@ static HWND listView;
 static BOOL getActiveItem(size_t index, PCLIENT* client) {
 	size_t runningIndex = 0;
 
-	for(size_t i = 0; i < clientList.elementCount; i++) {
+	for(size_t i = 0; i < clients.elementCount; i++) {
 		PCLIENT instance;
 
-		if(!KHArrayGet(&clientList, i, &instance)) {
+		if(!KHArrayGet(&clients, i, &instance)) {
 			return FALSE;
 		}
 
@@ -127,11 +126,11 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 			return 0;
 		}
 
-		WaitForSingleObject(listMutex, INFINITE);
+		WaitForSingleObject(clientsLock, INFINITE);
 		PCLIENT client;
 		BOOL result = getActiveItem(((LPNMITEMACTIVATE) lparam)->iItem, &client);
 
-		if(!ReleaseMutex(listMutex)) {
+		if(!ReleaseMutex(clientsLock)) {
 			KHWin32DialogErrorW(GetLastError(), L"ReleaseMutex");
 			return 0;
 		}
@@ -145,11 +144,11 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 	return DefWindowProcW(inputWindow, message, wparam, lparam);
 }
 
-BOOL InitializeMainWindow() {
+BOOL InitializeMainWindow(HINSTANCE instance) {
 	WNDCLASSEXW windowClass = {0};
 	windowClass.cbSize = sizeof(WNDCLASSEXW);
 	windowClass.lpfnWndProc = windowProcedure;
-	windowClass.hInstance = programInstance;
+	windowClass.hInstance = instance;
 	windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
 	windowClass.hbrBackground = (HBRUSH) COLOR_WINDOW;
 	windowClass.lpszClassName = CLASS_HACKONTROL_REMOTE;
@@ -160,7 +159,7 @@ BOOL InitializeMainWindow() {
 	}
 
 	LOG("[Hackontrol Remote]: Creating the main window\n");
-	window = CreateWindowExW(WS_EX_TOPMOST, CLASS_HACKONTROL_REMOTE, L"Hackontrol Remote", WS_OVERLAPPEDWINDOW, 0, 0, 0, 0, NULL, NULL, programInstance, NULL);
+	window = CreateWindowExW(WS_EX_TOPMOST, CLASS_HACKONTROL_REMOTE, L"Hackontrol Remote", WS_OVERLAPPEDWINDOW, 0, 0, 0, 0, NULL, NULL, instance, NULL);
 
 	if(!window) {
 		KHWin32DialogErrorW(GetLastError(), L"CreateWindowExW");
@@ -259,10 +258,10 @@ void RefreshMainWindowListView() {
 	LVITEMW item = {0};
 	item.mask = LVIF_TEXT;
 
-	for(size_t i = 0; i < clientList.elementCount; i++) {
+	for(size_t i = 0; i < clients.elementCount; i++) {
 		PCLIENT client;
 
-		if(KHArrayGet(&clientList, i, &client) && client->active) {
+		if(KHArrayGet(&clients, i, &client) && client->active) {
 			item.iSubItem = 0;
 			item.pszText = client ? client->name : L"(Missing name)";
 			SendMessageW(listView, LVM_INSERTITEM, 0, (LPARAM) &item);
