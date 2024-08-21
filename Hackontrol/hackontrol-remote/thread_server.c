@@ -10,20 +10,19 @@
 
 #define REMOTE_PORT L"42485"
 
-static SOCKET listenSocket;
+static SOCKET socketListen;
 
-DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
-	LOG("[Server Thread]: Hello from server thread\n");
-	WSADATA socketData;
-	int status = WSAStartup(MAKEWORD(2, 2), &socketData);
-	int returnValue = 1;
+DWORD WINAPI serverThread(_In_ LPVOID parameter) {
+	LOG("[Server]: Starting\n");
+	WSADATA data;
+	int status = WSAStartup(MAKEWORD(2, 2), &data);
+	DWORD returnValue = 1;
 
 	if(status) {
 		KHWin32DialogErrorW(status, L"WSAStartup");
 		goto exit;
 	}
 
-	LOG("[Server Thread]: WSA Description: %s\n" COMMA socketData.szDescription);
 	ADDRINFOW hints = {0};
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
@@ -37,47 +36,48 @@ DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
 		goto cleanup;
 	}
 
-	LOG("[Server Thread]: Starting the listening socket\n");
-	listenSocket = WSASocketW(result->ai_family, result->ai_socktype, result->ai_protocol, NULL, 0, WSA_FLAG_OVERLAPPED);
+	LOG("[Server]: Start the listening socket\n");
+	socketListen = WSASocketW(result->ai_family, result->ai_socktype, result->ai_protocol, NULL, 0, WSA_FLAG_OVERLAPPED);
 
-	if(listenSocket == INVALID_SOCKET) {
+	if(socketListen == INVALID_SOCKET) {
 		KHWin32DialogErrorW(WSAGetLastError(), L"WSASocketW");
 		FreeAddrInfoW(result);
 		goto cleanup;
 	}
 
-	status = bind(listenSocket, result->ai_addr, (int) result->ai_addrlen);
+	status = bind(socketListen, result->ai_addr, (int) result->ai_addrlen);
 	FreeAddrInfoW(result);
 
 	if(status == SOCKET_ERROR) {
 		KHWin32DialogErrorW(WSAGetLastError(), L"bind");
-		goto closeListenSocket;
+		goto closeListen;
 	}
 
-	if(listen(listenSocket, SOMAXCONN) == SOCKET_ERROR) {
+	if(listen(socketListen, SOMAXCONN) == SOCKET_ERROR) {
 		KHWin32DialogErrorW(WSAGetLastError(), L"listen");
-		goto closeListenSocket;
+		goto closeListen;
 	}
 
-	LOG("[Server Thread]: Listening for incoming connection...\n");
+	LOG("[Server]: Listening for incoming connection...\n");
+	SOCKADDR_IN address;
+	PCLIENT client;
 
 	while(TRUE) {
-		SOCKADDR_IN socketAddress;
-		int socketAddressLength = sizeof(SOCKADDR_IN);
-		SOCKET socket = accept(listenSocket, (struct sockaddr*) &socketAddress, &socketAddressLength);
+		status = sizeof(SOCKADDR_IN);
+		SOCKET socket = accept(socketListen, (struct sockaddr*) &address, &status);
 
 		if(socket == INVALID_SOCKET) {
-			int error = WSAGetLastError();
+			status = WSAGetLastError();
 
-			if(error == WSAEINTR) {
+			if(status == WSAEINTR) {
 				break;
 			}
 
-			KHWin32DialogErrorW(error, L"accept");
+			KHWin32DialogErrorW(status, L"accept");
 			continue;
 		}
 
-		PCLIENT client = LocalAlloc(LMEM_FIXED, sizeof(CLIENT));
+		client = LocalAlloc(LMEM_FIXED, sizeof(CLIENT));
 
 		if(!client) {
 			KHWin32DialogErrorW(GetLastError(), L"LocalAlloc");
@@ -88,25 +88,25 @@ DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
 		client->socket = socket;
 		client->stream = NULL;
 
-		if(!InetNtopW(AF_INET, &socketAddress.sin_addr, client->address, 16)) {
+		if(!InetNtopW(AF_INET, &address.sin_addr, client->address, 16)) {
 			KHWin32DialogErrorW(WSAGetLastError(), L"InetNtopW");
 			goto freeClient;
 		}
 
-		LOG("[Server Thread]: Client connected: %ws, starting the client thread\n" COMMA client->address);
-		HANDLE thread = CreateThread(NULL, 0, ClientThread, client, CREATE_SUSPENDED, NULL);
+		LOG("[Server]: Client connected: %ws\n" COMMA client->address);
+		result = CreateThread(NULL, 0, ClientThread, client, CREATE_SUSPENDED, NULL);
 
-		if(!thread) {
+		if(!result) {
 			KHWin32DialogErrorW(GetLastError(), L"CreateThread");
 			goto freeClient;
 		}
 
 		client->windowThread = NULL;
-		client->thread = thread;
+		client->thread = result;
 
-		if(ResumeThread(thread) == -1) {
+		if(ResumeThread(result) == -1) {
 			KHWin32DialogErrorW(GetLastError(), L"ResumeThread");
-			CloseHandle(thread);
+			CloseHandle(result);
 			goto freeClient;
 		}
 
@@ -119,25 +119,13 @@ DWORD WINAPI ServerThread(_In_ LPVOID parameter) {
 
 	ExitMainWindow();
 	returnValue = 0;
-closeListenSocket:
-	closesocket(listenSocket);
+closeListen:
+	closesocket(socketListen);
 cleanup:
 	WSACleanup();
 exit:
-	LOG("[Server Thread]: Exiting the server thread (Exit code: %d)\n" COMMA returnValue);
+	LOG("[Server]: Exit server with code: %d\n" COMMA returnValue);
 	return returnValue;
-}
-
-void ExitServerThread() {
-	if(closesocket(listenSocket) == SOCKET_ERROR) {
-		int error = WSAGetLastError();
-
-		if(error == WSANOTINITIALISED) {
-			return;
-		}
-
-		KHWin32DialogErrorW(error, L"closesocket");
-	}
 }
 
 ArrayList clients;
@@ -159,6 +147,8 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	SetWindowTextW(GetConsoleWindow(), L"Remote Log");
 #endif
 #endif
+	LOG("[Remote]: Starting\n");
+
 	if(!InitializeMainWindow(instance) || !WindowRegisterClass(instance)) {
 		goto exit;
 	}
@@ -175,9 +165,9 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto freeClients;
 	}
 
-	HANDLE serverThread = CreateThread(NULL, 0, ServerThread, NULL, 0, NULL);
+	HANDLE serverThreadHandle = CreateThread(NULL, 0, serverThread, NULL, 0, NULL);
 
-	if(!serverThread) {
+	if(!serverThreadHandle) {
 		KHWin32DialogErrorW(GetLastError(), L"CreateThread");
 		goto closeLock;
 	}
@@ -191,4 +181,16 @@ freeClients:
 exit:
 	LOG("[Remote]: Exit with code: %d\n" COMMA returnValue);
 	return returnValue;
+}
+
+void ExitServerThread() {
+	if(closesocket(socketListen) == SOCKET_ERROR) {
+		int error = WSAGetLastError();
+
+		if(error == WSANOTINITIALISED) {
+			return;
+		}
+
+		KHWin32DialogErrorW(error, L"closesocket");
+	}
 }
