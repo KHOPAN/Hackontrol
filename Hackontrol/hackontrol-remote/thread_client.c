@@ -102,7 +102,7 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 	LocalFree(client);
 	WaitForSingleObject(clientsLock, INFINITE);
 	result = KHArrayGet(&clients, clients.elementCount - 1, &client);
-	RefreshMainWindowListView();
+	MainWindowRefreshListView();
 
 	if(!ReleaseMutex(clientsLock)) {
 		KHWin32DialogErrorW(GetLastError(), L"ReleaseMutex");
@@ -150,7 +150,7 @@ exit:
 	CloseHandle(client->thread);
 	client->active = FALSE;
 	WaitForSingleObject(clientsLock, INFINITE);
-	RefreshMainWindowListView();
+	MainWindowRefreshListView();
 
 	if(!ReleaseMutex(clientsLock)) {
 		KHWin32DialogErrorW(GetLastError(), L"ReleaseMutex");

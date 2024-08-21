@@ -1,7 +1,7 @@
 #include "thread_client.h"
+#include <CommCtrl.h>
 #include <khopanwin32.h>
 #include <khopanarray.h>
-#include <CommCtrl.h>
 #include "window_main.h"
 #include "logger.h"
 
@@ -20,13 +20,17 @@ static HWND window;
 static HWND titledBorder;
 static HWND listView;
 
-static BOOL getActiveItem(size_t index, PCLIENT* client) {
-	size_t runningIndex = 0;
+static BOOL activeItem(size_t index, PCLIENT* client) {
+	if(WaitForSingleObject(clientsLock, INFINITE) == WAIT_FAILED) {
+		return FALSE;
+	}
+
+	size_t pointer = 0;
+	PCLIENT instance;
 
 	for(size_t i = 0; i < clients.elementCount; i++) {
-		PCLIENT instance;
-
 		if(!KHArrayGet(&clients, i, &instance)) {
+			ReleaseMutex(clientsLock);
 			return FALSE;
 		}
 
@@ -34,19 +38,22 @@ static BOOL getActiveItem(size_t index, PCLIENT* client) {
 			continue;
 		}
 
-		if(runningIndex == index) {
+		if(index == pointer) {
 			(*client) = instance;
+			ReleaseMutex(clientsLock);
 			return TRUE;
 		}
 
-		runningIndex++;
+		pointer++;
 	}
 
-	SetLastError(ERROR_NOT_FOUND);
+	ReleaseMutex(clientsLock);
 	return FALSE;
 }
 
 static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
+	PCLIENT client = NULL;
+
 	switch(message) {
 	case WM_CLOSE:
 		DestroyWindow(window);
@@ -54,14 +61,28 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
-	case WM_SIZE: {
-		RECT bounds;
+	case WM_NOTIFY: {
+		if(((LPNMHDR) lparam)->code != NM_DBLCLK) {
+			return 0;
+		}
+
+		if(activeItem(((LPNMITEMACTIVATE) lparam)->iItem, &client)) {
+			ClientOpen(client);
+		}
+
+		return DefWindowProcW(inputWindow, message, wparam, lparam);
+	}
+	}
+
+	RECT bounds;
+
+	switch(message) {
+	case WM_SIZE:
 		GetClientRect(window, &bounds);
 		SetWindowPos(titledBorder, HWND_TOP, 0, 0, bounds.right - bounds.left - 10, bounds.bottom - bounds.top - 4, SWP_NOMOVE);
 		GetClientRect(titledBorder, &bounds);
 		SetWindowPos(listView, HWND_TOP, bounds.left + 9, bounds.top + 17, bounds.right - bounds.left - 8, bounds.bottom - bounds.top - 22, 0);
 		return 0;
-	}
 	case WM_CONTEXTMENU: {
 		int x = LOWORD(lparam);
 		int y = HIWORD(lparam);
@@ -69,7 +90,6 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 		hitTest.pt.x = x;
 		hitTest.pt.y = y;
 		ScreenToClient(listView, &hitTest.pt);
-		RECT bounds;
 		GetClientRect(listView, &bounds);
 
 		if(hitTest.pt.x < bounds.left || hitTest.pt.x > bounds.right || hitTest.pt.y < bounds.top || hitTest.pt.y > bounds.bottom) {
@@ -82,9 +102,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 			return 0;
 		}
 
-		PCLIENT client = NULL;
-
-		if(SendMessageW(listView, LVM_HITTEST, 0, (LPARAM) &hitTest) != -1 && getActiveItem(hitTest.iItem, &client)) {
+		if(SendMessageW(listView, LVM_HITTEST, 0, (LPARAM) &hitTest) != -1 && activeItem(hitTest.iItem, &client)) {
 			AppendMenuW(popupMenu, MF_STRING, IDM_REMOTE_OPEN, L"Open");
 			AppendMenuW(popupMenu, MF_STRING, IDM_REMOTE_DISCONNECT, L"Disconnect");
 			AppendMenuW(popupMenu, MF_SEPARATOR, 0, NULL);
@@ -103,48 +121,30 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 			ClientOpen(client);
 			break;
 		case IDM_REMOTE_DISCONNECT:
-			LOG("[Main Window]: Disconnecting %ws\n" COMMA client ? client->address : L"(Missing address)");
+			LOG("[Window]: Disconnecting % ws\n" COMMA client ? client->address : L"(Missing address)");
 			ClientDisconnect(client);
 			break;
 		case IDM_REMOTE_REFRESH:
-			LOG("[Main Window]: Refreshing list view\n");
-			RefreshMainWindowListView();
+			LOG("[Window]: Refreshing list view\n");
+			MainWindowRefreshListView();
 			break;
 		case IDM_REMOTE_ALWAYS_ON_TOP:
 			SetWindowPos(window, (GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST) ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
 			break;
 		case IDM_REMOTE_EXIT:
-			LOG("[Main Window]: Exiting\n");
-			ExitMainWindow();
+			LOG("[Window]: Exiting\n");
+			MainWindowExit();
 			break;
 		}
 
 		return 0;
-	}
-	case WM_NOTIFY: {
-		if(((LPNMHDR) lparam)->code != NM_DBLCLK) {
-			return 0;
-		}
-
-		WaitForSingleObject(clientsLock, INFINITE);
-		PCLIENT client;
-		BOOL result = getActiveItem(((LPNMITEMACTIVATE) lparam)->iItem, &client);
-
-		if(!ReleaseMutex(clientsLock)) {
-			KHWin32DialogErrorW(GetLastError(), L"ReleaseMutex");
-			return 0;
-		}
-
-		if(result) {
-			ClientOpen(client);
-		}
 	}
 	}
 
 	return DefWindowProcW(inputWindow, message, wparam, lparam);
 }
 
-BOOL InitializeMainWindow(HINSTANCE instance) {
+BOOL MainWindowInitialize(const HINSTANCE instance) {
 	WNDCLASSEXW windowClass = {0};
 	windowClass.cbSize = sizeof(WNDCLASSEXW);
 	windowClass.lpfnWndProc = windowProcedure;
@@ -158,8 +158,8 @@ BOOL InitializeMainWindow(HINSTANCE instance) {
 		return FALSE;
 	}
 
-	LOG("[Hackontrol Remote]: Creating the main window\n");
-	window = CreateWindowExW(WS_EX_TOPMOST, CLASS_HACKONTROL_REMOTE, L"Hackontrol Remote", WS_OVERLAPPEDWINDOW, 0, 0, 0, 0, NULL, NULL, instance, NULL);
+	LOG("[Remote]: Initializing the main window\n");
+	window = CreateWindowExW(WS_EX_TOPMOST, CLASS_HACKONTROL_REMOTE, L"Remote", WS_OVERLAPPEDWINDOW, 0, 0, 0, 0, NULL, NULL, instance, NULL);
 
 	if(!window) {
 		KHWin32DialogErrorW(GetLastError(), L"CreateWindowExW");
@@ -239,7 +239,7 @@ int MainWindowMessageLoop() {
 		goto deleteFont;
 	}
 
-	LOG("[Hackontrol Remote]: Starting the message loop\n");
+	LOG("[Remote]: Start message loop\n");
 	MSG message;
 
 	while(GetMessageW(&message, NULL, 0, 0)) {
@@ -253,14 +253,17 @@ deleteFont:
 	return returnValue;
 }
 
-void RefreshMainWindowListView() {
+void MainWindowRefreshListView() {
+	if(WaitForSingleObject(clientsLock, INFINITE) == WAIT_FAILED) {
+		return;
+	}
+
 	SendMessageW(listView, LVM_DELETEALLITEMS, 0, 0);
 	LVITEMW item = {0};
 	item.mask = LVIF_TEXT;
+	PCLIENT client;
 
 	for(size_t i = 0; i < clients.elementCount; i++) {
-		PCLIENT client;
-
 		if(KHArrayGet(&clients, i, &client) && client->active) {
 			item.iSubItem = 0;
 			item.pszText = client ? client->name : L"(Missing name)";
@@ -270,8 +273,10 @@ void RefreshMainWindowListView() {
 			SendMessageW(listView, LVM_SETITEM, 0, (LPARAM) &item);
 		}
 	}
+
+	ReleaseMutex(clientsLock);
 }
 
-void ExitMainWindow() {
+void MainWindowExit() {
 	PostMessageW(window, WM_CLOSE, 0, 0);
 }

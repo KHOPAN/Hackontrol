@@ -113,7 +113,7 @@ DWORD WINAPI serverThread(_In_ LPVOID parameter) {
 		closesocket(socket);
 	}
 
-	ExitMainWindow();
+	MainWindowExit();
 	returnValue = 0;
 closeListen:
 	closesocket(socketListen);
@@ -142,7 +142,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 #endif
 	LOG("[Remote]: Starting\n");
 
-	if(!InitializeMainWindow(instance) || !WindowRegisterClass(instance)) {
+	if(!MainWindowInitialize(instance) || !WindowRegisterClass(instance)) {
 		goto exit;
 	}
 
