@@ -210,5 +210,6 @@ freeClients:
 	KHArrayFree(&clients);
 exit:
 	LOG("[Remote]: Exit with code: %d\n" COMMA returnValue);
+	Sleep(INFINITE);
 	return returnValue;
 }
