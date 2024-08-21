@@ -169,7 +169,6 @@
     <ClInclude Include="frame_decoder.h" />
     <ClInclude Include="logger.h" />
     <ClInclude Include="thread_client.h" />
-    <ClInclude Include="thread_server.h" />
     <ClInclude Include="thread_window.h" />
     <ClInclude Include="window_main.h" />
   </ItemGroup>

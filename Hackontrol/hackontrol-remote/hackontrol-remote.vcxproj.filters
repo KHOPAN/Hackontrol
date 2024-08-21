@@ -53,9 +53,6 @@
     <ClInclude Include="window_main.h">
       <Filter>Header Files\window</Filter>
     </ClInclude>
-    <ClInclude Include="thread_server.h">
-      <Filter>Header Files\thread</Filter>
-    </ClInclude>
     <ClInclude Include="logger.h">
       <Filter>Header Files</Filter>
     </ClInclude>

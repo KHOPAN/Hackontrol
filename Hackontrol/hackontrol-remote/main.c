@@ -2,7 +2,6 @@
 #include <khopanwin32.h>
 #include <khopanstring.h>
 #include <khopanarray.h>
-#include "thread_server.h"
 #include "thread_client.h"
 #include "thread_window.h"
 #include "window_main.h"

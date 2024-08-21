@@ -1,14 +1,15 @@
 #include <WS2tcpip.h>
 #include <khopanwin32.h>
-#include "thread_server.h"
-#include "thread_client.h"
-#include "window_main.h"
-#include "logger.h"
-
 #include <khopanarray.h>
+#include "logger.h"
+#include "thread_client.h"
 #include "thread_window.h"
+#include "window_main.h"
 
 #define REMOTE_PORT L"42485"
+
+ArrayList clients;
+HANDLE clientsLock;
 
 static SOCKET socketListen;
 
@@ -60,11 +61,12 @@ DWORD WINAPI serverThread(_In_ LPVOID parameter) {
 
 	LOG("[Server]: Listening for incoming connection...\n");
 	SOCKADDR_IN address;
+	SOCKET socket;
 	PCLIENT client;
 
 	while(TRUE) {
 		status = sizeof(SOCKADDR_IN);
-		SOCKET socket = accept(socketListen, (struct sockaddr*) &address, &status);
+		socket = accept(socketListen, (struct sockaddr*) &address, &status);
 
 		if(socket == INVALID_SOCKET) {
 			status = WSAGetLastError();
@@ -128,9 +130,6 @@ exit:
 	return returnValue;
 }
 
-ArrayList clients;
-HANDLE clientsLock;
-
 int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance, _In_ LPSTR argument, _In_ int commandLine) {
 	int returnValue = 1;
 #ifdef LOGGER_ENABLE
@@ -173,7 +172,14 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	}
 
 	returnValue = MainWindowMessageLoop();
-	ExitServerThread();
+
+	if(closesocket(socketListen) == SOCKET_ERROR) {
+		int error = WSAGetLastError();
+
+		if(error != WSANOTINITIALISED) {
+			KHWin32DialogErrorW(error, L"closesocket");
+		}
+	}
 closeLock:
 	CloseHandle(clientsLock);
 freeClients:
@@ -181,16 +187,4 @@ freeClients:
 exit:
 	LOG("[Remote]: Exit with code: %d\n" COMMA returnValue);
 	return returnValue;
-}
-
-void ExitServerThread() {
-	if(closesocket(socketListen) == SOCKET_ERROR) {
-		int error = WSAGetLastError();
-
-		if(error == WSANOTINITIALISED) {
-			return;
-		}
-
-		KHWin32DialogErrorW(error, L"closesocket");
-	}
 }
