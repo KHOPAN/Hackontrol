@@ -61,8 +61,6 @@ DWORD WINAPI serverThread(_In_ LPVOID parameter) {
 
 	LOG("[Server]: Listening for incoming connection...\n");
 	SOCKADDR_IN address;
-	SOCKET socket;
-	PCLIENT client;
 
 	while(TRUE) {
 		if(!socketListen) {
@@ -70,14 +68,14 @@ DWORD WINAPI serverThread(_In_ LPVOID parameter) {
 		}
 
 		status = sizeof(SOCKADDR_IN);
-		socket = accept(socketListen, (struct sockaddr*) &address, &status);
+		SOCKET socket = accept(socketListen, (struct sockaddr*) &address, &status);
 
 		if(socket == INVALID_SOCKET && WSAGetLastError() != WSAEINTR) {
 			KHWin32DialogErrorW(WSAGetLastError(), L"accept");
 			continue;
 		}
 
-		client = LocalAlloc(LMEM_FIXED, sizeof(CLIENT));
+		PCLIENT client = LocalAlloc(LMEM_FIXED, sizeof(CLIENT));
 
 		if(!client) {
 			KHWin32DialogErrorW(GetLastError(), L"LocalAlloc");
