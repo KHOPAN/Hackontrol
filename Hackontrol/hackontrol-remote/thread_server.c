@@ -68,14 +68,8 @@ DWORD WINAPI serverThread(_In_ LPVOID parameter) {
 		status = sizeof(SOCKADDR_IN);
 		socket = accept(socketListen, (struct sockaddr*) &address, &status);
 
-		if(socket == INVALID_SOCKET) {
-			status = WSAGetLastError();
-
-			if(status == WSAEINTR) {
-				break;
-			}
-
-			KHWin32DialogErrorW(status, L"accept");
+		if(socket == INVALID_SOCKET && WSAGetLastError() != WSAEINTR) {
+			KHWin32DialogErrorW(WSAGetLastError(), L"accept");
 			continue;
 		}
 
@@ -173,12 +167,9 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 
 	returnValue = MainWindowMessageLoop();
 
-	if(closesocket(socketListen) == SOCKET_ERROR) {
-		int error = WSAGetLastError();
-
-		if(error != WSANOTINITIALISED) {
-			KHWin32DialogErrorW(error, L"closesocket");
-		}
+	if(closesocket(socketListen) == SOCKET_ERROR && WSAGetLastError() != WSANOTINITIALISED) {
+		KHWin32DialogErrorW(WSAGetLastError(), L"closesocket");
+		goto closeLock;
 	}
 closeLock:
 	CloseHandle(clientsLock);
