@@ -13,25 +13,6 @@
 extern ArrayList clients;
 extern HANDLE clientsLock;
 
-static LPWSTR decodeName(const BYTE* data, long size) {
-	if(size < 1) {
-		return NULL;
-	}
-
-	LPSTR buffer = LocalAlloc(LMEM_FIXED, size + 1);
-
-	if(!buffer) {
-		return NULL;
-	}
-
-	for(int i = 0; i < size; i++) {
-		buffer[i] = data[i];
-	}
-
-	buffer[size] = 0;
-	return KHFormatMessageW(L"%S", buffer);
-}
-
 DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 	if(!client) {
 		LOG("[Client]: No client structure provided\n");
@@ -90,12 +71,23 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 		goto closeSocket;
 	}
 
-	client->name = decodeName(packet.data, packet.size);
-
 	if(packet.size > 0) {
-		LocalFree(packet.data);
-	}
+		BYTE* nameBuffer = LocalAlloc(LMEM_FIXED, packet.size + 1);
 
+		if(!nameBuffer) {
+			goto exitName;
+		}
+
+		for(long i = 0; i < packet.size; i++) {
+			nameBuffer[i] = ((BYTE*) packet.data)[i];
+		}
+
+		LocalFree(packet.data);
+		nameBuffer[packet.size] = 0;
+		client->name = KHFormatMessageW(L"%S", nameBuffer);
+		LocalFree(nameBuffer);
+	}
+exitName:
 	LOG("[Client %ws]: Username: '%ws'\n" COMMA client->address COMMA client->name);
 
 	if(WaitForSingleObject(clientsLock, INFINITE) == WAIT_FAILED) {
@@ -163,11 +155,16 @@ closeSocket:
 }
 
 void ClientOpen(PCLIENT client) {
-	LOG("[Hackontrol Remote]: Opening %ws\n" COMMA client->address);
+	LOG("[Remote]: Opening %ws\n" COMMA client->address);
 
 	if(client->windowThread) {
 		ExitClientWindow(client);
-		WaitForSingleObject(client->windowThread, INFINITE);
+
+		if(WaitForSingleObject(client->windowThread, INFINITE) == WAIT_FAILED) {
+			client->windowThread = NULL;
+			return;
+		}
+
 		client->windowThread = NULL;
 	}
 
