@@ -154,7 +154,7 @@ closeSocket:
 	return returnValue;
 }
 
-void ClientOpen(PCLIENT client) {
+void ClientOpen(const PCLIENT client) {
 	LOG("[Remote]: Opening %ws\n" COMMA client->address);
 
 	if(client->windowThread) {
@@ -175,7 +175,7 @@ void ClientOpen(PCLIENT client) {
 	}
 }
 
-void ClientDisconnect(PCLIENT client) {
+void ClientDisconnect(const PCLIENT client) {
 	PACKET packet = {0};
 	packet.packetType = PACKET_TYPE_INFORMATION;
 
