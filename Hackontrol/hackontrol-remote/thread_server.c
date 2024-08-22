@@ -169,20 +169,10 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 
 	returnValue = MainWindowMessageLoop();
 
-	if(shutdown(socketListen, SD_BOTH) == SOCKET_ERROR) {
-		KHWin32DialogErrorW(WSAGetLastError(), L"shutdown");
-		goto closeLock;
-	}
-
 	if(closesocket(socketListen) == SOCKET_ERROR) {
 		KHWin32DialogErrorW(WSAGetLastError(), L"closesocket");
 		goto closeLock;
 	}
-
-	/*if(closesocket(socketListen) == SOCKET_ERROR && WSAGetLastError() != WSANOTINITIALISED) {
-		KHWin32DialogErrorW(WSAGetLastError(), L"closesocket");
-		goto closeLock;
-	}*/
 
 	socketListen = 0;
 	LOG("[Remote]: Wait for all client threads to exit\n");
