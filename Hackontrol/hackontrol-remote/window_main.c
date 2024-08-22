@@ -192,7 +192,7 @@ BOOL MainWindowInitialize(const HINSTANCE instance) {
 	SendMessageW(listView, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT);
 	LVCOLUMNW column = {0};
 	column.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
-	column.cx = (int) (((double) GetSystemMetrics(SM_CXSCREEN)) * 0.109809663);
+	column.cx = (int) (((double) GetSystemMetrics(SM_CXSCREEN)) * 0.13250366);
 	column.fmt = LVCFMT_LEFT;
 	column.pszText = L"IP Address";
 
