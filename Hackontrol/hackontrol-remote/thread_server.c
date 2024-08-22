@@ -51,22 +51,22 @@ DWORD WINAPI serverThread(_In_ LPVOID parameter) {
 
 	if(status == SOCKET_ERROR) {
 		KHWin32DialogErrorW(WSAGetLastError(), L"bind");
-		goto closeListen;
+		closesocket(socketListen);
+		socketListen = 0;
+		goto cleanup;
 	}
 
 	if(listen(socketListen, SOMAXCONN) == SOCKET_ERROR) {
 		KHWin32DialogErrorW(WSAGetLastError(), L"listen");
-		goto closeListen;
+		closesocket(socketListen);
+		socketListen = 0;
+		goto cleanup;
 	}
 
 	LOG("[Server]: Listening for incoming connection...\n");
 	SOCKADDR_IN address;
 
 	while(TRUE) {
-		if(!socketListen) {
-			break;
-		}
-
 		status = sizeof(SOCKADDR_IN);
 		SOCKET socket = accept(socketListen, (struct sockaddr*) &address, &status);
 
@@ -117,8 +117,6 @@ DWORD WINAPI serverThread(_In_ LPVOID parameter) {
 
 	MainWindowExit();
 	returnValue = 0;
-closeListen:
-	closesocket(socketListen);
 cleanup:
 	WSACleanup();
 exit:
@@ -169,12 +167,11 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 
 	returnValue = MainWindowMessageLoop();
 
-	if(closesocket(socketListen) == SOCKET_ERROR) {
+	if(socketListen && closesocket(socketListen) == SOCKET_ERROR) {
 		KHWin32DialogErrorW(WSAGetLastError(), L"closesocket");
-		goto closeLock;
+		goto closeServer;
 	}
 
-	socketListen = 0;
 	LOG("[Remote]: Wait for all client threads to exit\n");
 	PCLIENT client;
 
@@ -200,7 +197,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	if(WaitForSingleObject(serverThreadHandle, INFINITE) == WAIT_FAILED) {
 		KHWin32DialogErrorW(GetLastError(), L"WaitForSingleObject");
 	}
-
+closeServer:
 	CloseHandle(serverThreadHandle);
 closeLock:
 	CloseHandle(clientsLock);
