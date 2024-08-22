@@ -70,8 +70,14 @@ DWORD WINAPI serverThread(_In_ LPVOID parameter) {
 		status = sizeof(SOCKADDR_IN);
 		SOCKET socket = accept(socketListen, (struct sockaddr*) &address, &status);
 
-		if(socket == INVALID_SOCKET && WSAGetLastError() != WSAEINTR) {
-			KHWin32DialogErrorW(WSAGetLastError(), L"accept");
+		if(socket == INVALID_SOCKET) {
+			status = WSAGetLastError();
+
+			if(status == WSAEINTR) {
+				break;
+			}
+
+			KHWin32DialogErrorW(status, L"accept");
 			continue;
 		}
 
