@@ -2,8 +2,8 @@
 #include <CommCtrl.h>
 #include <khopanwin32.h>
 #include <khopanarray.h>
-#include "window_main.h"
 #include "logger.h"
+#include "window_main.h"
 
 #define CLASS_HACKONTROL_REMOTE L"HackontrolRemote"
 
