@@ -8,8 +8,8 @@
 #include "frame_decoder.h"
 #include "logger.h"
 
-ArrayList clients;
-HANDLE clientsLock;
+extern ArrayList clients;
+extern HANDLE clientsLock;
 
 static LPWSTR decodeName(const BYTE* data, long size) {
 	if(size < 1) {
