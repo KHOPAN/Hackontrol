@@ -32,11 +32,11 @@ static LPWSTR decodeName(const BYTE* data, long size) {
 
 DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 	if(!client) {
-		LOG("[Client Thread]: Exiting with an error: No client structure provided\n");
+		LOG("[Client]: No client structure provided\n");
 		return 1;
 	}
 
-	LOG("[Client Thread %ws]: Hello from client thread\n" COMMA client->address);
+	LOG("[Client %ws]: Starting\n" COMMA client->address);
 	char buffer[17];
 	int returnValue = 1;
 
@@ -48,8 +48,8 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 	buffer[16] = 0;
 
 	if(strcmp(buffer, "HRSP 1.0 CONNECT")) {
-		MessageBoxW(NULL, L"The client has requested an invalid request", L"Hackontrol Remote", MB_OK | MB_DEFBUTTON1 | MB_ICONERROR | MB_SYSTEMMODAL);
-		LOG("[Client Thread %ws]: Client has requested an invalid request: %s\n" COMMA client->address COMMA buffer);
+		MessageBoxW(NULL, L"The client has requested an invalid request", L"Remote", MB_OK | MB_DEFBUTTON1 | MB_ICONERROR | MB_SYSTEMMODAL);
+		LOG("[Client %ws]: Invalid request: %s\n" COMMA client->address COMMA buffer);
 		goto exit;
 	}
 
@@ -70,7 +70,7 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 		goto exit;
 	}
 
-	LOG("[Client Thread %ws]: HRSP handshake completed! Receiving the first packet...\n" COMMA client->address);
+	LOG("[Client %ws]: Completed HRSP Handshake\n" COMMA client->address);
 	PACKET packet;
 
 	if(!ReceivePacket(client->socket, &packet)) {
@@ -79,40 +79,38 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 	}
 
 	if(packet.packetType != PACKET_TYPE_INFORMATION) {
-		LOG("[Client Thread %ws]: Closing the connection, invalid first packet type: %d\n" COMMA client->address COMMA packet.packetType);
+		LOG("[Client %ws]: Invalid first packet type: %d\n" COMMA client->address COMMA packet.packetType);
 		goto exit;
 	}
 
 	client->name = decodeName(packet.data, packet.size);
 	LocalFree(packet.data);
-	LOG("[Client Thread %ws]: Username: '%ws'\n" COMMA client->address COMMA client->name);
-	WaitForSingleObject(clientsLock, INFINITE);
-	BOOL result = KHArrayAdd(&clients, client);
+	LOG("[Client %ws]: Username: '%ws'\n" COMMA client->address COMMA client->name);
 
-	if(!ReleaseMutex(clientsLock)) {
+	if(WaitForSingleObject(clientsLock, INFINITE) == WAIT_FAILED) {
 		KHWin32DialogErrorW(GetLastError(), L"ReleaseMutex");
 		goto exit;
 	}
 
-	if(!result) {
+	if(!KHArrayAdd(&clients, client)) {
 		KHWin32DialogErrorW(GetLastError(), L"KHArrayAdd");
+		ReleaseMutex(clientsLock);
 		goto exit;
 	}
 
 	LocalFree(client);
-	WaitForSingleObject(clientsLock, INFINITE);
-	result = KHArrayGet(&clients, clients.elementCount - 1, &client);
-	MainWindowRefreshListView();
+	
+	if(KHArrayGet(&clients, clients.elementCount - 1, &client)) {
+		KHWin32DialogErrorW(GetLastError(), L"KHArrayGet");
+		goto exit;
+	}
 
 	if(!ReleaseMutex(clientsLock)) {
 		KHWin32DialogErrorW(GetLastError(), L"ReleaseMutex");
 		goto exit;
 	}
 
-	if(!result) {
-		KHWin32DialogErrorW(GetLastError(), L"KHArrayGet");
-		goto exit;
-	}
+	MainWindowRefreshListView();
 
 	while(ReceivePacket(client->socket, &packet)) {
 		if(packet.size < 1) {
@@ -139,24 +137,16 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 	}
 
 	closesocket(client->socket);
-
+	returnValue = 0;
+exit:
 	if(client->name) {
 		LocalFree(client->name);
 	}
 
-	returnValue = 0;
-exit:
 	LOG("[Client Thread %ws]: Exiting the client thread (Exit code: %d)\n" COMMA client->address COMMA returnValue);
 	CloseHandle(client->thread);
 	client->active = FALSE;
-	WaitForSingleObject(clientsLock, INFINITE);
 	MainWindowRefreshListView();
-
-	if(!ReleaseMutex(clientsLock)) {
-		KHWin32DialogErrorW(GetLastError(), L"ReleaseMutex");
-		return 1;
-	}
-
 	return returnValue;
 }
 
