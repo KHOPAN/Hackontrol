@@ -7,12 +7,11 @@
 #define QOI_OP_RUN   0b11000000
 #define OP_MASK      0b11000000
 
-void DecodeHRSPFrame(const BYTE* data, size_t size, PSTREAMDATA stream, HWND window) {
-	if(!data || size < 9 || !stream || !window) {
+void DecodeHRSPFrame(const BYTE* data, const size_t size, const PSTREAMDATA stream, const HWND window) {
+	if(!data || size < 9 || !stream || !window || WaitForSingleObject(stream->lock, INFINITE) == WAIT_FAILED) {
 		return;
 	}
 
-	WaitForSingleObject(stream->lock, INFINITE);
 	unsigned char flags = data[0];
 	BOOL boundaryDifference = flags & 1;
 	BOOL colorDifference = (flags >> 1) & 1;
