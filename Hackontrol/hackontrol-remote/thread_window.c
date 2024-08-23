@@ -227,7 +227,7 @@ releaseMutex:
 	return returnValue;
 }
 
-BOOL WindowRegisterClass(HINSTANCE instance) {
+BOOL WindowRegisterClass(const HINSTANCE instance) {
 	WNDCLASSEXW windowClass = {0};
 	windowClass.cbSize = sizeof(WNDCLASSEXW);
 	windowClass.style = CS_HREDRAW | CS_VREDRAW;
