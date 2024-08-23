@@ -135,7 +135,7 @@ exitName:
 	}
 
 	if(client->windowThread) {
-		ExitClientWindow(client);
+		ClientWindowExit(client);
 		LOG("[Client %ws]: Wait for window thread to exit\n" COMMA client->address);
 		WaitForSingleObject(client->windowThread, INFINITE);
 	}
@@ -158,7 +158,7 @@ void ClientOpen(const PCLIENT client) {
 	LOG("[Remote]: Opening %ws\n" COMMA client->address);
 
 	if(client->windowThread) {
-		ExitClientWindow(client);
+		ClientWindowExit(client);
 
 		if(WaitForSingleObject(client->windowThread, INFINITE) == WAIT_FAILED) {
 			client->windowThread = NULL;
@@ -168,7 +168,7 @@ void ClientOpen(const PCLIENT client) {
 		client->windowThread = NULL;
 	}
 
-	client->windowThread = CreateThread(NULL, 0, WindowThread, client, 0, NULL);
+	client->windowThread = CreateThread(NULL, 0, ClientWindowThread, client, 0, NULL);
 
 	if(!client->windowThread) {
 		KHWin32DialogErrorW(GetLastError(), L"CreateThread");

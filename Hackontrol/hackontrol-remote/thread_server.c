@@ -148,7 +148,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 #endif
 	LOG("[Remote]: Starting\n");
 
-	if(!MainWindowInitialize(instance) || !WindowRegisterClass(instance)) {
+	if(!MainWindowInitialize(instance) || !ClientWindowInitialize(instance)) {
 		goto exit;
 	}
 

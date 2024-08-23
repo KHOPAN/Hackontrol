@@ -4,6 +4,8 @@
 #include <hackontrolpacket.h>
 #include "logger.h"
 
+#define CLASS_CLIENT_WINDOW L"HackontrolRemoteClientWindow"
+
 #define IDM_PICTURE_IN_PICTURE              0xE001
 #define IDM_WINDOW_EXIT                     0xE002
 #define IDM_WINDOW_STREAMING_ENABLE         0xE003
@@ -227,7 +229,7 @@ releaseMutex:
 	return returnValue;
 }
 
-BOOL WindowRegisterClass(const HINSTANCE instance) {
+BOOL ClientWindowInitialize(const HINSTANCE instance) {
 	WNDCLASSEXW windowClass = {0};
 	windowClass.cbSize = sizeof(WNDCLASSEXW);
 	windowClass.style = CS_HREDRAW | CS_VREDRAW;
@@ -243,13 +245,13 @@ BOOL WindowRegisterClass(const HINSTANCE instance) {
 	return TRUE;
 }
 
-DWORD WINAPI WindowThread(_In_ PCLIENT client) {
+DWORD WINAPI ClientWindowThread(_In_ PCLIENT client) {
 	if(!client) {
-		LOG("[Window Thread]: Exiting with an error: No client structure provided\n");
+		LOG("[Window]: No client structure provided\n");
 		return 1;
 	}
 
-	LOG("[Window Thread %ws]: Hello from window thread\n" COMMA client->address);
+	LOG("[Window %ws]: Starting\n" COMMA client->address);
 
 	if(client->stream) {
 		LocalFree(client->stream);
@@ -313,12 +315,12 @@ freeStream:
 		client->stream = NULL;
 	}
 exit:
-	LOG("[Window Thread %ws]: Exiting the window thread (Exit code: %d)\n" COMMA client->address COMMA returnValue);
+	LOG("[Window %ws]: Exit client window with code: %d\n" COMMA client->address COMMA returnValue);
 	CloseHandle(client->windowThread);
 	return returnValue;
 }
 
-void ExitClientWindow(const PCLIENT client) {
+void ClientWindowExit(const PCLIENT client) {
 	if(client->windowThread) {
 		PostMessageW(client->clientWindow, WM_CLOSE, 0, 0);
 	}
