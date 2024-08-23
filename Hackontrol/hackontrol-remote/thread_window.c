@@ -16,7 +16,7 @@
 
 static void sendStreamCode(const PCLIENT client) {
 	unsigned char flags = ((client->stream->sendMethod & 0b11) << 1) | (client->stream->streaming ? 0b1001 : 0);
-	LOG("[Window Thread %ws]: Flags: %c%c%c%c%c%c%c%c\n" COMMA client->address COMMA flags & 0x80 ? '1' : '0' COMMA flags & 0x40 ? '1' : '0' COMMA flags & 0x20 ? '1' : '0' COMMA flags & 0x10 ? '1' : '0' COMMA flags & 0x08 ? '1' : '0' COMMA flags & 0x04 ? '1' : '0' COMMA flags & 0x02 ? '1' : '0' COMMA flags & 0x01 ? '1' : '0');
+	LOG("[Window %ws]: Flags: %c%c%c%c%c%c%c%c\n" COMMA client->address COMMA flags & 0x80 ? '1' : '0' COMMA flags & 0x40 ? '1' : '0' COMMA flags & 0x20 ? '1' : '0' COMMA flags & 0x10 ? '1' : '0' COMMA flags & 0x08 ? '1' : '0' COMMA flags & 0x04 ? '1' : '0' COMMA flags & 0x02 ? '1' : '0' COMMA flags & 0x01 ? '1' : '0');
 	PACKET packet;
 	packet.size = 1;
 	packet.packetType = PACKET_TYPE_STREAM_FRAME;
@@ -151,7 +151,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			PostMessageW(window, WM_SIZE, 0, MAKELONG(bounds.right, bounds.bottom));
 			break;
 		case IDM_WINDOW_EXIT:
-			LOG("[Window Thread %ws]: Exiting\n" COMMA client->address);
+			LOG("[Window %ws]: Exiting\n" COMMA client->address);
 			ClientDisconnect(client);
 			break;
 		case IDM_WINDOW_STREAMING_ENABLE:
