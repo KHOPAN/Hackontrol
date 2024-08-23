@@ -148,7 +148,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="frame_decoder.c" />
-    <ClCompile Include="main.c" />
     <ClCompile Include="thread_client.c" />
     <ClCompile Include="thread_server.c" />
     <ClCompile Include="thread_window.c" />
