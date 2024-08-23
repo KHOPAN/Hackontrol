@@ -1,5 +1,4 @@
 #include "frame_decoder.h"
-#include "logger.h"
 
 #define QOI_OP_RGB   0b11111110
 #define QOI_OP_INDEX 0b00000000
