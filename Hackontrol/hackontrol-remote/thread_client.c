@@ -3,10 +3,10 @@
 #include <khopanstring.h>
 #include <khopanarray.h>
 #include <hackontrolpacket.h>
-#include "thread_window.h"
-#include "window_main.h"
 #include "frame_decoder.h"
 #include "logger.h"
+#include "thread_window.h"
+#include "window_main.h"
 
 #pragma warning(disable: 6001)
 
