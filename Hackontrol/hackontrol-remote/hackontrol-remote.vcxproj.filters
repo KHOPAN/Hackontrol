@@ -13,33 +13,21 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\window">
-      <UniqueIdentifier>{6d764e4e-ccd8-42ff-a654-baed12937d2b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\window">
-      <UniqueIdentifier>{db15079f-1f73-4c26-85be-b9b816e25cf3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\thread">
-      <UniqueIdentifier>{ddff18bc-4e7b-4ea0-aef7-7c6d563d38a5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\thread">
-      <UniqueIdentifier>{357cdc62-9e0d-438d-912a-df6a323d8a06}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="frame_decoder.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="window_main.c">
-      <Filter>Source Files\window</Filter>
-    </ClCompile>
-    <ClCompile Include="thread_server.c">
-      <Filter>Source Files\thread</Filter>
-    </ClCompile>
-    <ClCompile Include="thread_client.c">
-      <Filter>Source Files\thread</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="thread_window.c">
-      <Filter>Source Files\thread</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="frame_decoder.c">
+    <ClCompile Include="thread_server.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="thread_client.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -47,19 +35,19 @@
     <Manifest Include="hackontrol-remote.exe.manifest" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="window_main.h">
-      <Filter>Header Files\window</Filter>
-    </ClInclude>
     <ClInclude Include="logger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="thread_client.h">
-      <Filter>Header Files\thread</Filter>
+    <ClInclude Include="frame_decoder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="window_main.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="thread_window.h">
-      <Filter>Header Files\thread</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="frame_decoder.h">
+    <ClInclude Include="thread_client.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
