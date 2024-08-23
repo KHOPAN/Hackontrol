@@ -127,7 +127,7 @@ exitName:
 			break;
 		}
 		default:
-			LOG("[Client Thread %ws]: Unknown packet type: %d\n" COMMA client->address COMMA packet.packetType);
+			LOG("[Client %ws]: Unknown packet type: %d\n" COMMA client->address COMMA packet.packetType);
 			break;
 		}
 
