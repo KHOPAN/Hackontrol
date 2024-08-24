@@ -32,7 +32,8 @@ typedef struct {
 } STREAMDATA, *PSTREAMDATA;
 
 typedef struct {
-
+	HANDLE thread;
+	HWND window;
 } WINDOWDATA, *PWINDOWDATA;
 
 typedef struct {
