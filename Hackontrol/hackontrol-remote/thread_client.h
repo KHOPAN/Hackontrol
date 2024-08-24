@@ -32,13 +32,18 @@ typedef struct {
 } STREAMDATA, *PSTREAMDATA;
 
 typedef struct {
+
+} WINDOWDATA, *PWINDOWDATA;
+
+typedef struct {
 	BOOL active;
-	SOCKET socket;
-	WCHAR address[16];
-	LPWSTR name;
 	HANDLE thread;
-	HANDLE windowThread;
-	HWND clientWindow;
+	SOCKET socket;
+	LPWSTR name;
+	WCHAR address[16];
+	//HANDLE windowThread;
+	//HWND clientWindow;
+	PWINDOWDATA window;
 	PSTREAMDATA stream;
 } CLIENT, *PCLIENT;
 
