@@ -1,10 +1,10 @@
 #include "hrsp_client.h"
 
-#define ERROR(x,y) do{if(error){error->code=y;error->function=x;}}while(0)
+#define REMOTE_ERROR(x,y) do{if(error){error->code=y;error->function=x;}}while(0)
 
 BOOL HRSPConnectToServer(const LPCSTR serverAddress, const LPCSTR serverPort, const PHRSPCLIENTSTRUCT client, const PHRSPCLIENTERROR error) {
 	if(!serverAddress || !serverPort || !client) {
-		ERROR(L"HRSPConnectToServer", ERROR_INVALID_PARAMETER);
+		REMOTE_ERROR(L"HRSPConnectToServer", ERROR_INVALID_PARAMETER);
 		return FALSE;
 	}
 
@@ -12,7 +12,7 @@ BOOL HRSPConnectToServer(const LPCSTR serverAddress, const LPCSTR serverPort, co
 	int status = WSAStartup(MAKEWORD(2, 2), &data);
 
 	if(status) {
-		ERROR(L"WSAStartup", status);
+		REMOTE_ERROR(L"WSAStartup", status);
 		return FALSE;
 	}
 
