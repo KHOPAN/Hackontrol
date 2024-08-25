@@ -25,6 +25,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hackontrol-remote", "hackon
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hrsp-client", "hrsp-client\hrsp-client.vcxproj", "{4370238D-ED8E-4C75-A5B8-8758361706C8}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "remote-client", "remote-client\remote-client.vcxproj", "{CB415023-47AA-4132-99F4-8787F22386F4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -121,6 +123,14 @@ Global
 		{4370238D-ED8E-4C75-A5B8-8758361706C8}.Release|x64.Build.0 = Release|x64
 		{4370238D-ED8E-4C75-A5B8-8758361706C8}.Release|x86.ActiveCfg = Release|Win32
 		{4370238D-ED8E-4C75-A5B8-8758361706C8}.Release|x86.Build.0 = Release|Win32
+		{CB415023-47AA-4132-99F4-8787F22386F4}.Debug|x64.ActiveCfg = Debug|x64
+		{CB415023-47AA-4132-99F4-8787F22386F4}.Debug|x64.Build.0 = Debug|x64
+		{CB415023-47AA-4132-99F4-8787F22386F4}.Debug|x86.ActiveCfg = Debug|Win32
+		{CB415023-47AA-4132-99F4-8787F22386F4}.Debug|x86.Build.0 = Debug|Win32
+		{CB415023-47AA-4132-99F4-8787F22386F4}.Release|x64.ActiveCfg = Release|x64
+		{CB415023-47AA-4132-99F4-8787F22386F4}.Release|x64.Build.0 = Release|x64
+		{CB415023-47AA-4132-99F4-8787F22386F4}.Release|x86.ActiveCfg = Release|Win32
+		{CB415023-47AA-4132-99F4-8787F22386F4}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
