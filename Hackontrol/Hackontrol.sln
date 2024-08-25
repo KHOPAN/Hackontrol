@@ -23,6 +23,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libhrsp32", "libhrsp32\libh
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hackontrol-remote", "hackontrol-remote\hackontrol-remote.vcxproj", "{65BD71D9-0AB9-438A-BA5C-6EA14E00E51C}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hrsp-client", "hrsp-client\hrsp-client.vcxproj", "{4370238D-ED8E-4C75-A5B8-8758361706C8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -111,6 +113,14 @@ Global
 		{65BD71D9-0AB9-438A-BA5C-6EA14E00E51C}.Release|x64.Build.0 = Release|x64
 		{65BD71D9-0AB9-438A-BA5C-6EA14E00E51C}.Release|x86.ActiveCfg = Release|Win32
 		{65BD71D9-0AB9-438A-BA5C-6EA14E00E51C}.Release|x86.Build.0 = Release|Win32
+		{4370238D-ED8E-4C75-A5B8-8758361706C8}.Debug|x64.ActiveCfg = Debug|x64
+		{4370238D-ED8E-4C75-A5B8-8758361706C8}.Debug|x64.Build.0 = Debug|x64
+		{4370238D-ED8E-4C75-A5B8-8758361706C8}.Debug|x86.ActiveCfg = Debug|Win32
+		{4370238D-ED8E-4C75-A5B8-8758361706C8}.Debug|x86.Build.0 = Debug|Win32
+		{4370238D-ED8E-4C75-A5B8-8758361706C8}.Release|x64.ActiveCfg = Release|x64
+		{4370238D-ED8E-4C75-A5B8-8758361706C8}.Release|x64.Build.0 = Release|x64
+		{4370238D-ED8E-4C75-A5B8-8758361706C8}.Release|x86.ActiveCfg = Release|Win32
+		{4370238D-ED8E-4C75-A5B8-8758361706C8}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
