@@ -16,5 +16,10 @@ BOOL HRSPConnectToServer(const LPCSTR serverAddress, const LPCSTR serverPort, co
 		return FALSE;
 	}
 
+	if(WSACleanup() == SOCKET_ERROR) {
+		REMOTE_ERROR(L"WSACleanup", WSAGetLastError());
+		return FALSE;
+	}
+
 	return TRUE;
 }
