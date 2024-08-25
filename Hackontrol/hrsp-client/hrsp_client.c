@@ -23,16 +23,47 @@ BOOL HRSPConnectToServer(const LPCSTR serverAddress, const LPCSTR serverPort, co
 	hints.ai_protocol = IPPROTO_TCP;
 	struct addrinfo* result;
 	status = getaddrinfo(serverAddress, serverPort, &hints, &result);
+	BOOL returnValue = FALSE;
 
 	if(status) {
 		REMOTE_ERROR(L"getaddrinfo", status);
 		goto cleanup;
 	}
+
+	SOCKET socketClient = INVALID_SOCKET;
+
+	for(struct addrinfo* pointer = result; pointer != NULL; pointer = pointer->ai_next) {
+		socketClient = socket(pointer->ai_family, pointer->ai_socktype, pointer->ai_protocol);
+
+		if(socketClient == INVALID_SOCKET) {
+			REMOTE_ERROR(L"socket", WSAGetLastError());
+			freeaddrinfo(result);
+			goto cleanup;
+		}
+
+		status = connect(socketClient, pointer->ai_addr, (int) pointer->ai_addrlen);
+
+		if(status != SOCKET_ERROR) {
+			break;
+		}
+
+		closesocket(socketClient);
+		socketClient = INVALID_SOCKET;
+	}
+
+	freeaddrinfo(result);
+
+	if(socketClient == INVALID_SOCKET) {
+		REMOTE_ERROR(L"HRSPConnectToServer", ERROR_CONNECTION_REFUSED);
+		goto cleanup;
+	}
+
+	returnValue = TRUE;
 cleanup:
 	if(WSACleanup() == SOCKET_ERROR) {
 		REMOTE_ERROR(L"WSACleanup", WSAGetLastError());
 		return FALSE;
 	}
 
-	return TRUE;
+	return returnValue;
 }
