@@ -3,7 +3,13 @@
 #include <Windows.h>
 
 typedef struct {
-	int placeholder;
+	BOOL present;
+	DWORD code;
+	LPWSTR function;
+} HRSPCLIENTERROR;
+
+typedef struct {
+	HRSPCLIENTERROR error;
 } HRSPCLIENTSTRUCT, *PHRSPCLIENTSTRUCT;
 
-BOOL HRSPConnectToServer(const LPCSTR serverAddress, const LPCSTR serverPort, const PHRSPCLIENTSTRUCT client);
+void HRSPConnectToServer(const LPCSTR serverAddress, const LPCSTR serverPort, const PHRSPCLIENTSTRUCT client);
