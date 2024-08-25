@@ -1,7 +1,8 @@
 #include <WS2tcpip.h>
 #include "hrsp_client.h"
 
-#define REMOTE_ERROR(x,y) do{if(error){error->code=y;error->function=x;}}while(0)
+#define REMOTE_ERROR(x,y) do{if(error){error->remoteError=FALSE;error->function=x;error->code=y;}}while(0)
+#define REMOTE_CUSTOM_ERROR(x,y) do{if(error){error->remoteError=TRUE;error->function=x;error->codeRemote=y;}}while(0)
 
 BOOL HRSPConnectToServer(const LPCSTR serverAddress, const LPCSTR serverPort, const PHRSPCLIENTSTRUCT client, const PHRSPCLIENTERROR error) {
 	if(!serverAddress || !serverPort || !client) {
@@ -54,11 +55,39 @@ BOOL HRSPConnectToServer(const LPCSTR serverAddress, const LPCSTR serverPort, co
 	freeaddrinfo(result);
 
 	if(socketClient == INVALID_SOCKET) {
-		REMOTE_ERROR(L"HRSPConnectToServer", ERROR_CONNECTION_REFUSED);
+		REMOTE_CUSTOM_ERROR(L"HRSPConnectToServer", REMOTE_ERROR_UNABLE_TO_CONNECT_TO_SERVER);
 		goto cleanup;
 	}
 
+	const char* header = "HRSP 1.0 CONNECT";
+	status = send(socketClient, header, (int) strlen(header), 0);
+
+	if(status == SOCKET_ERROR) {
+		REMOTE_ERROR(L"send", WSAGetLastError());
+		goto closeSocket;
+	}
+
+	char buffer[12];
+	status = recv(socketClient, buffer, 11, 0);
+
+	if(status == SOCKET_ERROR) {
+		REMOTE_ERROR(L"recv", WSAGetLastError());
+		goto closeSocket;
+	}
+
+	buffer[11] = 0;
+
+	if(strcmp(buffer, "HRSP 1.0 OK")) {
+		REMOTE_CUSTOM_ERROR(L"HRSPConnectToServer", REMOTE_ERROR_SERVER_SEND_INVALID_RESPOSE);
+		goto closeSocket;
+	}
+
 	returnValue = TRUE;
+closeSocket:
+	if(closesocket(socketClient) == SOCKET_ERROR) {
+		REMOTE_ERROR(L"closesocket", WSAGetLastError());
+		returnValue = FALSE;
+	}
 cleanup:
 	if(WSACleanup() == SOCKET_ERROR) {
 		REMOTE_ERROR(L"WSACleanup", WSAGetLastError());
