@@ -1,26 +1,20 @@
 #include "hrsp_client.h"
 
-void HRSPConnectToServer(const LPCSTR serverAddress, const LPCSTR serverPort, const PHRSPCLIENTSTRUCT client) {
-	if(!client) {
-		return;
-	}
+#define ERROR(x,y) do{if(error){error->code=y;error->function=x;}}while(0)
 
-	if(!serverAddress || !serverPort) {
-		client->error.present = TRUE;
-		client->error.code = ERROR_INVALID_PARAMETER;
-		client->error.function = L"HRSPConnectToServer";
-		return;
+BOOL HRSPConnectToServer(const LPCSTR serverAddress, const LPCSTR serverPort, const PHRSPCLIENTSTRUCT client, const PHRSPCLIENTERROR error) {
+	if(!serverAddress || !serverPort || !client) {
+		ERROR(L"HRSPConnectToServer", ERROR_INVALID_PARAMETER);
+		return FALSE;
 	}
 
 	WSADATA data;
 	int status = WSAStartup(MAKEWORD(2, 2), &data);
 
 	if(status) {
-		client->error.present = TRUE;
-		client->error.code = status;
-		client->error.function = L"WSAStartup";
-		return;
+		ERROR(L"WSAStartup", status);
+		return FALSE;
 	}
 
-	client->error.present = FALSE;
+	return TRUE;
 }
