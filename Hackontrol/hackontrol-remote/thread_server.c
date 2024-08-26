@@ -194,6 +194,12 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	if(WaitForSingleObject(serverThreadHandle, INFINITE) == WAIT_FAILED) {
 		KHWin32DialogErrorW(GetLastError(), L"WaitForSingleObject");
 	}
+
+	LOG("[Remote]: Wait for client list mutex to unlock\n");
+
+	if(WaitForSingleObject(clientsLock, INFINITE) == WAIT_FAILED) {
+		KHWin32DialogErrorW(GetLastError(), L"WaitForSingleObject");
+	}
 closeServer:
 	CloseHandle(serverThreadHandle);
 closeLock:
