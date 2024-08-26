@@ -134,16 +134,20 @@ exitName:
 	}
 
 	if(client->window) {
-		ClientWindowExit(client);
 		LOG("[Client %ws]: Wait for window thread to exit\n" COMMA client->address);
 
-		if(WaitForSingleObject(client->window->thread, INFINITE) == WAIT_FAILED) {
+		if(WaitForSingleObject(client->window->lock, INFINITE) == WAIT_FAILED) {
 			KHWin32DialogErrorW(GetLastError(), L"WaitForSingleObject");
-			client->window = NULL;
 			goto freeName;
 		}
 
-		client->window = NULL;
+		ClientWindowExit(client);
+		CloseHandle(client->window->lock);
+
+		if(WaitForSingleObject(client->window->thread, INFINITE) == WAIT_FAILED) {
+			KHWin32DialogErrorW(GetLastError(), L"WaitForSingleObject");
+			goto freeName;
+		}
 	}
 
 	returnValue = 0;
@@ -152,8 +156,9 @@ freeName:
 		LocalFree(client->name);
 	}
 closeSocket:
-	closesocket(client->socket);
 	CloseHandle(client->thread);
+	client->thread = NULL;
+	closesocket(client->socket);
 	LOG("[Client %ws]: Exit client with code: %d\n" COMMA client->address COMMA returnValue);
 	client->active = FALSE;
 	MainWindowRefreshListView();
@@ -185,10 +190,19 @@ void ClientOpen(const PCLIENT client) {
 		return;
 	}
 
+	client->window->lock = CreateMutexExW(NULL, NULL, 0, SYNCHRONIZE | DELETE);
+
+	if(!client->window->lock) {
+		KHWin32DialogErrorW(GetLastError(), L"CreateMutexExW");
+		LocalFree(client->window);
+		return;
+	}
+
 	client->window->thread = CreateThread(NULL, 0, ClientWindowThread, client, 0, NULL);
 
 	if(!client->window->thread) {
 		KHWin32DialogErrorW(GetLastError(), L"CreateThread");
+		CloseHandle(client->window->lock);
 		LocalFree(client->window);
 	}
 }
