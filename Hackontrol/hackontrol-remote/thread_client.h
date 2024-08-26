@@ -42,10 +42,7 @@ typedef struct {
 	SOCKET socket;
 	LPWSTR name;
 	WCHAR address[16];
-	//HANDLE windowThread;
-	//HWND clientWindow;
 	PWINDOWDATA window;
-	PSTREAMDATA stream;
 } CLIENT, *PCLIENT;
 
 DWORD WINAPI ClientThread(_In_ PCLIENT client);
