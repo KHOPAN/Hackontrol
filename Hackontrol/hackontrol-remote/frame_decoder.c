@@ -1,5 +1,7 @@
 #include "frame_decoder.h"
 
+#define SUBTRACT do{if(colorDifference){window->stream.pixels[pixelIndex]-=blue;window->stream.pixels[pixelIndex+1]-=green;window->stream.pixels[pixelIndex+2]-=red;}else{window->stream.pixels[pixelIndex]=blue;window->stream.pixels[pixelIndex+1]=green;window->stream.pixels[pixelIndex+2]=red;}}while(0)
+
 #define QOI_OP_RGB   0b11111110
 #define QOI_OP_INDEX 0b00000000
 #define QOI_OP_DIFF  0b01000000
@@ -7,34 +9,33 @@
 #define QOI_OP_RUN   0b11000000
 #define OP_MASK      0b11000000
 
-void DecodeHRSPFrame(const BYTE* data, const size_t size, const PSTREAMDATA stream, const HWND window) {
-	if(!data || size < 9 || !stream || !window || WaitForSingleObject(stream->lock, INFINITE) == WAIT_FAILED) {
+void DecodeHRSPFrame(const BYTE* data, const size_t size, const PWINDOWDATA window) {
+	if(!data || size < 9 || !window || WaitForSingleObject(window->lock, INFINITE) == WAIT_FAILED) {
 		return;
 	}
 
-	unsigned char flags = data[0];
-	BOOL boundaryDifference = flags & 1;
-	BOOL colorDifference = (flags >> 1) & 1;
+	BOOL boundaryDifference = data[0] & 1;
+	BOOL colorDifference = (data[0] >> 1) & 1;
 	int width = (data[1] << 24) | (data[2] << 16) | (data[3] << 8) | data[4];
 	int height = (data[5] << 24) | (data[6] << 16) | (data[7] << 8) | data[8];
 
-	if(stream->originalImageWidth != width || stream->originalImageHeight != height) {
-		stream->originalImageWidth = width;
-		stream->originalImageHeight = height;
+	if(window->stream.originalImageWidth != width || window->stream.originalImageHeight != height) {
+		window->stream.originalImageWidth = width;
+		window->stream.originalImageHeight = height;
 
-		if(stream->pixels) {
-			LocalFree(stream->pixels);
+		if(window->stream.pixels) {
+			LocalFree(window->stream.pixels);
 		}
 
-		stream->pixels = LocalAlloc(LMEM_FIXED, width * height * 4);
+		window->stream.pixels = LocalAlloc(LMEM_FIXED, width * height * 4);
 
-		if(!stream->pixels) {
+		if(!window->stream.pixels) {
 			goto releaseMutex;
 		}
 
 		RECT bounds;
-		GetClientRect(window, &bounds);
-		PostMessageW(window, WM_SIZE, 0, MAKELONG(bounds.right - bounds.left, bounds.bottom - bounds.top));
+		GetClientRect(window->window, &bounds);
+		PostMessageW(window->window, WM_SIZE, 0, MAKELONG(bounds.right - bounds.left, bounds.bottom - bounds.top));
 	}
 
 	if(boundaryDifference && colorDifference) {
@@ -46,9 +47,9 @@ void DecodeHRSPFrame(const BYTE* data, const size_t size, const PSTREAMDATA stre
 			for(int x = 0; x < width; x++) {
 				int pixelIndex = (y * width + x) * 4;
 				int dataIndex = ((height - y - 1) * width + x) * 3;
-				stream->pixels[pixelIndex] = data[dataIndex + 11];
-				stream->pixels[pixelIndex + 1] = data[dataIndex + 10];
-				stream->pixels[pixelIndex + 2] = data[dataIndex + 9];
+				window->stream.pixels[pixelIndex] = data[dataIndex + 11];
+				window->stream.pixels[pixelIndex + 1] = data[dataIndex + 10];
+				window->stream.pixels[pixelIndex + 2] = data[dataIndex + 9];
 			}
 		}
 
@@ -74,7 +75,6 @@ void DecodeHRSPFrame(const BYTE* data, const size_t size, const PSTREAMDATA stre
 	int blue = 0;
 	int run = 0;
 	size_t pointer = boundaryDifference ? 25 : 9;
-#define SUBTRACT do{if(colorDifference){stream->pixels[pixelIndex]-=blue;stream->pixels[pixelIndex+1]-=green;stream->pixels[pixelIndex+2]-=red;}else{stream->pixels[pixelIndex]=blue;stream->pixels[pixelIndex+1]=green;stream->pixels[pixelIndex+2]=red;}}while(0)
 
 	for(int y = startY; y <= endY; y++) {
 		for(int x = startX; x <= endX; x++) {
@@ -141,7 +141,7 @@ void DecodeHRSPFrame(const BYTE* data, const size_t size, const PSTREAMDATA stre
 		}
 	}
 invalidateWindow:
-	InvalidateRect(window, NULL, FALSE);
+	InvalidateRect(window->window, NULL, FALSE);
 releaseMutex:
-	ReleaseMutex(stream->lock);
+	ReleaseMutex(window->lock);
 }

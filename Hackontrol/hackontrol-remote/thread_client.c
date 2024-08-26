@@ -122,7 +122,7 @@ exitName:
 
 		switch(packet.packetType) {
 		case PACKET_TYPE_STREAM_FRAME: {
-			DecodeHRSPFrame(packet.data, packet.size, client->stream, client->window->window);
+			DecodeHRSPFrame(packet.data, packet.size, client->window);
 			break;
 		}
 		default:
@@ -164,7 +164,13 @@ void ClientOpen(const PCLIENT client) {
 	LOG("[Remote]: Opening %ws\n" COMMA client->address);
 
 	if(client->window) {
+		if(WaitForSingleObject(client->window->lock, INFINITE) == WAIT_FAILED) {
+			client->window = NULL;
+			return;
+		}
+
 		ClientWindowExit(client);
+		CloseHandle(client->window->lock);
 
 		if(WaitForSingleObject(client->window->thread, INFINITE) == WAIT_FAILED) {
 			client->window = NULL;
