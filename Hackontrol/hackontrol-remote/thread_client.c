@@ -156,21 +156,27 @@ closeSocket:
 void ClientOpen(const PCLIENT client) {
 	LOG("[Remote]: Opening %ws\n" COMMA client->address);
 
-	if(client->windowThread) {
+	if(client->window) {
 		ClientWindowExit(client);
 
-		if(WaitForSingleObject(client->windowThread, INFINITE) == WAIT_FAILED) {
-			client->windowThread = NULL;
+		if(WaitForSingleObject(client->window->thread, INFINITE) == WAIT_FAILED) {
+			client->window = NULL;
 			return;
 		}
-
-		client->windowThread = NULL;
 	}
 
-	client->windowThread = CreateThread(NULL, 0, ClientWindowThread, client, 0, NULL);
+	client->window = LocalAlloc(LMEM_FIXED, sizeof(WINDOWDATA));
 
-	if(!client->windowThread) {
+	if(!client->window) {
 		KHWin32DialogErrorW(GetLastError(), L"CreateThread");
+		return;
+	}
+
+	client->window->thread = CreateThread(NULL, 0, ClientWindowThread, client, 0, NULL);
+
+	if(!client->window->thread) {
+		KHWin32DialogErrorW(GetLastError(), L"CreateThread");
+		LocalFree(client->window);
 	}
 }
 
