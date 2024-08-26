@@ -122,7 +122,7 @@ exitName:
 
 		switch(packet.packetType) {
 		case PACKET_TYPE_STREAM_FRAME: {
-			DecodeHRSPFrame(packet.data, packet.size, client->stream, client->clientWindow);
+			DecodeHRSPFrame(packet.data, packet.size, client->stream, client->window->window);
 			break;
 		}
 		default:
@@ -133,10 +133,17 @@ exitName:
 		LocalFree(packet.data);
 	}
 
-	if(client->windowThread) {
+	if(client->window) {
 		ClientWindowExit(client);
 		LOG("[Client %ws]: Wait for window thread to exit\n" COMMA client->address);
-		WaitForSingleObject(client->windowThread, INFINITE);
+
+		if(WaitForSingleObject(client->window->thread, INFINITE) == WAIT_FAILED) {
+			KHWin32DialogErrorW(GetLastError(), L"WaitForSingleObject");
+			client->window = NULL;
+			goto freeName;
+		}
+
+		client->window = NULL;
 	}
 
 	returnValue = 0;
