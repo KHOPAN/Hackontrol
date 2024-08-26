@@ -147,7 +147,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		switch(position.x) {
 		case IDM_PICTURE_IN_PICTURE:
 			client->stream->pictureInPictureMode = !client->stream->pictureInPictureMode;
-			SetWindowLongPtrW(client->clientWindow, GWL_STYLE, (client->stream->pictureInPictureMode ? WS_POPUP : WS_OVERLAPPEDWINDOW) | WS_VISIBLE);
+			SetWindowLongPtrW(client->window->window, GWL_STYLE, (client->stream->pictureInPictureMode ? WS_POPUP : WS_OVERLAPPEDWINDOW) | WS_VISIBLE);
 			PostMessageW(window, WM_SIZE, 0, MAKELONG(bounds.right, bounds.bottom));
 			break;
 		case IDM_WINDOW_EXIT:
@@ -251,6 +251,11 @@ DWORD WINAPI ClientWindowThread(_In_ PCLIENT client) {
 		return 1;
 	}
 
+	if(!client->window) {
+		LOG("[Window]: No window structure provided\n");
+		return 1;
+	}
+
 	LOG("[Window %ws]: Starting\n" COMMA client->address);
 
 	if(client->stream) {
@@ -279,13 +284,13 @@ DWORD WINAPI ClientWindowThread(_In_ PCLIENT client) {
 	int width = (int) (((double) screenWidth) * 0.439238653);
 	int height = (int) (((double) screenHeight) * 0.520833333);
 	LPWSTR windowName = KHFormatMessageW(L"%ws [%ws]", client->name, client->address);
-	client->clientWindow = CreateWindowExW(0L, CLASS_CLIENT_WINDOW, windowName ? windowName : L"Client Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, NULL, client);
+	client->window->window = CreateWindowExW(0L, CLASS_CLIENT_WINDOW, windowName ? windowName : L"Client Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, NULL, client);
 
 	if(windowName) {
 		LocalFree(windowName);
 	}
 
-	if(!client->clientWindow) {
+	if(!client->window->window) {
 		KHWin32DialogErrorW(GetLastError(), L"CreateWindowExW");
 		goto closeMutex;
 	}
@@ -305,7 +310,7 @@ DWORD WINAPI ClientWindowThread(_In_ PCLIENT client) {
 		LocalFree(client->stream->pixels);
 	}
 
-	client->clientWindow = NULL;
+	client->window->window = NULL;
 	returnValue = 0;
 closeMutex:
 	CloseHandle(client->stream->lock);
@@ -316,12 +321,12 @@ freeStream:
 	}
 exit:
 	LOG("[Window %ws]: Exit client window with code: %d\n" COMMA client->address COMMA returnValue);
-	CloseHandle(client->windowThread);
+	CloseHandle(client->window->thread);
 	return returnValue;
 }
 
 void ClientWindowExit(const PCLIENT client) {
-	if(client->windowThread) {
-		PostMessageW(client->clientWindow, WM_CLOSE, 0, 0);
+	if(client->window->thread) {
+		PostMessageW(client->window->window, WM_CLOSE, 0, 0);
 	}
 }
