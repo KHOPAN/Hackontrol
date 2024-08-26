@@ -89,7 +89,8 @@ DWORD WINAPI serverThread(_In_ LPVOID parameter) {
 
 		client->active = TRUE;
 		client->socket = socket;
-		client->stream = NULL;
+		client->name = NULL;
+		client->window = NULL;
 
 		if(!InetNtopW(AF_INET, &address.sin_addr, client->address, 16)) {
 			KHWin32DialogErrorW(WSAGetLastError(), L"InetNtopW");
@@ -97,19 +98,10 @@ DWORD WINAPI serverThread(_In_ LPVOID parameter) {
 		}
 
 		LOG("[Server]: Client connected: %ws\n" COMMA client->address);
-		result = CreateThread(NULL, 0, ClientThread, client, CREATE_SUSPENDED, NULL);
+		client->thread = CreateThread(NULL, 0, ClientThread, client, 0, NULL);
 
-		if(!result) {
+		if(!client->thread) {
 			KHWin32DialogErrorW(GetLastError(), L"CreateThread");
-			goto freeClient;
-		}
-
-		client->windowThread = NULL;
-		client->thread = result;
-
-		if(ResumeThread(result) == -1) {
-			KHWin32DialogErrorW(GetLastError(), L"ResumeThread");
-			CloseHandle(result);
 			goto freeClient;
 		}
 
