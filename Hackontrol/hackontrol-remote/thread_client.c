@@ -138,11 +138,17 @@ exitName:
 
 		if(WaitForSingleObject(client->window->lock, INFINITE) == WAIT_FAILED) {
 			KHWin32DialogErrorW(GetLastError(), L"WaitForSingleObject");
+			LocalFree(client->window);
+			goto freeName;
+		}
+
+		if(!ReleaseMutex(client->window->lock)) {
+			KHWin32DialogErrorW(GetLastError(), L"ReleaseMutex");
+			LocalFree(client->window);
 			goto freeName;
 		}
 
 		ClientWindowExit(client);
-		CloseHandle(client->window->lock);
 
 		if(WaitForSingleObject(client->window->thread, INFINITE) == WAIT_FAILED) {
 			KHWin32DialogErrorW(GetLastError(), L"WaitForSingleObject");
@@ -177,15 +183,20 @@ void ClientOpen(const PCLIENT client) {
 
 	if(client->window) {
 		if(WaitForSingleObject(client->window->lock, INFINITE) == WAIT_FAILED) {
+			LocalFree(client->window);
+			client->window = NULL;
+			return;
+		}
+
+		if(!ReleaseMutex(client->window->lock)) {
+			LocalFree(client->window);
 			client->window = NULL;
 			return;
 		}
 
 		ClientWindowExit(client);
-		CloseHandle(client->window->lock);
 
 		if(WaitForSingleObject(client->window->thread, INFINITE) == WAIT_FAILED) {
-			client->window = NULL;
 			return;
 		}
 	}
