@@ -24,14 +24,11 @@ static HWND listView;
 
 static BOOL activeItem(size_t index, PCLIENT* client) {
 	size_t pointer = 0;
-	PCLIENT instance;
 
 	for(size_t i = 0; i < clients.elementCount; i++) {
-		if(!KHArrayGet(&clients, i, &instance)) {
-			return FALSE;
-		}
+		PCLIENT instance = (PCLIENT) clients.data + clients.elementSize * i;
 
-		if(!instance->active) {
+		if(instance->active) {
 			continue;
 		}
 
