@@ -15,6 +15,7 @@ typedef struct {
 	int imageY;
 	int imageWidth;
 	int imageHeight;
+	int resizeActivationDistance;
 	int originalImageWidth;
 	int originalImageHeight;
 	int pressedX;

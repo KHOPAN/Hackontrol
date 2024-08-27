@@ -15,7 +15,7 @@
 #define IDM_WINDOW_SEND_METHOD_UNCOMPRESSED 0xE007
 
 static void sendStreamCode(const PCLIENT client) {
-	unsigned char flags = ((client->window->stream.sendMethod & 0b11) << 1) | (client->window->stream.streaming ? 0b1001 : 0);
+	BYTE flags = ((client->window->stream.sendMethod & 0b11) << 1) | (client->window->stream.streaming ? 0b1001 : 0);
 	LOG("[Window %ws]: Flags: %c%c%c%c%c%c%c%c\n" COMMA client->address COMMA flags & 0x80 ? '1' : '0' COMMA flags & 0x40 ? '1' : '0' COMMA flags & 0x20 ? '1' : '0' COMMA flags & 0x10 ? '1' : '0' COMMA flags & 0x08 ? '1' : '0' COMMA flags & 0x04 ? '1' : '0' COMMA flags & 0x02 ? '1' : '0' COMMA flags & 0x01 ? '1' : '0');
 	PACKET packet;
 	packet.size = 1;
@@ -52,11 +52,10 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 	bounds.right -= bounds.left;
 	bounds.bottom -= bounds.top;
 
-	if(bounds.right < 1 || bounds.bottom < 1) {
+	if(bounds.right < 1 || bounds.bottom < 1 || WaitForSingleObject(client->window->lock, INFINITE) == WAIT_FAILED) {
 		return DefWindowProcW(window, message, wparam, lparam);
 	}
 
-	WaitForSingleObject(client->window->lock, INFINITE);
 	LRESULT returnValue = 0;
 	POINT position;
 
@@ -142,7 +141,10 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		DestroyMenu(sendMethod);
 		DestroyMenu(streamingMenu);
 		DestroyMenu(popupMenu);
-		WaitForSingleObject(client->window->lock, INFINITE);
+
+		if(WaitForSingleObject(client->window->lock, INFINITE) == WAIT_FAILED) {
+			return 0;
+		}
 
 		switch(position.x) {
 		case IDM_PICTURE_IN_PICTURE:
@@ -171,13 +173,12 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 	}
 	case WM_MOUSEMOVE: {
 		if(wparam != MK_LBUTTON) {
-		#define BORDER 10
 			position.x = LOWORD(lparam);
 			position.y = HIWORD(lparam);
-			client->window->stream.cursorNorth = position.y >= 0 && position.y <= BORDER;
-			client->window->stream.cursorEast = position.x >= bounds.right - BORDER && position.x < bounds.right;
-			client->window->stream.cursorSouth = position.y >= bounds.bottom - BORDER && position.y < bounds.bottom;
-			client->window->stream.cursorWest = position.x >= 0 && position.x <= BORDER;
+			client->window->stream.cursorNorth = position.y >= 0 && position.y <= client->window->stream.resizeActivationDistance;
+			client->window->stream.cursorEast = position.x >= bounds.right - client->window->stream.resizeActivationDistance && position.x < bounds.right;
+			client->window->stream.cursorSouth = position.y >= bounds.bottom - client->window->stream.resizeActivationDistance && position.y < bounds.bottom;
+			client->window->stream.cursorWest = position.x >= 0 && position.x <= client->window->stream.resizeActivationDistance;
 			SetCursor(LoadCursorW(NULL, client->window->stream.cursorNorth ? client->window->stream.cursorWest ? IDC_SIZENWSE : client->window->stream.cursorEast ? IDC_SIZENESW : IDC_SIZENS : client->window->stream.cursorSouth ? client->window->stream.cursorWest ? IDC_SIZENESW : client->window->stream.cursorEast ? IDC_SIZENWSE : IDC_SIZENS : client->window->stream.cursorWest ? IDC_SIZEWE : client->window->stream.cursorEast ? IDC_SIZEWE : IDC_ARROW));
 			break;
 		}
@@ -260,6 +261,7 @@ DWORD WINAPI ClientWindowThread(_In_ PCLIENT client) {
 	memset(&client->window->stream, 0, sizeof(STREAMDATA));
 	client->window->stream.sendMethod = SEND_METHOD_COLOR;
 	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+	client->window->stream.resizeActivationDistance = (int) (((double) screenWidth) * 0.00878477306);
 	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	int width = (int) (((double) screenWidth) * 0.439238653);
 	int height = (int) (((double) screenHeight) * 0.520833333);
@@ -274,7 +276,7 @@ DWORD WINAPI ClientWindowThread(_In_ PCLIENT client) {
 
 	if(!client->window->window) {
 		KHWin32DialogErrorW(GetLastError(), L"CreateWindowExW");
-		goto closeMutex;
+		goto exit;
 	}
 
 	MSG message;
@@ -284,7 +286,10 @@ DWORD WINAPI ClientWindowThread(_In_ PCLIENT client) {
 		DispatchMessageW(&message);
 	}
 
-	WaitForSingleObject(client->window->lock, INFINITE);
+	if(WaitForSingleObject(client->window->lock, INFINITE) == WAIT_FAILED) {
+		goto exit;
+	}
+
 	client->window->stream.streaming = FALSE;
 	sendStreamCode(client);
 
@@ -292,19 +297,18 @@ DWORD WINAPI ClientWindowThread(_In_ PCLIENT client) {
 		LocalFree(client->window->stream.pixels);
 	}
 
-	client->window->window = NULL;
 	returnValue = 0;
-closeMutex:
-	CloseHandle(client->window->lock);
-freeStream:
 exit:
+	CloseHandle(client->window->lock);
 	LOG("[Window %ws]: Exit client window with code: %d\n" COMMA client->address COMMA returnValue);
 	CloseHandle(client->window->thread);
+	LocalFree(client->window);
+	client->window = NULL;
 	return returnValue;
 }
 
 void ClientWindowExit(const PCLIENT client) {
-	if(client->window->thread) {
+	if(client->window) {
 		PostMessageW(client->window->window, WM_CLOSE, 0, 0);
 	}
 }
