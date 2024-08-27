@@ -156,9 +156,16 @@ freeName:
 		LocalFree(client->name);
 	}
 closeSocket:
-	CloseHandle(client->thread);
-	client->thread = NULL;
-	closesocket(client->socket);
+	if(client->thread) {
+		CloseHandle(client->thread);
+		client->thread = NULL;
+	}
+
+	if(client->socket) {
+		closesocket(client->socket);
+		client->socket = 0;
+	}
+
 	LOG("[Client %ws]: Exit client with code: %d\n" COMMA client->address COMMA returnValue);
 	client->active = FALSE;
 	MainWindowRefreshListView();

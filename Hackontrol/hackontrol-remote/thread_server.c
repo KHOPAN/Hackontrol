@@ -184,7 +184,11 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 
 	for(size_t i = 0; i < clients.elementCount; i++) {
 		PCLIENT client = (PCLIENT) clients.data + clients.elementSize * i;
-		closesocket(client->socket);
+
+		if(client->socket) {
+			closesocket(client->socket);
+			client->socket = 0;
+		}
 
 		if(client->thread) {
 			WaitForSingleObject(client->thread, INFINITE);
