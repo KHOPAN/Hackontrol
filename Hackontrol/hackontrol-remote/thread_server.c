@@ -170,18 +170,9 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	}
 
 	LOG("[Remote]: Wait for all client threads to exit\n");
-	PCLIENT client;
 
 	for(size_t i = 0; i < clients.elementCount; i++) {
-		if(!KHArrayGet(&clients, i, &client)) {
-			KHWin32DialogErrorW(GetLastError(), L"KHArrayGet");
-			continue;
-		}
-
-		if(!client) {
-			continue;
-		}
-
+		PCLIENT client = (PCLIENT) clients.data + clients.elementSize * i;
 		closesocket(client->socket);
 
 		if(client->thread) {
