@@ -23,16 +23,11 @@ static HWND titledBorder;
 static HWND listView;
 
 static BOOL activeItem(size_t index, PCLIENT* client) {
-	if(WaitForSingleObject(clientsLock, INFINITE) == WAIT_FAILED) {
-		return FALSE;
-	}
-
 	size_t pointer = 0;
 	PCLIENT instance;
 
 	for(size_t i = 0; i < clients.elementCount; i++) {
 		if(!KHArrayGet(&clients, i, &instance)) {
-			ReleaseMutex(clientsLock);
 			return FALSE;
 		}
 
@@ -42,19 +37,18 @@ static BOOL activeItem(size_t index, PCLIENT* client) {
 
 		if(index == pointer) {
 			(*client) = instance;
-			ReleaseMutex(clientsLock);
 			return TRUE;
 		}
 
 		pointer++;
 	}
 
-	ReleaseMutex(clientsLock);
 	return FALSE;
 }
 
 static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	PCLIENT client = NULL;
+	RECT bounds;
 
 	switch(message) {
 	case WM_CLOSE:
@@ -63,8 +57,14 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
+	case WM_SIZE:
+		GetClientRect(window, &bounds);
+		SetWindowPos(titledBorder, HWND_TOP, 0, 0, bounds.right - bounds.left - 10, bounds.bottom - bounds.top - 4, SWP_NOMOVE);
+		GetClientRect(titledBorder, &bounds);
+		SetWindowPos(listView, HWND_TOP, bounds.left + 9, bounds.top + 17, bounds.right - bounds.left - 8, bounds.bottom - bounds.top - 22, 0);
+		return 0;
 	case WM_NOTIFY: {
-		if(((LPNMHDR) lparam)->code != NM_DBLCLK) {
+		if(((LPNMHDR) lparam)->code != NM_DBLCLK || WaitForSingleObject(clientsLock, INFINITE) == WAIT_FAILED) {
 			return 0;
 		}
 
@@ -72,19 +72,9 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 			ClientOpen(client);
 		}
 
+		ReleaseMutex(clientsLock);
 		return DefWindowProcW(inputWindow, message, wparam, lparam);
 	}
-	}
-
-	RECT bounds;
-
-	switch(message) {
-	case WM_SIZE:
-		GetClientRect(window, &bounds);
-		SetWindowPos(titledBorder, HWND_TOP, 0, 0, bounds.right - bounds.left - 10, bounds.bottom - bounds.top - 4, SWP_NOMOVE);
-		GetClientRect(titledBorder, &bounds);
-		SetWindowPos(listView, HWND_TOP, bounds.left + 9, bounds.top + 17, bounds.right - bounds.left - 8, bounds.bottom - bounds.top - 22, 0);
-		return 0;
 	case WM_CONTEXTMENU: {
 		LVHITTESTINFO hitTest = {0};
 		hitTest.pt.x = LOWORD(lparam);
@@ -102,21 +92,50 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 			return 0;
 		}
 
-		if(SendMessageW(listView, LVM_HITTEST, 0, (LPARAM) &hitTest) != -1 && activeItem(hitTest.iItem, &client)) {
+		if(SendMessageW(listView, LVM_HITTEST, 0, (LPARAM) &hitTest) == -1) {
+			goto skipHitTest;
+		}
+
+		if(WaitForSingleObject(clientsLock, INFINITE) == WAIT_FAILED) {
+			DestroyMenu(popupMenu);
+			return 0;
+		}
+
+		if(activeItem(hitTest.iItem, &client)) {
 			AppendMenuW(popupMenu, MF_STRING, IDM_REMOTE_OPEN, L"Open");
 			AppendMenuW(popupMenu, MF_STRING, IDM_REMOTE_DISCONNECT, L"Disconnect");
 			AppendMenuW(popupMenu, MF_SEPARATOR, 0, NULL);
 		}
 
+		ReleaseMutex(clientsLock);
+skipHitTest:
 		AppendMenuW(popupMenu, MF_STRING, IDM_REMOTE_REFRESH, L"Refresh");
 		AppendMenuW(popupMenu, MF_SEPARATOR, 0, NULL);
 		AppendMenuW(popupMenu, MF_STRING | (GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST ? MF_CHECKED : MF_UNCHECKED), IDM_REMOTE_ALWAYS_ON_TOP, L"Always On Top");
 		AppendMenuW(popupMenu, MF_STRING, IDM_REMOTE_EXIT, L"Exit");
 		SetForegroundWindow(window);
-		BOOL response = TrackPopupMenuEx(popupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
+		hitTest.flags = TrackPopupMenuEx(popupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
 		DestroyMenu(popupMenu);
 
-		switch(response) {
+		switch(hitTest.flags) {
+		case IDM_REMOTE_REFRESH:
+			LOG("[Window]: Refreshing list view\n");
+			MainWindowRefreshListView();
+			return 0;
+		case IDM_REMOTE_ALWAYS_ON_TOP:
+			SetWindowPos(window, (GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST) ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+			return 0;
+		case IDM_REMOTE_EXIT:
+			LOG("[Window]: Exiting\n");
+			MainWindowExit();
+			return 0;
+		}
+
+		if(WaitForSingleObject(clientsLock, INFINITE) == WAIT_FAILED) {
+			return 0;
+		}
+
+		switch(hitTest.flags) {
 		case IDM_REMOTE_OPEN:
 			ClientOpen(client);
 			break;
@@ -124,19 +143,9 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 			LOG("[Window]: Disconnecting % ws\n" COMMA client ? client->address : L"(Missing address)");
 			ClientDisconnect(client);
 			break;
-		case IDM_REMOTE_REFRESH:
-			LOG("[Window]: Refreshing list view\n");
-			MainWindowRefreshListView();
-			break;
-		case IDM_REMOTE_ALWAYS_ON_TOP:
-			SetWindowPos(window, (GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST) ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
-			break;
-		case IDM_REMOTE_EXIT:
-			LOG("[Window]: Exiting\n");
-			MainWindowExit();
-			break;
 		}
 
+		ReleaseMutex(clientsLock);
 		return 0;
 	}
 	}

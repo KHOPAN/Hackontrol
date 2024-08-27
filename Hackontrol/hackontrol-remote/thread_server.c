@@ -163,7 +163,6 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	}
 
 	returnValue = MainWindowMessageLoop();
-
 	LOG("[Remote]: Wait for server thread to exit\n");
 
 	if(WaitForSingleObject(serverThreadHandle, INFINITE) == WAIT_FAILED) {
