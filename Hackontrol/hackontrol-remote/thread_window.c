@@ -287,6 +287,7 @@ DWORD WINAPI ClientWindowThread(_In_ PCLIENT client) {
 	}
 
 	if(WaitForSingleObject(client->window->lock, INFINITE) == WAIT_FAILED) {
+		KHWin32DialogErrorW(GetLastError(), L"WaitForSingleObject");
 		goto exit;
 	}
 

@@ -115,6 +115,11 @@ DWORD WINAPI serverThread(_In_ LPVOID parameter) {
 	MainWindowExit();
 	returnValue = 0;
 cleanup:
+	if(socketListen) {
+		closesocket(socketListen);
+		socketListen = 0;
+	}
+
 	WSACleanup();
 exit:
 	LOG("[Server]: Exit server with code: %d\n" COMMA returnValue);
@@ -165,13 +170,13 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	returnValue = MainWindowMessageLoop();
 	LOG("[Remote]: Wait for server thread to exit\n");
 
-	if(WaitForSingleObject(serverThreadHandle, INFINITE) == WAIT_FAILED) {
-		KHWin32DialogErrorW(GetLastError(), L"WaitForSingleObject");
+	if(socketListen) {
+		closesocket(socketListen);
+		socketListen = 0;
 	}
 
-	if(socketListen && closesocket(socketListen) == SOCKET_ERROR) {
-		KHWin32DialogErrorW(WSAGetLastError(), L"closesocket");
-		goto closeServer;
+	if(WaitForSingleObject(serverThreadHandle, INFINITE) == WAIT_FAILED) {
+		KHWin32DialogErrorW(GetLastError(), L"WaitForSingleObject");
 	}
 
 	LOG("[Remote]: Wait for client list mutex to unlock\n");
@@ -184,6 +189,10 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 
 	for(size_t i = 0; i < clients.elementCount; i++) {
 		PCLIENT client = (PCLIENT) clients.data + clients.elementSize * i;
+
+		if(!client->active) {
+			continue;
+		}
 
 		if(client->socket) {
 			closesocket(client->socket);
