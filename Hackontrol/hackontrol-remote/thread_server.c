@@ -164,9 +164,21 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 
 	returnValue = MainWindowMessageLoop();
 
+	LOG("[Remote]: Wait for server thread to exit\n");
+
+	if(WaitForSingleObject(serverThreadHandle, INFINITE) == WAIT_FAILED) {
+		KHWin32DialogErrorW(GetLastError(), L"WaitForSingleObject");
+	}
+
 	if(socketListen && closesocket(socketListen) == SOCKET_ERROR) {
 		KHWin32DialogErrorW(WSAGetLastError(), L"closesocket");
 		goto closeServer;
+	}
+
+	LOG("[Remote]: Wait for client list mutex to unlock\n");
+
+	if(WaitForSingleObject(clientsLock, INFINITE) == WAIT_FAILED) {
+		KHWin32DialogErrorW(GetLastError(), L"WaitForSingleObject");
 	}
 
 	LOG("[Remote]: Wait for all client threads to exit\n");
@@ -178,18 +190,6 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		if(client->thread) {
 			WaitForSingleObject(client->thread, INFINITE);
 		}
-	}
-
-	LOG("[Remote]: Wait for server thread to exit\n");
-
-	if(WaitForSingleObject(serverThreadHandle, INFINITE) == WAIT_FAILED) {
-		KHWin32DialogErrorW(GetLastError(), L"WaitForSingleObject");
-	}
-
-	LOG("[Remote]: Wait for client list mutex to unlock\n");
-
-	if(WaitForSingleObject(clientsLock, INFINITE) == WAIT_FAILED) {
-		KHWin32DialogErrorW(GetLastError(), L"WaitForSingleObject");
 	}
 closeServer:
 	CloseHandle(serverThreadHandle);
