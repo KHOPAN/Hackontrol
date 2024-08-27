@@ -28,7 +28,7 @@ static BOOL activeItem(size_t index, PCLIENT* client) {
 	for(size_t i = 0; i < clients.elementCount; i++) {
 		PCLIENT instance = (PCLIENT) clients.data + clients.elementSize * i;
 
-		if(instance->active) {
+		if(!instance->active) {
 			continue;
 		}
 
