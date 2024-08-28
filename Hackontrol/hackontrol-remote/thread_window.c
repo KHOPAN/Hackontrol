@@ -213,10 +213,12 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		break;
 	}
 	case WM_LBUTTONDOWN:
-		client->window->stream.pressedX = LOWORD(lparam);
-		client->window->stream.pressedY = HIWORD(lparam);
-		client->window->stream.pressedOffsetX = bounds.right - client->window->stream.pressedX;
-		client->window->stream.pressedOffsetY = bounds.bottom - client->window->stream.pressedY;
+		GetWindowRect(window, &bounds);
+		GetCursorPos(&position);
+		client->window->stream.pressedX = position.x - bounds.left;
+		client->window->stream.pressedY = position.y - bounds.top;
+		client->window->stream.pressedOffsetX = bounds.right - position.x;
+		client->window->stream.pressedOffsetY = bounds.bottom - position.y;
 		SetCapture(window);
 		break;
 	case WM_LBUTTONUP:
