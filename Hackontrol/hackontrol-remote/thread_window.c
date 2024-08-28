@@ -224,9 +224,12 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		break;
 	}
 
+	ReleaseMutex(client->window->lock);
 	returnValue = DefWindowProcW(window, message, wparam, lparam);
+	goto exit;
 releaseMutex:
 	ReleaseMutex(client->window->lock);
+exit:
 	return returnValue;
 }
 
