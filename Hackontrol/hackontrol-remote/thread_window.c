@@ -291,11 +291,17 @@ DWORD WINAPI ClientWindowThread(_In_ PCLIENT client) {
 		goto exit;
 	}
 
+	if(!ReleaseMutex(client->window->lock)) {
+		KHWin32DialogErrorW(GetLastError(), L"ReleaseMutex");
+		goto exit;
+	}
+
 	client->window->stream.streaming = FALSE;
 	sendStreamCode(client);
 
 	if(client->window->stream.pixels) {
 		LocalFree(client->window->stream.pixels);
+		client->window->stream.pixels = NULL;
 	}
 
 	returnValue = 0;

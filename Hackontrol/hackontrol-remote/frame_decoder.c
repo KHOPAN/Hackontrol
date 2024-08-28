@@ -1,4 +1,5 @@
 #include "frame_decoder.h"
+#include "logger.h"
 
 #define SUBTRACT do{if(colorDifference){window->stream.pixels[pixelIndex]-=blue;window->stream.pixels[pixelIndex+1]-=green;window->stream.pixels[pixelIndex+2]-=red;}else{window->stream.pixels[pixelIndex]=blue;window->stream.pixels[pixelIndex+1]=green;window->stream.pixels[pixelIndex+2]=red;}}while(0)
 
@@ -36,6 +37,10 @@ void DecodeHRSPFrame(const BYTE* data, const size_t size, const PWINDOWDATA wind
 		RECT bounds;
 		GetClientRect(window->window, &bounds);
 		PostMessageW(window->window, WM_SIZE, 0, MAKELONG(bounds.right - bounds.left, bounds.bottom - bounds.top));
+	}
+
+	if(!window->stream.pixels) {
+		goto releaseMutex;
 	}
 
 	if(boundaryDifference && colorDifference) {
