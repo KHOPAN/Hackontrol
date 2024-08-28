@@ -286,18 +286,13 @@ DWORD WINAPI ClientWindowThread(_In_ PCLIENT client) {
 		DispatchMessageW(&message);
 	}
 
+	client->window->stream.streaming = FALSE;
+	sendStreamCode(client);
+
 	if(WaitForSingleObject(client->window->lock, INFINITE) == WAIT_FAILED) {
 		KHWin32DialogErrorW(GetLastError(), L"WaitForSingleObject");
 		goto exit;
 	}
-
-	if(!ReleaseMutex(client->window->lock)) {
-		KHWin32DialogErrorW(GetLastError(), L"ReleaseMutex");
-		goto exit;
-	}
-
-	client->window->stream.streaming = FALSE;
-	sendStreamCode(client);
 
 	if(client->window->stream.pixels) {
 		LocalFree(client->window->stream.pixels);
