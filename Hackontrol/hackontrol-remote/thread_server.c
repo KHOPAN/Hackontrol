@@ -50,15 +50,11 @@ DWORD WINAPI serverThread(_In_ LPVOID parameter) {
 
 	if(status == SOCKET_ERROR) {
 		KHWin32DialogErrorW(WSAGetLastError(), L"bind");
-		closesocket(socketListen);
-		socketListen = 0;
 		goto cleanup;
 	}
 
 	if(listen(socketListen, SOMAXCONN) == SOCKET_ERROR) {
 		KHWin32DialogErrorW(WSAGetLastError(), L"listen");
-		closesocket(socketListen);
-		socketListen = 0;
 		goto cleanup;
 	}
 
@@ -71,11 +67,7 @@ DWORD WINAPI serverThread(_In_ LPVOID parameter) {
 
 		if(socket == INVALID_SOCKET) {
 			status = WSAGetLastError();
-
-			if(status == WSAEINTR) {
-				break;
-			}
-
+			if(status == WSAEINTR) break;
 			KHWin32DialogErrorW(status, L"accept");
 			continue;
 		}
@@ -177,12 +169,14 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 
 	if(WaitForSingleObject(serverThreadHandle, INFINITE) == WAIT_FAILED) {
 		KHWin32DialogErrorW(GetLastError(), L"WaitForSingleObject");
+		goto closeServer;
 	}
 
 	LOG("[Remote]: Wait for client list mutex to unlock\n");
 
 	if(WaitForSingleObject(clientsLock, INFINITE) == WAIT_FAILED) {
 		KHWin32DialogErrorW(GetLastError(), L"WaitForSingleObject");
+		goto closeServer;
 	}
 
 	LOG("[Remote]: Wait for all client threads to exit\n");
