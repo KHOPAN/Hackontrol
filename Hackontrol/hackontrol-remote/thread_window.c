@@ -149,8 +149,9 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		switch(position.x) {
 		case IDM_PICTURE_IN_PICTURE:
 			client->window->stream.pictureInPictureMode = !client->window->stream.pictureInPictureMode;
-			SetWindowLongPtrW(client->window->window, GWL_STYLE, (client->window->stream.pictureInPictureMode ? WS_POPUP : WS_OVERLAPPEDWINDOW) | WS_VISIBLE);
-			PostMessageW(window, WM_SIZE, 0, MAKELONG(bounds.right, bounds.bottom));
+			SetWindowLongPtrW(window, GWL_STYLE, (client->window->stream.pictureInPictureMode ? WS_POPUP : WS_OVERLAPPEDWINDOW) | WS_VISIBLE);
+			SetWindowPos(window, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
+			PostMessageW(window, WM_SIZE, 0, 0);
 			break;
 		case IDM_WINDOW_EXIT:
 			LOG("[Window %ws]: Exiting\n" COMMA client->address);

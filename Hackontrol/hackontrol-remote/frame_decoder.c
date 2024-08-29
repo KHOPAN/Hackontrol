@@ -34,9 +34,7 @@ void DecodeHRSPFrame(const BYTE* data, const size_t size, const PWINDOWDATA wind
 			goto releaseMutex;
 		}
 
-		RECT bounds;
-		GetClientRect(window->window, &bounds);
-		PostMessageW(window->window, WM_SIZE, 0, MAKELONG(bounds.right - bounds.left, bounds.bottom - bounds.top));
+		PostMessageW(window->window, WM_SIZE, 0, 0);
 	}
 
 	if(!window->stream.pixels) {
