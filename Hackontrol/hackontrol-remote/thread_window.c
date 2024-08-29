@@ -177,6 +177,11 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		goto releaseMutex;
 	}
 	case WM_MOUSEMOVE: {
+		if(client->window->stream.lockFrame) {
+			SetCursor(LoadCursorW(NULL, IDC_ARROW));
+			break;
+		}
+
 		if(wparam != MK_LBUTTON) {
 			position.x = LOWORD(lparam);
 			position.y = HIWORD(lparam);
