@@ -16,7 +16,6 @@
 
 static void sendStreamCode(const PCLIENT client) {
 	BYTE flags = ((client->window->stream.sendMethod & 0b11) << 1) | (client->window->stream.streaming ? 0b1001 : 0);
-	LOG("[Window %ws]: Flags: %c%c%c%c%c%c%c%c\n" COMMA client->address COMMA flags & 0x80 ? '1' : '0' COMMA flags & 0x40 ? '1' : '0' COMMA flags & 0x20 ? '1' : '0' COMMA flags & 0x10 ? '1' : '0' COMMA flags & 0x08 ? '1' : '0' COMMA flags & 0x04 ? '1' : '0' COMMA flags & 0x02 ? '1' : '0' COMMA flags & 0x01 ? '1' : '0');
 	PACKET packet;
 	packet.size = 1;
 	packet.packetType = PACKET_TYPE_STREAM_FRAME;
