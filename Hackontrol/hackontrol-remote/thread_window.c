@@ -134,7 +134,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		AppendMenuW(streamingMenu, MF_POPUP | (client->window->stream.streaming ? MF_ENABLED : MF_DISABLED), (UINT_PTR) sendMethod, L"Send Method");
 		AppendMenuW(popupMenu, MF_POPUP, (UINT_PTR) streamingMenu, L"Streaming");
 		AppendMenuW(popupMenu, MF_STRING | (client->window->stream.pictureInPictureMode ? MF_CHECKED : MF_UNCHECKED), IDM_PICTURE_IN_PICTURE, L"Picture in Picture Mode");
-		AppendMenuW(popupMenu, MF_STRING | (client->window->stream.lockFrame ? MF_CHECKED : MF_UNCHECKED), IDM_LOCK_FRAME, L"Lock Frame");
+		AppendMenuW(popupMenu, MF_STRING | (client->window->stream.lockFrame ? MF_CHECKED : MF_UNCHECKED) | (client->window->stream.pictureInPictureMode ? MF_ENABLED : MF_DISABLED), IDM_LOCK_FRAME, L"Lock Frame");
 		AppendMenuW(popupMenu, MF_STRING, IDM_WINDOW_EXIT, L"Exit");
 		SetForegroundWindow(window);
 		ReleaseMutex(client->window->lock);
@@ -177,7 +177,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		goto releaseMutex;
 	}
 	case WM_MOUSEMOVE: {
-		if(client->window->stream.lockFrame) {
+		if(!client->window->stream.pictureInPictureMode || client->window->stream.lockFrame) {
 			SetCursor(LoadCursorW(NULL, IDC_ARROW));
 			break;
 		}
