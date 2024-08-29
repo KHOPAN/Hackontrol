@@ -7,12 +7,13 @@
 #define CLASS_CLIENT_WINDOW L"HackontrolRemoteClientWindow"
 
 #define IDM_PICTURE_IN_PICTURE              0xE001
-#define IDM_WINDOW_EXIT                     0xE002
-#define IDM_WINDOW_STREAMING_ENABLE         0xE003
-#define IDM_WINDOW_SEND_METHOD_FULL         0xE004
-#define IDM_WINDOW_SEND_METHOD_BOUNDARY     0xE005
-#define IDM_WINDOW_SEND_METHOD_COLOR        0xE006
-#define IDM_WINDOW_SEND_METHOD_UNCOMPRESSED 0xE007
+#define IDM_LOCK_FRAME                      0xE002
+#define IDM_WINDOW_EXIT                     0xE003
+#define IDM_WINDOW_STREAMING_ENABLE         0xE004
+#define IDM_WINDOW_SEND_METHOD_FULL         0xE005
+#define IDM_WINDOW_SEND_METHOD_BOUNDARY     0xE006
+#define IDM_WINDOW_SEND_METHOD_COLOR        0xE007
+#define IDM_WINDOW_SEND_METHOD_UNCOMPRESSED 0xE008
 
 static void sendStreamCode(const PCLIENT client) {
 	BYTE flags = ((client->window->stream.sendMethod & 0b11) << 1) | (client->window->stream.streaming ? 0b1001 : 0);
@@ -133,6 +134,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		AppendMenuW(streamingMenu, MF_POPUP | (client->window->stream.streaming ? MF_ENABLED : MF_DISABLED), (UINT_PTR) sendMethod, L"Send Method");
 		AppendMenuW(popupMenu, MF_POPUP, (UINT_PTR) streamingMenu, L"Streaming");
 		AppendMenuW(popupMenu, MF_STRING | (client->window->stream.pictureInPictureMode ? MF_CHECKED : MF_UNCHECKED), IDM_PICTURE_IN_PICTURE, L"Picture in Picture Mode");
+		AppendMenuW(popupMenu, MF_STRING | (client->window->stream.lockFrame ? MF_CHECKED : MF_UNCHECKED), IDM_LOCK_FRAME, L"Lock Frame");
 		AppendMenuW(popupMenu, MF_STRING, IDM_WINDOW_EXIT, L"Exit");
 		SetForegroundWindow(window);
 		ReleaseMutex(client->window->lock);
@@ -151,6 +153,9 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			SetWindowLongPtrW(window, GWL_STYLE, (client->window->stream.pictureInPictureMode ? WS_POPUP : WS_OVERLAPPEDWINDOW) | WS_VISIBLE);
 			SetWindowPos(window, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
 			PostMessageW(window, WM_SIZE, 0, 0);
+			break;
+		case IDM_LOCK_FRAME:
+			client->window->stream.lockFrame = !client->window->stream.lockFrame;
 			break;
 		case IDM_WINDOW_EXIT:
 			LOG("[Window %ws]: Exiting\n" COMMA client->address);

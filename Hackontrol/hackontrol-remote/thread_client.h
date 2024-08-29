@@ -29,6 +29,7 @@ typedef struct {
 	BOOL streaming;
 	SENDMETHOD sendMethod;
 	BOOL pictureInPictureMode;
+	BOOL lockFrame;
 } STREAMDATA;
 
 typedef struct {
