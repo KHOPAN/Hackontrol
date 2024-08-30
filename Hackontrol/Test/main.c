@@ -4,7 +4,7 @@
 //#include <bcrypt.h>
 
 int main(int argc, char** argv) {
-	KHWIN32_ERROR(ERROR_OUTOFMEMORY, L"BCryptOpenAlgorithmProvider");
+	KHWIN32_ERROR_CONSOLE(ERROR_OUTOFMEMORY, L"BCryptOpenAlgorithmProvider");
 	/*BCRYPT_ALG_HANDLE handle;
 	NTSTATUS status = BCryptOpenAlgorithmProvider(&handle, BCRYPT_RSA_ALGORITHM, NULL, 0);
 

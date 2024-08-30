@@ -9,7 +9,7 @@
 #define KHWIN32_MESSAGE(code, function) KHInternal_Win32Message(code,function,__FILEW__,__LINE__)
 
 #define KHWIN32_ERROR(code, function) do{LPWSTR __temporary_message__=KHWIN32_MESSAGE(code,function);if(__temporary_message__){MessageBoxW(NULL,__temporary_message__,L"Error",MB_OK|MB_DEFBUTTON1|MB_ICONERROR|MB_SYSTEMMODAL);LocalFree(__temporary_message__);}}while(0)
-//#define KHWIN32_ERROR_CONSOLE
+#define KHWIN32_ERROR_CONSOLE(code, function) do{LPWSTR __temporary_message__=KHWIN32_MESSAGE(code,function);if(__temporary_message__){printf("%ws\n",__temporary_message__);LocalFree(__temporary_message__);}}while(0)
 //#define KHNTSTATUS_ERROR
 //#define KHNTSTATUS_ERROR_CONSOLE
 
