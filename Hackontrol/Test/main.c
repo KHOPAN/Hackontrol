@@ -11,5 +11,12 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
+	status = BCryptCloseAlgorithmProvider(handle, 0);
+
+	if(!BCRYPT_SUCCESS(status)) {
+		KHNTSTATUS_ERROR(status, L"BCryptCloseAlgorithmProvider");
+		return 1;
+	}
+
 	return 0;
 }
