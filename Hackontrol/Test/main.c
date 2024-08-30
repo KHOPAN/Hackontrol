@@ -1,22 +1,16 @@
 #include <stdio.h>
 #include <khopanwin32.h>
+#include <ntstatus.h>
+#include <bcrypt.h>
 
 int main(int argc, char** argv) {
-	HANDLE mutex = CreateMutexExW(NULL, NULL, 0, SYNCHRONIZE | DELETE);
+	BCRYPT_ALG_HANDLE handle;
+	NTSTATUS status = BCryptOpenAlgorithmProvider(&handle, BCRYPT_RSA_ALGORITHM, NULL, 0);
 
-	if(!mutex) {
-		KHWin32ConsoleErrorW(GetLastError(), L"CreateMutexExW");
+	if(!BCRYPT_SUCCESS(status)) {
+		printf("Error: %d\n", status);
 		return 1;
 	}
 
-	CloseHandle(mutex);
-	printf("Wait: %u\n", WaitForSingleObject(mutex, INFINITE));
-
-	if(!ReleaseMutex(mutex)) {
-		KHWin32ConsoleErrorW(GetLastError(), L"ReleaseMutex");
-		goto closeMutex;
-	}
-closeMutex:
-	//CloseHandle(mutex);
 	return 0;
 }
