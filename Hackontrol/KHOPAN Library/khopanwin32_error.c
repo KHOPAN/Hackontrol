@@ -7,10 +7,10 @@
 #define FORMAT          L"%ws() error ocurred in\n%ws\nLine: %u Error code: %u Message:\n%ws"
 #define FORMAT_FALLBACK L"%ws() error ocurred in\n%ws\nLine: %u Error code: %u"
 
-LPWSTR KHInternal_Win32Message(const DWORD errorCode, const LPCWSTR functionName, const LPCWSTR fileName, const UINT lineNumber) {
+LPWSTR KHInternal_ErrorMessage(const DWORD errorCode, const LPCWSTR functionName, const LPCWSTR fileName, const UINT lineNumber, const BOOL specialError) {
 	LPWSTR buffer;
 
-	if(!FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR) &buffer, 0, NULL)) {
+	if(!FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | (specialError ? FORMAT_MESSAGE_FROM_HMODULE : 0), specialError ? LoadLibraryW(L"ntdll.dll") : NULL, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR) &buffer, 0, NULL)) {
 		return KHFormatMessageW(FORMAT_FALLBACK, functionName, fileName, lineNumber, errorCode);
 	}
 
