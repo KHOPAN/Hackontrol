@@ -8,12 +8,13 @@
 
 #define IDM_PICTURE_IN_PICTURE              0xE001
 #define IDM_LOCK_FRAME                      0xE002
-#define IDM_WINDOW_EXIT                     0xE003
-#define IDM_WINDOW_STREAMING_ENABLE         0xE004
-#define IDM_WINDOW_SEND_METHOD_FULL         0xE005
-#define IDM_WINDOW_SEND_METHOD_BOUNDARY     0xE006
-#define IDM_WINDOW_SEND_METHOD_COLOR        0xE007
-#define IDM_WINDOW_SEND_METHOD_UNCOMPRESSED 0xE008
+#define IDM_LIMIT_TO_SCREEN                 0xE003
+#define IDM_WINDOW_EXIT                     0xE004
+#define IDM_WINDOW_STREAMING_ENABLE         0xE005
+#define IDM_WINDOW_SEND_METHOD_FULL         0xE006
+#define IDM_WINDOW_SEND_METHOD_BOUNDARY     0xE007
+#define IDM_WINDOW_SEND_METHOD_COLOR        0xE008
+#define IDM_WINDOW_SEND_METHOD_UNCOMPRESSED 0xE009
 
 static void sendStreamCode(const PCLIENT client) {
 	BYTE flags = ((client->window->stream.sendMethod & 0b11) << 1) | (client->window->stream.streaming ? 0b1001 : 0);
@@ -135,6 +136,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		AppendMenuW(popupMenu, MF_POPUP, (UINT_PTR) streamingMenu, L"Streaming");
 		AppendMenuW(popupMenu, MF_STRING | (client->window->stream.pictureInPictureMode ? MF_CHECKED : MF_UNCHECKED), IDM_PICTURE_IN_PICTURE, L"Picture in Picture Mode");
 		AppendMenuW(popupMenu, MF_STRING | (client->window->stream.lockFrame ? MF_CHECKED : MF_UNCHECKED) | (client->window->stream.pictureInPictureMode ? MF_ENABLED : MF_DISABLED), IDM_LOCK_FRAME, L"Lock Frame");
+		AppendMenuW(popupMenu, MF_STRING | (client->window->stream.limitToScreen ? MF_CHECKED : MF_UNCHECKED) | (client->window->stream.pictureInPictureMode ? MF_ENABLED : MF_DISABLED), IDM_LIMIT_TO_SCREEN, L"Limit to Screen");
 		AppendMenuW(popupMenu, MF_STRING, IDM_WINDOW_EXIT, L"Exit");
 		SetForegroundWindow(window);
 		ReleaseMutex(client->window->lock);
@@ -156,6 +158,9 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			break;
 		case IDM_LOCK_FRAME:
 			client->window->stream.lockFrame = !client->window->stream.lockFrame;
+			break;
+		case IDM_LIMIT_TO_SCREEN:
+			client->window->stream.limitToScreen = !client->window->stream.limitToScreen;
 			break;
 		case IDM_WINDOW_EXIT:
 			LOG("[Window %ws]: Exiting\n" COMMA client->address);

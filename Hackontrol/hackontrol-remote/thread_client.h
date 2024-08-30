@@ -30,6 +30,7 @@ typedef struct {
 	SENDMETHOD sendMethod;
 	BOOL pictureInPictureMode;
 	BOOL lockFrame;
+	BOOL limitToScreen;
 } STREAMDATA;
 
 typedef struct {
