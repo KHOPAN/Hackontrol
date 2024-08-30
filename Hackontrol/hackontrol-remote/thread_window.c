@@ -224,6 +224,13 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			bounds.left = position.x - client->window->stream.pressedX;
 		}
 
+		if(client->window->stream.limitToScreen) {
+			bounds.left = max(bounds.left, 0);
+			bounds.top = max(bounds.top, 0);
+			bounds.right = min(bounds.right, GetSystemMetrics(SM_CXSCREEN));
+			bounds.bottom = min(bounds.bottom, GetSystemMetrics(SM_CYSCREEN));
+		}
+
 		SetWindowPos(window, HWND_TOP, bounds.left, bounds.top, bounds.right - bounds.left, bounds.bottom - bounds.top, client->window->stream.cursorNorth && client->window->stream.cursorEast && client->window->stream.cursorSouth && client->window->stream.cursorWest ? SWP_NOSIZE : (!client->window->stream.cursorNorth && client->window->stream.cursorEast) || (client->window->stream.cursorSouth && !client->window->stream.cursorWest) ? SWP_NOMOVE : 0);
 		break;
 	}
