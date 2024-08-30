@@ -25,6 +25,27 @@ static void sendStreamCode(const PCLIENT client) {
 	SendPacket(client->socket, &packet);
 }
 
+static void limitToScreen(const PRECT rectangle) {
+	int width = GetSystemMetrics(SM_CXSCREEN);
+	int height = GetSystemMetrics(SM_CYSCREEN);
+
+	if(rectangle->left < 0) {
+		rectangle->left = 0;
+	}
+
+	if(rectangle->top < 0) {
+		rectangle->top = 0;
+	}
+
+	if(rectangle->top + rectangle->bottom > height) {
+		rectangle->top = height - rectangle->bottom;
+	}
+
+	if(rectangle->left + rectangle->right > width) {
+		rectangle->right = width - rectangle->left;
+	}
+}
+
 static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	PCLIENT client = (PCLIENT) GetWindowLongPtrW(window, GWLP_USERDATA);
 
@@ -208,7 +229,17 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		GetCursorPos(&position);
 		GetWindowRect(window, &bounds);
 
-		if(client->window->stream.cursorNorth) {
+		/*if(position.x + client->window->stream.pressedOffsetX < GetSystemMetrics(SM_CXSCREEN)) {
+			bounds.left = position.x - client->window->stream.pressedX;
+			bounds.right = position.x + client->window->stream.pressedOffsetX;
+		}
+
+		if(position.y + client->window->stream.pressedOffsetY < GetSystemMetrics(SM_CYSCREEN)) {
+			bounds.top = position.y - client->window->stream.pressedY;
+			bounds.bottom = position.y + client->window->stream.pressedOffsetY;
+		}*/
+
+		/*if(client->window->stream.cursorNorth) {
 			bounds.top = position.y - client->window->stream.pressedY;
 		}
 
@@ -222,16 +253,31 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 
 		if(client->window->stream.cursorWest) {
 			bounds.left = position.x - client->window->stream.pressedX;
-		}
+		}*/
 
-		if(client->window->stream.limitToScreen) {
-			bounds.left = max(bounds.left, 0);
+		//bounds.right -= bounds.left;
+		//bounds.bottom -= bounds.top;
+
+		//if(client->window->stream.limitToScreen) {
+			/*bounds.left = max(bounds.left, 0);
 			bounds.top = max(bounds.top, 0);
 			bounds.right = min(bounds.right, GetSystemMetrics(SM_CXSCREEN));
-			bounds.bottom = min(bounds.bottom, GetSystemMetrics(SM_CYSCREEN));
-		}
+			bounds.bottom = min(bounds.bottom, GetSystemMetrics(SM_CYSCREEN));*/
+			//limitToScreen(&bounds);
+		//}
 
-		SetWindowPos(window, HWND_TOP, bounds.left, bounds.top, bounds.right - bounds.left, bounds.bottom - bounds.top, client->window->stream.cursorNorth && client->window->stream.cursorEast && client->window->stream.cursorSouth && client->window->stream.cursorWest ? SWP_NOSIZE : (!client->window->stream.cursorNorth && client->window->stream.cursorEast) || (client->window->stream.cursorSouth && !client->window->stream.cursorWest) ? SWP_NOMOVE : 0);
+		//LOG("Right: %d Bottom %d\n" COMMA bounds.right COMMA bounds.bottom);
+		bounds.right -= bounds.left;
+		bounds.bottom -= bounds.top;
+		bounds.left = position.x - client->window->stream.pressedX;
+		bounds.top = position.y - client->window->stream.pressedY;
+		bounds.left = max(bounds.left, 0);
+		bounds.top = max(bounds.top, 0);
+		position.x = GetSystemMetrics(SM_CXSCREEN) - bounds.right;
+		position.y = GetSystemMetrics(SM_CYSCREEN) - bounds.bottom;
+		bounds.left = min(bounds.left, position.x);
+		bounds.top = min(bounds.top, position.y);
+		SetWindowPos(window, HWND_TOP, bounds.left, bounds.top, bounds.right, bounds.bottom, 0);// client->window->stream.cursorNorth&& client->window->stream.cursorEast&& client->window->stream.cursorSouth&& client->window->stream.cursorWest ? SWP_NOSIZE : (!client->window->stream.cursorNorth && client->window->stream.cursorEast) || (client->window->stream.cursorSouth && !client->window->stream.cursorWest) ? SWP_NOMOVE : 0);
 		break;
 	}
 	case WM_LBUTTONDOWN:
