@@ -4,8 +4,8 @@
 
 #define FORMATA "%s() error ocurred. Error code: %u Message:\n%s"
 #define FORMATW L"%ws() error ocurred. Error code: %u Message:\n%ws"
-#define FORMAT          L"%ws() error ocurred in\n%ws\nLine: %u Error code: %u Message:\n%ws"
-#define FORMAT_FALLBACK L"%ws() error ocurred in\n%ws\nLine: %u Error code: %u"
+#define FORMAT          L"%ws() error ocurred in '%ws' Line: %u Error code: %u Message:\n%ws"
+#define FORMAT_FALLBACK L"%ws() error ocurred in '%ws' Line: %u Error code: %u"
 
 LPWSTR KHInternal_ErrorMessage(const DWORD errorCode, const LPCWSTR functionName, const LPCWSTR fileName, const UINT lineNumber, const BOOL specialError) {
 	LPWSTR buffer;

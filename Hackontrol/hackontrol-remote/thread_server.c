@@ -123,7 +123,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 #ifdef LOGGER_ENABLE
 #ifndef NO_CONSOLE
 	if(!AllocConsole()) {
-		KHWin32DialogErrorW(GetLastError(), L"AllocConsole");
+		KHWIN32_LAST_ERROR(L"AllocConsole");
 		goto exit;
 	}
 
@@ -141,21 +141,21 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	}
 
 	if(!KHArrayInitialize(&clients, sizeof(CLIENT))) {
-		KHWin32DialogErrorW(GetLastError(), L"KHArrayInitialize");
+		KHWIN32_LAST_ERROR(L"KHArrayInitialize");
 		goto exit;
 	}
 
 	clientsLock = CreateMutexExW(NULL, NULL, 0, SYNCHRONIZE | DELETE);
 
 	if(!clientsLock) {
-		KHWin32DialogErrorW(GetLastError(), L"CreateMutexExW");
+		KHWIN32_LAST_ERROR(L"CreateMutexExW");
 		goto freeClients;
 	}
 
 	HANDLE serverThreadHandle = CreateThread(NULL, 0, serverThread, NULL, 0, NULL);
 
 	if(!serverThreadHandle) {
-		KHWin32DialogErrorW(GetLastError(), L"CreateThread");
+		KHWIN32_LAST_ERROR(L"CreateThread");
 		goto closeLock;
 	}
 
@@ -168,14 +168,14 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	}
 
 	if(WaitForSingleObject(serverThreadHandle, INFINITE) == WAIT_FAILED) {
-		KHWin32DialogErrorW(GetLastError(), L"WaitForSingleObject");
+		KHWIN32_LAST_ERROR(L"WaitForSingleObject");
 		goto closeServer;
 	}
 
 	LOG("[Remote]: Wait for client list mutex to unlock\n");
 
 	if(WaitForSingleObject(clientsLock, INFINITE) == WAIT_FAILED) {
-		KHWin32DialogErrorW(GetLastError(), L"WaitForSingleObject");
+		KHWIN32_LAST_ERROR(L"WaitForSingleObject");
 		goto closeServer;
 	}
 
