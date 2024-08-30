@@ -6,9 +6,17 @@
 #define FILE_RUNDLL32   L"rundll32.exe"
 #define FOLDER_SYSTEM32 L"System32"
 
+#define KHWIN32_MESSAGE(code, function) KHInternal_Win32Message(code,function,__FILEW__,__LINE__)
+
+#define KHWIN32_ERROR(code, function) do{LPWSTR __temporary_message__=KHWIN32_MESSAGE(code,function);if(__temporary_message__){MessageBoxW(NULL,__temporary_message__,L"Error",MB_OK|MB_DEFBUTTON1|MB_ICONERROR|MB_SYSTEMMODAL);LocalFree(__temporary_message__);}}while(0)
+//#define KHWIN32_ERROR_CONSOLE
+//#define KHNTSTATUS_ERROR
+//#define KHNTSTATUS_ERROR_CONSOLE
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+LPWSTR KHInternal_Win32Message(const DWORD errorCode, const LPCWSTR functionName, const LPCWSTR fileName, const UINT lineNumber);
 LPSTR KHWin32GetWindowsDirectoryA();
 LPWSTR KHWin32GetWindowsDirectoryW();
 LPSTR KHWin32GetErrorMessageA(DWORD errorCode, const LPSTR functionName);

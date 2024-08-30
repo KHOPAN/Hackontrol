@@ -4,6 +4,25 @@
 
 #define FORMATA "%s() error ocurred. Error code: %u Message:\n%s"
 #define FORMATW L"%ws() error ocurred. Error code: %u Message:\n%ws"
+#define FORMAT          L"%ws() error ocurred in\n%ws\nLine: %u Error code: %u Message:\n%ws"
+#define FORMAT_FALLBACK L"%ws() error ocurred in\n%ws\nLine: %u Error code: %u"
+
+LPWSTR KHInternal_Win32Message(const DWORD errorCode, const LPCWSTR functionName, const LPCWSTR fileName, const UINT lineNumber) {
+	LPWSTR buffer;
+
+	if(!FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR) &buffer, 0, NULL)) {
+		return KHFormatMessageW(FORMAT_FALLBACK, functionName, fileName, lineNumber, errorCode);
+	}
+
+	LPWSTR message = KHFormatMessageW(FORMAT, functionName, fileName, lineNumber, errorCode, buffer);
+
+	if(!message) {
+		return buffer;
+	}
+
+	LocalFree(buffer);
+	return message;
+}
 
 static void* allocate(void* data, size_t size) {
 	BYTE* buffer = LocalAlloc(LMEM_FIXED, size);
