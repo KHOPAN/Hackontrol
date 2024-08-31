@@ -6,31 +6,25 @@
 #define FILE_RUNDLL32   L"rundll32.exe"
 #define FOLDER_SYSTEM32 L"System32"
 
-#define KHWIN32_MESSAGE(code, function) KHInternal_ErrorMessage((DWORD)(code),(LPWSTR)(function),__FILEW__,__LINE__,FALSE)
+#define KHWIN32_MESSAGE(code, function)    KHInternal_ErrorMessage((DWORD)(code),(LPWSTR)(function),__FILEW__,__LINE__,FALSE)
 #define KHNTSTATUS_MESSAGE(code, function) KHInternal_ErrorMessage((DWORD)(code),(LPWSTR)(function),__FILEW__,__LINE__,TRUE)
 
-#define KHWIN32_ERROR(code, function) do{LPWSTR __temporary_message__=KHWIN32_MESSAGE(code,function);if(__temporary_message__){MessageBoxW(NULL,__temporary_message__,L"Error",MB_OK|MB_DEFBUTTON1|MB_ICONERROR|MB_SYSTEMMODAL);LocalFree(__temporary_message__);}}while(0)
-#define KHWIN32_ERROR_CONSOLE(code, function) do{LPWSTR __temporary_message__=KHWIN32_MESSAGE(code,function);if(__temporary_message__){printf("%ws\n",__temporary_message__);LocalFree(__temporary_message__);}}while(0)
-#define KHNTSTATUS_ERROR(code, function) do{LPWSTR __temporary_message__=KHNTSTATUS_MESSAGE(code,function);if(__temporary_message__){MessageBoxW(NULL,__temporary_message__,L"Error",MB_OK|MB_DEFBUTTON1|MB_ICONERROR|MB_SYSTEMMODAL);LocalFree(__temporary_message__);}}while(0)
+#define KHWIN32_ERROR(code, function)            do{LPWSTR __temporary_message__=KHWIN32_MESSAGE(code,function);if(__temporary_message__){MessageBoxW(NULL,__temporary_message__,L"Error",MB_OK|MB_DEFBUTTON1|MB_ICONERROR|MB_SYSTEMMODAL);LocalFree(__temporary_message__);}}while(0)
+#define KHWIN32_ERROR_CONSOLE(code, function)    do{LPWSTR __temporary_message__=KHWIN32_MESSAGE(code,function);if(__temporary_message__){printf("%ws\n",__temporary_message__);LocalFree(__temporary_message__);}}while(0)
+#define KHNTSTATUS_ERROR(code, function)         do{LPWSTR __temporary_message__=KHNTSTATUS_MESSAGE(code,function);if(__temporary_message__){MessageBoxW(NULL,__temporary_message__,L"Error",MB_OK|MB_DEFBUTTON1|MB_ICONERROR|MB_SYSTEMMODAL);LocalFree(__temporary_message__);}}while(0)
 #define KHNTSTATUS_ERROR_CONSOLE(code, function) do{LPWSTR __temporary_message__=KHNTSTATUS_MESSAGE(code,function);if(__temporary_message__){printf("%ws\n",__temporary_message__);LocalFree(__temporary_message__);}}while(0)
 
-#define KHWIN32_LAST_ERROR(function) KHWIN32_ERROR(GetLastError(),function)
-#define KHWIN32_LAST_ERROR_CONSOLE(function) KHWIN32_ERROR_CONSOLE(GetLastError(),function)
-#define KHWIN32_LAST_WSA_ERROR(function) KHWIN32_ERROR(WSAGetLastError(),function)
+#define KHWIN32_LAST_ERROR(function)             KHWIN32_ERROR(GetLastError(),function)
+#define KHWIN32_LAST_ERROR_CONSOLE(function)     KHWIN32_ERROR_CONSOLE(GetLastError(),function)
+#define KHWIN32_LAST_WSA_ERROR(function)         KHWIN32_ERROR(WSAGetLastError(),function)
 #define KHWIN32_LAST_WSA_ERROR_CONSOLE(function) KHWIN32_ERROR_CONSOLE(WSAGetLastError(),function)
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-LPWSTR KHInternal_ErrorMessage(const DWORD errorCode, const LPCWSTR functionName, const LPCWSTR fileName, const UINT lineNumber, const BOOL specialError);
 LPSTR KHWin32GetWindowsDirectoryA();
 LPWSTR KHWin32GetWindowsDirectoryW();
-LPSTR KHWin32GetErrorMessageA(DWORD errorCode, const LPSTR functionName);
-LPWSTR KHWin32GetErrorMessageW(DWORD errorCode, const LPWSTR functionName);
-void KHWin32DialogErrorA(DWORD errorCode, const LPSTR functionName);
-void KHWin32DialogErrorW(DWORD errorCode, const LPWSTR functionName);
-void KHWin32ConsoleErrorA(DWORD errorCode, const LPSTR functionName);
-void KHWin32ConsoleErrorW(DWORD errorCode, const LPWSTR functionName);
+LPWSTR KHInternal_ErrorMessage(const DWORD errorCode, const LPCWSTR functionName, const LPCWSTR fileName, const UINT lineNumber, const BOOL specialError);
 BOOL KHWin32StartProcessA(const LPSTR filePath, const LPSTR argument, BOOL wait);
 BOOL KHWin32StartProcessW(const LPWSTR filePath, const LPWSTR argument, BOOL wait);
 LPSTR KHWin32GetRundll32FileA();
@@ -54,9 +48,6 @@ DWORD KHWin32DecodeHRESULTError(HRESULT result);
 
 #ifdef UNICODE
 #define KHWin32GetWindowsDirectory     KHWin32GetWindowsDirectoryW
-#define KHWin32GetErrorMessage         KHWin32GetErrorMessageW
-#define KHWin32DialogError             KHWin32DialogErrorW
-#define KHWin32ConsoleError            KHWin32ConsoleErrorW
 #define KHWin32StartProcess            KHWin32StartProcessW
 #define KHWin32GetRundll32File         KHWin32GetRundll32FileW
 #define KHWin32StartDynamicLibrary     KHWin32StartDynamicLibraryW
@@ -66,9 +57,6 @@ DWORD KHWin32DecodeHRESULTError(HRESULT result);
 #define KHWin32EnablePrivilege         KHWin32EnablePrivilegeW
 #else
 #define KHWin32GetWindowsDirectory     KHWin32GetWindowsDirectoryA
-#define KHWin32GetErrorMessage         KHWin32GetErrorMessageA
-#define KHWin32DialogError             KHWin32DialogErrorA
-#define KHWin32ConsoleError            KHWin32ConsoleErrorA
 #define KHWin32StartProcess            KHWin32StartProcessA
 #define KHWin32GetRundll32File         KHWin32GetRundll32FileA
 #define KHWin32StartDynamicLibrary     KHWin32StartDynamicLibraryA
