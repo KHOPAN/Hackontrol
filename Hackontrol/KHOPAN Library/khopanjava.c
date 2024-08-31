@@ -1,5 +1,6 @@
-#include "khopanjava.h"
 #include "khopanwin32.h"
+#include "khopanstring.h"
+#include "khopanjava.h"
 
 static void print(JNIEnv* environment, const LPVOID message, const LPSTR fieldName, BOOL wide) {
 	jclass systemClass = (*environment)->FindClass(environment, "java/lang/System");
@@ -58,7 +59,14 @@ void KHJavaStandardErrorW(JNIEnv* environment, const LPWSTR message) {
 }
 
 void KHJavaWin32ErrorA(JNIEnv* environment, DWORD errorCode, const LPSTR functionName) {
-	LPSTR message = KHWin32GetErrorMessageA(errorCode, functionName);
+	LPWSTR buffer = KHWIN32_MESSAGE(errorCode, functionName);
+
+	if(!buffer) {
+		return;
+	}
+
+	LPSTR message = KHFormatMessageA("%ws");
+	LocalFree(buffer);
 
 	if(!message) {
 		return;
@@ -69,7 +77,7 @@ void KHJavaWin32ErrorA(JNIEnv* environment, DWORD errorCode, const LPSTR functio
 }
 
 void KHJavaWin32ErrorW(JNIEnv* environment, DWORD errorCode, const LPWSTR functionName) {
-	LPWSTR message = KHWin32GetErrorMessageW(errorCode, functionName);
+	LPWSTR message = KHWIN32_MESSAGE(errorCode, functionName);
 
 	if(!message) {
 		return;
