@@ -1,8 +1,9 @@
+#include <stdio.h>
 #include "khopanwin32.h"
 #include "khopanstring.h"
 
-#define ERROR_FORMAT          L"%ws() error ocurred in '%ws' Line: %u Error code: %u Message:\n%ws"
-#define ERROR_FORMAT_FALLBACK L"%ws() error ocurred in '%ws' Line: %u Error code: %u"
+#define ERROR_FORMAT          L"%ws() error in '%ws' Line: %u Error code: %u Message:\n%ws"
+#define ERROR_FORMAT_FALLBACK L"%ws() error in '%ws' Line: %u Error code: %u"
 
 LPSTR KHWin32GetWindowsDirectoryA() {
 	UINT size = GetSystemWindowsDirectoryA(NULL, 0);
@@ -48,12 +49,32 @@ LPWSTR KHWin32GetWindowsDirectoryW() {
 
 LPWSTR KHInternal_ErrorMessage(const DWORD errorCode, const LPCWSTR functionName, const LPCWSTR fileName, const UINT lineNumber, const BOOL specialError) {
 	LPWSTR buffer;
+	size_t lengthFileName = 0;
 
-	if(!FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | (specialError ? FORMAT_MESSAGE_FROM_HMODULE : 0), specialError ? LoadLibraryW(L"ntdll.dll") : NULL, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR) &buffer, 0, NULL)) {
-		return KHFormatMessageW(ERROR_FORMAT_FALLBACK, functionName, fileName, lineNumber, errorCode);
+	if(!fileName) {
+		goto formatMessage;
 	}
 
-	LPWSTR message = KHFormatMessageW(ERROR_FORMAT, functionName, fileName, lineNumber, errorCode, buffer);
+	lengthFileName = wcslen(fileName);
+
+	if(!lengthFileName) {
+		goto formatMessage;
+	}
+
+	for(size_t i = 0; i < lengthFileName; i++) {
+		buffer = (LPWSTR) (lengthFileName - i - 1);
+
+		if(fileName[(size_t) buffer] == L'/' || fileName[(size_t) buffer] == L'\\') {
+			lengthFileName = ((size_t) buffer) + 1;
+			break;
+		}
+	}
+formatMessage:
+	if(!FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | (specialError ? FORMAT_MESSAGE_FROM_HMODULE : 0), specialError ? LoadLibraryW(L"ntdll.dll") : NULL, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR) &buffer, 0, NULL)) {
+		return KHFormatMessageW(ERROR_FORMAT_FALLBACK, functionName, fileName + lengthFileName, lineNumber, errorCode);
+	}
+
+	LPWSTR message = KHFormatMessageW(ERROR_FORMAT, functionName, fileName + lengthFileName, lineNumber, errorCode, buffer);
 
 	if(!message) {
 		return buffer;
