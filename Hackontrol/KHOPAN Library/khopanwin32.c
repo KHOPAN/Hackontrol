@@ -5,47 +5,10 @@
 #define ERROR_FORMAT          L"%ws() error in '%ws' Line: %u Error code: %u Message:\n%ws"
 #define ERROR_FORMAT_FALLBACK L"%ws() error in '%ws' Line: %u Error code: %u"
 
-LPSTR KHWin32GetWindowsDirectoryA() {
-	UINT size = GetSystemWindowsDirectoryA(NULL, 0);
+#define DEFINE_GET_DIRECTORY(x,y) LP##x##STR KHWin32GetWindowsDirectory##y(){UINT size=GetSystemWindowsDirectory##y(NULL,0);if(!size)return NULL;LP##x##STR buffer=LocalAlloc(LMEM_FIXED,size*sizeof(x##CHAR));if(!buffer)return NULL;if(!GetSystemWindowsDirectory##y(buffer,size)){LocalFree(buffer);return NULL;}return buffer;}
 
-	if(!size) {
-		return NULL;
-	}
-
-	LPSTR buffer = LocalAlloc(LMEM_FIXED, size * sizeof(CHAR));
-
-	if(!buffer) {
-		return NULL;
-	}
-
-	if(!GetSystemWindowsDirectoryA(buffer, size)) {
-		LocalFree(buffer);
-		return NULL;
-	}
-
-	return buffer;
-}
-
-LPWSTR KHWin32GetWindowsDirectoryW() {
-	UINT size = GetSystemWindowsDirectoryW(NULL, 0);
-
-	if(!size) {
-		return NULL;
-	}
-
-	LPWSTR buffer = LocalAlloc(LMEM_FIXED, size * sizeof(WCHAR));
-
-	if(!buffer) {
-		return NULL;
-	}
-
-	if(!GetSystemWindowsDirectoryW(buffer, size)) {
-		LocalFree(buffer);
-		return NULL;
-	}
-
-	return buffer;
-}
+DEFINE_GET_DIRECTORY(,A)
+DEFINE_GET_DIRECTORY(W,W)
 
 LPWSTR KHInternal_ErrorMessage(const DWORD errorCode, const LPCWSTR functionName, const LPCWSTR fileName, const UINT lineNumber, const BOOL specialError) {
 	LPWSTR buffer;
