@@ -3,7 +3,6 @@
 //#include <bcrypt.h>
 
 int main(int argc, char** argv) {
-	KHWIN32_ERROR(KHHRESULT_DECODE(MAKE_HRESULT(SEVERITY_ERROR, FACILITY_WIN32, ERROR_APPEXEC_INVALID_HOST_GENERATION)), L"main");
 	LPWSTR pathFolderWindows = KHWin32GetWindowsDirectoryW();
 
 	if(!pathFolderWindows) {

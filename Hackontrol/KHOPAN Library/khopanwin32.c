@@ -12,7 +12,7 @@ LPSTR KHWin32GetWindowsDirectoryA() {
 		return NULL;
 	}
 
-	LPSTR buffer = LocalAlloc(LMEM_FIXED, size);
+	LPSTR buffer = LocalAlloc(LMEM_FIXED, size * sizeof(CHAR));
 
 	if(!buffer) {
 		return NULL;
@@ -33,7 +33,7 @@ LPWSTR KHWin32GetWindowsDirectoryW() {
 		return NULL;
 	}
 
-	LPWSTR buffer = LocalAlloc(LMEM_FIXED, size);
+	LPWSTR buffer = LocalAlloc(LMEM_FIXED, size * sizeof(WCHAR));
 
 	if(!buffer) {
 		return NULL;
