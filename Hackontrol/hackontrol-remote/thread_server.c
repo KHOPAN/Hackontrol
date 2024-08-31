@@ -16,10 +16,10 @@ DWORD WINAPI serverThread(_In_ LPVOID parameter) {
 	LOG("[Server]: Starting\n");
 	WSADATA data;
 	int status = WSAStartup(MAKEWORD(2, 2), &data);
-	DWORD returnValue = 1;
+	data.wVersion = 1;
 
 	if(status) {
-		KHWin32DialogErrorW(status, L"WSAStartup");
+		KHWIN32_ERROR(status, L"WSAStartup");
 		goto exit;
 	}
 
@@ -32,7 +32,7 @@ DWORD WINAPI serverThread(_In_ LPVOID parameter) {
 	status = GetAddrInfoW(NULL, REMOTE_PORT, &hints, &result);
 
 	if(status) {
-		KHWin32DialogErrorW(status, L"GetAddrInfoW");
+		KHWIN32_ERROR(status, L"GetAddrInfoW");
 		goto cleanup;
 	}
 
@@ -40,7 +40,7 @@ DWORD WINAPI serverThread(_In_ LPVOID parameter) {
 	socketListen = WSASocketW(result->ai_family, result->ai_socktype, result->ai_protocol, NULL, 0, WSA_FLAG_OVERLAPPED);
 
 	if(socketListen == INVALID_SOCKET) {
-		KHWin32DialogErrorW(WSAGetLastError(), L"WSASocketW");
+		KHWIN32_LAST_WSA_ERROR(L"WSASocketW");
 		FreeAddrInfoW(result);
 		goto cleanup;
 	}
@@ -49,12 +49,12 @@ DWORD WINAPI serverThread(_In_ LPVOID parameter) {
 	FreeAddrInfoW(result);
 
 	if(status == SOCKET_ERROR) {
-		KHWin32DialogErrorW(WSAGetLastError(), L"bind");
+		KHWIN32_LAST_WSA_ERROR(L"bind");
 		goto cleanup;
 	}
 
 	if(listen(socketListen, SOMAXCONN) == SOCKET_ERROR) {
-		KHWin32DialogErrorW(WSAGetLastError(), L"listen");
+		KHWIN32_LAST_WSA_ERROR(L"listen");
 		goto cleanup;
 	}
 
@@ -68,14 +68,14 @@ DWORD WINAPI serverThread(_In_ LPVOID parameter) {
 		if(socket == INVALID_SOCKET) {
 			status = WSAGetLastError();
 			if(status == WSAEINTR) break;
-			KHWin32DialogErrorW(status, L"accept");
+			KHWIN32_ERROR(status, L"accept");
 			continue;
 		}
 
 		PCLIENT client = LocalAlloc(LMEM_FIXED, sizeof(CLIENT));
 
 		if(!client) {
-			KHWin32DialogErrorW(GetLastError(), L"LocalAlloc");
+			KHWIN32_LAST_ERROR(L"LocalAlloc");
 			goto closeSocket;
 		}
 
@@ -85,7 +85,7 @@ DWORD WINAPI serverThread(_In_ LPVOID parameter) {
 		client->window = NULL;
 
 		if(!InetNtopW(AF_INET, &address.sin_addr, client->address, 16)) {
-			KHWin32DialogErrorW(WSAGetLastError(), L"InetNtopW");
+			KHWIN32_LAST_WSA_ERROR(L"InetNtopW");
 			goto freeClient;
 		}
 
@@ -93,7 +93,7 @@ DWORD WINAPI serverThread(_In_ LPVOID parameter) {
 		client->thread = CreateThread(NULL, 0, ClientThread, client, 0, NULL);
 
 		if(!client->thread) {
-			KHWin32DialogErrorW(GetLastError(), L"CreateThread");
+			KHWIN32_LAST_ERROR(L"CreateThread");
 			goto freeClient;
 		}
 
@@ -105,7 +105,7 @@ DWORD WINAPI serverThread(_In_ LPVOID parameter) {
 	}
 
 	MainWindowExit();
-	returnValue = 0;
+	data.wVersion = 0;
 cleanup:
 	if(socketListen) {
 		closesocket(socketListen);
@@ -114,8 +114,8 @@ cleanup:
 
 	WSACleanup();
 exit:
-	LOG("[Server]: Exit server with code: %d\n" COMMA returnValue);
-	return returnValue;
+	LOG("[Server]: Exit server with code: %d\n" COMMA data.wVersion);
+	return data.wVersion;
 }
 
 int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance, _In_ LPSTR argument, _In_ int commandLine) {
@@ -193,8 +193,13 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 			client->socket = 0;
 		}
 
-		if(client->thread) {
-			WaitForSingleObject(client->thread, INFINITE);
+		if(!client->thread) {
+			continue;
+		}
+
+		if(WaitForSingleObject(client->thread, INFINITE) == WAIT_FAILED) {
+			KHWIN32_LAST_ERROR(L"WaitForSingleObject");
+			goto closeServer;
 		}
 	}
 closeServer:
