@@ -62,15 +62,3 @@ LPWSTR KHInternal_ErrorMessage(const DWORD errorCode, const LPCWSTR functionName
 	LocalFree(buffer);
 	return message;
 }
-
-DWORD KHWin32DecodeHRESULTError(HRESULT result) {
-	if((result & 0xFFFF0000) == MAKE_HRESULT(SEVERITY_ERROR, FACILITY_WIN32, 0)) {
-		return HRESULT_CODE(result);
-	}
-
-	if(result == S_OK) {
-		return ERROR_SUCCESS;
-	}
-
-	return ERROR_CAN_NOT_COMPLETE;
-}

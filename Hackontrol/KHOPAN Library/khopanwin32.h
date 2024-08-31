@@ -19,6 +19,8 @@
 #define KHWIN32_LAST_WSA_ERROR(function)         KHWIN32_ERROR(WSAGetLastError(),function)
 #define KHWIN32_LAST_WSA_ERROR_CONSOLE(function) KHWIN32_ERROR_CONSOLE(WSAGetLastError(),function)
 
+#define KHHRESULT_DECODE(x) ((HRESULT)(x)==S_OK?ERROR_SUCCESS:((long)(((HRESULT)(x))&0xFFFF0000))==MAKE_HRESULT(SEVERITY_ERROR,FACILITY_WIN32,0)?HRESULT_CODE((HRESULT)(x)):ERROR_CAN_NOT_COMPLETE)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -41,7 +43,6 @@ BOOL KHWin32EnablePrivilegeA(const LPSTR privilege);
 BOOL KHWin32EnablePrivilegeW(const LPWSTR privilege);
 BOOL KHWin32RegistrySetStringValueA(const HKEY key, const LPSTR valueName, const LPSTR value);
 BOOL KHWin32RegistrySetStringValueW(const HKEY key, const LPWSTR valueName, const LPWSTR value);
-DWORD KHWin32DecodeHRESULTError(HRESULT result);
 #ifdef __cplusplus
 }
 #endif
