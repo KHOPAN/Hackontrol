@@ -20,7 +20,7 @@ DWORD WINAPI serverThread(_In_ LPVOID parameter) {
 
 	if(status) {
 		KHWIN32_ERROR(status, L"WSAStartup");
-		goto exit;
+		goto functionExit;
 	}
 
 	ADDRINFOW hints = {0};
@@ -28,40 +28,39 @@ DWORD WINAPI serverThread(_In_ LPVOID parameter) {
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
 	hints.ai_flags = AI_PASSIVE;
-	PADDRINFOW result;
-	status = GetAddrInfoW(NULL, REMOTE_PORT, &hints, &result);
+	status = GetAddrInfoW(NULL, REMOTE_PORT, &hints, &hints.ai_next);
 
 	if(status) {
 		KHWIN32_ERROR(status, L"GetAddrInfoW");
-		goto cleanup;
+		goto cleanupResources;
 	}
 
 	LOG("[Server]: Start the listening socket\n");
-	socketListen = WSASocketW(result->ai_family, result->ai_socktype, result->ai_protocol, NULL, 0, WSA_FLAG_OVERLAPPED);
+	socketListen = WSASocketW(hints.ai_next->ai_family, hints.ai_next->ai_socktype, hints.ai_next->ai_protocol, NULL, 0, WSA_FLAG_OVERLAPPED);
 
 	if(socketListen == INVALID_SOCKET) {
 		KHWIN32_LAST_WSA_ERROR(L"WSASocketW");
-		FreeAddrInfoW(result);
-		goto cleanup;
+		FreeAddrInfoW(hints.ai_next);
+		goto cleanupResources;
 	}
 
-	status = bind(socketListen, result->ai_addr, (int) result->ai_addrlen);
-	FreeAddrInfoW(result);
+	status = bind(socketListen, hints.ai_next->ai_addr, (int) hints.ai_next->ai_addrlen);
+	FreeAddrInfoW(hints.ai_next);
 
 	if(status == SOCKET_ERROR) {
 		KHWIN32_LAST_WSA_ERROR(L"bind");
-		goto cleanup;
+		goto cleanupResources;
 	}
 
 	if(listen(socketListen, SOMAXCONN) == SOCKET_ERROR) {
 		KHWIN32_LAST_WSA_ERROR(L"listen");
-		goto cleanup;
+		goto cleanupResources;
 	}
 
 	LOG("[Server]: Listening for incoming connection...\n");
-	SOCKADDR_IN address;
 
 	while(TRUE) {
+		SOCKADDR_IN address;
 		status = sizeof(SOCKADDR_IN);
 		SOCKET socket = accept(socketListen, (struct sockaddr*) &address, &status);
 
@@ -106,14 +105,17 @@ DWORD WINAPI serverThread(_In_ LPVOID parameter) {
 
 	MainWindowExit();
 	data.wVersion = 0;
-cleanup:
+cleanupResources:
 	if(socketListen) {
 		closesocket(socketListen);
 		socketListen = 0;
 	}
 
-	WSACleanup();
-exit:
+	if(WSACleanup() == SOCKET_ERROR) {
+		KHWIN32_LAST_WSA_ERROR(L"WSACleanup");
+		data.wVersion = 1;
+	}
+functionExit:
 	LOG("[Server]: Exit server with code: %d\n" COMMA data.wVersion);
 	return data.wVersion;
 }
@@ -124,7 +126,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 #ifndef NO_CONSOLE
 	if(!AllocConsole()) {
 		KHWIN32_LAST_ERROR(L"AllocConsole");
-		goto exit;
+		goto functionExit;
 	}
 
 	FILE* file = stdout;
@@ -137,12 +139,12 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	LOG("[Remote]: Starting\n");
 
 	if(!MainWindowInitialize(instance) || !ClientWindowInitialize(instance)) {
-		goto exit;
+		goto functionExit;
 	}
 
 	if(!KHArrayInitialize(&clients, sizeof(CLIENT))) {
 		KHWIN32_LAST_ERROR(L"KHArrayInitialize");
-		goto exit;
+		goto functionExit;
 	}
 
 	clientsLock = CreateMutexExW(NULL, NULL, 0, SYNCHRONIZE | DELETE);
@@ -156,7 +158,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 
 	if(!serverThreadHandle) {
 		KHWIN32_LAST_ERROR(L"CreateThread");
-		goto closeLock;
+		goto closeClientsLock;
 	}
 
 	returnValue = MainWindowMessageLoop();
@@ -169,14 +171,16 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 
 	if(WaitForSingleObject(serverThreadHandle, INFINITE) == WAIT_FAILED) {
 		KHWIN32_LAST_ERROR(L"WaitForSingleObject");
-		goto closeServer;
+		returnValue = 1;
+		goto closeServerThreadHandle;
 	}
 
 	LOG("[Remote]: Wait for client list mutex to unlock\n");
 
 	if(WaitForSingleObject(clientsLock, INFINITE) == WAIT_FAILED) {
 		KHWIN32_LAST_ERROR(L"WaitForSingleObject");
-		goto closeServer;
+		returnValue = 1;
+		goto closeServerThreadHandle;
 	}
 
 	LOG("[Remote]: Wait for all client threads to exit\n");
@@ -199,16 +203,17 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 
 		if(WaitForSingleObject(client->thread, INFINITE) == WAIT_FAILED) {
 			KHWIN32_LAST_ERROR(L"WaitForSingleObject");
-			goto closeServer;
+			returnValue = 1;
+			goto closeServerThreadHandle;
 		}
 	}
-closeServer:
+closeServerThreadHandle:
 	CloseHandle(serverThreadHandle);
-closeLock:
+closeClientsLock:
 	CloseHandle(clientsLock);
 freeClients:
 	KHArrayFree(&clients);
-exit:
+functionExit:
 	LOG("[Remote]: Exit with code: %d\n" COMMA returnValue);
 	Sleep(INFINITE);
 	return returnValue;
