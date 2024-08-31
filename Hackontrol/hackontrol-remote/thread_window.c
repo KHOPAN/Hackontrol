@@ -16,34 +16,13 @@
 #define IDM_WINDOW_SEND_METHOD_COLOR        0xE008
 #define IDM_WINDOW_SEND_METHOD_UNCOMPRESSED 0xE009
 
-static void sendStreamCode(const PCLIENT client) {
+static void streamCodeSend(const PCLIENT client) {
 	BYTE flags = ((client->window->stream.sendMethod & 0b11) << 1) | (client->window->stream.streaming ? 0b1001 : 0);
 	PACKET packet;
 	packet.size = 1;
 	packet.packetType = PACKET_TYPE_STREAM_FRAME;
 	packet.data = &flags;
 	SendPacket(client->socket, &packet);
-}
-
-static void limitToScreen(const PRECT rectangle) {
-	int width = GetSystemMetrics(SM_CXSCREEN);
-	int height = GetSystemMetrics(SM_CYSCREEN);
-
-	if(rectangle->left < 0) {
-		rectangle->left = 0;
-	}
-
-	if(rectangle->top < 0) {
-		rectangle->top = 0;
-	}
-
-	if(rectangle->top + rectangle->bottom > height) {
-		rectangle->top = height - rectangle->bottom;
-	}
-
-	if(rectangle->left + rectangle->right > width) {
-		rectangle->right = width - rectangle->left;
-	}
 }
 
 static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
@@ -189,14 +168,14 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			break;
 		case IDM_WINDOW_STREAMING_ENABLE:
 			client->window->stream.streaming = !client->window->stream.streaming;
-			sendStreamCode(client);
+			streamCodeSend(client);
 			break;
 		case IDM_WINDOW_SEND_METHOD_FULL:
 		case IDM_WINDOW_SEND_METHOD_BOUNDARY:
 		case IDM_WINDOW_SEND_METHOD_COLOR:
 		case IDM_WINDOW_SEND_METHOD_UNCOMPRESSED:
 			client->window->stream.sendMethod = position.x == IDM_WINDOW_SEND_METHOD_FULL ? SEND_METHOD_FULL : position.x == IDM_WINDOW_SEND_METHOD_BOUNDARY ? SEND_METHOD_BOUNDARY : position.x == IDM_WINDOW_SEND_METHOD_COLOR ? SEND_METHOD_COLOR : SEND_METHOD_UNCOMPRESSED;
-			sendStreamCode(client);
+			streamCodeSend(client);
 			break;
 		}
 
@@ -296,10 +275,10 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 
 	ReleaseMutex(client->window->lock);
 	returnValue = DefWindowProcW(window, message, wparam, lparam);
-	goto exit;
+	goto functionExit;
 releaseMutex:
 	ReleaseMutex(client->window->lock);
-exit:
+functionExit:
 	return returnValue;
 }
 
@@ -312,7 +291,7 @@ BOOL ClientWindowInitialize(const HINSTANCE instance) {
 	windowClass.lpszClassName = CLASS_CLIENT_WINDOW;
 
 	if(!RegisterClassExW(&windowClass)) {
-		KHWin32DialogErrorW(GetLastError(), L"RegisterClassExW");
+		KHWIN32_LAST_ERROR(L"RegisterClassExW");
 		return FALSE;
 	}
 
@@ -334,22 +313,22 @@ DWORD WINAPI ClientWindowThread(_In_ PCLIENT client) {
 	memset(&client->window->stream, 0, sizeof(STREAMDATA));
 	client->window->stream.sendMethod = SEND_METHOD_COLOR;
 	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
-	client->window->stream.resizeActivationDistance = (int) (((double) screenWidth) * 0.00878477306);
 	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	int width = (int) (((double) screenWidth) * 0.439238653);
 	int height = (int) (((double) screenHeight) * 0.520833333);
 	LPWSTR windowName = KHFormatMessageW(L"%ws [%ws]", client->name, client->address);
+	client->window->stream.resizeActivationDistance = (int) (((double) screenWidth) * 0.00878477306);
 	client->window->window = CreateWindowExW(0L, CLASS_CLIENT_WINDOW, windowName ? windowName : L"Client Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, NULL, client);
 
 	if(windowName) {
 		LocalFree(windowName);
 	}
 
-	int returnValue = 1;
+	screenWidth = 1;
 
 	if(!client->window->window) {
-		KHWin32DialogErrorW(GetLastError(), L"CreateWindowExW");
-		goto exit;
+		KHWIN32_LAST_ERROR(L"CreateWindowExW");
+		goto functionExit;
 	}
 
 	MSG message;
@@ -360,11 +339,11 @@ DWORD WINAPI ClientWindowThread(_In_ PCLIENT client) {
 	}
 
 	client->window->stream.streaming = FALSE;
-	sendStreamCode(client);
+	streamCodeSend(client);
 
 	if(WaitForSingleObject(client->window->lock, INFINITE) == WAIT_FAILED) {
-		KHWin32DialogErrorW(GetLastError(), L"WaitForSingleObject");
-		goto exit;
+		KHWIN32_LAST_ERROR(L"WaitForSingleObject");
+		goto functionExit;
 	}
 
 	if(client->window->stream.pixels) {
@@ -372,14 +351,14 @@ DWORD WINAPI ClientWindowThread(_In_ PCLIENT client) {
 		client->window->stream.pixels = NULL;
 	}
 
-	returnValue = 0;
-exit:
+	screenWidth = 0;
+functionExit:
 	CloseHandle(client->window->lock);
-	LOG("[Window %ws]: Exit client window with code: %d\n" COMMA client->address COMMA returnValue);
+	LOG("[Window %ws]: Exit client window with code: %d\n" COMMA client->address COMMA screenWidth);
 	CloseHandle(client->window->thread);
 	LocalFree(client->window);
 	client->window = NULL;
-	return returnValue;
+	return screenWidth;
 }
 
 void ClientWindowExit(const PCLIENT client) {
