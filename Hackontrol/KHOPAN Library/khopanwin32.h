@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdio.h>
 #include <Windows.h>
 
 #define FILE_CMD        L"cmd.exe"
