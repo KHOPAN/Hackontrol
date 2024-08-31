@@ -29,15 +29,35 @@ int main(int argc, char** argv) {
 	}
 
 	ULONG encryptedSize;
-	status = BCryptEncrypt(key, inputData, sizeof(inputData) - 1, NULL, NULL, 0, NULL, 0, &encryptedSize, 0);
+	status = BCryptEncrypt(key, inputData, sizeof(inputData) - 1, NULL, NULL, 0, NULL, 0, &encryptedSize, BCRYPT_PAD_PKCS1);
 
 	if(!BCRYPT_SUCCESS(status)) {
 		KHNTSTATUS_ERROR_CONSOLE(status, L"BCryptEncrypt");
 		goto destroyKey;
 	}
 
-	printf("Encrypted size: %lu\n", encryptedSize);
+	BYTE* encryptedBuffer = LocalAlloc(LMEM_FIXED, encryptedSize + 1);
+
+	if(!encryptedBuffer) {
+		KHWIN32_LAST_ERROR_CONSOLE(L"LocalAlloc");
+		goto destroyKey;
+	}
+
+	status = BCryptEncrypt(key, inputData, sizeof(inputData) - 1, NULL, NULL, 0, encryptedBuffer, encryptedSize, &encryptedSize, BCRYPT_PAD_PKCS1);
+
+	if(!BCRYPT_SUCCESS(status)) {
+		KHNTSTATUS_ERROR_CONSOLE(status, L"BCryptEncrypt");
+		goto freeEncryptedBuffer;
+	}
+
+	encryptedBuffer[encryptedSize] = 0;
+	printf("Encrypted size: %lu\nEncrypted data: %s\n", encryptedSize, encryptedBuffer);
 	returnValue = 0;
+freeEncryptedBuffer:
+	if(LocalFree(encryptedBuffer)) {
+		KHWIN32_LAST_ERROR_CONSOLE(L"LocalAlloc");
+		returnValue = 1;
+	}
 destroyKey:
 	status = BCryptDestroyKey(key);
 
