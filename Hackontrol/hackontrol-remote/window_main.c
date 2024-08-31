@@ -22,7 +22,7 @@ static HWND window;
 static HWND titledBorder;
 static HWND listView;
 
-static BOOL activeItem(size_t index, PCLIENT* client) {
+static BOOL activeItem(const size_t index, PCLIENT* const client) {
 	size_t pointer = 0;
 
 	for(size_t i = 0; i < clients.elementCount; i++) {
@@ -46,6 +46,7 @@ static BOOL activeItem(size_t index, PCLIENT* client) {
 static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	PCLIENT client = NULL;
 	RECT bounds;
+	GetClientRect(window, &bounds);
 
 	switch(message) {
 	case WM_CLOSE:
@@ -55,7 +56,6 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 		PostQuitMessage(0);
 		return 0;
 	case WM_SIZE:
-		GetClientRect(window, &bounds);
 		SetWindowPos(titledBorder, HWND_TOP, 0, 0, bounds.right - bounds.left - 10, bounds.bottom - bounds.top - 4, SWP_NOMOVE);
 		GetClientRect(titledBorder, &bounds);
 		SetWindowPos(listView, HWND_TOP, bounds.left + 9, bounds.top + 17, bounds.right - bounds.left - 8, bounds.bottom - bounds.top - 22, 0);
@@ -77,7 +77,6 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 		hitTest.pt.x = LOWORD(lparam);
 		hitTest.pt.y = HIWORD(lparam);
 		ScreenToClient(listView, &hitTest.pt);
-		GetClientRect(listView, &bounds);
 
 		if(hitTest.pt.x < bounds.left || hitTest.pt.x > bounds.right || hitTest.pt.y < bounds.top || hitTest.pt.y > bounds.bottom) {
 			return 0;
@@ -160,7 +159,7 @@ BOOL MainWindowInitialize(const HINSTANCE instance) {
 	windowClass.lpszClassName = CLASS_HACKONTROL_REMOTE;
 
 	if(!RegisterClassExW(&windowClass)) {
-		KHWin32DialogErrorW(GetLastError(), L"RegisterClassExW");
+		KHWIN32_LAST_ERROR(L"RegisterClassExW");
 		return FALSE;
 	}
 
@@ -168,14 +167,14 @@ BOOL MainWindowInitialize(const HINSTANCE instance) {
 	window = CreateWindowExW(WS_EX_TOPMOST, CLASS_HACKONTROL_REMOTE, L"Remote", WS_OVERLAPPEDWINDOW, 0, 0, 0, 0, NULL, NULL, instance, NULL);
 
 	if(!window) {
-		KHWin32DialogErrorW(GetLastError(), L"CreateWindowExW");
+		KHWIN32_LAST_ERROR(L"CreateWindowExW");
 		return FALSE;
 	}
 
 	titledBorder = CreateWindowExW(WS_EX_NOPARENTNOTIFY, L"Button", L"Connected Devices", WS_CHILD | WS_VISIBLE | BS_GROUPBOX, 5, 0, 0, 0, window, NULL, NULL, NULL);
 
 	if(!titledBorder) {
-		KHWin32DialogErrorW(GetLastError(), L"CreateWindowExW");
+		KHWIN32_LAST_ERROR(L"CreateWindowExW");
 		return FALSE;
 	}
 
@@ -184,14 +183,14 @@ BOOL MainWindowInitialize(const HINSTANCE instance) {
 	controls.dwICC = ICC_LISTVIEW_CLASSES;
 
 	if(!InitCommonControlsEx(&controls)) {
-		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"InitCommonControlsEx");
+		KHWIN32_ERROR(ERROR_FUNCTION_FAILED, L"InitCommonControlsEx");
 		return FALSE;
 	}
 
 	listView = CreateWindowExW(WS_EX_CLIENTEDGE, WC_LISTVIEW, L"", WS_CHILD | WS_VISIBLE | WS_VSCROLL | LVS_REPORT | LVS_SINGLESEL, 0, 0, 0, 0, window, NULL, NULL, NULL);
 
 	if(!listView) {
-		KHWin32DialogErrorW(GetLastError(), L"CreateWindowExW");
+		KHWIN32_LAST_ERROR(L"CreateWindowExW");
 		return FALSE;
 	}
 
@@ -203,14 +202,14 @@ BOOL MainWindowInitialize(const HINSTANCE instance) {
 	column.pszText = L"IP Address";
 
 	if(SendMessageW(listView, LVM_INSERTCOLUMN, 0, (LPARAM) &column) == -1) {
-		KHWin32DialogErrorW(GetLastError(), L"ListView_InsertColumn");
+		KHWIN32_LAST_ERROR(L"ListView_InsertColumn");
 		return FALSE;
 	}
 
 	column.pszText = L"Username";
 
 	if(SendMessageW(listView, LVM_INSERTCOLUMN, 0, (LPARAM) &column) == 1) {
-		KHWin32DialogErrorW(GetLastError(), L"ListView_InsertColumn");
+		KHWIN32_LAST_ERROR(L"ListView_InsertColumn");
 		return FALSE;
 	}
 
@@ -222,26 +221,26 @@ int MainWindowMessageLoop() {
 	metrics.cbSize = sizeof(NONCLIENTMETRICS);
 
 	if(!SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, metrics.cbSize, &metrics, 0)) {
-		KHWin32DialogErrorW(GetLastError(), L"SystemParametersInfoW");
+		KHWIN32_LAST_ERROR(L"SystemParametersInfoW");
 		return 1;
 	}
 
 	HFONT font = CreateFontIndirectW(&metrics.lfCaptionFont);
 
 	if(!font) {
-		KHWin32DialogErrorW(GetLastError(), L"CreateFontIndirectW");
+		KHWIN32_LAST_ERROR(L"CreateFontIndirectW");
 		return 1;
 	}
 
 	SendMessageW(titledBorder, WM_SETFONT, (WPARAM) font, TRUE);
-	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
-	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
-	int width = (int) (((double) screenWidth) * 0.292825769);
-	int height = (int) (((double) screenHeight) * 0.78125);
-	int returnValue = 1;
+	metrics.iBorderWidth = 1;
+	metrics.iScrollWidth = GetSystemMetrics(SM_CXSCREEN);
+	metrics.iScrollHeight = GetSystemMetrics(SM_CYSCREEN);
+	metrics.iCaptionWidth = (int) (((double) metrics.iScrollWidth) * 0.292825769);
+	metrics.iCaptionHeight = (int) (((double) metrics.iScrollHeight) * 0.78125);
 
-	if(!SetWindowPos(window, HWND_TOPMOST, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, SWP_SHOWWINDOW)) {
-		KHWin32DialogErrorW(GetLastError(), L"SetWindowPos");
+	if(!SetWindowPos(window, HWND_TOPMOST, (metrics.iScrollWidth - metrics.iCaptionWidth) / 2, (metrics.iScrollHeight - metrics.iCaptionHeight) / 2, metrics.iCaptionWidth, metrics.iCaptionHeight, SWP_SHOWWINDOW)) {
+		KHWIN32_LAST_ERROR(L"SetWindowPos");
 		goto deleteFont;
 	}
 
@@ -253,10 +252,10 @@ int MainWindowMessageLoop() {
 		DispatchMessageW(&message);
 	}
 
-	returnValue = 0;
+	metrics.iBorderWidth = 0;
 deleteFont:
 	DeleteObject(font);
-	return returnValue;
+	return metrics.iBorderWidth;
 }
 
 void MainWindowRefreshListView() {
