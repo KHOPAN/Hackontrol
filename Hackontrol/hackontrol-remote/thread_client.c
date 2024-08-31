@@ -23,8 +23,8 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 	int returnValue = 1;
 
 	if(recv(client->socket, buffer, sizeof(buffer) - 1, 0) == SOCKET_ERROR) {
-		KHWin32DialogErrorW(WSAGetLastError(), L"recv");
-		goto closeSocket;
+		KHWIN32_LAST_WSA_ERROR(L"recv");
+		goto cleanupResource;
 	}
 
 	buffer[16] = 0;
@@ -32,7 +32,7 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 	if(strcmp(buffer, "HRSP 1.0 CONNECT")) {
 		MessageBoxW(NULL, L"The client has requested an invalid request", L"Remote", MB_OK | MB_DEFBUTTON1 | MB_ICONERROR | MB_SYSTEMMODAL);
 		LOG("[Client %ws]: Invalid request: %s\n" COMMA client->address COMMA buffer);
-		goto closeSocket;
+		goto cleanupResource;
 	}
 
 	buffer[0] = 'H';
@@ -48,16 +48,16 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 	buffer[10] = 'K';
 
 	if(send(client->socket, buffer, 11, 0) == SOCKET_ERROR) {
-		KHWin32DialogErrorW(WSAGetLastError(), L"send");
-		goto closeSocket;
+		KHWIN32_LAST_WSA_ERROR(L"send");
+		goto cleanupResource;
 	}
 
 	LOG("[Client %ws]: Completed HRSP Handshake\n" COMMA client->address);
 	PACKET packet;
 
 	if(!ReceivePacket(client->socket, &packet)) {
-		KHWin32DialogErrorW(GetLastError(), L"ReceivePacket");
-		goto closeSocket;
+		KHWIN32_LAST_ERROR(L"ReceivePacket");
+		goto cleanupResource;
 	}
 
 	if(packet.packetType != PACKET_TYPE_INFORMATION) {
@@ -67,7 +67,7 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 			LocalFree(packet.data);
 		}
 
-		goto closeSocket;
+		goto cleanupResource;
 	}
 
 	if(packet.size > 0) {
@@ -90,12 +90,12 @@ exitName:
 	LOG("[Client %ws]: Username: '%ws'\n" COMMA client->address COMMA client->name);
 
 	if(WaitForSingleObject(clientsLock, INFINITE) == WAIT_FAILED) {
-		KHWin32DialogErrorW(GetLastError(), L"WaitForSingleObject");
+		KHWIN32_LAST_ERROR(L"WaitForSingleObject");
 		goto freeName;
 	}
 
 	if(!KHArrayAdd(&clients, client)) {
-		KHWin32DialogErrorW(GetLastError(), L"KHArrayAdd");
+		KHWIN32_LAST_ERROR(L"KHArrayAdd");
 		ReleaseMutex(clientsLock);
 		goto freeName;
 	}
@@ -103,13 +103,13 @@ exitName:
 	LocalFree(client);
 
 	if(!KHArrayGet(&clients, clients.elementCount - 1, &client)) {
-		KHWin32DialogErrorW(GetLastError(), L"KHArrayGet");
+		KHWIN32_LAST_ERROR(L"KHArrayGet");
 		ReleaseMutex(clientsLock);
 		goto freeName;
 	}
 
 	if(!ReleaseMutex(clientsLock)) {
-		KHWin32DialogErrorW(GetLastError(), L"ReleaseMutex");
+		KHWIN32_LAST_ERROR(L"ReleaseMutex");
 		goto freeName;
 	}
 
@@ -137,13 +137,13 @@ exitName:
 		LOG("[Client %ws]: Wait for window thread to exit\n" COMMA client->address);
 
 		if(WaitForSingleObject(client->window->lock, INFINITE) == WAIT_FAILED) {
-			KHWin32DialogErrorW(GetLastError(), L"WaitForSingleObject");
+			KHWIN32_LAST_ERROR(L"WaitForSingleObject");
 			LocalFree(client->window);
 			goto freeName;
 		}
 
 		if(!ReleaseMutex(client->window->lock)) {
-			KHWin32DialogErrorW(GetLastError(), L"ReleaseMutex");
+			KHWIN32_LAST_ERROR(L"ReleaseMutex");
 			LocalFree(client->window);
 			goto freeName;
 		}
@@ -151,7 +151,7 @@ exitName:
 		ClientWindowExit(client);
 
 		if(WaitForSingleObject(client->window->thread, INFINITE) == WAIT_FAILED) {
-			KHWin32DialogErrorW(GetLastError(), L"WaitForSingleObject");
+			KHWIN32_LAST_ERROR(L"WaitForSingleObject");
 			goto freeName;
 		}
 	}
@@ -161,7 +161,7 @@ freeName:
 	if(client->name) {
 		LocalFree(client->name);
 	}
-closeSocket:
+cleanupResource:
 	if(client->thread) {
 		CloseHandle(client->thread);
 		client->thread = NULL;
@@ -204,14 +204,14 @@ void ClientOpen(const PCLIENT client) {
 	client->window = LocalAlloc(LMEM_FIXED, sizeof(WINDOWDATA));
 
 	if(!client->window) {
-		KHWin32DialogErrorW(GetLastError(), L"CreateThread");
+		KHWIN32_LAST_ERROR(L"CreateThread");
 		return;
 	}
 
 	client->window->lock = CreateMutexExW(NULL, NULL, 0, SYNCHRONIZE | DELETE);
 
 	if(!client->window->lock) {
-		KHWin32DialogErrorW(GetLastError(), L"CreateMutexExW");
+		KHWIN32_LAST_ERROR(L"CreateMutexExW");
 		LocalFree(client->window);
 		return;
 	}
@@ -219,7 +219,7 @@ void ClientOpen(const PCLIENT client) {
 	client->window->thread = CreateThread(NULL, 0, ClientWindowThread, client, 0, NULL);
 
 	if(!client->window->thread) {
-		KHWin32DialogErrorW(GetLastError(), L"CreateThread");
+		KHWIN32_LAST_ERROR(L"CreateThread");
 		CloseHandle(client->window->lock);
 		LocalFree(client->window);
 	}
@@ -230,16 +230,16 @@ void ClientDisconnect(const PCLIENT client) {
 	packet.packetType = PACKET_TYPE_INFORMATION;
 
 	if(!SendPacket(client->socket, &packet)) {
-		KHWin32DialogErrorW(GetLastError(), L"SendPacket");
+		KHWIN32_LAST_ERROR(L"SendPacket");
 		return;
 	}
 
 	if(shutdown(client->socket, SD_BOTH) == SOCKET_ERROR) {
-		KHWin32DialogErrorW(WSAGetLastError(), L"shutdown");
+		KHWIN32_LAST_WSA_ERROR(L"shutdown");
 		return;
 	}
 
 	if(closesocket(client->socket) == SOCKET_ERROR) {
-		KHWin32DialogErrorW(WSAGetLastError(), L"closesocket");
+		KHWIN32_LAST_WSA_ERROR(L"closesocket");
 	}
 }
