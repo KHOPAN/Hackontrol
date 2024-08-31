@@ -3,18 +3,33 @@
 #include <bcrypt.h>
 
 int main(int argc, char** argv) {
-	BCRYPT_ALG_HANDLE handle;
-	NTSTATUS status = BCryptOpenAlgorithmProvider(&handle, BCRYPT_RSA_ALGORITHM, NULL, 0);
+	BCRYPT_ALG_HANDLE algorithm;
+	NTSTATUS status = BCryptOpenAlgorithmProvider(&algorithm, BCRYPT_RSA_ALGORITHM, NULL, 0);
 
 	if(!BCRYPT_SUCCESS(status)) {
-		KHNTSTATUS_ERROR(status, L"BCryptOpenAlgorithmProvider");
+		KHNTSTATUS_ERROR_CONSOLE(status, L"BCryptOpenAlgorithmProvider");
 		return 1;
 	}
 
-	status = BCryptCloseAlgorithmProvider(handle, 0);
+	BCRYPT_KEY_HANDLE key;
+	status = BCryptGenerateKeyPair(algorithm, &key, 2048, 0);
 
 	if(!BCRYPT_SUCCESS(status)) {
-		KHNTSTATUS_ERROR(status, L"BCryptCloseAlgorithmProvider");
+		KHNTSTATUS_ERROR_CONSOLE(status, L"BCryptGenerateKeyPair");
+		return 1;
+	}
+
+	status = BCryptDestroyKey(key);
+
+	if(!BCRYPT_SUCCESS(status)) {
+		KHNTSTATUS_ERROR_CONSOLE(status, L"BCryptDestroyKey");
+		return 1;
+	}
+
+	status = BCryptCloseAlgorithmProvider(algorithm, 0);
+
+	if(!BCRYPT_SUCCESS(status)) {
+		KHNTSTATUS_ERROR_CONSOLE(status, L"BCryptCloseAlgorithmProvider");
 		return 1;
 	}
 
