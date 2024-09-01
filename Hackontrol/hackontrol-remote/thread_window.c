@@ -249,24 +249,24 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		//}
 
 		//LOG("Right: %d Bottom %d\n" COMMA bounds.right COMMA bounds.bottom);
-		bounds.right -= bounds.left;
-		bounds.bottom -= bounds.top;
 		int minimumSize = client->window->stream.resizeActivationDistance * 3;
 		int difference;
+		bounds.right -= bounds.left;
+		bounds.bottom -= bounds.top;
 
 		if(client->window->stream.cursorNorth) {
-			difference = position.y - client->window->stream.mouseY;
+			difference = position.y - client->window->stream.position.y;
 
-			if(client->window->stream.savedTop + difference < 0) {
-				difference = -client->window->stream.savedTop;
+			if(client->window->stream.bounds.top + difference < 0) {
+				difference = -client->window->stream.bounds.top;
 			}
 
-			if(client->window->stream.savedBottom - client->window->stream.savedTop - difference < minimumSize) {
-				difference = client->window->stream.savedBottom - client->window->stream.savedTop - minimumSize;
+			if(client->window->stream.bounds.bottom - client->window->stream.bounds.top - difference < minimumSize) {
+				difference = client->window->stream.bounds.bottom - client->window->stream.bounds.top - minimumSize;
 			}
 
-			bounds.top = client->window->stream.savedTop + difference;
-			bounds.bottom = client->window->stream.savedBottom - bounds.top;
+			bounds.top = client->window->stream.bounds.top + difference;
+			bounds.bottom = client->window->stream.bounds.bottom - bounds.top;
 		}
 
 		/*if(client->window->stream.cursorEast) {
@@ -282,13 +282,13 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		}*/
 
 		if(client->window->stream.cursorSouth) {
-			difference = position.y - client->window->stream.mouseY;
+			difference = position.y - client->window->stream.position.y;
 
-			if(client->window->stream.savedBottom + difference > screenHeight) {
-				difference = -client->window->stream.savedBottom + screenHeight;
+			if(client->window->stream.bounds.bottom + difference > screenHeight) {
+				difference = screenHeight - client->window->stream.bounds.bottom;
 			}
 
-			bounds.bottom = client->window->stream.savedBottom - client->window->stream.savedTop + difference;
+			bounds.bottom = client->window->stream.bounds.bottom - client->window->stream.bounds.top + difference;
 
 			if(bounds.bottom < minimumSize) {
 				bounds.bottom = minimumSize;
