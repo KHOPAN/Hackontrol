@@ -258,9 +258,10 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		int maxWidth = GetSystemMetrics(SM_CXSCREEN);
 		int maxHeight = GetSystemMetrics(SM_CYSCREEN);
 		int minimumSize = client->window->stream.resizeActivationDistance * 3;
+		int difference;
 
 		if(client->window->stream.cursorNorth) {
-			int difference = position.y - client->window->stream.mouseY;
+			difference = position.y - client->window->stream.mouseY;
 
 			if(client->window->stream.savedTop + difference < 0) {
 				difference = -client->window->stream.savedTop;
@@ -287,7 +288,8 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		}
 
 		if(client->window->stream.cursorSouth) {
-			bounds.bottom = position.y + client->window->stream.pressedOffsetY - bounds.top;
+			difference = position.y - client->window->stream.mouseY;
+			/*bounds.bottom = position.y + client->window->stream.pressedOffsetY - bounds.top;
 
 			if(bounds.top + bounds.bottom > maxWidth) {
 				bounds.bottom = maxWidth - bounds.top;
@@ -295,7 +297,9 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 
 			if(bounds.bottom < minimumSize) {
 				bounds.bottom = minimumSize;
-			}
+			}*/
+
+			bounds.bottom = client->window->stream.savedBottom - client->window->stream.savedTop + difference;
 		}
 
 		SetWindowPos(window, HWND_TOP, bounds.left, bounds.top, bounds.right, bounds.bottom, 0);
