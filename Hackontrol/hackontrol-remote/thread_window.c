@@ -251,13 +251,6 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		//LOG("Right: %d Bottom %d\n" COMMA bounds.right COMMA bounds.bottom);
 		bounds.right -= bounds.left;
 		bounds.bottom -= bounds.top;
-
-		if(client->window->stream.cursorNorth && client->window->stream.cursorEast && client->window->stream.cursorSouth && client->window->stream.cursorWest) {
-			bounds.left = position.x - client->window->stream.pressedX;
-			bounds.top = position.y - client->window->stream.pressedY;
-			goto limitBounds;
-		}
-
 		int minimumSize = client->window->stream.resizeActivationDistance * 3;
 		int difference;
 
@@ -303,15 +296,6 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		}
 
 		SetWindowPos(window, HWND_TOP, bounds.left, bounds.top, bounds.right, bounds.bottom, 0);
-		break;
-limitBounds:
-		bounds.left = max(bounds.left, 0);
-		bounds.top = max(bounds.top, 0);
-		position.x = GetSystemMetrics(SM_CXSCREEN) - bounds.right;
-		position.y = GetSystemMetrics(SM_CYSCREEN) - bounds.bottom;
-		bounds.left = min(bounds.left, position.x);
-		bounds.top = min(bounds.top, position.y);
-		SetWindowPos(window, HWND_TOP, bounds.left, bounds.top, bounds.right, bounds.bottom, 0);// client->window->stream.cursorNorth&& client->window->stream.cursorEast&& client->window->stream.cursorSouth&& client->window->stream.cursorWest ? SWP_NOSIZE : (!client->window->stream.cursorNorth && client->window->stream.cursorEast) || (client->window->stream.cursorSouth && !client->window->stream.cursorWest) ? SWP_NOMOVE : 0);
 		break;
 	}
 	case WM_LBUTTONDOWN:
