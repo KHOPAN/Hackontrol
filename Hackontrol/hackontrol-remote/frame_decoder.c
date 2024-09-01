@@ -1,7 +1,5 @@
 #include "frame_decoder.h"
 
-#define SUBTRACT do{if(colorDifference){window->stream.pixels[pixelIndex]-=blue;window->stream.pixels[pixelIndex+1]-=green;window->stream.pixels[pixelIndex+2]-=red;}else{window->stream.pixels[pixelIndex]=blue;window->stream.pixels[pixelIndex+1]=green;window->stream.pixels[pixelIndex+2]=red;}}while(0)
-
 #define QOI_OP_RGB   0b11111110
 #define QOI_OP_INDEX 0b00000000
 #define QOI_OP_DIFF  0b01000000
@@ -84,13 +82,14 @@ exitRawPixel:
 	int blue = 0;
 	int run = 0;
 	int temporary = 0;
+#define APPLY_COLOR if(colorDifference){window->stream.pixels[pixelIndex]-=blue;window->stream.pixels[pixelIndex+1]-=green;window->stream.pixels[pixelIndex+2]-=red;}else{window->stream.pixels[pixelIndex]=blue;window->stream.pixels[pixelIndex+1]=green;window->stream.pixels[pixelIndex+2]=red;}
 
 	for(y = boundaryDifference ? (data[13] << 24) | (data[14] << 16) | (data[15] << 8) | data[16] : 0; y <= endY; y++) {
 		for(x = startX; x <= endX; x++) {
 			pixelIndex = ((height - y - 1) * width + x) * 4;
 
 			if(run > 0) {
-				SUBTRACT;
+				APPLY_COLOR
 				run--;
 				continue;
 			}
@@ -110,7 +109,7 @@ exitRawPixel:
 				seenRed[dataIndex] = red;
 				seenGreen[dataIndex] = green;
 				seenBlue[dataIndex] = blue;
-				SUBTRACT;
+				APPLY_COLOR
 				continue;
 			}
 
@@ -136,7 +135,7 @@ exitRawPixel:
 				blue += temporary - 8 + (dataIndex & 0b1111);
 				break;
 			case QOI_OP_RUN:
-				SUBTRACT;
+				APPLY_COLOR
 				run = (temporary & 0b111111);
 				continue;
 			}
@@ -145,7 +144,7 @@ exitRawPixel:
 			seenRed[dataIndex] = red;
 			seenGreen[dataIndex] = green;
 			seenBlue[dataIndex] = blue;
-			SUBTRACT;
+			APPLY_COLOR
 		}
 	}
 invalidateWindow:
