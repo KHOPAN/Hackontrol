@@ -248,8 +248,26 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		//LOG("Right: %d Bottom %d\n" COMMA bounds.right COMMA bounds.bottom);
 		bounds.right -= bounds.left;
 		bounds.bottom -= bounds.top;
-		bounds.left = position.x - client->window->stream.pressedX;
-		bounds.top = position.y - client->window->stream.pressedY;
+
+		if(client->window->stream.cursorNorth && client->window->stream.cursorEast && client->window->stream.cursorSouth && client->window->stream.cursorWest) {
+			bounds.left = position.x - client->window->stream.pressedX;
+			bounds.top = position.y - client->window->stream.pressedY;
+			goto limitBounds;
+		}
+
+		if(client->window->stream.cursorEast) {
+			bounds.right = position.x + client->window->stream.pressedOffsetX - bounds.left;
+
+			int max = GetSystemMetrics(SM_CXSCREEN);
+
+			if(bounds.left + bounds.right > max) {
+				bounds.right = max - bounds.left;
+			}
+
+			SetWindowPos(window, HWND_TOP, bounds.left, bounds.top, bounds.right, bounds.bottom, 0);
+			break;
+		}
+limitBounds:
 		bounds.left = max(bounds.left, 0);
 		bounds.top = max(bounds.top, 0);
 		position.x = GetSystemMetrics(SM_CXSCREEN) - bounds.right;
