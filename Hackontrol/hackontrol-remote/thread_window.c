@@ -255,16 +255,20 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			goto limitBounds;
 		}
 
+		int maxWidth = GetSystemMetrics(SM_CXSCREEN);
+		int maxHeight = GetSystemMetrics(SM_CYSCREEN);
+
 		if(client->window->stream.cursorEast) {
 			bounds.right = position.x + client->window->stream.pressedOffsetX - bounds.left;
 
-			int max = GetSystemMetrics(SM_CXSCREEN);
-
-			if(bounds.left + bounds.right > max) {
-				bounds.right = max - bounds.left;
+			if(bounds.left + bounds.right > maxWidth) {
+				bounds.right = maxWidth - bounds.left;
 			}
 
-			SetWindowPos(window, HWND_TOP, bounds.left, bounds.top, bounds.right, bounds.bottom, 0);
+			if(bounds.right >= 30) {
+				SetWindowPos(window, HWND_TOP, bounds.left, bounds.top, bounds.right, bounds.bottom, 0);
+			}
+
 			break;
 		}
 limitBounds:
