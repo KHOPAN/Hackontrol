@@ -198,14 +198,14 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			break;
 		}
 
+		int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+		int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 		GetCursorPos(&position);
-		int maxWidth = GetSystemMetrics(SM_CXSCREEN);
-		int maxHeight = GetSystemMetrics(SM_CYSCREEN);
 
 		if(!client->window->stream.cursorNorth && !client->window->stream.cursorEast && !client->window->stream.cursorSouth && !client->window->stream.cursorWest) {
 			position.x -= client->window->stream.position.x - client->window->stream.bounds.left;
 			position.y -= client->window->stream.position.y - client->window->stream.bounds.top;
-			SetWindowPos(window, HWND_TOP, client->window->stream.limitToScreen ? position.x < 0 ? 0 : position.x + client->window->stream.bounds.right - client->window->stream.bounds.left > maxWidth ? maxWidth - client->window->stream.bounds.right + client->window->stream.bounds.left : position.x : position.x, client->window->stream.limitToScreen ? position.y < 0 ? 0 : position.y + client->window->stream.bounds.bottom - client->window->stream.bounds.top > maxHeight ? maxHeight - client->window->stream.bounds.bottom + client->window->stream.bounds.top : position.y : position.y, 0, 0, SWP_NOSIZE);
+			SetWindowPos(window, HWND_TOP, client->window->stream.limitToScreen ? position.x < 0 ? 0 : position.x + client->window->stream.bounds.right - client->window->stream.bounds.left > screenWidth ? screenWidth - client->window->stream.bounds.right + client->window->stream.bounds.left : position.x : position.x, client->window->stream.limitToScreen ? position.y < 0 ? 0 : position.y + client->window->stream.bounds.bottom - client->window->stream.bounds.top > screenHeight ? screenHeight - client->window->stream.bounds.bottom + client->window->stream.bounds.top : position.y : position.y, 0, 0, SWP_NOSIZE);
 			break;
 		}
 
@@ -291,8 +291,8 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		if(client->window->stream.cursorSouth) {
 			difference = position.y - client->window->stream.mouseY;
 
-			if(client->window->stream.savedBottom + difference > maxHeight) {
-				difference = -client->window->stream.savedBottom + maxHeight;
+			if(client->window->stream.savedBottom + difference > screenHeight) {
+				difference = -client->window->stream.savedBottom + screenHeight;
 			}
 
 			bounds.bottom = client->window->stream.savedBottom - client->window->stream.savedTop + difference;
