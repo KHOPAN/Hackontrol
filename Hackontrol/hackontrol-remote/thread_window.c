@@ -25,6 +25,29 @@ static void streamCodeSend(const PCLIENT client) {
 	SendPacket(client->socket, &packet);
 }
 
+static void limitToScreen(const HWND window) {
+	RECT bounds;
+	GetWindowRect(window, &bounds);
+	bounds.right -= bounds.left;
+	bounds.bottom -= bounds.top;
+	int width = GetSystemMetrics(SM_CXSCREEN);
+	int height = GetSystemMetrics(SM_CYSCREEN);
+	bounds.left = max(bounds.left, 0);
+	bounds.top = max(bounds.top, 0);
+	bounds.right = min(bounds.right, width);
+	bounds.bottom = min(bounds.bottom, height);
+
+	if(bounds.left + bounds.right > width) {
+		bounds.left = width - bounds.right;
+	}
+
+	if(bounds.top + bounds.bottom > height) {
+		bounds.top = height - bounds.bottom;
+	}
+
+	SetWindowPos(window, HWND_TOP, bounds.left, bounds.top, bounds.right, bounds.bottom, 0);
+}
+
 static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	PCLIENT client = (PCLIENT) GetWindowLongPtrW(window, GWLP_USERDATA);
 
@@ -161,6 +184,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			break;
 		case IDM_LIMIT_TO_SCREEN:
 			client->window->stream.limitToScreen = !client->window->stream.limitToScreen;
+			if(client->window->stream.limitToScreen) limitToScreen(window);
 			break;
 		case IDM_WINDOW_EXIT:
 			LOG("[Window %ws]: Exiting\n" COMMA client->address);
