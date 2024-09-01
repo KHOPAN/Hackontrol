@@ -269,17 +269,19 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			bounds.bottom = client->window->stream.bounds.bottom - bounds.top;
 		}
 
-		/*if(client->window->stream.cursorEast) {
-			bounds.right = position.x + client->window->stream.pressedOffsetX - bounds.left;
+		if(client->window->stream.cursorEast) {
+			difference = position.x - client->window->stream.position.x;
 
-			if(bounds.left + bounds.right > maxWidth) {
-				bounds.right = maxWidth - bounds.left;
+			if(client->window->stream.bounds.right + difference > screenWidth) {
+				difference = screenWidth - client->window->stream.bounds.right;
 			}
+
+			bounds.right = client->window->stream.bounds.right - client->window->stream.bounds.left + difference;
 
 			if(bounds.right < minimumSize) {
 				bounds.right = minimumSize;
 			}
-		}*/
+		}
 
 		if(client->window->stream.cursorSouth) {
 			difference = position.y - client->window->stream.position.y;
@@ -293,6 +295,21 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			if(bounds.bottom < minimumSize) {
 				bounds.bottom = minimumSize;
 			}
+		}
+
+		if(client->window->stream.cursorWest) {
+			difference = position.x - client->window->stream.position.x;
+
+			if(client->window->stream.bounds.left + difference < 0) {
+				difference = -client->window->stream.bounds.left;
+			}
+
+			if(client->window->stream.bounds.right - client->window->stream.bounds.left - difference < minimumSize) {
+				difference = client->window->stream.bounds.right - client->window->stream.bounds.left - minimumSize;
+			}
+
+			bounds.left = client->window->stream.bounds.left + difference;
+			bounds.right = client->window->stream.bounds.right - bounds.left;
 		}
 
 		SetWindowPos(window, HWND_TOP, bounds.left, bounds.top, bounds.right, bounds.bottom, 0);
