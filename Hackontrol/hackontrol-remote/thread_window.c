@@ -198,14 +198,17 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			break;
 		}
 
+		GetCursorPos(&position);
+
 		if(!client->window->stream.cursorNorth && !client->window->stream.cursorEast && !client->window->stream.cursorSouth && !client->window->stream.cursorWest) {
-			client->window->stream.cursorNorth = TRUE;
+			/*client->window->stream.cursorNorth = TRUE;
 			client->window->stream.cursorEast = TRUE;
 			client->window->stream.cursorSouth = TRUE;
-			client->window->stream.cursorWest = TRUE;
+			client->window->stream.cursorWest = TRUE;*/
+			SetWindowPos(window, HWND_TOP, position.x, position.y - client->window->stream.mouseY + client->window->stream.savedTop, 0, 0, SWP_NOSIZE);
+			break;
 		}
 
-		GetCursorPos(&position);
 		GetWindowRect(window, &bounds);
 
 		/*if(position.x + client->window->stream.pressedOffsetX < GetSystemMetrics(SM_CXSCREEN)) {
