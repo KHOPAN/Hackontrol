@@ -263,9 +263,13 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			//bounds.bottom += bounds.top;
 			int difference = position.y - client->window->stream.mouseY;
 
-			/*if(bounds.top + difference < 0) {
-				difference += bounds.top;
-			}*/
+			if(client->window->stream.savedTop + difference < 0) {
+				difference = -client->window->stream.savedTop;
+			}
+
+			if(client->window->stream.savedBottom - client->window->stream.savedTop - difference < minimumSize) {
+				difference = client->window->stream.savedBottom - client->window->stream.savedTop - minimumSize;
+			}
 
 			/*if(bounds.top < 0) {
 				bounds.top = 0;
@@ -278,7 +282,8 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			}*/
 
 			//bounds.top -= difference;
-			LOG("Difference: %d Top: %d\n" COMMA difference COMMA bounds.top + difference);
+			bounds.top = client->window->stream.savedTop + difference;
+			bounds.bottom = client->window->stream.savedBottom - client->window->stream.savedTop - difference;
 		}
 
 		if(client->window->stream.cursorEast) {
@@ -326,6 +331,8 @@ limitBounds:
 		client->window->stream.pressedOffsetY = bounds.bottom - position.y;
 		client->window->stream.mouseX = position.x;
 		client->window->stream.mouseY = position.y;
+		client->window->stream.savedTop = bounds.top;
+		client->window->stream.savedBottom = bounds.bottom;
 		SetCapture(window);
 		break;
 	case WM_LBUTTONUP:
