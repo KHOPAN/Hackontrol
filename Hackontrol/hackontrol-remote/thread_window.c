@@ -260,18 +260,20 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		int minimumSize = client->window->stream.resizeActivationDistance * 3;
 
 		if(client->window->stream.cursorNorth) {
-			bounds.bottom += bounds.top;
-			bounds.top = position.y - client->window->stream.pressedY;
+			//bounds.bottom += bounds.top;
+			int difference = position.y - client->window->stream.pressedY - bounds.top;
 
-			if(bounds.top < 0) {
+			/*if(bounds.top < 0) {
 				bounds.top = 0;
-			}
+			}*/
 
-			bounds.bottom -= bounds.top;
+			/*bounds.bottom -= bounds.top;
 
 			if(bounds.bottom < minimumSize) {
 				bounds.bottom = minimumSize;
-			}
+			}*/
+
+			LOG("Difference: %d\n" COMMA difference);
 		}
 
 		if(client->window->stream.cursorEast) {
