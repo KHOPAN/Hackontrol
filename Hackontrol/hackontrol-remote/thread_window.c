@@ -259,6 +259,21 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		int maxHeight = GetSystemMetrics(SM_CYSCREEN);
 		int minimumSize = client->window->stream.resizeActivationDistance * 3;
 
+		if(client->window->stream.cursorNorth) {
+			bounds.bottom += bounds.top;
+			bounds.top = position.y - client->window->stream.pressedY;
+
+			if(bounds.top < 0) {
+				bounds.top = 0;
+			}
+
+			bounds.bottom -= bounds.top;
+
+			if(bounds.bottom < minimumSize) {
+				bounds.bottom = minimumSize;
+			}
+		}
+
 		if(client->window->stream.cursorEast) {
 			bounds.right = position.x + client->window->stream.pressedOffsetX - bounds.left;
 
