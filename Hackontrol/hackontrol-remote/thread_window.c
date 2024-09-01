@@ -266,11 +266,9 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 				bounds.right = maxWidth - bounds.left;
 			}
 
-			if(bounds.right >= minimumSize) {
-				SetWindowPos(window, HWND_TOP, bounds.left, bounds.top, bounds.right, bounds.bottom, 0);
+			if(bounds.right < minimumSize) {
+				bounds.right = minimumSize;
 			}
-
-			break;
 		}
 
 		if(client->window->stream.cursorSouth) {
@@ -280,12 +278,13 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 				bounds.bottom = maxWidth - bounds.top;
 			}
 
-			if(bounds.bottom >= minimumSize) {
-				SetWindowPos(window, HWND_TOP, bounds.left, bounds.top, bounds.right, bounds.bottom, 0);
+			if(bounds.bottom < minimumSize) {
+				bounds.bottom = minimumSize;
 			}
-
-			break;
 		}
+
+		SetWindowPos(window, HWND_TOP, bounds.left, bounds.top, bounds.right, bounds.bottom, 0);
+		break;
 limitBounds:
 		bounds.left = max(bounds.left, 0);
 		bounds.top = max(bounds.top, 0);
