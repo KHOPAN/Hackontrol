@@ -52,7 +52,35 @@ int main(int argc, char** argv) {
 
 	encryptedBuffer[encryptedSize] = 0;
 	printf("Encrypted size: %lu\nEncrypted data: %s\n", encryptedSize, encryptedBuffer);
+	ULONG decryptedSize;
+	status = BCryptDecrypt(key, encryptedBuffer, encryptedSize, NULL, NULL, 0, NULL, 0, &decryptedSize, BCRYPT_PAD_PKCS1);
+
+	if(!BCRYPT_SUCCESS(status)) {
+		KHNTSTATUS_ERROR_CONSOLE(status, L"BCryptDecrypt");
+		goto freeEncryptedBuffer;
+	}
+
+	BYTE* decryptedBuffer = LocalAlloc(LMEM_FIXED, decryptedSize + 1);
+
+	if(!decryptedBuffer) {
+		KHWIN32_LAST_ERROR_CONSOLE(L"LocalAlloc");
+		goto freeEncryptedBuffer;
+	}
+
+	status = BCryptDecrypt(key, encryptedBuffer, encryptedSize, NULL, NULL, 0, decryptedBuffer, decryptedSize, &decryptedSize, BCRYPT_PAD_PKCS1);
+
+	if(!BCRYPT_SUCCESS(status)) {
+		KHNTSTATUS_ERROR_CONSOLE(status, L"BCryptDecrypt");
+		goto freeDecryptedBuffer;
+	}
+
+	printf("Decrypted size: %lu\nDecrypted data: %s\n", decryptedSize, decryptedBuffer);
 	returnValue = 0;
+freeDecryptedBuffer:
+	if(LocalFree(decryptedBuffer)) {
+		KHWIN32_LAST_ERROR_CONSOLE(L"LocalAlloc");
+		returnValue = 1;
+	}
 freeEncryptedBuffer:
 	if(LocalFree(encryptedBuffer)) {
 		KHWIN32_LAST_ERROR_CONSOLE(L"LocalAlloc");
