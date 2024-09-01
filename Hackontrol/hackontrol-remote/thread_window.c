@@ -257,7 +257,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		if(client->window->stream.cursorNorth) {
 			difference = position.y - client->window->stream.position.y;
 
-			if(client->window->stream.bounds.top + difference < 0) {
+			if(client->window->stream.limitToScreen && client->window->stream.bounds.top + difference < 0) {
 				difference = -client->window->stream.bounds.top;
 			}
 
@@ -272,7 +272,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		if(client->window->stream.cursorEast) {
 			difference = position.x - client->window->stream.position.x;
 
-			if(client->window->stream.bounds.right + difference > screenWidth) {
+			if(client->window->stream.limitToScreen && client->window->stream.bounds.right + difference > screenWidth) {
 				difference = screenWidth - client->window->stream.bounds.right;
 			}
 
@@ -286,7 +286,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		if(client->window->stream.cursorSouth) {
 			difference = position.y - client->window->stream.position.y;
 
-			if(client->window->stream.bounds.bottom + difference > screenHeight) {
+			if(client->window->stream.limitToScreen && client->window->stream.bounds.bottom + difference > screenHeight) {
 				difference = screenHeight - client->window->stream.bounds.bottom;
 			}
 
@@ -300,7 +300,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		if(client->window->stream.cursorWest) {
 			difference = position.x - client->window->stream.position.x;
 
-			if(client->window->stream.bounds.left + difference < 0) {
+			if(client->window->stream.limitToScreen && client->window->stream.bounds.left + difference < 0) {
 				difference = -client->window->stream.bounds.left;
 			}
 
@@ -312,7 +312,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			bounds.right = client->window->stream.bounds.right - bounds.left;
 		}
 
-		SetWindowPos(window, HWND_TOP, bounds.left, bounds.top, bounds.right, bounds.bottom, 0);
+		SetWindowPos(window, HWND_TOP, bounds.left, bounds.top, bounds.right, bounds.bottom, (!client->window->stream.cursorNorth && client->window->stream.cursorEast) || (client->window->stream.cursorSouth && !client->window->stream.cursorWest) ? SWP_NOMOVE : 0);
 		break;
 	}
 	case WM_LBUTTONDOWN:
