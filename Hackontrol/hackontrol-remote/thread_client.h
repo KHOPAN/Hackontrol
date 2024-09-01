@@ -22,6 +22,8 @@ typedef struct {
 	int pressedY;
 	int pressedOffsetX;
 	int pressedOffsetY;
+	int mouseX;
+	int mouseY;
 	BOOL cursorNorth;
 	BOOL cursorEast;
 	BOOL cursorSouth;
