@@ -201,11 +201,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		GetCursorPos(&position);
 
 		if(!client->window->stream.cursorNorth && !client->window->stream.cursorEast && !client->window->stream.cursorSouth && !client->window->stream.cursorWest) {
-			/*client->window->stream.cursorNorth = TRUE;
-			client->window->stream.cursorEast = TRUE;
-			client->window->stream.cursorSouth = TRUE;
-			client->window->stream.cursorWest = TRUE;*/
-			SetWindowPos(window, HWND_TOP, position.x, position.y - client->window->stream.mouseY + client->window->stream.savedTop, 0, 0, SWP_NOSIZE);
+			SetWindowPos(window, HWND_TOP, position.x - client->window->stream.position.x + client->window->stream.bounds.left, position.y - client->window->stream.position.y + client->window->stream.bounds.top, 0, 0, SWP_NOSIZE);
 			break;
 		}
 
@@ -327,6 +323,8 @@ limitBounds:
 		client->window->stream.mouseY = position.y;
 		client->window->stream.savedTop = bounds.top;
 		client->window->stream.savedBottom = bounds.bottom;
+		GetWindowRect(window, &client->window->stream.bounds);
+		GetCursorPos(&client->window->stream.position);
 		SetCapture(window);
 		break;
 	case WM_LBUTTONUP:

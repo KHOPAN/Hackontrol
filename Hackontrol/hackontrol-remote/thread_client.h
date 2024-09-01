@@ -26,6 +26,8 @@ typedef struct {
 	int mouseY;
 	int savedTop;
 	int savedBottom;
+	RECT bounds;
+	POINT position;
 	BOOL cursorNorth;
 	BOOL cursorEast;
 	BOOL cursorSouth;
