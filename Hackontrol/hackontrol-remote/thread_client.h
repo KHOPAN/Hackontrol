@@ -18,14 +18,6 @@ typedef struct {
 	int resizeActivationDistance;
 	int originalImageWidth;
 	int originalImageHeight;
-	int pressedX;
-	int pressedY;
-	int pressedOffsetX;
-	int pressedOffsetY;
-	int mouseX;
-	int mouseY;
-	int savedTop;
-	int savedBottom;
 	RECT bounds;
 	POINT position;
 	BOOL cursorNorth;
