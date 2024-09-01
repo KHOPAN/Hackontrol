@@ -36,15 +36,8 @@ static void limitToScreen(const HWND window) {
 	bounds.top = max(bounds.top, 0);
 	bounds.right = min(bounds.right, width);
 	bounds.bottom = min(bounds.bottom, height);
-
-	if(bounds.left + bounds.right > width) {
-		bounds.left = width - bounds.right;
-	}
-
-	if(bounds.top + bounds.bottom > height) {
-		bounds.top = height - bounds.bottom;
-	}
-
+	if(bounds.left + bounds.right > width) bounds.left = width - bounds.right;
+	if(bounds.top + bounds.bottom > height) bounds.top = height - bounds.bottom;
 	SetWindowPos(window, HWND_TOP, bounds.left, bounds.top, bounds.right, bounds.bottom, 0);
 }
 
@@ -233,105 +226,38 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			break;
 		}
 
-		GetWindowRect(window, &bounds);
-
-		/*if(position.x + client->window->stream.pressedOffsetX < GetSystemMetrics(SM_CXSCREEN)) {
-			bounds.left = position.x - client->window->stream.pressedX;
-			bounds.right = position.x + client->window->stream.pressedOffsetX;
-		}
-
-		if(position.y + client->window->stream.pressedOffsetY < GetSystemMetrics(SM_CYSCREEN)) {
-			bounds.top = position.y - client->window->stream.pressedY;
-			bounds.bottom = position.y + client->window->stream.pressedOffsetY;
-		}*/
-
-		/*if(client->window->stream.cursorNorth) {
-			bounds.top = position.y - client->window->stream.pressedY;
-		}
-
-		if(client->window->stream.cursorEast) {
-			bounds.right = position.x + client->window->stream.pressedOffsetX;
-		}
-
-		if(client->window->stream.cursorSouth) {
-			bounds.bottom = position.y + client->window->stream.pressedOffsetY;
-		}
-
-		if(client->window->stream.cursorWest) {
-			bounds.left = position.x - client->window->stream.pressedX;
-		}*/
-
-		//bounds.right -= bounds.left;
-		//bounds.bottom -= bounds.top;
-
-		//if(client->window->stream.limitToScreen) {
-			/*bounds.left = max(bounds.left, 0);
-			bounds.top = max(bounds.top, 0);
-			bounds.right = min(bounds.right, GetSystemMetrics(SM_CXSCREEN));
-			bounds.bottom = min(bounds.bottom, GetSystemMetrics(SM_CYSCREEN));*/
-			//limitToScreen(&bounds);
-		//}
-
-		//LOG("Right: %d Bottom %d\n" COMMA bounds.right COMMA bounds.bottom);
 		int minimumSize = client->window->stream.resizeActivationDistance * 3;
 		int difference;
+		GetWindowRect(window, &bounds);
 		bounds.right -= bounds.left;
 		bounds.bottom -= bounds.top;
 
 		if(client->window->stream.cursorNorth) {
 			difference = position.y - client->window->stream.position.y;
-
-			if(client->window->stream.limitToScreen && client->window->stream.bounds.top + difference < 0) {
-				difference = -client->window->stream.bounds.top;
-			}
-
-			if(client->window->stream.bounds.bottom - client->window->stream.bounds.top - difference < minimumSize) {
-				difference = client->window->stream.bounds.bottom - client->window->stream.bounds.top - minimumSize;
-			}
-
+			if(client->window->stream.limitToScreen && client->window->stream.bounds.top + difference < 0) difference = -client->window->stream.bounds.top;
+			if(client->window->stream.bounds.bottom - client->window->stream.bounds.top - difference < minimumSize) difference = client->window->stream.bounds.bottom - client->window->stream.bounds.top - minimumSize;
 			bounds.top = client->window->stream.bounds.top + difference;
 			bounds.bottom = client->window->stream.bounds.bottom - bounds.top;
 		}
 
 		if(client->window->stream.cursorEast) {
 			difference = position.x - client->window->stream.position.x;
-
-			if(client->window->stream.limitToScreen && client->window->stream.bounds.right + difference > screenWidth) {
-				difference = screenWidth - client->window->stream.bounds.right;
-			}
-
+			if(client->window->stream.limitToScreen && client->window->stream.bounds.right + difference > screenWidth) difference = screenWidth - client->window->stream.bounds.right;
 			bounds.right = client->window->stream.bounds.right - client->window->stream.bounds.left + difference;
-
-			if(bounds.right < minimumSize) {
-				bounds.right = minimumSize;
-			}
+			bounds.right = max(bounds.right, minimumSize);
 		}
 
 		if(client->window->stream.cursorSouth) {
 			difference = position.y - client->window->stream.position.y;
-
-			if(client->window->stream.limitToScreen && client->window->stream.bounds.bottom + difference > screenHeight) {
-				difference = screenHeight - client->window->stream.bounds.bottom;
-			}
-
+			if(client->window->stream.limitToScreen && client->window->stream.bounds.bottom + difference > screenHeight) difference = screenHeight - client->window->stream.bounds.bottom;
 			bounds.bottom = client->window->stream.bounds.bottom - client->window->stream.bounds.top + difference;
-
-			if(bounds.bottom < minimumSize) {
-				bounds.bottom = minimumSize;
-			}
+			bounds.bottom = max(bounds.bottom, minimumSize);
 		}
 
 		if(client->window->stream.cursorWest) {
 			difference = position.x - client->window->stream.position.x;
-
-			if(client->window->stream.limitToScreen && client->window->stream.bounds.left + difference < 0) {
-				difference = -client->window->stream.bounds.left;
-			}
-
-			if(client->window->stream.bounds.right - client->window->stream.bounds.left - difference < minimumSize) {
-				difference = client->window->stream.bounds.right - client->window->stream.bounds.left - minimumSize;
-			}
-
+			if(client->window->stream.limitToScreen && client->window->stream.bounds.left + difference < 0) difference = -client->window->stream.bounds.left;
+			if(client->window->stream.bounds.right - client->window->stream.bounds.left - difference < minimumSize) difference = client->window->stream.bounds.right - client->window->stream.bounds.left - minimumSize;
 			bounds.left = client->window->stream.bounds.left + difference;
 			bounds.right = client->window->stream.bounds.right - bounds.left;
 		}
