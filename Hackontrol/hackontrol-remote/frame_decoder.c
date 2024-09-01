@@ -83,6 +83,7 @@ exitRawPixel:
 	int green = 0;
 	int blue = 0;
 	int run = 0;
+	int temporary = 0;
 
 	for(y = boundaryDifference ? (data[13] << 24) | (data[14] << 16) | (data[15] << 8) | data[16] : 0; y <= endY; y++) {
 		for(x = startX; x <= endX; x++) {
@@ -98,9 +99,9 @@ exitRawPixel:
 				goto releaseMutex;
 			}
 
-			startX = data[pointer++];
+			temporary = data[pointer++];
 
-			if(startX == QOI_OP_RGB) {
+			if(temporary == QOI_OP_RGB) {
 				if(size - pointer < 3) goto releaseMutex;
 				red = data[pointer++];
 				green = data[pointer++];
@@ -113,30 +114,30 @@ exitRawPixel:
 				continue;
 			}
 
-			switch(startX & OP_MASK) {
+			switch(temporary & OP_MASK) {
 			case QOI_OP_INDEX: {
-				dataIndex = startX & 0b111111;
+				dataIndex = temporary & 0b111111;
 				red = seenRed[dataIndex];
 				green = seenGreen[dataIndex];
 				blue = seenBlue[dataIndex];
 				break;
 			}
 			case QOI_OP_DIFF:
-				red += ((startX >> 4) & 0b11) - 2;
-				green += ((startX >> 2) & 0b11) - 2;
-				blue += (startX & 0b11) - 2;
+				red += ((temporary >> 4) & 0b11) - 2;
+				green += ((temporary >> 2) & 0b11) - 2;
+				blue += (temporary & 0b11) - 2;
 				break;
 			case QOI_OP_LUMA:
 				if(size - pointer < 1) goto releaseMutex;
 				dataIndex = data[pointer++];
-				startX = (startX & 0b111111) - 32;
-				red += startX - 8 + ((dataIndex >> 4) & 0b1111);
-				green += startX;
-				blue += startX - 8 + (dataIndex & 0b1111);
+				temporary = (temporary & 0b111111) - 32;
+				red += temporary - 8 + ((dataIndex >> 4) & 0b1111);
+				green += temporary;
+				blue += temporary - 8 + (dataIndex & 0b1111);
 				break;
 			case QOI_OP_RUN:
 				SUBTRACT;
-				run = (startX & 0b111111);
+				run = (temporary & 0b111111);
 				continue;
 			}
 
