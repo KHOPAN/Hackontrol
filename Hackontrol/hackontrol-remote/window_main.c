@@ -266,15 +266,14 @@ void MainWindowRefreshListView() {
 	SendMessageW(listView, LVM_DELETEALLITEMS, 0, 0);
 	LVITEMW item = {0};
 	item.mask = LVIF_TEXT;
-	PCLIENT client;
 
 	for(size_t i = 0; i < clients.elementCount; i++) {
-		if(KHArrayGet(&clients, i, &client) && client->active) {
+		if(KHArrayGet(&clients, i, (void**) &item.lParam) && ((PCLIENT) item.lParam)->active) {
 			item.iSubItem = 0;
-			item.pszText = client ? client->name : L"(Missing name)";
+			item.pszText = item.lParam ? ((PCLIENT) item.lParam)->name : L"(Missing name)";
 			SendMessageW(listView, LVM_INSERTITEM, 0, (LPARAM) &item);
 			item.iSubItem = 1;
-			item.pszText = client ? client->address : L"(Missing address)";
+			item.pszText = item.lParam ? ((PCLIENT) item.lParam)->address : L"(Missing address)";
 			SendMessageW(listView, LVM_SETITEM, 0, (LPARAM) &item);
 		}
 	}
