@@ -21,6 +21,7 @@ extern HANDLE clientsLock;
 static HWND window;
 static HWND titledBorder;
 static HWND listView;
+static HMENU contextMenu;
 
 static BOOL activeItem(const size_t index, PCLIENT* const client) {
 	size_t pointer = 0;
@@ -244,6 +245,20 @@ int MainWindowMessageLoop() {
 		goto deleteFont;
 	}
 
+	contextMenu = CreateMenu();
+
+	if(!contextMenu) {
+		KHWIN32_LAST_ERROR(L"CreateMenu");
+		goto deleteFont;
+	}
+
+	AppendMenuW(contextMenu, MF_STRING, IDM_REMOTE_OPEN, L"Open");
+	AppendMenuW(contextMenu, MF_STRING, IDM_REMOTE_DISCONNECT, L"Disconnect");
+	AppendMenuW(contextMenu, MF_SEPARATOR, 0, NULL);
+	AppendMenuW(contextMenu, MF_STRING, IDM_REMOTE_REFRESH, L"Refresh");
+	AppendMenuW(contextMenu, MF_SEPARATOR, 0, NULL);
+	AppendMenuW(contextMenu, MF_STRING, IDM_REMOTE_ALWAYS_ON_TOP, L"Always On Top");
+	AppendMenuW(contextMenu, MF_STRING, IDM_REMOTE_EXIT, L"Exit");
 	LOG("[Remote]: Start message loop\n");
 	MSG message;
 
@@ -253,6 +268,7 @@ int MainWindowMessageLoop() {
 	}
 
 	metrics.iBorderWidth = 0;
+	DestroyMenu(contextMenu);
 deleteFont:
 	DeleteObject(font);
 	return metrics.iBorderWidth;
