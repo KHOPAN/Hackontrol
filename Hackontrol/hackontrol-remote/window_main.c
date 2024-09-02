@@ -46,7 +46,6 @@ static BOOL activeItem(const size_t index, PCLIENT* const client) {
 static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	PCLIENT client = NULL;
 	RECT bounds;
-	GetClientRect(window, &bounds);
 
 	switch(message) {
 	case WM_CLOSE:
@@ -56,6 +55,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 		PostQuitMessage(0);
 		return 0;
 	case WM_SIZE:
+		GetClientRect(window, &bounds);
 		SetWindowPos(titledBorder, HWND_TOP, 0, 0, bounds.right - bounds.left - 10, bounds.bottom - bounds.top - 4, SWP_NOMOVE);
 		GetClientRect(titledBorder, &bounds);
 		SetWindowPos(listView, HWND_TOP, bounds.left + 9, bounds.top + 17, bounds.right - bounds.left - 8, bounds.bottom - bounds.top - 22, 0);
@@ -73,12 +73,12 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 		return DefWindowProcW(inputWindow, message, wparam, lparam);
 	}
 	case WM_CONTEXTMENU: {
-		LVHITTESTINFO hitTest = {0};
-		hitTest.pt.x = LOWORD(lparam);
-		hitTest.pt.y = HIWORD(lparam);
-		ScreenToClient(listView, &hitTest.pt);
+		LVHITTESTINFO information = {0};
+		GetCursorPos(&information.pt);
+		ScreenToClient(listView, &information.pt);
+		GetClientRect(window, &bounds);
 
-		if(hitTest.pt.x < bounds.left || hitTest.pt.x > bounds.right || hitTest.pt.y < bounds.top || hitTest.pt.y > bounds.bottom) {
+		if(information.pt.x < bounds.left || information.pt.x > bounds.right || information.pt.y < bounds.top || information.pt.y > bounds.bottom) {
 			return 0;
 		}
 
@@ -88,7 +88,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 			return 0;
 		}
 
-		if(SendMessageW(listView, LVM_HITTEST, 0, (LPARAM) &hitTest) == -1) {
+		if(SendMessageW(listView, LVM_HITTEST, 0, (LPARAM) &information) == -1) {
 			goto skipHitTest;
 		}
 
@@ -97,7 +97,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 			return 0;
 		}
 
-		if(activeItem(hitTest.iItem, &client)) {
+		if(activeItem(information.iItem, &client)) {
 			AppendMenuW(popupMenu, MF_STRING, IDM_REMOTE_OPEN, L"Open");
 			AppendMenuW(popupMenu, MF_STRING, IDM_REMOTE_DISCONNECT, L"Disconnect");
 			AppendMenuW(popupMenu, MF_SEPARATOR, 0, NULL);
@@ -110,10 +110,10 @@ skipHitTest:
 		AppendMenuW(popupMenu, MF_STRING | (GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST ? MF_CHECKED : MF_UNCHECKED), IDM_REMOTE_ALWAYS_ON_TOP, L"Always On Top");
 		AppendMenuW(popupMenu, MF_STRING, IDM_REMOTE_EXIT, L"Exit");
 		SetForegroundWindow(window);
-		hitTest.flags = TrackPopupMenuEx(popupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
+		information.flags = TrackPopupMenuEx(popupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
 		DestroyMenu(popupMenu);
 
-		switch(hitTest.flags) {
+		switch(information.flags) {
 		case IDM_REMOTE_REFRESH:
 			LOG("[Window]: Refreshing list view\n");
 			MainWindowRefreshListView();
@@ -131,7 +131,7 @@ skipHitTest:
 			return 0;
 		}
 
-		switch(hitTest.flags) {
+		switch(information.flags) {
 		case IDM_REMOTE_OPEN:
 			ClientOpen(client);
 			break;
