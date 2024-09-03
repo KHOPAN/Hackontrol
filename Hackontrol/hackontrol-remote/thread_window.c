@@ -16,6 +16,15 @@
 #define IDM_WINDOW_SEND_METHOD_COLOR        0xE008
 #define IDM_WINDOW_SEND_METHOD_UNCOMPRESSED 0xE009
 
+static void sendFrameCode(const PCLIENT client) {
+	BYTE data = ((client->window->stream.sendMethod & 0b11) << 1) | (client->window->stream.streaming ? 0b1001 : 0);
+	PACKET packet;
+	packet.size = 1;
+	packet.packetType = PACKET_TYPE_STREAM_FRAME;
+	packet.data = &data;
+	SendPacket(client->socket, &packet);
+}
+
 static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	PCLIENT client = (PCLIENT) GetWindowLongPtrW(window, GWLP_USERDATA);
 
@@ -177,25 +186,23 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			break;
 		case IDM_WINDOW_STREAMING_ENABLE:
 			client->window->stream.streaming = !client->window->stream.streaming;
-			goto sendStreamCode;
+			sendFrameCode(client);
+			break;
 		case IDM_WINDOW_SEND_METHOD_FULL:
 			client->window->stream.sendMethod = SEND_METHOD_FULL;
-			goto sendStreamCode;
+			sendFrameCode(client);
+			break;
 		case IDM_WINDOW_SEND_METHOD_BOUNDARY:
 			client->window->stream.sendMethod = SEND_METHOD_BOUNDARY;
-			goto sendStreamCode;
+			sendFrameCode(client);
+			break;
 		case IDM_WINDOW_SEND_METHOD_COLOR:
 			client->window->stream.sendMethod = SEND_METHOD_COLOR;
-			goto sendStreamCode;
+			sendFrameCode(client);
+			break;
 		case IDM_WINDOW_SEND_METHOD_UNCOMPRESSED:
 			client->window->stream.sendMethod = SEND_METHOD_UNCOMPRESSED;
-sendStreamCode:
-			position.x = (BYTE) ((client->window->stream.sendMethod & 0b11) << 1) | (client->window->stream.streaming ? 0b1001 : 0);
-			PACKET packet;
-			packet.size = 1;
-			packet.packetType = PACKET_TYPE_STREAM_FRAME;
-			packet.data = &position.x;
-			SendPacket(client->socket, &packet);
+			sendFrameCode(client);
 			break;
 		}
 
@@ -350,12 +357,7 @@ DWORD WINAPI ClientWindowThread(_In_ PCLIENT client) {
 	}
 
 	client->window->stream.streaming = FALSE;
-	message.message = 0;
-	PACKET packet;
-	packet.size = 1;
-	packet.packetType = PACKET_TYPE_STREAM_FRAME;
-	packet.data = &message.message;
-	SendPacket(client->socket, &packet);
+	sendFrameCode(client);
 
 	if(WaitForSingleObject(client->window->lock, INFINITE) == WAIT_FAILED) {
 		KHWIN32_LAST_ERROR(L"WaitForSingleObject");
