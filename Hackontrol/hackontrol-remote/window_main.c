@@ -83,36 +83,25 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 			return 0;
 		}
 
-		HMENU popupMenu = CreatePopupMenu();
+		information.iGroup = 0;
 
-		if(!popupMenu) {
-			return 0;
+		if(SendMessageW(listView, LVM_HITTEST, 0, (LPARAM) &information) != -1 && WaitForSingleObject(clientsLock, INFINITE) != WAIT_FAILED) {
+			information.iGroup = activeItem(information.iItem, &client);
+			ReleaseMutex(clientsLock);
 		}
 
-		if(SendMessageW(listView, LVM_HITTEST, 0, (LPARAM) &information) == -1) {
-			goto skipHitTest;
+		if(information.iGroup) {
+			InsertMenuW(contextMenu, 0, MF_BYPOSITION | MF_SEPARATOR, 0, NULL);
+			InsertMenuW(contextMenu, 0, MF_BYPOSITION, IDM_REMOTE_DISCONNECT, L"Disconnect");
+			InsertMenuW(contextMenu, 0, MF_BYPOSITION, IDM_REMOTE_OPEN, L"Open");
 		}
 
-		if(WaitForSingleObject(clientsLock, INFINITE) == WAIT_FAILED) {
-			DestroyMenu(popupMenu);
-			return 0;
-		}
-
-		if(activeItem(information.iItem, &client)) {
-			//AppendMenuW(popupMenu, MF_STRING, IDM_REMOTE_OPEN, L"Open");
-			//AppendMenuW(popupMenu, MF_STRING, IDM_REMOTE_DISCONNECT, L"Disconnect");
-			//AppendMenuW(popupMenu, MF_SEPARATOR, 0, NULL);
-		}
-
-		ReleaseMutex(clientsLock);
-skipHitTest:
-		//AppendMenuW(popupMenu, MF_STRING, IDM_REMOTE_REFRESH, L"Refresh");
-		//AppendMenuW(popupMenu, MF_SEPARATOR, 0, NULL);
-		//AppendMenuW(popupMenu, MF_STRING | (GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST ? MF_CHECKED : MF_UNCHECKED), IDM_REMOTE_ALWAYS_ON_TOP, L"Always On Top");
-		//AppendMenuW(popupMenu, MF_STRING, IDM_REMOTE_EXIT, L"Exit");
 		SetForegroundWindow(window);
 		information.flags = TrackPopupMenuEx(contextMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
-		DestroyMenu(popupMenu);
+
+		if(information.iGroup) {
+			for(information.iGroup = 0; information.iGroup < 3; information.iGroup++) RemoveMenu(contextMenu, 0, MF_BYPOSITION);
+		}
 
 		switch(information.flags) {
 		case IDM_REMOTE_REFRESH:
@@ -252,9 +241,6 @@ int MainWindowMessageLoop() {
 		goto deleteFont;
 	}
 
-	AppendMenuW(contextMenu, MF_STRING, IDM_REMOTE_OPEN, L"Open");
-	AppendMenuW(contextMenu, MF_STRING, IDM_REMOTE_DISCONNECT, L"Disconnect");
-	AppendMenuW(contextMenu, MF_SEPARATOR, 0, NULL);
 	AppendMenuW(contextMenu, MF_STRING, IDM_REMOTE_REFRESH, L"Refresh");
 	AppendMenuW(contextMenu, MF_SEPARATOR, 0, NULL);
 	AppendMenuW(contextMenu, MF_STRING, IDM_REMOTE_ALWAYS_ON_TOP, L"Always On Top");
