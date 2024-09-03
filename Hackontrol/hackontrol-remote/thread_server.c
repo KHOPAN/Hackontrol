@@ -215,6 +215,8 @@ freeClients:
 	KHArrayFree(&clients);
 functionExit:
 	LOG("[Remote]: Exit with code: %d\n" COMMA returnValue);
+#ifdef LOGGER_ENABLE
 	Sleep(INFINITE);
+#endif
 	return returnValue;
 }

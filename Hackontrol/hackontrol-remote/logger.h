@@ -1,6 +1,6 @@
 #pragma once
 
-#define LOGGER_ENABLE
+//#define LOGGER_ENABLE
 //#define NO_CONSOLE
 
 #ifdef LOGGER_ENABLE
