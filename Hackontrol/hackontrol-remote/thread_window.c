@@ -16,22 +16,6 @@
 #define IDM_WINDOW_SEND_METHOD_COLOR        0xE008
 #define IDM_WINDOW_SEND_METHOD_UNCOMPRESSED 0xE009
 
-static void limitToScreen(const HWND window) {
-	RECT bounds;
-	GetWindowRect(window, &bounds);
-	bounds.right -= bounds.left;
-	bounds.bottom -= bounds.top;
-	int width = GetSystemMetrics(SM_CXSCREEN);
-	int height = GetSystemMetrics(SM_CYSCREEN);
-	bounds.left = max(bounds.left, 0);
-	bounds.top = max(bounds.top, 0);
-	bounds.right = min(bounds.right, width);
-	bounds.bottom = min(bounds.bottom, height);
-	if(bounds.left + bounds.right > width) bounds.left = width - bounds.right;
-	if(bounds.top + bounds.bottom > height) bounds.top = height - bounds.bottom;
-	SetWindowPos(window, HWND_TOP, bounds.left, bounds.top, bounds.right, bounds.bottom, 0);
-}
-
 static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	PCLIENT client = (PCLIENT) GetWindowLongPtrW(window, GWLP_USERDATA);
 
@@ -176,7 +160,19 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			break;
 		case IDM_LIMIT_TO_SCREEN:
 			client->window->stream.limitToScreen = !client->window->stream.limitToScreen;
-			if(client->window->stream.limitToScreen) limitToScreen(window);
+			if(!client->window->stream.limitToScreen) break;
+			GetWindowRect(window, &bounds);
+			bounds.right -= bounds.left;
+			bounds.bottom -= bounds.top;
+			position.x = GetSystemMetrics(SM_CXSCREEN);
+			position.y = GetSystemMetrics(SM_CYSCREEN);
+			bounds.left = max(bounds.left, 0);
+			bounds.top = max(bounds.top, 0);
+			bounds.right = min(bounds.right, position.x);
+			bounds.bottom = min(bounds.bottom, position.y);
+			if(bounds.left + bounds.right > position.x) bounds.left = position.x - bounds.right;
+			if(bounds.top + bounds.bottom > position.y) bounds.top = position.y - bounds.bottom;
+			SetWindowPos(window, HWND_TOP, bounds.left, bounds.top, bounds.right, bounds.bottom, 0);
 			break;
 		case IDM_WINDOW_EXIT:
 			LOG("[Window %ws]: Exiting\n" COMMA client->address);
