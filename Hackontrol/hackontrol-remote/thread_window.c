@@ -28,17 +28,6 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		SetWindowLongPtrW(window, GWLP_USERDATA, (LONG_PTR) client);
 	}
 
-	switch(message) {
-	case WM_CLOSE:
-		DestroyWindow(window);
-		return 0;
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		return 0;
-	case WM_ERASEBKGND:
-		return 1;
-	}
-
 	POINT position;
 	RECT bounds;
 	PAINTSTRUCT paintStruct;
@@ -47,6 +36,12 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 	HBITMAP bitmap;
 
 	switch(message) {
+	case WM_CLOSE:
+		DestroyWindow(window);
+		return 0;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
 	case WM_SIZE:
 		GetClientRect(window, &bounds);
 		bounds.right -= bounds.left;
@@ -103,6 +98,8 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		DeleteDC(memoryContext);
 		EndPaint(window, &paintStruct);
 		break;
+	case WM_ERASEBKGND:
+		return 1;
 	case WM_CONTEXTMENU:
 		context = (HDC) CreatePopupMenu();
 
