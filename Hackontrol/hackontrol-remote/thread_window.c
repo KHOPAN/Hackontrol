@@ -55,12 +55,15 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		return 1;
 	}
 
-	LRESULT returnValue = 0;
-	RECT bounds;
 	POINT position;
+	RECT bounds;
+	PAINTSTRUCT paintStruct;
+	HDC context;
+	HDC memoryContext;
+	HBITMAP bitmap;
 
 	switch(message) {
-	case WM_SIZE: {
+	case WM_SIZE:
 		GetClientRect(window, &bounds);
 		bounds.right -= bounds.left;
 		bounds.bottom -= bounds.top;
@@ -83,13 +86,11 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		client->window->stream.imageY = position.x ? 0 : (int) ((((double) bounds.bottom) - ((double) client->window->stream.imageHeight)) / 2.0);
 		ReleaseMutex(client->window->lock);
 		break;
-	}
-	case WM_PAINT: {
-		PAINTSTRUCT paintStruct;
-		HDC context = BeginPaint(window, &paintStruct);
-		HDC memoryContext = CreateCompatibleDC(context);
+	case WM_PAINT:
 		GetClientRect(window, &bounds);
-		HBITMAP bitmap = CreateCompatibleBitmap(context, bounds.right, bounds.bottom);
+		context = BeginPaint(window, &paintStruct);
+		memoryContext = CreateCompatibleDC(context);
+		bitmap = CreateCompatibleBitmap(context, bounds.right, bounds.bottom);
 		HBITMAP oldBitmap = SelectObject(memoryContext, bitmap);
 		HBRUSH brush = GetStockObject(DC_BRUSH);
 		SetDCBrushColor(memoryContext, 0x000000);
@@ -118,49 +119,47 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		DeleteDC(memoryContext);
 		EndPaint(window, &paintStruct);
 		break;
-	}
-	case WM_CONTEXTMENU: {
-		HMENU popupMenu = CreatePopupMenu();
+	case WM_CONTEXTMENU:
+		context = (HDC) CreatePopupMenu();
 
-		if(!popupMenu) {
+		if(!context) {
 			break;
 		}
 
-		HMENU streamingMenu = CreateMenu();
+		memoryContext = (HDC) CreateMenu();
 
-		if(!streamingMenu) {
-			DestroyMenu(popupMenu);
+		if(!memoryContext) {
+			DestroyMenu((HMENU) context);
 			break;
 		}
 
-		HMENU sendMethod = CreateMenu();
+		bitmap = (HBITMAP) CreateMenu();
 
-		if(!sendMethod || WaitForSingleObject(client->window->lock, INFINITE) == WAIT_FAILED) {
-			DestroyMenu(streamingMenu);
-			DestroyMenu(popupMenu);
+		if(!bitmap || WaitForSingleObject(client->window->lock, INFINITE) == WAIT_FAILED) {
+			DestroyMenu((HMENU) memoryContext);
+			DestroyMenu((HMENU) context);
 			break;
 		}
 
-		AppendMenuW(streamingMenu, MF_STRING | (client->window->stream.streaming ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_STREAMING_ENABLE, L"Enable");
-		AppendMenuW(sendMethod, MF_STRING | (client->window->stream.sendMethod == SEND_METHOD_FULL ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_FULL, L"Full");
-		AppendMenuW(sendMethod, MF_STRING | (client->window->stream.sendMethod == SEND_METHOD_BOUNDARY ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_BOUNDARY, L"Boundary Differences");
-		AppendMenuW(sendMethod, MF_STRING | (client->window->stream.sendMethod == SEND_METHOD_COLOR ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_COLOR, L"Color Differences");
-		AppendMenuW(sendMethod, MF_STRING | (client->window->stream.sendMethod == SEND_METHOD_UNCOMPRESSED ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_UNCOMPRESSED, L"Uncompressed");
-		AppendMenuW(streamingMenu, MF_POPUP | (client->window->stream.streaming ? MF_ENABLED : MF_DISABLED), (UINT_PTR) sendMethod, L"Send Method");
-		AppendMenuW(popupMenu, MF_POPUP, (UINT_PTR) streamingMenu, L"Streaming");
-		AppendMenuW(popupMenu, MF_STRING | (client->window->stream.pictureInPictureMode ? MF_CHECKED : MF_UNCHECKED), IDM_PICTURE_IN_PICTURE, L"Picture in Picture Mode");
-		AppendMenuW(popupMenu, MF_STRING | (client->window->stream.lockFrame ? MF_CHECKED : MF_UNCHECKED) | (client->window->stream.pictureInPictureMode ? MF_ENABLED : MF_DISABLED), IDM_LOCK_FRAME, L"Lock Frame");
-		AppendMenuW(popupMenu, MF_STRING | (client->window->stream.limitToScreen ? MF_CHECKED : MF_UNCHECKED) | (client->window->stream.pictureInPictureMode ? MF_ENABLED : MF_DISABLED), IDM_LIMIT_TO_SCREEN, L"Limit to Screen");
-		AppendMenuW(popupMenu, MF_STRING, IDM_WINDOW_EXIT, L"Exit");
+		AppendMenuW((HMENU) memoryContext, MF_STRING | (client->window->stream.streaming ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_STREAMING_ENABLE, L"Enable");
+		AppendMenuW((HMENU) bitmap, MF_STRING | (client->window->stream.sendMethod == SEND_METHOD_FULL ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_FULL, L"Full");
+		AppendMenuW((HMENU) bitmap, MF_STRING | (client->window->stream.sendMethod == SEND_METHOD_BOUNDARY ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_BOUNDARY, L"Boundary Differences");
+		AppendMenuW((HMENU) bitmap, MF_STRING | (client->window->stream.sendMethod == SEND_METHOD_COLOR ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_COLOR, L"Color Differences");
+		AppendMenuW((HMENU) bitmap, MF_STRING | (client->window->stream.sendMethod == SEND_METHOD_UNCOMPRESSED ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_UNCOMPRESSED, L"Uncompressed");
+		AppendMenuW((HMENU) memoryContext, MF_POPUP | (client->window->stream.streaming ? MF_ENABLED : MF_DISABLED), (UINT_PTR) bitmap, L"Send Method");
+		AppendMenuW((HMENU) context, MF_POPUP, (UINT_PTR) memoryContext, L"Streaming");
+		AppendMenuW((HMENU) context, MF_STRING | (client->window->stream.pictureInPictureMode ? MF_CHECKED : MF_UNCHECKED), IDM_PICTURE_IN_PICTURE, L"Picture in Picture Mode");
+		AppendMenuW((HMENU) context, MF_STRING | (client->window->stream.lockFrame ? MF_CHECKED : MF_UNCHECKED) | (client->window->stream.pictureInPictureMode ? MF_ENABLED : MF_DISABLED), IDM_LOCK_FRAME, L"Lock Frame");
+		AppendMenuW((HMENU) context, MF_STRING | (client->window->stream.limitToScreen ? MF_CHECKED : MF_UNCHECKED) | (client->window->stream.pictureInPictureMode ? MF_ENABLED : MF_DISABLED), IDM_LIMIT_TO_SCREEN, L"Limit to Screen");
+		AppendMenuW((HMENU) context, MF_STRING, IDM_WINDOW_EXIT, L"Exit");
 		SetForegroundWindow(window);
 		ReleaseMutex(client->window->lock);
-		TrackPopupMenuEx(popupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
-		DestroyMenu(sendMethod);
-		DestroyMenu(streamingMenu);
-		DestroyMenu(popupMenu);
+		TrackPopupMenuEx((HMENU) context, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
+		DestroyMenu((HMENU) bitmap);
+		DestroyMenu((HMENU) memoryContext);
+		DestroyMenu((HMENU) context);
 		break;
-	}
-	case WM_COMMAND: {
+	case WM_COMMAND:
 		if(WaitForSingleObject(client->window->lock, INFINITE) == WAIT_FAILED) {
 			break;
 		}
@@ -209,7 +208,6 @@ sendStreamCode:
 
 		ReleaseMutex(client->window->lock);
 		break;
-	}
 	case WM_MOUSEMOVE: {
 		if(WaitForSingleObject(client->window->lock, INFINITE) == WAIT_FAILED) {
 			break;
@@ -234,51 +232,50 @@ sendStreamCode:
 			break;
 		}
 
-		int screenWidth = GetSystemMetrics(SM_CXSCREEN);
-		int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+		paintStruct.rcPaint.left = GetSystemMetrics(SM_CXSCREEN);
+		paintStruct.rcPaint.top = GetSystemMetrics(SM_CYSCREEN);
 		GetCursorPos(&position);
 
 		if(!client->window->stream.cursorNorth && !client->window->stream.cursorEast && !client->window->stream.cursorSouth && !client->window->stream.cursorWest) {
 			position.x -= client->window->stream.position.x - client->window->stream.bounds.left;
 			position.y -= client->window->stream.position.y - client->window->stream.bounds.top;
-			SetWindowPos(window, HWND_TOP, client->window->stream.limitToScreen ? position.x < 0 ? 0 : position.x + client->window->stream.bounds.right - client->window->stream.bounds.left > screenWidth ? screenWidth - client->window->stream.bounds.right + client->window->stream.bounds.left : position.x : position.x, client->window->stream.limitToScreen ? position.y < 0 ? 0 : position.y + client->window->stream.bounds.bottom - client->window->stream.bounds.top > screenHeight ? screenHeight - client->window->stream.bounds.bottom + client->window->stream.bounds.top : position.y : position.y, 0, 0, SWP_NOSIZE);
+			SetWindowPos(window, HWND_TOP, client->window->stream.limitToScreen ? position.x < 0 ? 0 : position.x + client->window->stream.bounds.right - client->window->stream.bounds.left > paintStruct.rcPaint.left ? paintStruct.rcPaint.left - client->window->stream.bounds.right + client->window->stream.bounds.left : position.x : position.x, client->window->stream.limitToScreen ? position.y < 0 ? 0 : position.y + client->window->stream.bounds.bottom - client->window->stream.bounds.top > paintStruct.rcPaint.top ? paintStruct.rcPaint.top - client->window->stream.bounds.bottom + client->window->stream.bounds.top : position.y : position.y, 0, 0, SWP_NOSIZE);
 			ReleaseMutex(client->window->lock);
 			break;
 		}
 
-		int minimumSize = client->window->stream.resizeActivationDistance * 3;
-		int difference;
+		paintStruct.rcPaint.right = client->window->stream.resizeActivationDistance * 3;
 		GetWindowRect(window, &bounds);
 		bounds.right -= bounds.left;
 		bounds.bottom -= bounds.top;
 
 		if(client->window->stream.cursorNorth) {
-			difference = position.y - client->window->stream.position.y;
-			if(client->window->stream.limitToScreen && client->window->stream.bounds.top + difference < 0) difference = -client->window->stream.bounds.top;
-			if(client->window->stream.bounds.bottom - client->window->stream.bounds.top - difference < minimumSize) difference = client->window->stream.bounds.bottom - client->window->stream.bounds.top - minimumSize;
-			bounds.top = client->window->stream.bounds.top + difference;
+			paintStruct.rcPaint.bottom = position.y - client->window->stream.position.y;
+			if(client->window->stream.limitToScreen && client->window->stream.bounds.top + paintStruct.rcPaint.bottom < 0) paintStruct.rcPaint.bottom = -client->window->stream.bounds.top;
+			if(client->window->stream.bounds.bottom - client->window->stream.bounds.top - paintStruct.rcPaint.bottom < paintStruct.rcPaint.right) paintStruct.rcPaint.bottom = client->window->stream.bounds.bottom - client->window->stream.bounds.top - paintStruct.rcPaint.right;
+			bounds.top = client->window->stream.bounds.top + paintStruct.rcPaint.bottom;
 			bounds.bottom = client->window->stream.bounds.bottom - bounds.top;
 		}
 
 		if(client->window->stream.cursorEast) {
-			difference = position.x - client->window->stream.position.x;
-			if(client->window->stream.limitToScreen && client->window->stream.bounds.right + difference > screenWidth) difference = screenWidth - client->window->stream.bounds.right;
-			bounds.right = client->window->stream.bounds.right - client->window->stream.bounds.left + difference;
-			bounds.right = max(bounds.right, minimumSize);
+			paintStruct.rcPaint.bottom = position.x - client->window->stream.position.x;
+			if(client->window->stream.limitToScreen && client->window->stream.bounds.right + paintStruct.rcPaint.bottom > paintStruct.rcPaint.left) paintStruct.rcPaint.bottom = paintStruct.rcPaint.left - client->window->stream.bounds.right;
+			bounds.right = client->window->stream.bounds.right - client->window->stream.bounds.left + paintStruct.rcPaint.bottom;
+			bounds.right = max(bounds.right, paintStruct.rcPaint.right);
 		}
 
 		if(client->window->stream.cursorSouth) {
-			difference = position.y - client->window->stream.position.y;
-			if(client->window->stream.limitToScreen && client->window->stream.bounds.bottom + difference > screenHeight) difference = screenHeight - client->window->stream.bounds.bottom;
-			bounds.bottom = client->window->stream.bounds.bottom - client->window->stream.bounds.top + difference;
-			bounds.bottom = max(bounds.bottom, minimumSize);
+			paintStruct.rcPaint.bottom = position.y - client->window->stream.position.y;
+			if(client->window->stream.limitToScreen && client->window->stream.bounds.bottom + paintStruct.rcPaint.bottom > paintStruct.rcPaint.top) paintStruct.rcPaint.bottom = paintStruct.rcPaint.top - client->window->stream.bounds.bottom;
+			bounds.bottom = client->window->stream.bounds.bottom - client->window->stream.bounds.top + paintStruct.rcPaint.bottom;
+			bounds.bottom = max(bounds.bottom, paintStruct.rcPaint.right);
 		}
 
 		if(client->window->stream.cursorWest) {
-			difference = position.x - client->window->stream.position.x;
-			if(client->window->stream.limitToScreen && client->window->stream.bounds.left + difference < 0) difference = -client->window->stream.bounds.left;
-			if(client->window->stream.bounds.right - client->window->stream.bounds.left - difference < minimumSize) difference = client->window->stream.bounds.right - client->window->stream.bounds.left - minimumSize;
-			bounds.left = client->window->stream.bounds.left + difference;
+			paintStruct.rcPaint.bottom = position.x - client->window->stream.position.x;
+			if(client->window->stream.limitToScreen && client->window->stream.bounds.left + paintStruct.rcPaint.bottom < 0) paintStruct.rcPaint.bottom = -client->window->stream.bounds.left;
+			if(client->window->stream.bounds.right - client->window->stream.bounds.left - paintStruct.rcPaint.bottom < paintStruct.rcPaint.right) paintStruct.rcPaint.bottom = client->window->stream.bounds.right - client->window->stream.bounds.left - paintStruct.rcPaint.right;
+			bounds.left = client->window->stream.bounds.left + paintStruct.rcPaint.bottom;
 			bounds.right = client->window->stream.bounds.right - bounds.left;
 		}
 
