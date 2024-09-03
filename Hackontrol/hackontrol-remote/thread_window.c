@@ -204,7 +204,7 @@ sendStreamCode:
 
 		ReleaseMutex(client->window->lock);
 		break;
-	case WM_MOUSEMOVE: {
+	case WM_MOUSEMOVE:
 		if(WaitForSingleObject(client->window->lock, INFINITE) == WAIT_FAILED) {
 			break;
 		}
@@ -278,7 +278,6 @@ sendStreamCode:
 		SetWindowPos(window, HWND_TOP, bounds.left, bounds.top, bounds.right, bounds.bottom, (!client->window->stream.cursorNorth && client->window->stream.cursorEast) || (client->window->stream.cursorSouth && !client->window->stream.cursorWest) ? SWP_NOMOVE : 0);
 		ReleaseMutex(client->window->lock);
 		break;
-	}
 	case WM_LBUTTONDOWN:
 		if(WaitForSingleObject(client->window->lock, INFINITE) == WAIT_FAILED) {
 			break;
