@@ -143,7 +143,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			goto releaseMutex;
 		}
 
-		AppendMenuW(streamingMenu, MF_STRING | (client->window->stream.streaming ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_STREAMING_ENABLE, L"Enable");
+		/*AppendMenuW(streamingMenu, MF_STRING | (client->window->stream.streaming ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_STREAMING_ENABLE, L"Enable");
 		AppendMenuW(sendMethod, MF_STRING | (client->window->stream.sendMethod == SEND_METHOD_FULL ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_FULL, L"Full");
 		AppendMenuW(sendMethod, MF_STRING | (client->window->stream.sendMethod == SEND_METHOD_BOUNDARY ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_BOUNDARY, L"Boundary Differences");
 		AppendMenuW(sendMethod, MF_STRING | (client->window->stream.sendMethod == SEND_METHOD_COLOR ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_COLOR, L"Color Differences");
@@ -153,10 +153,10 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		AppendMenuW(popupMenu, MF_STRING | (client->window->stream.pictureInPictureMode ? MF_CHECKED : MF_UNCHECKED), IDM_PICTURE_IN_PICTURE, L"Picture in Picture Mode");
 		AppendMenuW(popupMenu, MF_STRING | (client->window->stream.lockFrame ? MF_CHECKED : MF_UNCHECKED) | (client->window->stream.pictureInPictureMode ? MF_ENABLED : MF_DISABLED), IDM_LOCK_FRAME, L"Lock Frame");
 		AppendMenuW(popupMenu, MF_STRING | (client->window->stream.limitToScreen ? MF_CHECKED : MF_UNCHECKED) | (client->window->stream.pictureInPictureMode ? MF_ENABLED : MF_DISABLED), IDM_LIMIT_TO_SCREEN, L"Limit to Screen");
-		AppendMenuW(popupMenu, MF_STRING, IDM_WINDOW_EXIT, L"Exit");
+		AppendMenuW(popupMenu, MF_STRING, IDM_WINDOW_EXIT, L"Exit");*/
 		SetForegroundWindow(window);
 		ReleaseMutex(client->window->lock);
-		position.x = TrackPopupMenuEx(popupMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
+		position.x = TrackPopupMenuEx(client->window->contextMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
 		DestroyMenu(sendMethod);
 		DestroyMenu(streamingMenu);
 		DestroyMenu(popupMenu);
@@ -314,6 +314,38 @@ DWORD WINAPI ClientWindowThread(_In_ PCLIENT client) {
 	LOG("[Window %ws]: Starting\n" COMMA client->address);
 	memset(&client->window->stream, 0, sizeof(STREAMDATA));
 	client->window->stream.sendMethod = SEND_METHOD_COLOR;
+	client->window->contextMenu = CreatePopupMenu();
+
+	if(!client->window->contextMenu) {
+		KHWIN32_LAST_ERROR(L"CreatePopupMenu");
+		goto functionExit;
+	}
+
+	client->window->streamingMenu = CreateMenu();
+
+	if(!client->window->streamingMenu) {
+		KHWIN32_LAST_ERROR(L"CreateMenu");
+		goto destroyContextMenu;
+	}
+
+	client->window->sendMethodMenu = CreateMenu();
+
+	if(!client->window->sendMethodMenu) {
+		KHWIN32_LAST_ERROR(L"CreateMenu");
+		goto destroyStreamingMenu;
+	}
+
+	AppendMenuW(client->window->streamingMenu, MF_STRING, IDM_WINDOW_STREAMING_ENABLE, L"Enable");
+	AppendMenuW(client->window->sendMethodMenu, MF_STRING, IDM_WINDOW_SEND_METHOD_FULL, L"Full");
+	AppendMenuW(client->window->sendMethodMenu, MF_STRING, IDM_WINDOW_SEND_METHOD_BOUNDARY, L"Boundary Differences");
+	AppendMenuW(client->window->sendMethodMenu, MF_STRING, IDM_WINDOW_SEND_METHOD_COLOR, L"Color Differences");
+	AppendMenuW(client->window->sendMethodMenu, MF_STRING, IDM_WINDOW_SEND_METHOD_UNCOMPRESSED, L"Uncompressed");
+	AppendMenuW(client->window->streamingMenu, MF_POPUP | MF_DISABLED, (UINT_PTR) client->window->sendMethodMenu, L"Send Method");
+	AppendMenuW(client->window->contextMenu, MF_POPUP, (UINT_PTR) client->window->streamingMenu, L"Streaming");
+	AppendMenuW(client->window->contextMenu, MF_STRING, IDM_PICTURE_IN_PICTURE, L"Picture in Picture Mode");
+	AppendMenuW(client->window->contextMenu, MF_STRING | MF_DISABLED, IDM_LOCK_FRAME, L"Lock Frame");
+	AppendMenuW(client->window->contextMenu, MF_STRING | MF_DISABLED, IDM_LIMIT_TO_SCREEN, L"Limit to Screen");
+	AppendMenuW(client->window->contextMenu, MF_STRING, IDM_WINDOW_EXIT, L"Exit");
 	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
 	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	int width = (int) (((double) screenWidth) * 0.439238653);
@@ -345,7 +377,7 @@ DWORD WINAPI ClientWindowThread(_In_ PCLIENT client) {
 
 	if(WaitForSingleObject(client->window->lock, INFINITE) == WAIT_FAILED) {
 		KHWIN32_LAST_ERROR(L"WaitForSingleObject");
-		goto functionExit;
+		goto destroySendMethodMenu;
 	}
 
 	if(client->window->stream.pixels) {
@@ -354,6 +386,12 @@ DWORD WINAPI ClientWindowThread(_In_ PCLIENT client) {
 	}
 
 	screenWidth = 0;
+destroySendMethodMenu:
+	DestroyMenu(client->window->sendMethodMenu);
+destroyStreamingMenu:
+	DestroyMenu(client->window->streamingMenu);
+destroyContextMenu:
+	DestroyMenu(client->window->contextMenu);
 functionExit:
 	CloseHandle(client->window->lock);
 	LOG("[Window %ws]: Exit client window with code: %d\n" COMMA client->address COMMA screenWidth);

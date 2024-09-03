@@ -36,6 +36,9 @@ typedef struct {
 	HANDLE thread;
 	HWND window;
 	STREAMDATA stream;
+	HMENU contextMenu;
+	HMENU streamingMenu;
+	HMENU sendMethodMenu;
 } WINDOWDATA, *PWINDOWDATA;
 
 typedef struct {
