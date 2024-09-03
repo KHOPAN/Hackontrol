@@ -16,15 +16,6 @@
 #define IDM_WINDOW_SEND_METHOD_COLOR        0xE008
 #define IDM_WINDOW_SEND_METHOD_UNCOMPRESSED 0xE009
 
-static void streamCodeSend(const PCLIENT client) {
-	BYTE flags = ((client->window->stream.sendMethod & 0b11) << 1) | (client->window->stream.streaming ? 0b1001 : 0);
-	PACKET packet;
-	packet.size = 1;
-	packet.packetType = PACKET_TYPE_STREAM_FRAME;
-	packet.data = &flags;
-	SendPacket(client->socket, &packet);
-}
-
 static void limitToScreen(const HWND window) {
 	RECT bounds;
 	GetWindowRect(window, &bounds);
@@ -122,81 +113,75 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		goto releaseMutex;
 	}
 	case WM_CONTEXTMENU: {
-		HMENU popupMenu = CreatePopupMenu();
-
-		if(!popupMenu) {
-			goto releaseMutex;
-		}
-
-		HMENU streamingMenu = CreateMenu();
-
-		if(!streamingMenu) {
-			DestroyMenu(popupMenu);
-			goto releaseMutex;
-		}
-
-		HMENU sendMethod = CreateMenu();
-
-		if(!sendMethod) {
-			DestroyMenu(streamingMenu);
-			DestroyMenu(popupMenu);
-			goto releaseMutex;
-		}
-
-		/*AppendMenuW(streamingMenu, MF_STRING | (client->window->stream.streaming ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_STREAMING_ENABLE, L"Enable");
-		AppendMenuW(sendMethod, MF_STRING | (client->window->stream.sendMethod == SEND_METHOD_FULL ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_FULL, L"Full");
-		AppendMenuW(sendMethod, MF_STRING | (client->window->stream.sendMethod == SEND_METHOD_BOUNDARY ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_BOUNDARY, L"Boundary Differences");
-		AppendMenuW(sendMethod, MF_STRING | (client->window->stream.sendMethod == SEND_METHOD_COLOR ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_COLOR, L"Color Differences");
-		AppendMenuW(sendMethod, MF_STRING | (client->window->stream.sendMethod == SEND_METHOD_UNCOMPRESSED ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SEND_METHOD_UNCOMPRESSED, L"Uncompressed");
-		AppendMenuW(streamingMenu, MF_POPUP | (client->window->stream.streaming ? MF_ENABLED : MF_DISABLED), (UINT_PTR) sendMethod, L"Send Method");
-		AppendMenuW(popupMenu, MF_POPUP, (UINT_PTR) streamingMenu, L"Streaming");
-		AppendMenuW(popupMenu, MF_STRING | (client->window->stream.pictureInPictureMode ? MF_CHECKED : MF_UNCHECKED), IDM_PICTURE_IN_PICTURE, L"Picture in Picture Mode");
-		AppendMenuW(popupMenu, MF_STRING | (client->window->stream.lockFrame ? MF_CHECKED : MF_UNCHECKED) | (client->window->stream.pictureInPictureMode ? MF_ENABLED : MF_DISABLED), IDM_LOCK_FRAME, L"Lock Frame");
-		AppendMenuW(popupMenu, MF_STRING | (client->window->stream.limitToScreen ? MF_CHECKED : MF_UNCHECKED) | (client->window->stream.pictureInPictureMode ? MF_ENABLED : MF_DISABLED), IDM_LIMIT_TO_SCREEN, L"Limit to Screen");
-		AppendMenuW(popupMenu, MF_STRING, IDM_WINDOW_EXIT, L"Exit");*/
 		SetForegroundWindow(window);
-		ReleaseMutex(client->window->lock);
-		position.x = TrackPopupMenuEx(client->window->contextMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
-		DestroyMenu(sendMethod);
-		DestroyMenu(streamingMenu);
-		DestroyMenu(popupMenu);
-
-		if(WaitForSingleObject(client->window->lock, INFINITE) == WAIT_FAILED) {
-			return 0;
-		}
-
-		switch(position.x) {
+		TrackPopupMenuEx(client->window->contextMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
+		goto releaseMutex;
+	}
+	case WM_COMMAND: {
+		switch(LOWORD(wparam)) {
 		case IDM_PICTURE_IN_PICTURE:
 			client->window->stream.pictureInPictureMode = !client->window->stream.pictureInPictureMode;
+			CheckMenuItem(client->window->contextMenu, IDM_PICTURE_IN_PICTURE, MF_BYCOMMAND | (client->window->stream.pictureInPictureMode ? MF_CHECKED : MF_UNCHECKED));
+			position.x = client->window->stream.pictureInPictureMode ? MF_ENABLED : MF_DISABLED;
+			EnableMenuItem(client->window->contextMenu, IDM_LOCK_FRAME, position.x);
+			EnableMenuItem(client->window->contextMenu, IDM_LIMIT_TO_SCREEN, position.x);
 			SetWindowLongPtrW(window, GWL_STYLE, (client->window->stream.pictureInPictureMode ? WS_POPUP : WS_OVERLAPPEDWINDOW) | WS_VISIBLE);
 			SetWindowPos(window, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
 			PostMessageW(window, WM_SIZE, 0, 0);
-			break;
+			goto releaseMutex;
 		case IDM_LOCK_FRAME:
 			client->window->stream.lockFrame = !client->window->stream.lockFrame;
-			break;
+			CheckMenuItem(client->window->contextMenu, IDM_LOCK_FRAME, MF_BYCOMMAND | (client->window->stream.lockFrame ? MF_CHECKED : MF_UNCHECKED));
+			goto releaseMutex;
 		case IDM_LIMIT_TO_SCREEN:
 			client->window->stream.limitToScreen = !client->window->stream.limitToScreen;
+			CheckMenuItem(client->window->contextMenu, IDM_LIMIT_TO_SCREEN, MF_BYCOMMAND | (client->window->stream.limitToScreen ? MF_CHECKED : MF_UNCHECKED));
 			if(client->window->stream.limitToScreen) limitToScreen(window);
-			break;
+			goto releaseMutex;
 		case IDM_WINDOW_EXIT:
 			LOG("[Window %ws]: Exiting\n" COMMA client->address);
 			ClientDisconnect(client);
-			break;
+			goto releaseMutex;
 		case IDM_WINDOW_STREAMING_ENABLE:
 			client->window->stream.streaming = !client->window->stream.streaming;
-			streamCodeSend(client);
-			break;
+			CheckMenuItem(client->window->streamingMenu, IDM_WINDOW_STREAMING_ENABLE, MF_BYCOMMAND | (client->window->stream.streaming ? MF_CHECKED : MF_UNCHECKED));
+			goto sendStreamCode;
 		case IDM_WINDOW_SEND_METHOD_FULL:
+			client->window->stream.sendMethod = SEND_METHOD_FULL;
+			CheckMenuItem(client->window->contextMenu, IDM_WINDOW_SEND_METHOD_FULL, MF_BYCOMMAND | MF_CHECKED);
+			CheckMenuItem(client->window->contextMenu, IDM_WINDOW_SEND_METHOD_BOUNDARY, MF_BYCOMMAND | MF_UNCHECKED);
+			CheckMenuItem(client->window->contextMenu, IDM_WINDOW_SEND_METHOD_COLOR, MF_BYCOMMAND | MF_UNCHECKED);
+			CheckMenuItem(client->window->contextMenu, IDM_WINDOW_SEND_METHOD_UNCOMPRESSED, MF_BYCOMMAND | MF_UNCHECKED);
+			goto sendStreamCode;
 		case IDM_WINDOW_SEND_METHOD_BOUNDARY:
+			client->window->stream.sendMethod = SEND_METHOD_BOUNDARY;
+			CheckMenuItem(client->window->contextMenu, IDM_WINDOW_SEND_METHOD_FULL, MF_BYCOMMAND | MF_UNCHECKED);
+			CheckMenuItem(client->window->contextMenu, IDM_WINDOW_SEND_METHOD_BOUNDARY, MF_BYCOMMAND | MF_CHECKED);
+			CheckMenuItem(client->window->contextMenu, IDM_WINDOW_SEND_METHOD_COLOR, MF_BYCOMMAND | MF_UNCHECKED);
+			CheckMenuItem(client->window->contextMenu, IDM_WINDOW_SEND_METHOD_UNCOMPRESSED, MF_BYCOMMAND | MF_UNCHECKED);
+			goto sendStreamCode;
 		case IDM_WINDOW_SEND_METHOD_COLOR:
+			client->window->stream.sendMethod = SEND_METHOD_COLOR;
+			CheckMenuItem(client->window->contextMenu, IDM_WINDOW_SEND_METHOD_FULL, MF_BYCOMMAND | MF_UNCHECKED);
+			CheckMenuItem(client->window->contextMenu, IDM_WINDOW_SEND_METHOD_BOUNDARY, MF_BYCOMMAND | MF_UNCHECKED);
+			CheckMenuItem(client->window->contextMenu, IDM_WINDOW_SEND_METHOD_COLOR, MF_BYCOMMAND | MF_CHECKED);
+			CheckMenuItem(client->window->contextMenu, IDM_WINDOW_SEND_METHOD_UNCOMPRESSED, MF_BYCOMMAND | MF_UNCHECKED);
+			goto sendStreamCode;
 		case IDM_WINDOW_SEND_METHOD_UNCOMPRESSED:
-			client->window->stream.sendMethod = position.x == IDM_WINDOW_SEND_METHOD_FULL ? SEND_METHOD_FULL : position.x == IDM_WINDOW_SEND_METHOD_BOUNDARY ? SEND_METHOD_BOUNDARY : position.x == IDM_WINDOW_SEND_METHOD_COLOR ? SEND_METHOD_COLOR : SEND_METHOD_UNCOMPRESSED;
-			streamCodeSend(client);
-			break;
+			client->window->stream.sendMethod = SEND_METHOD_UNCOMPRESSED;
+			CheckMenuItem(client->window->contextMenu, IDM_WINDOW_SEND_METHOD_FULL, MF_BYCOMMAND | MF_UNCHECKED);
+			CheckMenuItem(client->window->contextMenu, IDM_WINDOW_SEND_METHOD_BOUNDARY, MF_BYCOMMAND | MF_UNCHECKED);
+			CheckMenuItem(client->window->contextMenu, IDM_WINDOW_SEND_METHOD_COLOR, MF_BYCOMMAND | MF_UNCHECKED);
+			CheckMenuItem(client->window->contextMenu, IDM_WINDOW_SEND_METHOD_UNCOMPRESSED, MF_BYCOMMAND | MF_CHECKED);
+sendStreamCode:
+			position.x = (BYTE) ((client->window->stream.sendMethod & 0b11) << 1) | (client->window->stream.streaming ? 0b1001 : 0);
+			PACKET packet;
+			packet.size = 1;
+			packet.packetType = PACKET_TYPE_STREAM_FRAME;
+			packet.data = &position.x;
+			SendPacket(client->socket, &packet);
+			goto releaseMutex;
 		}
-
-		goto releaseMutex;
 	}
 	case WM_MOUSEMOVE: {
 		if(!client->window->stream.pictureInPictureMode || client->window->stream.lockFrame) {
@@ -373,7 +358,12 @@ DWORD WINAPI ClientWindowThread(_In_ PCLIENT client) {
 	}
 
 	client->window->stream.streaming = FALSE;
-	streamCodeSend(client);
+	message.message = 0;
+	PACKET packet;
+	packet.size = 1;
+	packet.packetType = PACKET_TYPE_STREAM_FRAME;
+	packet.data = &message.message;
+	SendPacket(client->socket, &packet);
 
 	if(WaitForSingleObject(client->window->lock, INFINITE) == WAIT_FAILED) {
 		KHWIN32_LAST_ERROR(L"WaitForSingleObject");
