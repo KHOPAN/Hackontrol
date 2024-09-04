@@ -15,7 +15,8 @@
 #define IDM_PICTURE_IN_PICTURE             0xE007
 #define IDM_LOCK_FRAME                     0xE008
 #define IDM_LIMIT_TO_SCREEN                0xE009
-#define IDM_WINDOW_EXIT                    0xE00A
+#define IDM_CLOSE_WINDOW                   0xE00A
+#define IDM_DISCONNECT                     0xE00B
 
 static void sendFrameCode(const PCLIENT client) {
 	BYTE data = ((client->window->stream.contextMenu.method & 0b11) << 1) | (client->window->stream.contextMenu.stream ? 0b1001 : 0);
@@ -143,7 +144,8 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		AppendMenuW((HMENU) context, MF_STRING | (client->window->stream.contextMenu.pictureInPicture ? MF_CHECKED : MF_UNCHECKED),                                                                                    IDM_PICTURE_IN_PICTURE, L"Picture In Picture");
 		AppendMenuW((HMENU) context, MF_STRING | (client->window->stream.contextMenu.lockFrame        ? MF_CHECKED : MF_UNCHECKED) | (client->window->stream.contextMenu.pictureInPicture ? MF_ENABLED : MF_DISABLED), IDM_LOCK_FRAME,         L"Lock Frame");
 		AppendMenuW((HMENU) context, MF_STRING | (client->window->stream.contextMenu.limitToScreen    ? MF_CHECKED : MF_UNCHECKED) | (client->window->stream.contextMenu.pictureInPicture ? MF_ENABLED : MF_DISABLED), IDM_LIMIT_TO_SCREEN,    L"Limit To Screen");
-		AppendMenuW((HMENU) context, MF_STRING, IDM_WINDOW_EXIT, L"Exit");
+		AppendMenuW((HMENU) context, MF_STRING, IDM_CLOSE_WINDOW, L"Close Window");
+		AppendMenuW((HMENU) context, MF_STRING, IDM_DISCONNECT,   L"Disconnect");
 		SetForegroundWindow(window);
 		ReleaseMutex(client->window->lock);
 		TrackPopupMenuEx((HMENU) context, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
@@ -206,8 +208,11 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			if(bounds.top + bounds.bottom > position.y) bounds.top = position.y - bounds.bottom;
 			SetWindowPos(window, HWND_TOP, bounds.left, bounds.top, bounds.right, bounds.bottom, 0);
 			break;
-		case IDM_WINDOW_EXIT:
-			LOG("[Window %ws]: Exiting\n" COMMA client->address);
+		case IDM_CLOSE_WINDOW:
+			PostMessageW(window, WM_CLOSE, 0, 0);
+			break;
+		case IDM_DISCONNECT:
+			LOG("[Window %ws]: Disconnecting\n" COMMA client->address);
 			ClientDisconnect(client);
 			break;
 		}
