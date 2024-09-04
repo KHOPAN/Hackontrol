@@ -109,7 +109,9 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 			MainWindowRefreshListView();
 			return 0;
 		case IDM_REMOTE_ALWAYS_ON_TOP:
-			SetWindowPos(window, (GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST) ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+			information.iGroup = GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST;
+			SetWindowPos(window, information.iGroup ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+			CheckMenuItem(contextMenu, IDM_REMOTE_ALWAYS_ON_TOP, MF_BYCOMMAND | (information.iGroup ? MF_UNCHECKED : MF_CHECKED));
 			return 0;
 		case IDM_REMOTE_EXIT:
 			LOG("[Window]: Exiting\n");
@@ -243,7 +245,7 @@ int MainWindowMessageLoop() {
 
 	AppendMenuW(contextMenu, MF_STRING, IDM_REMOTE_REFRESH, L"Refresh");
 	AppendMenuW(contextMenu, MF_SEPARATOR, 0, NULL);
-	AppendMenuW(contextMenu, MF_STRING, IDM_REMOTE_ALWAYS_ON_TOP, L"Always On Top");
+	AppendMenuW(contextMenu, MF_STRING | MF_CHECKED, IDM_REMOTE_ALWAYS_ON_TOP, L"Always On Top");
 	AppendMenuW(contextMenu, MF_STRING, IDM_REMOTE_EXIT, L"Exit");
 	LOG("[Remote]: Start message loop\n");
 	MSG message;
