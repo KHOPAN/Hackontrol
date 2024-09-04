@@ -17,7 +17,7 @@
 #define IDM_WINDOW_EXIT                    0xE009
 
 static void sendFrameCode(const PCLIENT client) {
-	BYTE data = ((client->window->stream.contextMenu.method & 0b11) << 1) | (client->window->stream.contextMenu.method ? 0b1001 : 0);
+	BYTE data = ((client->window->stream.contextMenu.method & 0b11) << 1) | (client->window->stream.contextMenu.stream ? 0b1001 : 0);
 	PACKET packet;
 	packet.size = 1;
 	packet.packetType = PACKET_TYPE_STREAM_FRAME;
