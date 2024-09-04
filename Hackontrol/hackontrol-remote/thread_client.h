@@ -13,6 +13,7 @@ typedef struct {
 	BOOL stream;
 	SENDMETHOD method;
 	BOOL alwaysOnTop;
+	BOOL fullscreen;
 	BOOL pictureInPicture;
 	BOOL lockFrame;
 	BOOL limitToScreen;

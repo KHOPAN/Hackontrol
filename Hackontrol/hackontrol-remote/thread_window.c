@@ -12,11 +12,12 @@
 #define IDM_SEND_METHOD_COLOR        0xE004
 #define IDM_SEND_METHOD_UNCOMPRESSED 0xE005
 #define IDM_ALWAYS_ON_TOP            0xE006
-#define IDM_PICTURE_IN_PICTURE       0xE007
-#define IDM_LOCK_FRAME               0xE008
-#define IDM_LIMIT_TO_SCREEN          0xE009
-#define IDM_CLOSE_WINDOW             0xE00A
-#define IDM_DISCONNECT               0xE00B
+#define IDM_FULLSCREEN               0xE007
+#define IDM_PICTURE_IN_PICTURE       0xE008
+#define IDM_LOCK_FRAME               0xE009
+#define IDM_LIMIT_TO_SCREEN          0xE00A
+#define IDM_CLOSE_WINDOW             0xE00B
+#define IDM_DISCONNECT               0xE00C
 
 static void sendFrameCode(const PCLIENT client) {
 	BYTE data = ((client->window->stream.contextMenu.method & 0b11) << 1) | (client->window->stream.contextMenu.stream ? 0b1001 : 0);
@@ -141,6 +142,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		AppendMenuW((HMENU) memoryContext, MF_POPUP | (client->window->stream.contextMenu.stream ? MF_ENABLED : MF_DISABLED), (UINT_PTR) bitmap, L"Send Method");
 		AppendMenuW((HMENU) context, MF_POPUP, (UINT_PTR) memoryContext, L"Streaming");
 		AppendMenuW((HMENU) context, MF_STRING | (client->window->stream.contextMenu.alwaysOnTop ? MF_CHECKED : MF_UNCHECKED), IDM_ALWAYS_ON_TOP, L"Always On Top");
+		AppendMenuW((HMENU) context, MF_STRING | (client->window->stream.contextMenu.fullscreen  ? MF_CHECKED : MF_UNCHECKED), IDM_FULLSCREEN,    L"Fullscreen");
 		AppendMenuW((HMENU) context, MF_SEPARATOR, 0, NULL);
 		AppendMenuW((HMENU) context, MF_STRING | (client->window->stream.contextMenu.pictureInPicture ? MF_CHECKED : MF_UNCHECKED),                                                                                    IDM_PICTURE_IN_PICTURE, L"Picture In Picture");
 		AppendMenuW((HMENU) context, MF_STRING | (client->window->stream.contextMenu.lockFrame        ? MF_CHECKED : MF_UNCHECKED) | (client->window->stream.contextMenu.pictureInPicture ? MF_ENABLED : MF_DISABLED), IDM_LOCK_FRAME,         L"Lock Frame");
@@ -184,6 +186,9 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		case IDM_ALWAYS_ON_TOP:
 			client->window->stream.contextMenu.alwaysOnTop = !client->window->stream.contextMenu.alwaysOnTop;
 			SetWindowPos(window, client->window->stream.contextMenu.alwaysOnTop ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+			break;
+		case IDM_FULLSCREEN:
+			client->window->stream.contextMenu.fullscreen = !client->window->stream.contextMenu.fullscreen;
 			break;
 		case IDM_PICTURE_IN_PICTURE:
 			client->window->stream.contextMenu.pictureInPicture = !client->window->stream.contextMenu.pictureInPicture;
