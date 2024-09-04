@@ -6,17 +6,17 @@
 
 #define CLASS_CLIENT_WINDOW L"HackontrolRemoteClientWindow"
 
-#define IDM_WINDOW_STREAM_ENABLE           0xE001
-#define IDM_WINDOW_SENDMETHOD_FULL         0xE002
-#define IDM_WINDOW_SENDMETHOD_BOUNDARY     0xE003
-#define IDM_WINDOW_SENDMETHOD_COLOR        0xE004
-#define IDM_WINDOW_SENDMETHOD_UNCOMPRESSED 0xE005
-#define IDM_ALWAYS_ON_TOP                  0xE006
-#define IDM_PICTURE_IN_PICTURE             0xE007
-#define IDM_LOCK_FRAME                     0xE008
-#define IDM_LIMIT_TO_SCREEN                0xE009
-#define IDM_CLOSE_WINDOW                   0xE00A
-#define IDM_DISCONNECT                     0xE00B
+#define IDM_STREAM_ENABLE            0xE001
+#define IDM_SEND_METHOD_FULL         0xE002
+#define IDM_SEND_METHOD_BOUNDARY     0xE003
+#define IDM_SEND_METHOD_COLOR        0xE004
+#define IDM_SEND_METHOD_UNCOMPRESSED 0xE005
+#define IDM_ALWAYS_ON_TOP            0xE006
+#define IDM_PICTURE_IN_PICTURE       0xE007
+#define IDM_LOCK_FRAME               0xE008
+#define IDM_LIMIT_TO_SCREEN          0xE009
+#define IDM_CLOSE_WINDOW             0xE00A
+#define IDM_DISCONNECT               0xE00B
 
 static void sendFrameCode(const PCLIENT client) {
 	BYTE data = ((client->window->stream.contextMenu.method & 0b11) << 1) | (client->window->stream.contextMenu.stream ? 0b1001 : 0);
@@ -133,11 +133,11 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			break;
 		}
 
-		AppendMenuW((HMENU) memoryContext, MF_STRING | (client->window->stream.contextMenu.stream ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_STREAM_ENABLE, L"Enable");
-		AppendMenuW((HMENU) bitmap, MF_STRING | (client->window->stream.contextMenu.method == SEND_METHOD_FULL         ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SENDMETHOD_FULL,         L"Full");
-		AppendMenuW((HMENU) bitmap, MF_STRING | (client->window->stream.contextMenu.method == SEND_METHOD_BOUNDARY     ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SENDMETHOD_BOUNDARY,     L"Boundary Differences");
-		AppendMenuW((HMENU) bitmap, MF_STRING | (client->window->stream.contextMenu.method == SEND_METHOD_COLOR        ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SENDMETHOD_COLOR,        L"Color Differences");
-		AppendMenuW((HMENU) bitmap, MF_STRING | (client->window->stream.contextMenu.method == SEND_METHOD_UNCOMPRESSED ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SENDMETHOD_UNCOMPRESSED, L"Uncompressed");
+		AppendMenuW((HMENU) memoryContext, MF_STRING | (client->window->stream.contextMenu.stream ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_ENABLE, L"Enable");
+		AppendMenuW((HMENU) bitmap, MF_STRING | (client->window->stream.contextMenu.method == SEND_METHOD_FULL         ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_FULL,         L"Full");
+		AppendMenuW((HMENU) bitmap, MF_STRING | (client->window->stream.contextMenu.method == SEND_METHOD_BOUNDARY     ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_BOUNDARY,     L"Boundary Differences");
+		AppendMenuW((HMENU) bitmap, MF_STRING | (client->window->stream.contextMenu.method == SEND_METHOD_COLOR        ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_COLOR,        L"Color Differences");
+		AppendMenuW((HMENU) bitmap, MF_STRING | (client->window->stream.contextMenu.method == SEND_METHOD_UNCOMPRESSED ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_UNCOMPRESSED, L"Uncompressed");
 		AppendMenuW((HMENU) memoryContext, MF_POPUP | (client->window->stream.contextMenu.stream ? MF_ENABLED : MF_DISABLED), (UINT_PTR) bitmap, L"Send Method");
 		AppendMenuW((HMENU) context, MF_POPUP, (UINT_PTR) memoryContext, L"Streaming");
 		AppendMenuW((HMENU) context, MF_STRING | (client->window->stream.contextMenu.alwaysOnTop ? MF_CHECKED : MF_UNCHECKED), IDM_ALWAYS_ON_TOP, L"Always On Top");
@@ -161,23 +161,23 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		}
 
 		switch(LOWORD(wparam)) {
-		case IDM_WINDOW_STREAM_ENABLE:
+		case IDM_STREAM_ENABLE:
 			client->window->stream.contextMenu.stream = !client->window->stream.contextMenu.stream;
 			sendFrameCode(client);
 			break;
-		case IDM_WINDOW_SENDMETHOD_FULL:
+		case IDM_SEND_METHOD_FULL:
 			client->window->stream.contextMenu.method = SEND_METHOD_FULL;
 			sendFrameCode(client);
 			break;
-		case IDM_WINDOW_SENDMETHOD_BOUNDARY:
+		case IDM_SEND_METHOD_BOUNDARY:
 			client->window->stream.contextMenu.method = SEND_METHOD_BOUNDARY;
 			sendFrameCode(client);
 			break;
-		case IDM_WINDOW_SENDMETHOD_COLOR:
+		case IDM_SEND_METHOD_COLOR:
 			client->window->stream.contextMenu.method = SEND_METHOD_COLOR;
 			sendFrameCode(client);
 			break;
-		case IDM_WINDOW_SENDMETHOD_UNCOMPRESSED:
+		case IDM_SEND_METHOD_UNCOMPRESSED:
 			client->window->stream.contextMenu.method = SEND_METHOD_UNCOMPRESSED;
 			sendFrameCode(client);
 			break;
