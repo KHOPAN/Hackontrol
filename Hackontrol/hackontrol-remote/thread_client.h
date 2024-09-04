@@ -10,12 +10,21 @@ typedef enum {
 } SENDMETHOD;
 
 typedef struct {
+	BOOL stream;
+	SENDMETHOD method;
+	BOOL pictureInPicture;
+	BOOL lockFrame;
+	BOOL limitToScreen;
+} STREAMCONTEXTMENU;
+
+typedef struct {
+	STREAMCONTEXTMENU contextMenu;
 	PBYTE pixels;
+	int resizeActivationDistance;
 	int imageX;
 	int imageY;
 	int imageWidth;
 	int imageHeight;
-	int resizeActivationDistance;
 	int originalImageWidth;
 	int originalImageHeight;
 	RECT bounds;
@@ -24,11 +33,6 @@ typedef struct {
 	BOOL cursorEast;
 	BOOL cursorSouth;
 	BOOL cursorWest;
-	BOOL streaming;
-	SENDMETHOD sendMethod;
-	BOOL pictureInPictureMode;
-	BOOL lockFrame;
-	BOOL limitToScreen;
 } STREAMDATA;
 
 typedef struct {

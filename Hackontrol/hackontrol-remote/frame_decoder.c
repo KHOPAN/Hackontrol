@@ -8,7 +8,7 @@
 #define OP_MASK      0b11000000
 
 void DecodeHRSPFrame(const BYTE* data, const size_t size, const PWINDOWDATA window) {
-	if(!data || size < 9 || !window || !window->stream.streaming || WaitForSingleObject(window->lock, INFINITE) == WAIT_FAILED) {
+	if(!data || size < 9 || !window || !window->stream.contextMenu.stream || WaitForSingleObject(window->lock, INFINITE) == WAIT_FAILED) {
 		return;
 	}
 
