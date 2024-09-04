@@ -140,10 +140,12 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		AppendMenuW((HMENU) bitmap, MF_STRING | (client->window->stream.contextMenu.method == SEND_METHOD_UNCOMPRESSED ? MF_CHECKED : MF_UNCHECKED), IDM_WINDOW_SENDMETHOD_UNCOMPRESSED, L"Uncompressed");
 		AppendMenuW((HMENU) memoryContext, MF_POPUP | (client->window->stream.contextMenu.stream ? MF_ENABLED : MF_DISABLED), (UINT_PTR) bitmap, L"Send Method");
 		AppendMenuW((HMENU) context, MF_POPUP, (UINT_PTR) memoryContext, L"Streaming");
-		AppendMenuW((HMENU) context, MF_STRING | (client->window->stream.contextMenu.alwaysOnTop      ? MF_CHECKED : MF_UNCHECKED),                                                                                    IDM_ALWAYS_ON_TOP,      L"Always On Top");
+		AppendMenuW((HMENU) context, MF_STRING | (client->window->stream.contextMenu.alwaysOnTop ? MF_CHECKED : MF_UNCHECKED), IDM_ALWAYS_ON_TOP, L"Always On Top");
+		AppendMenuW((HMENU) context, MF_SEPARATOR, 0, NULL);
 		AppendMenuW((HMENU) context, MF_STRING | (client->window->stream.contextMenu.pictureInPicture ? MF_CHECKED : MF_UNCHECKED),                                                                                    IDM_PICTURE_IN_PICTURE, L"Picture In Picture");
 		AppendMenuW((HMENU) context, MF_STRING | (client->window->stream.contextMenu.lockFrame        ? MF_CHECKED : MF_UNCHECKED) | (client->window->stream.contextMenu.pictureInPicture ? MF_ENABLED : MF_DISABLED), IDM_LOCK_FRAME,         L"Lock Frame");
 		AppendMenuW((HMENU) context, MF_STRING | (client->window->stream.contextMenu.limitToScreen    ? MF_CHECKED : MF_UNCHECKED) | (client->window->stream.contextMenu.pictureInPicture ? MF_ENABLED : MF_DISABLED), IDM_LIMIT_TO_SCREEN,    L"Limit To Screen");
+		AppendMenuW((HMENU) context, MF_SEPARATOR, 0, NULL);
 		AppendMenuW((HMENU) context, MF_STRING, IDM_CLOSE_WINDOW, L"Close Window");
 		AppendMenuW((HMENU) context, MF_STRING, IDM_DISCONNECT,   L"Disconnect");
 		SetForegroundWindow(window);
