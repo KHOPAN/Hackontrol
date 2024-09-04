@@ -28,6 +28,10 @@ static void sendFrameCode(const PCLIENT client) {
 	SendPacket(client->socket, &packet);
 }
 
+static void fullscreenMode(const HWND window, const BOOL fullscreen) {
+
+}
+
 static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	PCLIENT client = (PCLIENT) GetWindowLongPtrW(window, GWLP_USERDATA);
 
@@ -189,6 +193,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			break;
 		case IDM_FULLSCREEN:
 			client->window->stream.contextMenu.fullscreen = !client->window->stream.contextMenu.fullscreen;
+			fullscreenMode(window, client->window->stream.contextMenu.fullscreen);
 			break;
 		case IDM_PICTURE_IN_PICTURE:
 			client->window->stream.contextMenu.pictureInPicture = !client->window->stream.contextMenu.pictureInPicture;
