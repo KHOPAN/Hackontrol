@@ -17,7 +17,7 @@ typedef struct {
 	BOOL pictureInPicture;
 	BOOL lockFrame;
 	BOOL limitToScreen;
-} STREAMCONTEXTMENU;
+} STREAMCONTEXTMENU, *PSTREAMCONTEXTMENU;
 
 typedef struct {
 	STREAMCONTEXTMENU contextMenu;
