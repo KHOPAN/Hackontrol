@@ -12,6 +12,7 @@ typedef enum {
 typedef struct {
 	BOOL stream;
 	SENDMETHOD method;
+	BOOL alwaysOnTop;
 	BOOL pictureInPicture;
 	BOOL lockFrame;
 	BOOL limitToScreen;
