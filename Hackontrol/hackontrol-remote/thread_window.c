@@ -237,7 +237,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			break;
 		}
 
-		if(!client->window->menu.pictureInPicture || client->window->menu.lockFrame) {
+		if(!client->window->menu.pictureInPicture || client->window->menu.fullscreen || client->window->menu.lockFrame) {
 			SetCursor(LoadCursorW(NULL, IDC_ARROW));
 			ReleaseMutex(client->window->lock);
 			break;
