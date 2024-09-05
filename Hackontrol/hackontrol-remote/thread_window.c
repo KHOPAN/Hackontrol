@@ -28,15 +28,6 @@ static void sendFrameCode(const PCLIENT client) {
 	SendPacket(client->socket, &packet);
 }
 
-static void fullscreenMode(const HWND window, const PWINDOWDATA data) {
-	if(data->menu.fullscreen) data->storage.style = GetWindowLongPtrW(window, GWL_STYLE);
-	data->storage.placement.length = sizeof(WINDOWPLACEMENT);
-	(data->menu.fullscreen ? GetWindowPlacement : SetWindowPlacement)(window, &data->storage.placement);
-	SetWindowLongPtrW(window, GWL_STYLE, data->menu.fullscreen ? WS_POPUP | WS_VISIBLE : data->storage.style);
-	if(data->menu.fullscreen) SetWindowPos(window, HWND_TOP, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), SWP_FRAMECHANGED);
-	PostMessageW(window, WM_SIZE, 0, 0);
-}
-
 static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	PCLIENT client = (PCLIENT) GetWindowLongPtrW(window, GWLP_USERDATA);
 
@@ -198,7 +189,12 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			break;
 		case IDM_FULLSCREEN:
 			client->window->menu.fullscreen = !client->window->menu.fullscreen;
-			fullscreenMode(window, client->window);
+			if(client->window->menu.fullscreen) client->window->storage.style = GetWindowLongPtrW(window, GWL_STYLE);
+			client->window->storage.placement.length = sizeof(WINDOWPLACEMENT);
+			(client->window->menu.fullscreen ? GetWindowPlacement : SetWindowPlacement)(window, &client->window->storage.placement);
+			SetWindowLongPtrW(window, GWL_STYLE, client->window->menu.fullscreen ? WS_POPUP | WS_VISIBLE : client->window->storage.style);
+			if(client->window->menu.fullscreen) SetWindowPos(window, HWND_TOP, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), SWP_FRAMECHANGED);
+			PostMessageW(window, WM_SIZE, 0, 0);
 			break;
 		case IDM_PICTURE_IN_PICTURE:
 			client->window->menu.pictureInPicture = !client->window->menu.pictureInPicture;
