@@ -30,8 +30,10 @@ static void sendFrameCode(const PCLIENT client) {
 
 static void fullscreenMode(const HWND window, const PSTREAMCONTEXTMENU contextMenu) {
 	contextMenu->pictureInPicture = TRUE;
+	int width = GetSystemMetrics(SM_CXSCREEN);
+	int height = GetSystemMetrics(SM_CYSCREEN);
 	SetWindowLongPtrW(window, GWL_STYLE, WS_POPUP | WS_VISIBLE);
-	SetWindowPos(window, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
+	SetWindowPos(window, HWND_TOP, 0, 0, width, height, SWP_FRAMECHANGED);
 	PostMessageW(window, WM_SIZE, 0, 0);
 }
 
