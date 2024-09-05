@@ -17,30 +17,30 @@ typedef struct {
 	BOOL pictureInPicture;
 	BOOL lockFrame;
 	BOOL limitToScreen;
-} STREAMCONTEXTMENU, *PSTREAMCONTEXTMENU;
+} WINDOWCONTEXTMENU;
 
 typedef struct {
-	STREAMCONTEXTMENU contextMenu;
-	PBYTE pixels;
 	int resizeActivationDistance;
-	int imageX;
-	int imageY;
-	int imageWidth;
-	int imageHeight;
-	int originalImageWidth;
-	int originalImageHeight;
 	RECT bounds;
 	POINT position;
 	BOOL cursorNorth;
 	BOOL cursorEast;
 	BOOL cursorSouth;
 	BOOL cursorWest;
+	PBYTE pixels;
+	int imageX;
+	int imageY;
+	int imageWidth;
+	int imageHeight;
+	int originalImageWidth;
+	int originalImageHeight;
 } STREAMDATA;
 
 typedef struct {
 	HANDLE lock;
 	HANDLE thread;
 	HWND window;
+	WINDOWCONTEXTMENU menu;
 	STREAMDATA stream;
 } WINDOWDATA, *PWINDOWDATA;
 
