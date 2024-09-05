@@ -42,6 +42,7 @@ typedef struct {
 	HWND window;
 	WINDOWCONTEXTMENU menu;
 	STREAMDATA stream;
+	WINDOWPLACEMENT placement;
 } WINDOWDATA, *PWINDOWDATA;
 
 typedef struct {
