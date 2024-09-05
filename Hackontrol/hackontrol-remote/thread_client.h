@@ -2,6 +2,11 @@
 
 #include <WinSock2.h>
 
+typedef struct {
+	WINDOWPLACEMENT placement;
+	LONG_PTR style;
+} WINDOWSTORAGE;
+
 typedef enum {
 	SEND_METHOD_FULL = 0,
 	SEND_METHOD_BOUNDARY,
@@ -40,9 +45,9 @@ typedef struct {
 	HANDLE lock;
 	HANDLE thread;
 	HWND window;
+	WINDOWSTORAGE storage;
 	WINDOWCONTEXTMENU menu;
 	STREAMDATA stream;
-	WINDOWPLACEMENT placement;
 } WINDOWDATA, *PWINDOWDATA;
 
 typedef struct {
