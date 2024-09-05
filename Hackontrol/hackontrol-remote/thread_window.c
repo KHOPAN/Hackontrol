@@ -144,9 +144,9 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.alwaysOnTop ? MF_CHECKED : MF_UNCHECKED), IDM_ALWAYS_ON_TOP, L"Always On Top");
 		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.fullscreen  ? MF_CHECKED : MF_UNCHECKED), IDM_FULLSCREEN,    L"Fullscreen");
 		AppendMenuW((HMENU) context, MF_SEPARATOR, 0, NULL);
-		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.pictureInPicture ? MF_CHECKED : MF_UNCHECKED),                                                                      IDM_PICTURE_IN_PICTURE, L"Picture In Picture");
-		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.lockFrame        ? MF_CHECKED : MF_UNCHECKED) | (client->window->menu.pictureInPicture ? MF_ENABLED : MF_DISABLED), IDM_LOCK_FRAME,         L"Lock Frame");
-		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.limitToScreen    ? MF_CHECKED : MF_UNCHECKED) | (client->window->menu.pictureInPicture ? MF_ENABLED : MF_DISABLED), IDM_LIMIT_TO_SCREEN,    L"Limit To Screen");
+		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.pictureInPicture ? MF_CHECKED : MF_UNCHECKED) | (client->window->menu.fullscreen ? MF_DISABLED : MF_ENABLED),                                                       IDM_PICTURE_IN_PICTURE, L"Picture In Picture");
+		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.lockFrame        ? MF_CHECKED : MF_UNCHECKED) | (client->window->menu.fullscreen ? MF_DISABLED : client->window->menu.pictureInPicture ? MF_ENABLED : MF_DISABLED), IDM_LOCK_FRAME,         L"Lock Frame");
+		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.limitToScreen    ? MF_CHECKED : MF_UNCHECKED) | (client->window->menu.fullscreen ? MF_DISABLED : client->window->menu.pictureInPicture ? MF_ENABLED : MF_DISABLED), IDM_LIMIT_TO_SCREEN,    L"Limit To Screen");
 		AppendMenuW((HMENU) context, MF_SEPARATOR, 0, NULL);
 		AppendMenuW((HMENU) context, MF_STRING, IDM_CLOSE_WINDOW, L"Close Window");
 		AppendMenuW((HMENU) context, MF_STRING, IDM_DISCONNECT,   L"Disconnect");
