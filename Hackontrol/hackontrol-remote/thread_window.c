@@ -29,22 +29,12 @@ static void sendFrameCode(const PCLIENT client) {
 }
 
 static void fullscreenMode(const HWND window, const PWINDOWDATA data) {
-	int width = GetSystemMetrics(SM_CXSCREEN);
-	int height = GetSystemMetrics(SM_CYSCREEN);
-
-	if(data->menu.fullscreen) {
-		data->storage.style = GetWindowLongPtrW(window, GWL_STYLE);
-		data->storage.placement.length = sizeof(WINDOWPLACEMENT);
-		GetWindowPlacement(window, &data->storage.placement);
-		SetWindowLongPtrW(window, GWL_STYLE, WS_POPUP | WS_VISIBLE);
-		SetWindowPos(window, HWND_TOP, 0, 0, width, height, SWP_FRAMECHANGED);
-		PostMessageW(window, WM_SIZE, 0, 0);
-	} else {
-		data->storage.placement.length = sizeof(WINDOWPLACEMENT);
-		SetWindowPlacement(window, &data->storage.placement);
-		SetWindowLongPtrW(window, GWL_STYLE, data->storage.style);
-		PostMessageW(window, WM_SIZE, 0, 0);
-	}
+	if(data->menu.fullscreen) data->storage.style = GetWindowLongPtrW(window, GWL_STYLE);
+	data->storage.placement.length = sizeof(WINDOWPLACEMENT);
+	(data->menu.fullscreen ? GetWindowPlacement : SetWindowPlacement)(window, &data->storage.placement);
+	SetWindowLongPtrW(window, GWL_STYLE, data->menu.fullscreen ? WS_POPUP | WS_VISIBLE : data->storage.style);
+	if(data->menu.fullscreen) SetWindowPos(window, HWND_TOP, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), SWP_FRAMECHANGED);
+	PostMessageW(window, WM_SIZE, 0, 0);
 }
 
 static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
