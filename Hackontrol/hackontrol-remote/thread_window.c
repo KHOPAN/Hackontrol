@@ -247,7 +247,11 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		paintStruct.rcPaint.top = GetSystemMetrics(SM_CYSCREEN);
 
 		if(!client->window->menu.pictureInPicture) {
-			if(wparam != MK_LBUTTON) break;
+			if(wparam != MK_LBUTTON) {
+				ReleaseMutex(client->window->lock);
+				break;
+			}
+
 			SetCursor(LoadCursorW(NULL, IDC_ARROW));
 			position.x -= client->window->stream.position.x - client->window->stream.bounds.left;
 			position.y -= client->window->stream.position.y - client->window->stream.bounds.top;
