@@ -40,7 +40,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		SetWindowLongPtrW(window, GWLP_USERDATA, (LONG_PTR) client);
 	}
 
-	POINT position = {0};
+	POINT position;
 	RECT bounds;
 	PAINTSTRUCT paintStruct;
 	HDC context;
@@ -245,6 +245,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 
 		paintStruct.rcPaint.left = GetSystemMetrics(SM_CXSCREEN);
 		paintStruct.rcPaint.top = GetSystemMetrics(SM_CYSCREEN);
+		GetCursorPos(&position);
 
 		if(!client->window->menu.pictureInPicture) {
 			if(wparam != MK_LBUTTON) {
@@ -283,7 +284,6 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 
 		paintStruct.rcPaint.right = client->window->stream.resizeActivationDistance * 3;
 		GetWindowRect(window, &bounds);
-		GetCursorPos(&position);
 		bounds.right -= bounds.left;
 		bounds.bottom -= bounds.top;
 
