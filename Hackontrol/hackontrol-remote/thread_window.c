@@ -40,7 +40,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		SetWindowLongPtrW(window, GWLP_USERDATA, (LONG_PTR) client);
 	}
 
-	POINT position;
+	POINT position = {0};
 	RECT bounds;
 	PAINTSTRUCT paintStruct;
 	HDC context;
@@ -237,8 +237,21 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			break;
 		}
 
-		if(!client->window->menu.pictureInPicture || client->window->menu.fullscreen || client->window->menu.lockFrame) {
+		if(client->window->menu.fullscreen || client->window->menu.lockFrame) {
 			SetCursor(LoadCursorW(NULL, IDC_ARROW));
+			ReleaseMutex(client->window->lock);
+			break;
+		}
+
+		paintStruct.rcPaint.left = GetSystemMetrics(SM_CXSCREEN);
+		paintStruct.rcPaint.top = GetSystemMetrics(SM_CYSCREEN);
+
+		if(!client->window->menu.pictureInPicture) {
+			if(wparam != MK_LBUTTON) break;
+			SetCursor(LoadCursorW(NULL, IDC_ARROW));
+			position.x -= client->window->stream.position.x - client->window->stream.bounds.left;
+			position.y -= client->window->stream.position.y - client->window->stream.bounds.top;
+			SetWindowPos(window, HWND_TOP, client->window->menu.limitToScreen ? position.x < 0 ? 0 : position.x + client->window->stream.bounds.right - client->window->stream.bounds.left > paintStruct.rcPaint.left ? paintStruct.rcPaint.left - client->window->stream.bounds.right + client->window->stream.bounds.left : position.x : position.x, client->window->menu.limitToScreen ? position.y < 0 ? 0 : position.y + client->window->stream.bounds.bottom - client->window->stream.bounds.top > paintStruct.rcPaint.top ? paintStruct.rcPaint.top - client->window->stream.bounds.bottom + client->window->stream.bounds.top : position.y : position.y, 0, 0, SWP_NOSIZE);
 			ReleaseMutex(client->window->lock);
 			break;
 		}
@@ -256,10 +269,6 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			break;
 		}
 
-		paintStruct.rcPaint.left = GetSystemMetrics(SM_CXSCREEN);
-		paintStruct.rcPaint.top = GetSystemMetrics(SM_CYSCREEN);
-		GetCursorPos(&position);
-
 		if(!client->window->stream.cursorNorth && !client->window->stream.cursorEast && !client->window->stream.cursorSouth && !client->window->stream.cursorWest) {
 			position.x -= client->window->stream.position.x - client->window->stream.bounds.left;
 			position.y -= client->window->stream.position.y - client->window->stream.bounds.top;
@@ -270,6 +279,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 
 		paintStruct.rcPaint.right = client->window->stream.resizeActivationDistance * 3;
 		GetWindowRect(window, &bounds);
+		GetCursorPos(&position);
 		bounds.right -= bounds.left;
 		bounds.bottom -= bounds.top;
 
