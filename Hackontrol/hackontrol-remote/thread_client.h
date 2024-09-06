@@ -19,6 +19,7 @@ typedef struct {
 	SENDMETHOD method;
 	BOOL alwaysOnTop;
 	BOOL fullscreen;
+	BOOL matchAspectRatio;
 	BOOL pictureInPicture;
 	BOOL lockFrame;
 	BOOL limitToScreen;

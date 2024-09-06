@@ -13,11 +13,12 @@
 #define IDM_SEND_METHOD_UNCOMPRESSED 0xE005
 #define IDM_ALWAYS_ON_TOP            0xE006
 #define IDM_FULLSCREEN               0xE007
-#define IDM_PICTURE_IN_PICTURE       0xE008
-#define IDM_LOCK_FRAME               0xE009
-#define IDM_LIMIT_TO_SCREEN          0xE00A
-#define IDM_CLOSE_WINDOW             0xE00B
-#define IDM_DISCONNECT               0xE00C
+#define IDM_MATCH_ASPECT_RATIO       0xE008
+#define IDM_PICTURE_IN_PICTURE       0xE009
+#define IDM_LOCK_FRAME               0xE00A
+#define IDM_LIMIT_TO_SCREEN          0xE00B
+#define IDM_CLOSE_WINDOW             0xE00C
+#define IDM_DISCONNECT               0xE00D
 
 static void sendFrameCode(const PCLIENT client) {
 	BYTE data = ((client->window->menu.method & 0b11) << 1) | (client->window->menu.stream ? 0b1001 : 0);
@@ -141,8 +142,9 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		AppendMenuW((HMENU) bitmap, MF_STRING | (client->window->menu.method == SEND_METHOD_UNCOMPRESSED ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_UNCOMPRESSED, L"Uncompressed");
 		AppendMenuW((HMENU) memoryContext, MF_POPUP | (client->window->menu.stream ? MF_ENABLED : MF_DISABLED), (UINT_PTR) bitmap, L"Send Method");
 		AppendMenuW((HMENU) context, MF_POPUP, (UINT_PTR) memoryContext, L"Streaming");
-		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.alwaysOnTop ? MF_CHECKED : MF_UNCHECKED), IDM_ALWAYS_ON_TOP, L"Always On Top");
-		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.fullscreen  ? MF_CHECKED : MF_UNCHECKED), IDM_FULLSCREEN,    L"Fullscreen");
+		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.alwaysOnTop      ? MF_CHECKED : MF_UNCHECKED), IDM_ALWAYS_ON_TOP,      L"Always On Top");
+		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.fullscreen       ? MF_CHECKED : MF_UNCHECKED), IDM_FULLSCREEN,         L"Fullscreen");
+		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.matchAspectRatio ? MF_CHECKED : MF_UNCHECKED), IDM_MATCH_ASPECT_RATIO, L"Match Aspect Ratio");
 		AppendMenuW((HMENU) context, MF_SEPARATOR, 0, NULL);
 		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.pictureInPicture ? MF_CHECKED : MF_UNCHECKED) | (client->window->menu.fullscreen ? MF_DISABLED : MF_ENABLED),                                                       IDM_PICTURE_IN_PICTURE, L"Picture In Picture");
 		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.lockFrame        ? MF_CHECKED : MF_UNCHECKED) | (client->window->menu.fullscreen ? MF_DISABLED : client->window->menu.pictureInPicture ? MF_ENABLED : MF_DISABLED), IDM_LOCK_FRAME,         L"Lock Frame");
