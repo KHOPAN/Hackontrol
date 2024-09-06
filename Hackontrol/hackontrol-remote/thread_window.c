@@ -198,6 +198,9 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			if(client->window->menu.fullscreen) SetWindowPos(window, HWND_TOP, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), SWP_FRAMECHANGED);
 			PostMessageW(window, WM_SIZE, 0, 0);
 			break;
+		case IDM_MATCH_ASPECT_RATIO:
+			client->window->menu.matchAspectRatio = !client->window->menu.matchAspectRatio;
+			break;
 		case IDM_PICTURE_IN_PICTURE:
 			client->window->menu.pictureInPicture = !client->window->menu.pictureInPicture;
 			SetWindowLongPtrW(window, GWL_STYLE, (client->window->menu.pictureInPicture ? WS_POPUP : WS_OVERLAPPEDWINDOW) | WS_VISIBLE);
