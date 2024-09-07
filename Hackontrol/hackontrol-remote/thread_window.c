@@ -200,7 +200,11 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			break;
 		case IDM_MATCH_ASPECT_RATIO:
 			client->window->menu.matchAspectRatio = !client->window->menu.matchAspectRatio;
-			if(!client->window->menu.matchAspectRatio) break;
+			if(!client->window->menu.matchAspectRatio || client->window->stream.originalImageWidth < 1 || client->window->stream.originalImageHeight) break;
+			GetWindowRect(window, &bounds);
+			bounds.right -= bounds.left;
+			bounds.bottom -= bounds.top;
+			if(bounds.right < 1 || bounds.bottom < 1) break;
 			break;
 		case IDM_PICTURE_IN_PICTURE:
 			client->window->menu.pictureInPicture = !client->window->menu.pictureInPicture;
