@@ -207,7 +207,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			if(bounds.right < 1 || bounds.bottom < 1) break;
 			bounds.left = (int) (((double) client->window->stream.originalImageWidth) / ((double) client->window->stream.originalImageHeight) * ((double) bounds.bottom));
 			bounds.top = (int) (((double) client->window->stream.originalImageHeight) / ((double) client->window->stream.originalImageWidth) * ((double) bounds.right));
-			position.x = client->window->stream.imageWidth < bounds.right;
+			position.x = bounds.left < bounds.right;
 			bounds.right = position.x ? bounds.left : bounds.right;
 			bounds.bottom = position.x ? bounds.bottom : bounds.top;
 			bounds.left = 0;

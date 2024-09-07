@@ -1,4 +1,5 @@
 #include "frame_decoder.h"
+#include "logger.h"
 
 #define QOI_OP_RGB   0b11111110
 #define QOI_OP_INDEX 0b00000000
@@ -16,6 +17,9 @@ void DecodeHRSPFrame(const BYTE* data, const size_t size, const PWINDOWDATA wind
 	BOOL colorDifference = (data[0] >> 1) & 1;
 	int width = (data[1] << 24) | (data[2] << 16) | (data[3] << 8) | data[4];
 	int height = (data[5] << 24) | (data[6] << 16) | (data[7] << 8) | data[8];
+	size_t pointer;
+	int temporary;
+	RECT bounds;
 
 	if(window->stream.originalImageWidth != width || window->stream.originalImageHeight != height) {
 		window->stream.originalImageWidth = width;
@@ -31,6 +35,25 @@ void DecodeHRSPFrame(const BYTE* data, const size_t size, const PWINDOWDATA wind
 			goto releaseMutex;
 		}
 
+		if(window->menu.matchAspectRatio) {
+			GetClientRect(window->window, &bounds);
+			bounds.right -= bounds.left;
+			bounds.bottom -= bounds.top;
+			if(bounds.right < 1 || bounds.bottom < 1) goto postMessage;
+			bounds.left = (int) (((double) width) / ((double) height) * ((double) bounds.bottom));
+			bounds.top = (int) (((double) height) / ((double) width) * ((double) bounds.right));
+			temporary = bounds.left < bounds.right;
+			bounds.right = temporary ? bounds.left : bounds.right;
+			bounds.bottom = temporary ? bounds.bottom : bounds.top;
+			bounds.left = 0;
+			bounds.top = 0;
+			AdjustWindowRect(&bounds, (DWORD) GetWindowLongPtrW(window->window, GWL_STYLE), FALSE);
+			pointer = (size_t) window->window;
+			ReleaseMutex(window->lock);
+			SetWindowPos((HWND) pointer, HWND_TOP, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED);
+			if(WaitForSingleObject(window->lock, INFINITE) == WAIT_FAILED) return;
+		}
+	postMessage:
 		PostMessageW(window->window, WM_SIZE, 0, 0);
 	}
 
@@ -76,12 +99,11 @@ exitRawPixel:
 	memset(seenRed, 0, sizeof(seenRed));
 	memset(seenGreen, 0, sizeof(seenGreen));
 	memset(seenBlue, 0, sizeof(seenBlue));
-	size_t pointer = boundaryDifference ? 25 : 9;
+	pointer = boundaryDifference ? 25 : 9;
 	int red = 0;
 	int green = 0;
 	int blue = 0;
 	int run = 0;
-	int temporary = 0;
 #define APPLY_COLOR if(colorDifference){window->stream.pixels[pixelIndex]-=blue;window->stream.pixels[pixelIndex+1]-=green;window->stream.pixels[pixelIndex+2]-=red;}else{window->stream.pixels[pixelIndex]=blue;window->stream.pixels[pixelIndex+1]=green;window->stream.pixels[pixelIndex+2]=red;}
 
 	for(y = boundaryDifference ? (data[13] << 24) | (data[14] << 16) | (data[15] << 8) | data[16] : 0; y <= endY; y++) {
