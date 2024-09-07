@@ -60,7 +60,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		bounds.right -= bounds.left;
 		bounds.bottom -= bounds.top;
 
-		if(bounds.right < 1 || bounds.bottom < 1 || WaitForSingleObject(client->window->lock, INFINITE) == WAIT_FAILED) {
+		if(client->window->stream.originalImageWidth < 1 || client->window->stream.originalImageHeight < 1 || bounds.right < 1 || bounds.bottom < 1 || WaitForSingleObject(client->window->lock, INFINITE) == WAIT_FAILED) {
 			break;
 		}
 
