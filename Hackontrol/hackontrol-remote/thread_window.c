@@ -263,9 +263,12 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			client->window->stream.cursorEast = position.x >= bounds.right - client->window->stream.resizeActivationDistance && position.x < bounds.right;
 			client->window->stream.cursorSouth = position.y >= bounds.bottom - client->window->stream.resizeActivationDistance && position.y < bounds.bottom;
 			client->window->stream.cursorWest = position.x >= 0 && position.x <= client->window->stream.resizeActivationDistance;
-			SetCursor(LoadCursorW(NULL, client->window->stream.cursorNorth ? client->window->stream.cursorWest ? IDC_SIZENWSE : client->window->stream.cursorEast ? IDC_SIZENESW : IDC_SIZENS : client->window->stream.cursorSouth ? client->window->stream.cursorWest ? IDC_SIZENESW : client->window->stream.cursorEast ? IDC_SIZENWSE : IDC_SIZENS : client->window->stream.cursorWest ? IDC_SIZEWE : client->window->stream.cursorEast ? IDC_SIZEWE : IDC_ARROW));
+			context = (HDC) (client->window->stream.cursorNorth ? client->window->stream.cursorWest ? IDC_SIZENWSE : client->window->stream.cursorEast ? IDC_SIZENESW : IDC_SIZENS : client->window->stream.cursorSouth ? client->window->stream.cursorWest ? IDC_SIZENESW : client->window->stream.cursorEast ? IDC_SIZENWSE : IDC_SIZENS : client->window->stream.cursorWest ? IDC_SIZEWE : client->window->stream.cursorEast ? IDC_SIZEWE : IDC_ARROW);
+		} else {
+			context = (HDC) IDC_ARROW;
 		}
 
+		SetCursor(LoadCursorW(NULL, (LPCWSTR) context));
 		ReleaseMutex(client->window->lock);
 		break;
 	dragging:
