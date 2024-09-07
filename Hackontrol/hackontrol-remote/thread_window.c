@@ -200,11 +200,17 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			break;
 		case IDM_MATCH_ASPECT_RATIO:
 			client->window->menu.matchAspectRatio = !client->window->menu.matchAspectRatio;
-			if(!client->window->menu.matchAspectRatio || client->window->stream.originalImageWidth < 1 || client->window->stream.originalImageHeight) break;
+			if(!client->window->menu.matchAspectRatio || client->window->stream.originalImageWidth < 1 || client->window->stream.originalImageHeight < 1) break;
 			GetWindowRect(window, &bounds);
 			bounds.right -= bounds.left;
 			bounds.bottom -= bounds.top;
 			if(bounds.right < 1 || bounds.bottom < 1) break;
+			bounds.left = (int) (((double) client->window->stream.originalImageWidth) / ((double) client->window->stream.originalImageHeight) * ((double) bounds.bottom));
+			bounds.top = (int) (((double) client->window->stream.originalImageHeight) / ((double) client->window->stream.originalImageWidth) * ((double) bounds.right));
+			position.x = client->window->stream.imageWidth;
+			bounds.left = position.x ? bounds.left : bounds.right;
+			bounds.top = position.x ? bounds.bottom : bounds.top;
+			SetWindowPos(window, HWND_TOP, 0, 0, bounds.left, bounds.top, SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED);
 			break;
 		case IDM_PICTURE_IN_PICTURE:
 			client->window->menu.pictureInPicture = !client->window->menu.pictureInPicture;
