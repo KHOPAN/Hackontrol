@@ -201,7 +201,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		case IDM_MATCH_ASPECT_RATIO:
 			client->window->menu.matchAspectRatio = !client->window->menu.matchAspectRatio;
 			if(!client->window->menu.matchAspectRatio || client->window->stream.originalImageWidth < 1 || client->window->stream.originalImageHeight < 1) break;
-			GetWindowRect(window, &bounds);
+			GetClientRect(window, &bounds);
 			bounds.right -= bounds.left;
 			bounds.bottom -= bounds.top;
 			if(bounds.right < 1 || bounds.bottom < 1) break;
@@ -214,6 +214,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			bounds.top = 0;
 			AdjustWindowRect(&bounds, (DWORD) GetWindowLongPtrW(window, GWL_STYLE), FALSE);
 			SetWindowPos(window, HWND_TOP, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED);
+			PostMessageW(window, WM_SIZE, 0, 0);
 			break;
 		case IDM_PICTURE_IN_PICTURE:
 			client->window->menu.pictureInPicture = !client->window->menu.pictureInPicture;
