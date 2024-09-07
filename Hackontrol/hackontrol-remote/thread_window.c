@@ -142,9 +142,9 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		AppendMenuW((HMENU) bitmap, MF_STRING | (client->window->menu.method == SEND_METHOD_UNCOMPRESSED ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_UNCOMPRESSED, L"Uncompressed");
 		AppendMenuW((HMENU) memoryContext, MF_POPUP | (client->window->menu.stream ? MF_ENABLED : MF_DISABLED), (UINT_PTR) bitmap, L"Send Method");
 		AppendMenuW((HMENU) context, MF_POPUP, (UINT_PTR) memoryContext, L"Streaming");
-		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.alwaysOnTop      ? MF_CHECKED : MF_UNCHECKED),                                                                IDM_ALWAYS_ON_TOP,      L"Always On Top");
-		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.fullscreen       ? MF_CHECKED : MF_UNCHECKED),                                                                IDM_FULLSCREEN,         L"Fullscreen");
-		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.matchAspectRatio ? MF_CHECKED : MF_UNCHECKED) | (client->window->menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_MATCH_ASPECT_RATIO, L"Match Aspect Ratio");
+		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.alwaysOnTop ? MF_CHECKED : MF_UNCHECKED), IDM_ALWAYS_ON_TOP,      L"Always On Top");
+		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.fullscreen  ? MF_CHECKED : MF_UNCHECKED), IDM_FULLSCREEN,         L"Fullscreen");
+		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.fullscreen  ? MF_DISABLED : MF_ENABLED),  IDM_MATCH_ASPECT_RATIO, L"Match Aspect Ratio");
 		AppendMenuW((HMENU) context, MF_SEPARATOR, 0, NULL);
 		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.pictureInPicture ? MF_CHECKED : MF_UNCHECKED) | (client->window->menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_PICTURE_IN_PICTURE, L"Picture In Picture");
 		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.lockFrame        ? MF_CHECKED : MF_UNCHECKED) | (client->window->menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_LOCK_FRAME,         L"Lock Frame");
@@ -199,8 +199,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			PostMessageW(window, WM_SIZE, 0, 0);
 			break;
 		case IDM_MATCH_ASPECT_RATIO:
-			client->window->menu.matchAspectRatio = !client->window->menu.matchAspectRatio;
-			if(!client->window->menu.matchAspectRatio || client->window->stream.originalImageWidth < 1 || client->window->stream.originalImageHeight < 1) break;
+			if(client->window->stream.originalImageWidth < 1 || client->window->stream.originalImageHeight < 1) break;
 			GetClientRect(window, &bounds);
 			bounds.right -= bounds.left;
 			bounds.bottom -= bounds.top;
