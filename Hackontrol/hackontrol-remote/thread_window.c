@@ -249,29 +249,11 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			break;
 		}
 
-		/*paintStruct.rcPaint.left = GetSystemMetrics(SM_CXSCREEN);
-		paintStruct.rcPaint.top = GetSystemMetrics(SM_CYSCREEN);
-		GetCursorPos(&position);
+		if(wparam == MK_LBUTTON) {
+			goto dragging;
+		}
 
-		if(!client->window->menu.pictureInPicture) {
-			if(wparam != MK_LBUTTON) {
-				ReleaseMutex(client->window->lock);
-				break;
-			}
-
-			SetCursor(LoadCursorW(NULL, IDC_ARROW));
-			position.x -= client->window->stream.position.x - client->window->stream.bounds.left;
-			position.y -= client->window->stream.position.y - client->window->stream.bounds.top;
-			SetWindowPos(window, HWND_TOP, client->window->menu.limitToScreen ? position.x < 0 ? 0 : position.x + client->window->stream.bounds.right - client->window->stream.bounds.left > paintStruct.rcPaint.left ? paintStruct.rcPaint.left - client->window->stream.bounds.right + client->window->stream.bounds.left : position.x : position.x, client->window->menu.limitToScreen ? position.y < 0 ? 0 : position.y + client->window->stream.bounds.bottom - client->window->stream.bounds.top > paintStruct.rcPaint.top ? paintStruct.rcPaint.top - client->window->stream.bounds.bottom + client->window->stream.bounds.top : position.y : position.y, 0, 0, SWP_NOSIZE);
-			ReleaseMutex(client->window->lock);
-			break;
-		}*/
-
-		paintStruct.rcPaint.left = GetSystemMetrics(SM_CXSCREEN);
-		paintStruct.rcPaint.top = GetSystemMetrics(SM_CYSCREEN);
-		GetCursorPos(&position);
-
-		if(wparam != MK_LBUTTON) {
+		if(client->window->menu.pictureInPicture) {
 			position.x = LOWORD(lparam);
 			position.y = HIWORD(lparam);
 			GetClientRect(window, &bounds);
@@ -280,11 +262,17 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			client->window->stream.cursorSouth = position.y >= bounds.bottom - client->window->stream.resizeActivationDistance && position.y < bounds.bottom;
 			client->window->stream.cursorWest = position.x >= 0 && position.x <= client->window->stream.resizeActivationDistance;
 			SetCursor(LoadCursorW(NULL, client->window->stream.cursorNorth ? client->window->stream.cursorWest ? IDC_SIZENWSE : client->window->stream.cursorEast ? IDC_SIZENESW : IDC_SIZENS : client->window->stream.cursorSouth ? client->window->stream.cursorWest ? IDC_SIZENESW : client->window->stream.cursorEast ? IDC_SIZENWSE : IDC_SIZENS : client->window->stream.cursorWest ? IDC_SIZEWE : client->window->stream.cursorEast ? IDC_SIZEWE : IDC_ARROW));
-			ReleaseMutex(client->window->lock);
-			break;
 		}
 
-		if(!client->window->stream.cursorNorth && !client->window->stream.cursorEast && !client->window->stream.cursorSouth && !client->window->stream.cursorWest) {
+		ReleaseMutex(client->window->lock);
+		break;
+dragging:
+		paintStruct.rcPaint.left = GetSystemMetrics(SM_CXSCREEN);
+		paintStruct.rcPaint.top = GetSystemMetrics(SM_CYSCREEN);
+		GetCursorPos(&position);
+
+		if((!client->window->stream.cursorNorth && !client->window->stream.cursorEast && !client->window->stream.cursorSouth && !client->window->stream.cursorWest) || !client->window->menu.pictureInPicture) {
+			if(!client->window->menu.pictureInPicture) SetCursor(LoadCursorW(NULL, IDC_ARROW));
 			position.x -= client->window->stream.position.x - client->window->stream.bounds.left;
 			position.y -= client->window->stream.position.y - client->window->stream.bounds.top;
 			SetWindowPos(window, HWND_TOP, client->window->menu.limitToScreen ? position.x < 0 ? 0 : position.x + client->window->stream.bounds.right - client->window->stream.bounds.left > paintStruct.rcPaint.left ? paintStruct.rcPaint.left - client->window->stream.bounds.right + client->window->stream.bounds.left : position.x : position.x, client->window->menu.limitToScreen ? position.y < 0 ? 0 : position.y + client->window->stream.bounds.bottom - client->window->stream.bounds.top > paintStruct.rcPaint.top ? paintStruct.rcPaint.top - client->window->stream.bounds.bottom + client->window->stream.bounds.top : position.y : position.y, 0, 0, SWP_NOSIZE);
