@@ -266,7 +266,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 
 		ReleaseMutex(client->window->lock);
 		break;
-dragging:
+	dragging:
 		paintStruct.rcPaint.left = GetSystemMetrics(SM_CXSCREEN);
 		paintStruct.rcPaint.top = GetSystemMetrics(SM_CYSCREEN);
 		GetCursorPos(&position);
