@@ -243,7 +243,13 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			break;
 		}
 
-		if(client->window->menu.fullscreen || client->window->menu.lockFrame) {
+		if(client->window->menu.lockFrame) {
+			SetCursor(LoadCursorW(NULL, IDC_ARROW));
+			ReleaseMutex(client->window->lock);
+			break;
+		}
+
+		/*if(client->window->menu.fullscreen || client->window->menu.lockFrame) {
 			SetCursor(LoadCursorW(NULL, IDC_ARROW));
 			ReleaseMutex(client->window->lock);
 			break;
@@ -265,7 +271,11 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			SetWindowPos(window, HWND_TOP, client->window->menu.limitToScreen ? position.x < 0 ? 0 : position.x + client->window->stream.bounds.right - client->window->stream.bounds.left > paintStruct.rcPaint.left ? paintStruct.rcPaint.left - client->window->stream.bounds.right + client->window->stream.bounds.left : position.x : position.x, client->window->menu.limitToScreen ? position.y < 0 ? 0 : position.y + client->window->stream.bounds.bottom - client->window->stream.bounds.top > paintStruct.rcPaint.top ? paintStruct.rcPaint.top - client->window->stream.bounds.bottom + client->window->stream.bounds.top : position.y : position.y, 0, 0, SWP_NOSIZE);
 			ReleaseMutex(client->window->lock);
 			break;
-		}
+		}*/
+
+		paintStruct.rcPaint.left = GetSystemMetrics(SM_CXSCREEN);
+		paintStruct.rcPaint.top = GetSystemMetrics(SM_CYSCREEN);
+		GetCursorPos(&position);
 
 		if(wparam != MK_LBUTTON) {
 			position.x = LOWORD(lparam);
