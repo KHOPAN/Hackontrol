@@ -46,7 +46,6 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 	PAINTSTRUCT paintStruct;
 	HDC context;
 	HDC memoryContext;
-	HBITMAP bitmap;
 
 	switch(message) {
 	case WM_CLOSE:
@@ -82,7 +81,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		GetClientRect(window, &bounds);
 		context = BeginPaint(window, &paintStruct);
 		memoryContext = CreateCompatibleDC(context);
-		bitmap = CreateCompatibleBitmap(context, bounds.right, bounds.bottom);
+		HBITMAP bitmap = CreateCompatibleBitmap(context, bounds.right, bounds.bottom);
 		HBITMAP oldBitmap = SelectObject(memoryContext, bitmap);
 		HBRUSH brush = GetStockObject(DC_BRUSH);
 		SetDCBrushColor(memoryContext, 0x000000);
@@ -127,35 +126,25 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			break;
 		}
 
-		bitmap = (HBITMAP) CreateMenu();
-
-		if(!bitmap || WaitForSingleObject(client->window->lock, INFINITE) == WAIT_FAILED) {
-			DestroyMenu((HMENU) memoryContext);
-			DestroyMenu((HMENU) context);
-			break;
-		}
-
-		AppendMenuW((HMENU) memoryContext, MF_STRING | (client->window->menu.stream ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_ENABLE, L"Enable");
-		AppendMenuW((HMENU) bitmap, MF_STRING | (client->window->menu.method == SEND_METHOD_FULL         ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_FULL,         L"Full");
-		AppendMenuW((HMENU) bitmap, MF_STRING | (client->window->menu.method == SEND_METHOD_BOUNDARY     ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_BOUNDARY,     L"Boundary Differences");
-		AppendMenuW((HMENU) bitmap, MF_STRING | (client->window->menu.method == SEND_METHOD_COLOR        ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_COLOR,        L"Color Differences");
-		AppendMenuW((HMENU) bitmap, MF_STRING | (client->window->menu.method == SEND_METHOD_UNCOMPRESSED ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_UNCOMPRESSED, L"Uncompressed");
-		AppendMenuW((HMENU) memoryContext, MF_POPUP | (client->window->menu.stream ? MF_ENABLED : MF_DISABLED), (UINT_PTR) bitmap, L"Send Method");
-		AppendMenuW((HMENU) context, MF_POPUP, (UINT_PTR) memoryContext, L"Streaming");
-		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.alwaysOnTop ? MF_CHECKED : MF_UNCHECKED), IDM_ALWAYS_ON_TOP,      L"Always On Top");
-		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.fullscreen  ? MF_CHECKED : MF_UNCHECKED), IDM_FULLSCREEN,         L"Fullscreen");
-		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.fullscreen  ? MF_DISABLED : MF_ENABLED),  IDM_MATCH_ASPECT_RATIO, L"Match Aspect Ratio");
+		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.stream ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_ENABLE, L"Enable Streaming");
+		AppendMenuW((HMENU) memoryContext, MF_STRING | (client->window->menu.method == SEND_METHOD_FULL         ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_FULL,         L"Full");
+		AppendMenuW((HMENU) memoryContext, MF_STRING | (client->window->menu.method == SEND_METHOD_BOUNDARY     ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_BOUNDARY,     L"Boundary Differences");
+		AppendMenuW((HMENU) memoryContext, MF_STRING | (client->window->menu.method == SEND_METHOD_COLOR        ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_COLOR,        L"Color Differences");
+		AppendMenuW((HMENU) memoryContext, MF_STRING | (client->window->menu.method == SEND_METHOD_UNCOMPRESSED ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_UNCOMPRESSED, L"Uncompressed");
+		AppendMenuW((HMENU) context, MF_POPUP | (client->window->menu.stream ? MF_ENABLED : MF_DISABLED), (UINT_PTR) memoryContext, L"Send Method");
 		AppendMenuW((HMENU) context, MF_SEPARATOR, 0, NULL);
-		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.pictureInPicture ? MF_CHECKED : MF_UNCHECKED) | (client->window->menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_PICTURE_IN_PICTURE, L"Picture In Picture");
-		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.lockFrame        ? MF_CHECKED : MF_UNCHECKED) | (client->window->menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_LOCK_FRAME,         L"Lock Frame");
+		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_MATCH_ASPECT_RATIO, L"Match Aspect Ratio");
+		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.alwaysOnTop      ? MF_CHECKED : MF_UNCHECKED),                                                                IDM_ALWAYS_ON_TOP,      L"Always On Top");
+		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.fullscreen       ? MF_CHECKED : MF_UNCHECKED),                                                                IDM_FULLSCREEN,         L"Fullscreen");
 		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.limitToScreen    ? MF_CHECKED : MF_UNCHECKED) | (client->window->menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_LIMIT_TO_SCREEN,    L"Limit To Screen");
+		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.lockFrame        ? MF_CHECKED : MF_UNCHECKED) | (client->window->menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_LOCK_FRAME,         L"Lock Frame");
+		AppendMenuW((HMENU) context, MF_STRING | (client->window->menu.pictureInPicture ? MF_CHECKED : MF_UNCHECKED) | (client->window->menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_PICTURE_IN_PICTURE, L"Picture In Picture");
 		AppendMenuW((HMENU) context, MF_SEPARATOR, 0, NULL);
 		AppendMenuW((HMENU) context, MF_STRING, IDM_CLOSE_WINDOW, L"Close Window");
 		AppendMenuW((HMENU) context, MF_STRING, IDM_DISCONNECT,   L"Disconnect");
 		SetForegroundWindow(window);
 		ReleaseMutex(client->window->lock);
 		TrackPopupMenuEx((HMENU) context, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
-		DestroyMenu((HMENU) bitmap);
 		DestroyMenu((HMENU) memoryContext);
 		DestroyMenu((HMENU) context);
 		break;
@@ -185,19 +174,6 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			client->window->menu.method = SEND_METHOD_UNCOMPRESSED;
 			sendFrameCode(client);
 			break;
-		case IDM_ALWAYS_ON_TOP:
-			client->window->menu.alwaysOnTop = !client->window->menu.alwaysOnTop;
-			SetWindowPos(window, client->window->menu.alwaysOnTop ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
-			break;
-		case IDM_FULLSCREEN:
-			client->window->menu.fullscreen = !client->window->menu.fullscreen;
-			if(client->window->menu.fullscreen) client->window->storage.style = GetWindowLongPtrW(window, GWL_STYLE);
-			client->window->storage.placement.length = sizeof(WINDOWPLACEMENT);
-			(client->window->menu.fullscreen ? GetWindowPlacement : SetWindowPlacement)(window, &client->window->storage.placement);
-			SetWindowLongPtrW(window, GWL_STYLE, client->window->menu.fullscreen ? WS_POPUP | WS_VISIBLE : client->window->storage.style);
-			if(client->window->menu.fullscreen) SetWindowPos(window, HWND_TOP, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), SWP_FRAMECHANGED);
-			PostMessageW(window, WM_SIZE, 0, 0);
-			break;
 		case IDM_MATCH_ASPECT_RATIO:
 			if(client->window->stream.originalImageWidth < 1 || client->window->stream.originalImageHeight < 1) break;
 			GetClientRect(window, &bounds);
@@ -215,14 +191,18 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			SetWindowPos(window, HWND_TOP, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED);
 			PostMessageW(window, WM_SIZE, 0, 0);
 			break;
-		case IDM_PICTURE_IN_PICTURE:
-			client->window->menu.pictureInPicture = !client->window->menu.pictureInPicture;
-			SetWindowLongPtrW(window, GWL_STYLE, (client->window->menu.pictureInPicture ? WS_POPUP : WS_OVERLAPPEDWINDOW) | WS_VISIBLE);
-			SetWindowPos(window, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
-			PostMessageW(window, WM_SIZE, 0, 0);
+		case IDM_ALWAYS_ON_TOP:
+			client->window->menu.alwaysOnTop = !client->window->menu.alwaysOnTop;
+			SetWindowPos(window, client->window->menu.alwaysOnTop ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
 			break;
-		case IDM_LOCK_FRAME:
-			client->window->menu.lockFrame = !client->window->menu.lockFrame;
+		case IDM_FULLSCREEN:
+			client->window->menu.fullscreen = !client->window->menu.fullscreen;
+			if(client->window->menu.fullscreen) client->window->storage.style = GetWindowLongPtrW(window, GWL_STYLE);
+			client->window->storage.placement.length = sizeof(WINDOWPLACEMENT);
+			(client->window->menu.fullscreen ? GetWindowPlacement : SetWindowPlacement)(window, &client->window->storage.placement);
+			SetWindowLongPtrW(window, GWL_STYLE, client->window->menu.fullscreen ? WS_POPUP | WS_VISIBLE : client->window->storage.style);
+			if(client->window->menu.fullscreen) SetWindowPos(window, HWND_TOP, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), SWP_FRAMECHANGED);
+			PostMessageW(window, WM_SIZE, 0, 0);
 			break;
 		case IDM_LIMIT_TO_SCREEN:
 			client->window->menu.limitToScreen = !client->window->menu.limitToScreen;
@@ -239,6 +219,15 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			if(bounds.left + bounds.right > position.x) bounds.left = position.x - bounds.right;
 			if(bounds.top + bounds.bottom > position.y) bounds.top = position.y - bounds.bottom;
 			SetWindowPos(window, HWND_TOP, bounds.left, bounds.top, bounds.right, bounds.bottom, 0);
+			break;
+		case IDM_LOCK_FRAME:
+			client->window->menu.lockFrame = !client->window->menu.lockFrame;
+			break;
+		case IDM_PICTURE_IN_PICTURE:
+			client->window->menu.pictureInPicture = !client->window->menu.pictureInPicture;
+			SetWindowLongPtrW(window, GWL_STYLE, (client->window->menu.pictureInPicture ? WS_POPUP : WS_OVERLAPPEDWINDOW) | WS_VISIBLE);
+			SetWindowPos(window, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
+			PostMessageW(window, WM_SIZE, 0, 0);
 			break;
 		case IDM_CLOSE_WINDOW:
 			PostMessageW(window, WM_CLOSE, 0, 0);
