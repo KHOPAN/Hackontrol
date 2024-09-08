@@ -45,5 +45,13 @@ BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPPROTOCOLERROR error) {
 		return FALSE;
 	}
 
+	WORD version = (buffer[4] << 8) | buffer[5];
+	WORD versionMinor = (buffer[6] << 8) | buffer[7];
+
+	if(version != HRSP_PROTOCOL_VERSION || versionMinor != HRSP_PROTOCOL_VERSION_MINOR) {
+		SETERROR_HRSP(L"recv", version > HRSP_PROTOCOL_VERSION ? HRSP_ERROR_UNSUPPORTED_VERSION_HIGHER : version < HRSP_PROTOCOL_VERSION ? HRSP_ERROR_UNSUPPORTED_VERSION_LOWER : versionMinor > HRSP_PROTOCOL_VERSION_MINOR ? HRSP_ERROR_UNSUPPORTED_VERSION_HIGHER : HRSP_ERROR_UNSUPPORTED_VERSION_LOWER);
+		return FALSE;
+	}
+
 	return TRUE;
 }
