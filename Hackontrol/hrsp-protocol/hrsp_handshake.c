@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "hrsp_protocol.h"
 
 #define SETERROR_HRSP(function, code) if(error){error->win32Error=FALSE;error->functionName=function;error->errorCode=code;error->win32ErrorCode=0;}
@@ -38,5 +39,14 @@ BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPPROTOCOLERROR error) {
 		return FALSE;
 	}
 
-	return FALSE;
+	BYTE buffer[9];
+
+	if(recv(socket, buffer, 8, 0) == SOCKET_ERROR) {
+		SETERROR_WIN32(L"recv", WSAGetLastError());
+		return FALSE;
+	}
+
+	buffer[8] = 0;
+	printf("Buffer: %s\n", buffer);
+	return TRUE;
 }
