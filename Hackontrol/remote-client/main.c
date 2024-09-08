@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
 			return 1;
 		}
 
-		KHWin32ConsoleErrorW(error.code, error.function);
+		KHWIN32_ERROR_CONSOLE(error.code, error.function);
 		return 1;
 	}
 
