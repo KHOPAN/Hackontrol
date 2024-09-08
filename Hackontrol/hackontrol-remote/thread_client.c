@@ -24,7 +24,7 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 	HRSPPROTOCOLERROR protocolError;
 
 	if(!HRSPServerHandshake(client->socket, &protocolError)) {
-		KHWIN32_ERROR_CONSOLE(protocolError.win32ErrorCode, L"HRSPServerHandshake");
+		KHWIN32_ERROR_CONSOLE(protocolError.code, L"HRSPServerHandshake");
 		goto cleanupResource;
 	}
 
