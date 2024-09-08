@@ -16,10 +16,7 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPPROTOCOLERROR error) {
 		return FALSE;
 	}
 
-	buffer[0] = 'H';
-	buffer[1] = 'R';
-	buffer[2] = 'S';
-	buffer[3] = 'P';
+	memcpy(buffer, "HRSP", 4);
 	buffer[4] = (HRSP_PROTOCOL_VERSION >> 8) & 0xFF;
 	buffer[5] = HRSP_PROTOCOL_VERSION & 0xFF;
 	buffer[6] = (HRSP_PROTOCOL_VERSION_MINOR >> 8) & 0xFF;
