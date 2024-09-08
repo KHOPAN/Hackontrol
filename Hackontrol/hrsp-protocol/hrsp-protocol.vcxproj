@@ -129,6 +129,9 @@
   <ItemGroup>
     <ClInclude Include="hrsp_protocol.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="hrsp_protocol.c" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
