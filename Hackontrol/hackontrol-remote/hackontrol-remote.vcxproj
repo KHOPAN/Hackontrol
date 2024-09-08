@@ -80,7 +80,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\GitHub Repository\Hackontrol\Hackontrol\BaseHackontrol;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\GitHub Repository\Hackontrol\Hackontrol\hrsp-protocol;D:\GitHub Repository\Hackontrol\Hackontrol\BaseHackontrol;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -99,7 +99,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\GitHub Repository\Hackontrol\Hackontrol\BaseHackontrol;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\GitHub Repository\Hackontrol\Hackontrol\hrsp-protocol;D:\GitHub Repository\Hackontrol\Hackontrol\BaseHackontrol;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -118,7 +118,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\GitHub Repository\Hackontrol\Hackontrol\BaseHackontrol;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\GitHub Repository\Hackontrol\Hackontrol\hrsp-protocol;D:\GitHub Repository\Hackontrol\Hackontrol\BaseHackontrol;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -137,7 +137,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\GitHub Repository\Hackontrol\Hackontrol\BaseHackontrol;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\GitHub Repository\Hackontrol\Hackontrol\hrsp-protocol;D:\GitHub Repository\Hackontrol\Hackontrol\BaseHackontrol;D:\GitHub Repository\Hackontrol\Hackontrol\KHOPAN Library;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -161,8 +161,8 @@
     <ProjectReference Include="..\BaseHackontrol\BaseHackontrol.vcxproj">
       <Project>{7ad64c41-0110-4779-bdaa-7f2017f2692f}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\KHOPAN Library\KHOPAN Library.vcxproj">
-      <Project>{8c1e7669-d899-4b10-8d65-557b98a620b5}</Project>
+    <ProjectReference Include="..\hrsp-protocol\hrsp-protocol.vcxproj">
+      <Project>{35a58c18-31d7-4dd8-84a8-c309a445d0c1}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

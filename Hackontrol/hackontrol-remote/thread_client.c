@@ -6,6 +6,7 @@
 #include "frame_decoder.h"
 #include "logger.h"
 #include "window_main.h"
+#include <hrsp_protocol.h>
 
 #pragma warning(disable: 6001)
 
@@ -19,7 +20,16 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 	}
 
 	LOG("[Client %ws]: Starting\n" COMMA client->address);
-	char buffer[17];
+	int returnValue = 1;
+	HRSPPROTOCOLERROR protocolError;
+
+	if(!HRSPServerHandshake(client->socket, &protocolError)) {
+		KHWIN32_ERROR_CONSOLE(protocolError.win32ErrorCode, L"HRSPServerHandshake");
+		goto cleanupResource;
+	}
+
+	returnValue = 0;
+	/*char buffer[17];
 	int returnValue = 1;
 
 	if(recv(client->socket, buffer, sizeof(buffer) - 1, 0) == SOCKET_ERROR) {
@@ -160,7 +170,7 @@ exitName:
 freeName:
 	if(client->name) {
 		LocalFree(client->name);
-	}
+	}*/
 cleanupResource:
 	if(client->thread) {
 		CloseHandle(client->thread);
