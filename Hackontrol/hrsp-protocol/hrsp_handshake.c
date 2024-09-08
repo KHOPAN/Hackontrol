@@ -24,6 +24,21 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPPROTOCOLERROR error) {
 		return FALSE;
 	}
 
+	if(recv(socket, buffer, 1, 0) == SOCKET_ERROR) {
+		SETERROR_WIN32(L"recv", WSAGetLastError());
+		return FALSE;
+	}
+
+	if(buffer[0] != HRSP_ERROR_SUCCESS) {
+		switch(buffer[0]) {
+		case HRSP_ERROR_UNSUPPORTED_VERSION: SETERROR_HRSP(L"HRSPClientHandshake", HRSP_ERROR_UNSUPPORTED_VERSION);
+		default:                             SETERROR_HRSP(L"HRSPClientHandshake", HRSP_ERROR_UNKNOWN_ERROR);
+		}
+
+		return FALSE;
+	}
+
+	printf("Client connect success\n");
 	return TRUE;
 }
 
@@ -46,9 +61,24 @@ BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPPROTOCOLERROR error) {
 	}
 
 	if(((buffer[4] << 8) | buffer[5]) != HRSP_PROTOCOL_VERSION || ((buffer[6] << 8) | buffer[7]) != HRSP_PROTOCOL_VERSION_MINOR) {
-		SETERROR_HRSP(L"recv", HRSP_ERROR_UNSUPPORTED_VERSION);
+		buffer[0] = HRSP_ERROR_UNSUPPORTED_VERSION;
+
+		if(send(socket, buffer, 1, 0) == SOCKET_ERROR) {
+			SETERROR_WIN32(L"send", WSAGetLastError());
+			return FALSE;
+		}
+
+		SETERROR_HRSP(L"HRSPServerHandshake", HRSP_ERROR_UNSUPPORTED_VERSION);
 		return FALSE;
 	}
 
+	buffer[0] = HRSP_ERROR_SUCCESS;
+
+	if(send(socket, buffer, 1, 0) == SOCKET_ERROR) {
+		SETERROR_WIN32(L"send", WSAGetLastError());
+		return FALSE;
+	}
+
+	printf("Server connect success\n");
 	return TRUE;
 }
