@@ -3,19 +3,29 @@
 #include <Windows.h>
 
 typedef enum {
-	REMOTE_ERROR_UNABLE_TO_CONNECT_TO_SERVER = 0x01,
-	REMOTE_ERROR_SERVER_SEND_INVALID_RESPOSE
-} REMOTEERROR;
+	HRSP_CLIENT_ERROR_TYPE_HRSP_CLIENT = 0,
+	HRSP_CLIENT_ERROR_TYPE_HRSP,
+	HRSP_CLIENT_ERROR_TYPE_WIN32
+} HRSPCLIENTERRORTYPE;
+
+typedef enum {
+	HRSP_CLIENT_ERROR_SUCCESS = 0,
+	HRSP_CLIENT_ERROR_UNKNOWN_ERROR,
+	HRSP_CLIENT_ERROR_INVALID_FUNCTION_PARAMETER
+} HRSPCLIENTERRORCODE;
 
 typedef struct {
-	BOOL remoteError;
-	LPWSTR function;
+	HRSPCLIENTERRORTYPE type;
+	LPCWSTR function;
 	DWORD code;
-	REMOTEERROR codeRemote;
 } HRSPCLIENTERROR, *PHRSPCLIENTERROR;
 
-typedef struct {
-	int placeholder;
-} HRSPCLIENTSTRUCT, *PHRSPCLIENTSTRUCT;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-BOOL HRSPConnectToServer(const LPCSTR serverAddress, const LPCSTR serverPort, const PHRSPCLIENTSTRUCT client, const PHRSPCLIENTERROR error);
+BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PHRSPCLIENTERROR error);
+
+#ifdef __cplusplus
+}
+#endif

@@ -2,7 +2,11 @@
 #include <hrsp_protocol.h>
 #include "hrsp_client.h"
 
-#define REMOTE_ERROR(x,y) do{if(error){error->remoteError=FALSE;error->function=x;error->code=y;}}while(0)
+BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PHRSPCLIENTERROR error) {
+	return FALSE;
+}
+
+/*#define REMOTE_ERROR(x,y) do{if(error){error->remoteError=FALSE;error->function=x;error->code=y;}}while(0)
 #define REMOTE_CUSTOM_ERROR(x,y) do{if(error){error->remoteError=TRUE;error->function=x;error->codeRemote=y;}}while(0)
 
 BOOL HRSPConnectToServer(const LPCSTR serverAddress, const LPCSTR serverPort, const PHRSPCLIENTSTRUCT client, const PHRSPCLIENTERROR error) {
@@ -60,7 +64,7 @@ BOOL HRSPConnectToServer(const LPCSTR serverAddress, const LPCSTR serverPort, co
 		goto cleanup;
 	}
 
-	/*const char* header = "HRSP 1.0 CONNECT";
+	const char* header = "HRSP 1.0 CONNECT";
 	status = send(socketClient, header, (int) strlen(header), 0);
 
 	if(status == SOCKET_ERROR) {
@@ -81,7 +85,7 @@ BOOL HRSPConnectToServer(const LPCSTR serverAddress, const LPCSTR serverPort, co
 	if(strcmp(buffer, "HRSP 1.0 OK")) {
 		REMOTE_CUSTOM_ERROR(L"HRSPConnectToServer", REMOTE_ERROR_SERVER_SEND_INVALID_RESPOSE);
 		goto closeSocket;
-	}*/
+	}
 
 	HRSPPROTOCOLERROR protocolError;
 
@@ -103,4 +107,4 @@ cleanup:
 	}
 
 	return returnValue;
-}
+}*/
