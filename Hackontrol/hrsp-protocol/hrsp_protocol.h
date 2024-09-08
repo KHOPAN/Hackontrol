@@ -4,6 +4,8 @@
 
 #define HRSP_PROTOCOL_VERSION       1
 #define HRSP_PROTOCOL_VERSION_MINOR 0
+#define HRSP_PROTOCOL_PORT          42485
+#define HRSP_PROTOCOL_PORT_STRING   "42485"
 
 typedef enum {
 	HRSP_ERROR_SUCCESS = 0,
