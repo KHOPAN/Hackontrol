@@ -9,7 +9,25 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPPROTOCOLERROR error) {
 		return FALSE;
 	}
 
-	if(send(socket, NULL, 0, 0) == SOCKET_ERROR) {
+	BYTE* buffer = LocalAlloc(LMEM_FIXED, 8);
+
+	if(!buffer) {
+		SETERROR_WIN32(L"LocalAlloc", GetLastError());
+		return FALSE;
+	}
+
+	buffer[0] = 'H';
+	buffer[1] = 'R';
+	buffer[2] = 'S';
+	buffer[3] = 'P';
+	buffer[4] = (HRSP_PROTOCOL_VERSION >> 8) & 0xFF;
+	buffer[5] = HRSP_PROTOCOL_VERSION & 0xFF;
+	buffer[6] = (HRSP_PROTOCOL_VERSION_MINOR >> 8) & 0xFF;
+	buffer[7] = HRSP_PROTOCOL_VERSION_MINOR & 0xFF;
+	int status = send(socket, buffer, 8, 0);
+	LocalFree(buffer);
+
+	if(status == SOCKET_ERROR) {
 		SETERROR_WIN32(L"send", WSAGetLastError());
 		return FALSE;
 	}
