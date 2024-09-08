@@ -2,6 +2,9 @@
 
 #include <Windows.h>
 
+#define HRSP_PROTOCOL_VERSION       1
+#define HRSP_PROTOCOL_VERSION_MINOR 0
+
 typedef enum {
 	HRSP_ERROR_SUCCESS = 0,
 	HRSP_ERROR_UNKNOWN_ERROR,
