@@ -20,7 +20,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="hrsp_protocol.c">
+    <ClCompile Include="hrsp_handshake.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
