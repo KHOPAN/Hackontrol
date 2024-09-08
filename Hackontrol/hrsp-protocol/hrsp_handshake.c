@@ -60,22 +60,16 @@ BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPPROTOCOLERROR error) {
 		return FALSE;
 	}
 
-	if(((buffer[4] << 8) | buffer[5]) != HRSP_PROTOCOL_VERSION || ((buffer[6] << 8) | buffer[7]) != HRSP_PROTOCOL_VERSION_MINOR) {
-		buffer[0] = HRSP_ERROR_UNSUPPORTED_VERSION;
-
-		if(send(socket, buffer, 1, 0) == SOCKET_ERROR) {
-			SETERROR_WIN32(L"send", WSAGetLastError());
-			return FALSE;
-		}
-
-		SETERROR_HRSP(L"HRSPServerHandshake", HRSP_ERROR_UNSUPPORTED_VERSION);
-		return FALSE;
-	}
-
-	buffer[0] = HRSP_ERROR_SUCCESS;
+	buffer[1] = ((buffer[4] << 8) | buffer[5]) != HRSP_PROTOCOL_VERSION || ((buffer[6] << 8) | buffer[7]) != HRSP_PROTOCOL_VERSION_MINOR;
+	buffer[0] = buffer[1] ? HRSP_ERROR_UNSUPPORTED_VERSION : HRSP_ERROR_SUCCESS;
 
 	if(send(socket, buffer, 1, 0) == SOCKET_ERROR) {
 		SETERROR_WIN32(L"send", WSAGetLastError());
+		return FALSE;
+	}
+
+	if(buffer[1]) {
+		SETERROR_HRSP(L"HRSPServerHandshake", HRSP_ERROR_UNSUPPORTED_VERSION);
 		return FALSE;
 	}
 
