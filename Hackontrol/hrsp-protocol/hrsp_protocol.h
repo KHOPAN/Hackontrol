@@ -3,7 +3,8 @@
 #include <Windows.h>
 
 typedef enum {
-	HRSP_ERROR_INVALID_FUNCTION_PARAMETER = 1
+	HRSP_ERROR_UNKNOWN_ERROR = 1,
+	HRSP_ERROR_INVALID_FUNCTION_PARAMETER
 } HRSPPROTOCOLERRORCODE;
 
 typedef struct {
@@ -17,6 +18,7 @@ typedef struct {
 extern "C" {
 #endif
 
+LPCWSTR HRSPGetErrorCode(const HRSPPROTOCOLERRORCODE code);
 BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPPROTOCOLERROR error);
 BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPPROTOCOLERROR error);
 

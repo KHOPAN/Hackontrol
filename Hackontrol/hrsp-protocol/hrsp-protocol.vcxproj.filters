@@ -23,5 +23,8 @@
     <ClCompile Include="hrsp_handshake.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="error_code.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

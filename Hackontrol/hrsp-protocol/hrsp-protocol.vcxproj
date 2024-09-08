@@ -130,6 +130,7 @@
     <ClInclude Include="hrsp_protocol.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="error_code.c" />
     <ClCompile Include="hrsp_handshake.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
