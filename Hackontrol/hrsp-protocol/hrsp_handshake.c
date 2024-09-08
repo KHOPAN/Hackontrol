@@ -1,10 +1,9 @@
-#include <stdio.h>
 #include "hrsp_protocol.h"
 
-#pragma warning(disable: 6385)
+#define SETERROR_HRSP(functionName, errorCode) if(error){error->win32=FALSE;error->function=functionName;error->code=errorCode;}
+#define SETERROR_WIN32(functionName, errorCode) if(error){error->win32=TRUE;error->function=functionName;error->code=errorCode;}
 
-#define SETERROR_HRSP(function, code) if(error){error->win32Error=FALSE;error->functionName=function;error->errorCode=code;error->win32ErrorCode=0;}
-#define SETERROR_WIN32(function, code) if(error){error->win32Error=TRUE;error->functionName=function;error->errorCode=HRSP_ERROR_SUCCESS;error->win32ErrorCode=code;}
+#pragma warning(disable: 6385)
 
 BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPPROTOCOLERROR error) {
 	if(!socket) {
@@ -38,7 +37,6 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPPROTOCOLERROR error) {
 		return FALSE;
 	}
 
-	printf("Client connect success\n");
 	return TRUE;
 }
 
@@ -73,6 +71,5 @@ BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPPROTOCOLERROR error) {
 		return FALSE;
 	}
 
-	printf("Server connect success\n");
 	return TRUE;
 }

@@ -14,10 +14,9 @@ typedef enum {
 } HRSPPROTOCOLERRORCODE;
 
 typedef struct {
-	BOOL win32Error;
-	LPCWSTR functionName;
-	HRSPPROTOCOLERRORCODE errorCode;
-	DWORD win32ErrorCode;
+	BOOL win32;
+	LPCWSTR function;
+	DWORD code;
 } HRSPPROTOCOLERROR, *PHRSPPROTOCOLERROR;
 
 #ifdef __cplusplus
