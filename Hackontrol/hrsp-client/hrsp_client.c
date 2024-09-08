@@ -1,4 +1,5 @@
 #include <WS2tcpip.h>
+#include <hrsp_protocol.h>
 #include "hrsp_client.h"
 
 #define REMOTE_ERROR(x,y) do{if(error){error->remoteError=FALSE;error->function=x;error->code=y;}}while(0)
@@ -59,7 +60,7 @@ BOOL HRSPConnectToServer(const LPCSTR serverAddress, const LPCSTR serverPort, co
 		goto cleanup;
 	}
 
-	const char* header = "HRSP 1.0 CONNECT";
+	/*const char* header = "HRSP 1.0 CONNECT";
 	status = send(socketClient, header, (int) strlen(header), 0);
 
 	if(status == SOCKET_ERROR) {
@@ -79,6 +80,13 @@ BOOL HRSPConnectToServer(const LPCSTR serverAddress, const LPCSTR serverPort, co
 
 	if(strcmp(buffer, "HRSP 1.0 OK")) {
 		REMOTE_CUSTOM_ERROR(L"HRSPConnectToServer", REMOTE_ERROR_SERVER_SEND_INVALID_RESPOSE);
+		goto closeSocket;
+	}*/
+
+	HRSPPROTOCOLERROR protocolError;
+
+	if(!HRSPClientHandshake(socketClient, &protocolError)) {
+		REMOTE_ERROR(L"HRSPClientHandshake", protocolError.win32ErrorCode);
 		goto closeSocket;
 	}
 
