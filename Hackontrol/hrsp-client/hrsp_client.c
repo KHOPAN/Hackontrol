@@ -2,8 +2,25 @@
 #include <hrsp_protocol.h>
 #include "hrsp_client.h"
 
+#define SETERROR_CLIENT(functionName, errorCode) if(error){error->type=HRSP_CLIENT_ERROR_TYPE_CLIENT;error->function=functionName;error->code=errorCode;}
+#define SETERROR_HRSP(functionName, errorCode) if(error){error->type=HRSP_CLIENT_ERROR_TYPE_HRSP;error->function=functionName;error->code=errorCode;}
+#define SETERROR_WIN32(functionName, errorCode) if(error){error->type=HRSP_CLIENT_ERROR_TYPE_WIN32;error->function=functionName;error->code=errorCode;}
+
 BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PHRSPCLIENTERROR error) {
-	return FALSE;
+	WSADATA data;
+	int status = WSAStartup(MAKEWORD(2, 2), &data);
+
+	if(status) {
+		SETERROR_WIN32(L"WSAStartup", status);
+		return FALSE;
+	}
+cleanupResource:
+	if(WSACleanup() == SOCKET_ERROR) {
+		SETERROR_WIN32(L"WSACleanup", WSAGetLastError());
+		return FALSE;
+	}
+
+	return TRUE;
 }
 
 /*#define REMOTE_ERROR(x,y) do{if(error){error->remoteError=FALSE;error->function=x;error->code=y;}}while(0)
