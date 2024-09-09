@@ -24,6 +24,7 @@ typedef struct {
 extern "C" {
 #endif
 
+LPCWSTR HRSPClientGetErrorCode(const HRSPCLIENTERRORCODE code);
 BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PHRSPCLIENTERROR error);
 
 #ifdef __cplusplus

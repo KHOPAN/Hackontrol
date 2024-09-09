@@ -18,6 +18,9 @@
     <ClCompile Include="hrsp_client.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="error_code.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="hrsp_client.h">

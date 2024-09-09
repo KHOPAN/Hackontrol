@@ -147,6 +147,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="error_code.c" />
     <ClCompile Include="hrsp_client.c" />
   </ItemGroup>
   <ItemGroup>
