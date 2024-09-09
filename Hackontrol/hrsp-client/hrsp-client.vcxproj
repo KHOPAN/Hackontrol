@@ -157,9 +157,6 @@
     <ProjectReference Include="..\hrsp-protocol\hrsp-protocol.vcxproj">
       <Project>{35a58c18-31d7-4dd8-84a8-c309a445d0c1}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\KHOPAN Library\KHOPAN Library.vcxproj">
-      <Project>{8c1e7669-d899-4b10-8d65-557b98a620b5}</Project>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

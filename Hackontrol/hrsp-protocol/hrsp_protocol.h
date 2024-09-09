@@ -26,6 +26,7 @@ extern "C" {
 #endif
 
 LPCWSTR HRSPGetErrorCode(const HRSPPROTOCOLERRORCODE code);
+LPWSTR HRSPGetErrorMessage(const LPCWSTR functionName, const PHRSPPROTOCOLERROR error);
 BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPPROTOCOLERROR error);
 BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPPROTOCOLERROR error);
 

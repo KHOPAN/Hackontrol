@@ -1,6 +1,6 @@
-#include "hrsp_client.h"
 #include <khopanstring.h>
 #include <hrsp_protocol.h>
+#include "hrsp_client.h"
 
 LPCWSTR HRSPClientGetErrorCode(const HRSPCLIENTERRORCODE code) {
 	switch(code) {
