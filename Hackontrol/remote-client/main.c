@@ -5,7 +5,9 @@ int main(int argc, char** argv) {
 	HRSPCLIENTERROR error;
 
 	if(!HRSPClientConnectToServer(NULL, NULL, &error)) {
-		printf("Function: %ws Error code: %u\n", error.function, error.code);
+		LPWSTR message = HRSPClientGetErrorMessage(L"HRSPClientConnectToServer", &error);
+		printf("%ws\n", message);
+		LocalFree(message);
 		return 1;
 	}
 

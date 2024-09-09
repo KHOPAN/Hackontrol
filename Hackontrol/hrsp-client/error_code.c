@@ -1,4 +1,5 @@
 #include "hrsp_client.h"
+#include <khopanstring.h>
 
 LPCWSTR HRSPClientGetErrorCode(const HRSPCLIENTERRORCODE code) {
 	switch(code) {
@@ -26,5 +27,5 @@ LPWSTR HRSPClientGetErrorMessage(const LPCWSTR functionName, const PHRSPCLIENTER
 		return (LPWSTR) buffer;
 	}
 
-	return NULL;
+	return KHFormatMessageW(L"%ws() error occurred, caused by %ws() Error type: %ws Error code: %lu Message:\n%ws", functionName, error->function, error->type == HRSP_CLIENT_ERROR_TYPE_CLIENT ? L"HRSP Client" : error->type == HRSP_CLIENT_ERROR_TYPE_HRSP ? L"HRSP" : error->type == HRSP_CLIENT_ERROR_TYPE_WIN32 ? L"Win32" : L"Unknown", error->code, L"Sample Message");
 }
