@@ -24,7 +24,13 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 	HRSPPROTOCOLERROR protocolError;
 
 	if(!HRSPServerHandshake(client->socket, &protocolError)) {
-		KHWIN32_ERROR_CONSOLE(protocolError.code, L"HRSPServerHandshake");
+		LPWSTR message = HRSPGetErrorMessage(L"HRSPServerHandshake", &protocolError);
+
+		if(message) {
+			MessageBoxW(NULL, message, L"Error", MB_OK | MB_DEFBUTTON1 | MB_ICONERROR | MB_SYSTEMMODAL);
+			LocalFree(message);
+		}
+
 		goto cleanupResource;
 	}
 
