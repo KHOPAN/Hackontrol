@@ -27,7 +27,7 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 		LPWSTR message = HRSPGetErrorMessage(L"HRSPServerHandshake", &protocolError);
 
 		if(message) {
-			MessageBoxW(NULL, message, L"Error", MB_OK | MB_DEFBUTTON1 | MB_ICONERROR | MB_SYSTEMMODAL);
+			LOG("[Client %ws]: %ws" COMMA client->address COMMA message);
 			LocalFree(message);
 		}
 
