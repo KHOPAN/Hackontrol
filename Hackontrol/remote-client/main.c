@@ -4,7 +4,7 @@
 int main(int argc, char** argv) {
 	HRSPCLIENTERROR error;
 
-	if(!HRSPClientConnectToServer("localhost", "42485", &error)) {
+	if(!HRSPClientConnectToServer(NULL, NULL, &error)) {
 		printf("Function: %ws Error code: %u\n", error.function, error.code);
 		return 1;
 	}
