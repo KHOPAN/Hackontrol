@@ -1,5 +1,6 @@
 #include "hrsp_client.h"
 #include <khopanstring.h>
+#include <hrsp_protocol.h>
 
 LPCWSTR HRSPClientGetErrorCode(const HRSPCLIENTERRORCODE code) {
 	switch(code) {
@@ -11,21 +12,46 @@ LPCWSTR HRSPClientGetErrorCode(const HRSPCLIENTERRORCODE code) {
 }
 
 LPWSTR HRSPClientGetErrorMessage(const LPCWSTR functionName, const PHRSPCLIENTERROR error) {
+	LPWSTR message = NULL;
+	LPWSTR buffer;
+
 	if(!functionName || !error) {
-		PBYTE buffer = LocalAlloc(LMEM_FIXED, 58);
+		buffer = LocalAlloc(LMEM_FIXED, 58);
 
 		if(!buffer) {
 			return NULL;
 		}
 
-		PBYTE text = (PBYTE) L"Invalid argument for function HRSPClientGetErrorMessage()";
+		message = L"Invalid argument for function HRSPClientGetErrorMessage()";
 
 		for(size_t i = 0; i < 58; i++) {
-			buffer[i] = text[i];
+			((PBYTE) buffer)[i] = ((PBYTE) message)[i];
 		}
 
 		return (LPWSTR) buffer;
 	}
 
-	return KHFormatMessageW(L"%ws() error occurred, caused by %ws() Error type: %ws Error code: %lu Message:\n%ws", functionName, error->function, error->type == HRSP_CLIENT_ERROR_TYPE_CLIENT ? L"HRSP Client" : error->type == HRSP_CLIENT_ERROR_TYPE_HRSP ? L"HRSP" : error->type == HRSP_CLIENT_ERROR_TYPE_WIN32 ? L"Win32" : L"Unknown", error->code, L"Sample Message");
+	switch(error->type) {
+	case HRSP_CLIENT_ERROR_TYPE_CLIENT:
+		message = (LPWSTR) HRSPClientGetErrorCode(error->code);
+		break;
+	case HRSP_CLIENT_ERROR_TYPE_HRSP:
+		message = (LPWSTR) HRSPGetErrorCode(error->code);
+		break;
+	case HRSP_CLIENT_ERROR_TYPE_WIN32:
+		FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, error->code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR) &message, 0, NULL);
+		break;
+	}
+
+	if(message) {
+		buffer = KHFormatMessageW(L"%ws() error occurred. Error type: %ws Error code: %lu Caused by %ws() Message:\n%ws", functionName, error->type == HRSP_CLIENT_ERROR_TYPE_CLIENT ? L"HRSP Client" : error->type == HRSP_CLIENT_ERROR_TYPE_HRSP ? L"HRSP" : error->type == HRSP_CLIENT_ERROR_TYPE_WIN32 ? L"Win32" : L"Unknown", error->code, error->function, message);
+
+		if(error->type == HRSP_CLIENT_ERROR_TYPE_WIN32) {
+			LocalFree(message);
+		}
+	} else {
+		buffer = KHFormatMessageW(L"%ws() error occurred. Error type: %ws Error code: %lu Caused by %ws()", functionName, error->type == HRSP_CLIENT_ERROR_TYPE_CLIENT ? L"HRSP Client" : error->type == HRSP_CLIENT_ERROR_TYPE_HRSP ? L"HRSP" : error->type == HRSP_CLIENT_ERROR_TYPE_WIN32 ? L"Win32" : L"Unknown", error->code, error->function);
+	}
+
+	return buffer;
 }
