@@ -5,8 +5,8 @@
 
 #pragma warning(disable: 6385)
 
-BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPPROTOCOLERROR error) {
-	if(!socket) {
+BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPPROTOCOLDATA data, const PHRSPPROTOCOLERROR error) {
+	if(!socket || !data) {
 		SETERROR_HRSP(L"HRSPClientHandshake", HRSP_ERROR_INVALID_FUNCTION_PARAMETER);
 		return FALSE;
 	}

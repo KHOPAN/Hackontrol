@@ -7,6 +7,10 @@
 #define HRSP_PROTOCOL_PORT          42485
 #define HRSP_PROTOCOL_PORT_STRING   "42485"
 
+typedef struct {
+	BYTE placeholder;
+} HRSPPROTOCOLDATA, *PHRSPPROTOCOLDATA;
+
 typedef enum {
 	HRSP_ERROR_SUCCESS = 0,
 	HRSP_ERROR_UNKNOWN_ERROR,
@@ -27,7 +31,7 @@ extern "C" {
 
 LPCWSTR HRSPGetErrorCode(const HRSPPROTOCOLERRORCODE code);
 LPWSTR HRSPGetErrorMessage(const LPCWSTR functionName, const PHRSPPROTOCOLERROR error);
-BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPPROTOCOLERROR error);
+BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPPROTOCOLDATA data, const PHRSPPROTOCOLERROR error);
 BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPPROTOCOLERROR error);
 
 #ifdef __cplusplus
