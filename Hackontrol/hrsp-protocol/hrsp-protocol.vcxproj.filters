@@ -15,7 +15,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="hrsp_protocol.h">
+    <ClInclude Include="hrsp_handshake.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="hrsp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="hrsp_packet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

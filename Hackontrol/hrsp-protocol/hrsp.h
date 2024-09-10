@@ -9,7 +9,7 @@
 
 typedef struct {
 	BYTE placeholder;
-} HRSPPROTOCOLDATA, *PHRSPPROTOCOLDATA;
+} HRSPPROTOCOLDATA, * PHRSPPROTOCOLDATA;
 
 typedef enum {
 	HRSP_ERROR_SUCCESS = 0,
@@ -23,11 +23,7 @@ typedef struct {
 	BOOL win32;
 	LPCWSTR function;
 	DWORD code;
-} HRSPPROTOCOLERROR, *PHRSPPROTOCOLERROR;
-
-typedef struct {
-	int placeholder;
-} HRSPPROTOCOLPACKET, *PHRSPPROTOCOLPACKET;
+} HRSPPROTOCOLERROR, * PHRSPPROTOCOLERROR;
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,10 +31,6 @@ extern "C" {
 
 LPCWSTR HRSPGetErrorCode(const HRSPPROTOCOLERRORCODE code);
 LPWSTR HRSPGetErrorMessage(const LPCWSTR functionName, const PHRSPPROTOCOLERROR error);
-BOOL HRSPSendPacket(const SOCKET socket, const PHRSPPROTOCOLDATA data, const PHRSPPROTOCOLPACKET packet, const PHRSPPROTOCOLERROR error);
-BOOL HRSPReceivePacket(const SOCKET socket, const PHRSPPROTOCOLDATA data, const PHRSPPROTOCOLPACKET packet, const PHRSPPROTOCOLERROR error);
-BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPPROTOCOLDATA data, const PHRSPPROTOCOLERROR error);
-BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPPROTOCOLDATA data, const PHRSPPROTOCOLERROR error);
 
 #ifdef __cplusplus
 }

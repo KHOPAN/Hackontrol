@@ -131,7 +131,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="hrsp_protocol.h" />
+    <ClInclude Include="hrsp.h" />
+    <ClInclude Include="hrsp_packet.h" />
+    <ClInclude Include="hrsp_handshake.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="error_code.c" />
