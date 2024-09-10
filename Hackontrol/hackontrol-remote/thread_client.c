@@ -21,11 +21,12 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 
 	LOG("[Client %ws]: Starting\n" COMMA client->address);
 	int returnValue = 1;
+	HRSPPROTOCOLDATA protocolData;
 	HRSPPROTOCOLERROR protocolError;
 	LPWSTR message;
 #define HRSPERROR(function) message=HRSPGetErrorMessage(function,&protocolError);if(message){LOG("[Client %ws]: %ws" COMMA client->address COMMA message);}
 
-	if(!HRSPServerHandshake(client->socket, &protocolError)) {
+	if(!HRSPServerHandshake(client->socket, &protocolData, &protocolError)) {
 		HRSPERROR(L"HRSPServerHandshake");
 		goto cleanupResource;
 	}

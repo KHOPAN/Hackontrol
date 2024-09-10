@@ -55,9 +55,10 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 		goto cleanupResource;
 	}
 
+	HRSPPROTOCOLDATA protocolData;
 	HRSPPROTOCOLERROR protocolError;
 
-	if(!HRSPClientHandshake(socketClient, &protocolError)) {
+	if(!HRSPClientHandshake(socketClient, &protocolData, &protocolError)) {
 		if(error) {
 			error->type = protocolError.win32 ? HRSP_CLIENT_ERROR_TYPE_WIN32 : HRSP_CLIENT_ERROR_TYPE_HRSP;
 			error->function = protocolError.function;
