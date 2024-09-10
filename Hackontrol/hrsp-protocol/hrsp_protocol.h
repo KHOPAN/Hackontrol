@@ -38,7 +38,7 @@ LPWSTR HRSPGetErrorMessage(const LPCWSTR functionName, const PHRSPPROTOCOLERROR 
 BOOL HRSPSendPacket(const SOCKET socket, const PHRSPPROTOCOLDATA data, const PHRSPPROTOCOLPACKET packet, const PHRSPPROTOCOLERROR error);
 BOOL HRSPReceivePacket(const SOCKET socket, const PHRSPPROTOCOLDATA data, const PHRSPPROTOCOLPACKET packet, const PHRSPPROTOCOLERROR error);
 BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPPROTOCOLDATA data, const PHRSPPROTOCOLERROR error);
-BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPPROTOCOLERROR error);
+BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPPROTOCOLDATA data, const PHRSPPROTOCOLERROR error);
 
 #ifdef __cplusplus
 }

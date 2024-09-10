@@ -40,8 +40,8 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPPROTOCOLDATA data, cons
 	return TRUE;
 }
 
-BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPPROTOCOLERROR error) {
-	if(!socket) {
+BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPPROTOCOLDATA data, const PHRSPPROTOCOLERROR error) {
+	if(!socket || !data) {
 		SETERROR_HRSP(L"HRSPServerHandshake", HRSP_ERROR_INVALID_FUNCTION_PARAMETER);
 		return FALSE;
 	}
