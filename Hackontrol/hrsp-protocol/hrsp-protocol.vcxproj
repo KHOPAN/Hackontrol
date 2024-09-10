@@ -136,6 +136,7 @@
   <ItemGroup>
     <ClCompile Include="error_code.c" />
     <ClCompile Include="hrsp_handshake.c" />
+    <ClCompile Include="hrsp_packet.c" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\KHOPAN Library\KHOPAN Library.vcxproj">

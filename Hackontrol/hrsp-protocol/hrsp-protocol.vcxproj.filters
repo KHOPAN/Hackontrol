@@ -26,5 +26,8 @@
     <ClCompile Include="error_code.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="hrsp_packet.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
