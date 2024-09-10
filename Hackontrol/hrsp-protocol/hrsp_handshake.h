@@ -2,10 +2,6 @@
 
 #include "hrsp.h"
 
-typedef struct {
-	int placeholder;
-} HRSPPROTOCOLPACKET, *PHRSPPROTOCOLPACKET;
-
 #ifdef __cplusplus
 extern "C" {
 #endif

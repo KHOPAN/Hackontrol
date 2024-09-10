@@ -9,7 +9,7 @@
 
 typedef struct {
 	BYTE placeholder;
-} HRSPPROTOCOLDATA, * PHRSPPROTOCOLDATA;
+} HRSPPROTOCOLDATA, *PHRSPPROTOCOLDATA;
 
 typedef enum {
 	HRSP_ERROR_SUCCESS = 0,
@@ -23,7 +23,7 @@ typedef struct {
 	BOOL win32;
 	LPCWSTR function;
 	DWORD code;
-} HRSPPROTOCOLERROR, * PHRSPPROTOCOLERROR;
+} HRSPPROTOCOLERROR, *PHRSPPROTOCOLERROR;
 
 #ifdef __cplusplus
 extern "C" {
