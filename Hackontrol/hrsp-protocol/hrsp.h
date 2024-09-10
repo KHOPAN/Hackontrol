@@ -7,30 +7,30 @@
 #define HRSP_PROTOCOL_PORT          42485
 #define HRSP_PROTOCOL_PORT_STRING   "42485"
 
-typedef struct {
-	BYTE placeholder;
-} HRSPPROTOCOLDATA, *PHRSPPROTOCOLDATA;
-
 typedef enum {
 	HRSP_ERROR_SUCCESS = 0,
 	HRSP_ERROR_UNKNOWN_ERROR,
 	HRSP_ERROR_INVALID_FUNCTION_PARAMETER,
 	HRSP_ERROR_INVALID_MAGIC,
 	HRSP_ERROR_UNSUPPORTED_VERSION
-} HRSPPROTOCOLERRORCODE;
+} HRSPERRORCODE;
 
 typedef struct {
 	BOOL win32;
 	LPCWSTR function;
 	DWORD code;
-} HRSPPROTOCOLERROR, *PHRSPPROTOCOLERROR;
+} HRSPERROR, *PHRSPERROR;
+
+typedef struct {
+	BYTE placeholder;
+} HRSPDATA, *PHRSPDATA;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-LPCWSTR HRSPGetErrorCode(const HRSPPROTOCOLERRORCODE code);
-LPWSTR HRSPGetErrorMessage(const LPCWSTR functionName, const PHRSPPROTOCOLERROR error);
+LPCWSTR HRSPGetErrorCode(const HRSPERRORCODE code);
+LPWSTR HRSPGetErrorMessage(const LPCWSTR functionName, const PHRSPERROR error);
 
 #ifdef __cplusplus
 }

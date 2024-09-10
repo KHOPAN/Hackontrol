@@ -4,14 +4,14 @@
 
 typedef struct {
 	int placeholder;
-} HRSPPROTOCOLPACKET, *PHRSPPROTOCOLPACKET;
+} HRSPPACKET, *PHRSPPACKET;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-BOOL HRSPSendPacket(const SOCKET socket, const PHRSPPROTOCOLDATA data, const PHRSPPROTOCOLPACKET packet, const PHRSPPROTOCOLERROR error);
-BOOL HRSPReceivePacket(const SOCKET socket, const PHRSPPROTOCOLDATA data, const PHRSPPROTOCOLPACKET packet, const PHRSPPROTOCOLERROR error);
+BOOL HRSPSendPacket(const SOCKET socket, const PHRSPDATA data, const PHRSPPACKET packet, const PHRSPERROR error);
+BOOL HRSPReceivePacket(const SOCKET socket, const PHRSPDATA data, const PHRSPPACKET packet, const PHRSPERROR error);
 
 #ifdef __cplusplus
 }
