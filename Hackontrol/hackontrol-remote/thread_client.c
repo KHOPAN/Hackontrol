@@ -8,6 +8,8 @@
 #include "window_main.h"
 #include <hrsp_protocol.h>
 
+#define HRSPERROR(function) message=HRSPGetErrorMessage(function,&protocolError);if(message){LOG("[Client %ws]: %ws" COMMA client->address COMMA message);}
+
 #pragma warning(disable: 6001)
 
 extern ArrayList clients;
@@ -24,7 +26,6 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 	HRSPPROTOCOLDATA protocolData;
 	HRSPPROTOCOLERROR protocolError;
 	LPWSTR message;
-#define HRSPERROR(function) message=HRSPGetErrorMessage(function,&protocolError);if(message){LOG("[Client %ws]: %ws" COMMA client->address COMMA message);}
 
 	if(!HRSPServerHandshake(client->socket, &protocolData, &protocolError)) {
 		HRSPERROR(L"HRSPServerHandshake");
@@ -33,7 +34,7 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 
 	HRSPPROTOCOLPACKET packet;
 
-	if(!HRSPReceivePacket(client->socket, NULL, &packet, &protocolError)) {
+	if(!HRSPReceivePacket(client->socket, &protocolData, &packet, &protocolError)) {
 		HRSPERROR(L"HRSPReceivePacket");
 		goto cleanupResource;
 	}

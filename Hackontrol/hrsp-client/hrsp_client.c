@@ -3,6 +3,7 @@
 #include "hrsp_client.h"
 
 #define SETERROR_CLIENT(functionName, errorCode) if(error){error->type=HRSP_CLIENT_ERROR_TYPE_CLIENT;error->function=functionName;error->code=errorCode;}
+#define SETERROR_HRSP if(error){error->type=protocolError.win32?HRSP_CLIENT_ERROR_TYPE_WIN32:HRSP_CLIENT_ERROR_TYPE_HRSP;error->function=protocolError.function;error->code=protocolError.code;}
 #define SETERROR_WIN32(functionName, errorCode) if(error){error->type=HRSP_CLIENT_ERROR_TYPE_WIN32;error->function=functionName;error->code=errorCode;}
 
 BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PHRSPCLIENTERROR error) {
@@ -59,12 +60,14 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 	HRSPPROTOCOLERROR protocolError;
 
 	if(!HRSPClientHandshake(socketClient, &protocolData, &protocolError)) {
-		if(error) {
-			error->type = protocolError.win32 ? HRSP_CLIENT_ERROR_TYPE_WIN32 : HRSP_CLIENT_ERROR_TYPE_HRSP;
-			error->function = protocolError.function;
-			error->code = protocolError.code;
-		}
+		SETERROR_HRSP;
+		goto closeSocket;
+	}
 
+	HRSPPROTOCOLPACKET packet;
+
+	if(!HRSPSendPacket(socketClient, &protocolData, &packet, &protocolError)) {
+		SETERROR_HRSP;
 		goto closeSocket;
 	}
 
