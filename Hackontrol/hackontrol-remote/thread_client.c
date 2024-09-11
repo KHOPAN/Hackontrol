@@ -10,7 +10,8 @@
 #include <hrsp_packet.h>
 #include <hrsp_remote.h>
 
-#define HRSPERROR(function) message=HRSPGetErrorMessage(function,&protocolError);if(message){LOG("[Client %ws]: %ws" COMMA client->address COMMA message);}
+#define HRSPERROR(function) message=HRSPGetErrorMessage(function,&protocolError);if(message){MessageBoxW(NULL,message,L"Remote Error",MB_OK|MB_ICONERROR|MB_DEFBUTTON1|MB_SYSTEMMODAL);LocalFree(message);}
+#define HRSPERROR_CONSOLE(function) message=HRSPGetErrorMessage(function,&protocolError);if(message){LOG("[Client %ws]: %ws" COMMA client->address COMMA message);LocalFree(message);}
 
 #pragma warning(disable: 6001)
 
@@ -30,14 +31,14 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 	LPWSTR message;
 
 	if(!HRSPServerHandshake(client->socket, &protocolData, &protocolError)) {
-		HRSPERROR(L"HRSPServerHandshake");
+		HRSPERROR_CONSOLE(L"HRSPServerHandshake");
 		goto cleanupResource;
 	}
 
 	HRSPPACKET packet;
 
 	if(!HRSPReceivePacket(client->socket, &protocolData, &packet, &protocolError)) {
-		HRSPERROR(L"HRSPReceivePacket");
+		HRSPERROR_CONSOLE(L"HRSPReceivePacket");
 		goto cleanupResource;
 	}
 
@@ -90,7 +91,12 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 		HRSPFreePacket(&packet, NULL);
 	}
 
-	HRSPERROR(L"HRSPReceivePacket");
+	HRSPERROR_CONSOLE(L"HRSPReceivePacket");
+
+	if(!HRSPSendTypePacket(client->socket, &protocolData, HRSP_REMOTE_TERMINATE_PACKET, &protocolError)) {
+		HRSPERROR_CONSOLE(L"HRSPSendTypePacket");
+	}
+
 	goto freeName;
 breakPacketLoop:
 	/*char buffer[17];
@@ -300,11 +306,11 @@ void ClientOpen(const PCLIENT client) {
 }
 
 void ClientDisconnect(const PCLIENT client) {
-	PACKET packet = {0};
-	packet.packetType = PACKET_TYPE_INFORMATION;
+	HRSPERROR protocolError;
+	LPWSTR message;
 
-	if(!SendPacket(client->socket, &packet)) {
-		KHWIN32_LAST_ERROR(L"SendPacket");
+	if(!HRSPSendTypePacket(client->socket, client->protocolData, HRSP_REMOTE_TERMINATE_PACKET, &protocolError)) {
+		HRSPERROR(L"HRSPSendTypePacket");
 		return;
 	}
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <WinSock2.h>
+#include <hrsp.h>
 
 typedef struct {
 	WINDOWPLACEMENT placement;
@@ -54,6 +55,7 @@ typedef struct {
 	BOOL active;
 	HANDLE thread;
 	SOCKET socket;
+	PHRSPDATA protocolData;
 	LPWSTR name;
 	WCHAR address[16];
 	PWINDOWDATA window;
