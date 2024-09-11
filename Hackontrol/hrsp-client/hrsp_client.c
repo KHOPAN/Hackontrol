@@ -1,4 +1,5 @@
 #include <WS2tcpip.h>
+#include <lmcons.h>
 #include <hrsp_handshake.h>
 #include <hrsp_packet.h>
 #include "hrsp_client.h"
@@ -65,12 +66,27 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 		goto closeSocket;
 	}
 
-	HRSPPACKET packet;
-	packet.size = 23;
-	packet.type = 0;
-	packet.data = "This is a test message";
+	DWORD size = UNLEN + 1;
+	BYTE* buffer = LocalAlloc(LMEM_FIXED, size);
 
-	if(!HRSPSendPacket(socketClient, &protocolData, &packet, &protocolError)) {
+	if(!buffer) {
+		ERROR_WIN32(L"LocalAlloc", GetLastError());
+		goto closeSocket;
+	}
+
+	if(!GetUserNameA(buffer, &size)) {
+		ERROR_WIN32(L"GetUserNameA", GetLastError());
+		LocalFree(buffer);
+		goto closeSocket;
+	}
+
+	HRSPPACKET packet = {0};
+	packet.size = size;
+	packet.data = buffer;
+	status = HRSPSendPacket(socketClient, &protocolData, &packet, &protocolError);
+	LocalFree(buffer);
+
+	if(!status) {
 		ERROR_HRSP;
 		goto closeSocket;
 	}
