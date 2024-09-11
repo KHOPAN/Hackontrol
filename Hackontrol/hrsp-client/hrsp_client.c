@@ -94,6 +94,11 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 	}
 
 	returnValue = TRUE;
+
+	if(!HRSPSendTypePacket(socketClient, &protocolData, HRSP_REMOTE_TERMINATE_PACKET, &protocolError)) {
+		ERROR_HRSP;
+		returnValue = FALSE;
+	}
 closeSocket:
 	if(closesocket(socketClient) == SOCKET_ERROR) {
 		ERROR_WIN32(L"closesocket", WSAGetLastError());
