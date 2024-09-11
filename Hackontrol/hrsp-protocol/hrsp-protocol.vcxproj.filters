@@ -24,6 +24,9 @@
     <ClInclude Include="hrsp_packet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="hrsp_remote.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="hrsp_handshake.c">

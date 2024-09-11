@@ -134,6 +134,7 @@
     <ClInclude Include="hrsp.h" />
     <ClInclude Include="hrsp_packet.h" />
     <ClInclude Include="hrsp_handshake.h" />
+    <ClInclude Include="hrsp_remote.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="error_code.c" />

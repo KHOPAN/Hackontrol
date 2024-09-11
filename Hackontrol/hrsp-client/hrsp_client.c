@@ -2,6 +2,7 @@
 #include <lmcons.h>
 #include <hrsp_handshake.h>
 #include <hrsp_packet.h>
+#include <hrsp_remote.h>
 #include "hrsp_client.h"
 
 #define ERROR_CLIENT(functionName, errorCode) if(error){error->type=HRSP_CLIENT_ERROR_TYPE_CLIENT;error->function=functionName;error->code=errorCode;}
@@ -80,8 +81,9 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 		goto closeSocket;
 	}
 
-	HRSPPACKET packet = {0};
+	HRSPPACKET packet;
 	packet.size = size;
+	packet.type = HRSP_REMOTE_CLIENT_INFORMATION_PACKET;
 	packet.data = buffer;
 	status = HRSPSendPacket(socketClient, &protocolData, &packet, &protocolError);
 	LocalFree(buffer);
