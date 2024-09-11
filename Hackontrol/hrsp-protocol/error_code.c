@@ -1,7 +1,7 @@
 #include <khopanstring.h>
-#include "hrsp_protocol.h"
+#include "hrsp.h"
 
-LPCWSTR HRSPGetErrorCode(const HRSPPROTOCOLERRORCODE code) {
+LPCWSTR HRSPGetErrorCode(const HRSPERRORCODE code) {
 	switch(code) {
 	case HRSP_ERROR_SUCCESS:                    return L"An operation succeeded with no error";
 	case HRSP_ERROR_INVALID_FUNCTION_PARAMETER: return L"Invalid function parameter";
@@ -12,31 +12,20 @@ LPCWSTR HRSPGetErrorCode(const HRSPPROTOCOLERRORCODE code) {
 	return L"Unknown or invalid error";
 }
 
-LPWSTR HRSPGetErrorMessage(const LPCWSTR functionName, const PHRSPPROTOCOLERROR error) {
-	LPWSTR message = NULL;
-	LPWSTR buffer;
-
+LPWSTR HRSPGetErrorMessage(const LPCWSTR functionName, const PHRSPERROR error) {
 	if(!functionName || !error) {
-		buffer = LocalAlloc(LMEM_FIXED, 52);
-
-		if(!buffer) {
-			return NULL;
-		}
-
-		message = L"Invalid argument for function HRSPGetErrorMessage()";
-
-		for(size_t i = 0; i < 52; i++) {
-			((PBYTE) buffer)[i] = ((PBYTE) message)[i];
-		}
-
-		return (LPWSTR) buffer;
+		return NULL;
 	}
+
+	LPWSTR message = NULL;
 
 	if(error->win32) {
 		FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, error->code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR) &message, 0, NULL);
 	} else {
 		message = (LPWSTR) HRSPGetErrorCode(error->code);
 	}
+
+	LPWSTR buffer;
 
 	if(message) {
 		buffer = KHFormatMessageW(L"%ws() error occurred. Error type: %ws Error code: %lu Caused by %ws() Message:\n%ws", functionName, error->win32 ? L"Win32" : L"HRSP", error->code, error->function, message);
