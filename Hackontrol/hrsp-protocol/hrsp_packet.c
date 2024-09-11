@@ -10,16 +10,12 @@ BOOL HRSPSendPacket(const SOCKET socket, const PHRSPDATA data, const PHRSPPACKET
 		return FALSE;
 	}
 
-	if(packet->size < 1) {
-		ERROR_HRSP(L"HRSPSendPacket", HRSP_ERROR_INVALID_PACKET_SIZE);
-		return FALSE;
-	}
-
+	int size = packet->size < 1 ? 0 : packet->size;
 	BYTE header[8];
-	header[0] = (packet->size >> 24) & 0xFF;
-	header[1] = (packet->size >> 16) & 0xFF;
-	header[2] = (packet->size >> 8) & 0xFF;
-	header[3] = packet->size & 0xFF;
+	header[0] = (size >> 24) & 0xFF;
+	header[1] = (size >> 16) & 0xFF;
+	header[2] = (size >> 8) & 0xFF;
+	header[3] = size & 0xFF;
 	header[4] = (packet->type >> 24) & 0xFF;
 	header[5] = (packet->type >> 16) & 0xFF;
 	header[6] = (packet->type >> 8) & 0xFF;
@@ -30,7 +26,7 @@ BOOL HRSPSendPacket(const SOCKET socket, const PHRSPDATA data, const PHRSPPACKET
 		return FALSE;
 	}
 
-	if(send(socket, packet->data, packet->size, 0) == SOCKET_ERROR) {
+	if(size && send(socket, packet->data, packet->size, 0) == SOCKET_ERROR) {
 		ERROR_WIN32(L"send", WSAGetLastError());
 		return FALSE;
 	}
@@ -52,10 +48,11 @@ BOOL HRSPReceivePacket(const SOCKET socket, const PHRSPDATA data, const PHRSPPAC
 	}
 
 	int size = ((header[0] & 0xFF) << 24) | ((header[1] & 0xFF) << 16) | ((header[2] & 0xFF) << 8) | (header[3] & 0xFF);
+	unsigned int type = ((header[4] & 0xFF) << 24) | ((header[5] & 0xFF) << 16) | ((header[6] & 0xFF) << 8) | (header[7] & 0xFF);
 
 	if(size < 1) {
 		packet->size = 0;
-		packet->type = 0;
+		packet->type = type;
 		packet->data = NULL;
 		return TRUE;
 	}
@@ -74,7 +71,7 @@ BOOL HRSPReceivePacket(const SOCKET socket, const PHRSPDATA data, const PHRSPPAC
 	}
 
 	packet->size = size;
-	packet->type = ((header[4] & 0xFF) << 24) | ((header[5] & 0xFF) << 16) | ((header[6] & 0xFF) << 8) | (header[7] & 0xFF);
+	packet->type = type;
 	packet->data = buffer;
 	return TRUE;
 }

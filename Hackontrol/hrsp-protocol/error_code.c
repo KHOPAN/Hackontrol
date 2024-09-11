@@ -7,7 +7,6 @@ LPCWSTR HRSPGetErrorCode(const HRSPERRORCODE code) {
 	case HRSP_ERROR_INVALID_FUNCTION_PARAMETER: return L"Invalid function parameter";
 	case HRSP_ERROR_INVALID_MAGIC:              return L"Invalid HRSP magic number";
 	case HRSP_ERROR_UNSUPPORTED_VERSION:        return L"Incompatible client and server version";
-	case HRSP_ERROR_INVALID_PACKET_SIZE:        return L"The packet size is invalid";
 	}
 
 	return L"Unknown or invalid error";
