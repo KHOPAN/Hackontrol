@@ -49,7 +49,34 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 
 	client->name = KHFormatMessageW(L"%S", packet.data);
 	HRSPFreePacket(&packet, NULL);
-	returnValue = 0;
+	LOG("[Client %ws]: Username: '%ws'\n" COMMA client->address COMMA client->name);
+
+	if(WaitForSingleObject(clientsLock, INFINITE) == WAIT_FAILED) {
+		KHWIN32_LAST_ERROR(L"WaitForSingleObject");
+		goto freeName;
+	}
+
+	if(!KHArrayAdd(&clients, client)) {
+		KHWIN32_LAST_ERROR(L"KHArrayAdd");
+		ReleaseMutex(clientsLock);
+		goto freeName;
+	}
+
+	LocalFree(client);
+
+	if(!KHArrayGet(&clients, clients.elementCount - 1, &client)) {
+		KHWIN32_LAST_ERROR(L"KHArrayGet");
+		ReleaseMutex(clientsLock);
+		goto freeName;
+	}
+
+	if(!ReleaseMutex(clientsLock)) {
+		KHWIN32_LAST_ERROR(L"ReleaseMutex");
+		goto freeName;
+	}
+
+	MainWindowRefreshListView();
+	Sleep(3000);
 	/*char buffer[17];
 	int returnValue = 1;
 
@@ -185,13 +212,13 @@ exitName:
 			KHWIN32_LAST_ERROR(L"WaitForSingleObject");
 			goto freeName;
 		}
-	}
+	}*/
 
 	returnValue = 0;
 freeName:
 	if(client->name) {
 		LocalFree(client->name);
-	}*/
+	}
 cleanupResource:
 	if(client->thread) {
 		CloseHandle(client->thread);
