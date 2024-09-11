@@ -76,7 +76,23 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 	}
 
 	MainWindowRefreshListView();
-	Sleep(3000);
+
+	while(HRSPReceivePacket(client->socket, &protocolData, &packet, &protocolError)) {
+		switch(packet.type) {
+		case HRSP_REMOTE_TERMINATE_PACKET:
+			LOG("[Client %ws]: Terminate packet received\n" COMMA client->address);
+			goto breakPacketLoop;
+		default:
+			LOG("[Client %ws]: Unknown packet type: %u\n" COMMA client->address COMMA packet.type);
+			break;
+		}
+
+		HRSPFreePacket(&packet, NULL);
+	}
+
+	HRSPERROR(L"HRSPReceivePacket");
+	goto freeName;
+breakPacketLoop:
 	/*char buffer[17];
 	int returnValue = 1;
 
