@@ -6,7 +6,8 @@
 #include "frame_decoder.h"
 #include "logger.h"
 #include "window_main.h"
-#include <hrsp_protocol.h>
+#include <hrsp_handshake.h>
+#include <hrsp_packet.h>
 
 #define HRSPERROR(function) message=HRSPGetErrorMessage(function,&protocolError);if(message){LOG("[Client %ws]: %ws" COMMA client->address COMMA message);}
 
@@ -23,8 +24,8 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 
 	LOG("[Client %ws]: Starting\n" COMMA client->address);
 	int returnValue = 1;
-	HRSPPROTOCOLDATA protocolData;
-	HRSPPROTOCOLERROR protocolError;
+	HRSPDATA protocolData;
+	HRSPERROR protocolError;
 	LPWSTR message;
 
 	if(!HRSPServerHandshake(client->socket, &protocolData, &protocolError)) {
@@ -32,7 +33,7 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 		goto cleanupResource;
 	}
 
-	HRSPPROTOCOLPACKET packet;
+	HRSPPACKET packet;
 
 	if(!HRSPReceivePacket(client->socket, &protocolData, &packet, &protocolError)) {
 		HRSPERROR(L"HRSPReceivePacket");
