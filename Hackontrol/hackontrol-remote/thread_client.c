@@ -8,6 +8,7 @@
 #include "window_main.h"
 #include <hrsp_handshake.h>
 #include <hrsp_packet.h>
+#include <hrsp_remote.h>
 
 #define HRSPERROR(function) message=HRSPGetErrorMessage(function,&protocolError);if(message){LOG("[Client %ws]: %ws" COMMA client->address COMMA message);}
 
@@ -40,7 +41,13 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 		goto cleanupResource;
 	}
 
-	MessageBoxA(NULL, packet.data, "Received Message", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+	if(packet.type != HRSP_REMOTE_CLIENT_INFORMATION_PACKET) {
+		LOG("[Client %ws]: Invalid first packet type: %u\n" COMMA client->address COMMA packet.type);
+		HRSPFreePacket(&packet, NULL);
+		goto cleanupResource;
+	}
+
+	client->name = KHFormatMessageW(L"%S", packet.data);
 	HRSPFreePacket(&packet, NULL);
 	returnValue = 0;
 	/*char buffer[17];
