@@ -1,3 +1,4 @@
+#include <WinSock2.h>
 #include "hrsp_packet.h"
 
 #define ERROR_HRSP(functionName, errorCode) if(error){error->win32=FALSE;error->function=functionName;error->code=errorCode;}
@@ -9,7 +10,12 @@ BOOL HRSPSendPacket(const SOCKET socket, const PHRSPDATA data, const PHRSPPACKET
 		return FALSE;
 	}
 
-	char header[8];
+	if(packet->size < 1) {
+		ERROR_HRSP(L"HRSPSendPacket", HRSP_ERROR_INVALID_PACKET_SIZE);
+		return FALSE;
+	}
+
+	BYTE header[8];
 	header[0] = (packet->size >> 24) & 0xFF;
 	header[1] = (packet->size >> 16) & 0xFF;
 	header[2] = (packet->size >> 8) & 0xFF;
@@ -19,7 +25,12 @@ BOOL HRSPSendPacket(const SOCKET socket, const PHRSPDATA data, const PHRSPPACKET
 	header[6] = (packet->type >> 8) & 0xFF;
 	header[7] = packet->type & 0xFF;
 
-	if(!send(socket, header, 8, 0)) {
+	if(send(socket, header, sizeof(header), 0) == SOCKET_ERROR) {
+		ERROR_WIN32(L"send", WSAGetLastError());
+		return FALSE;
+	}
+
+	if(send(socket, packet->data, packet->size, 0) == SOCKET_ERROR) {
 		ERROR_WIN32(L"send", WSAGetLastError());
 		return FALSE;
 	}
@@ -33,5 +44,37 @@ BOOL HRSPReceivePacket(const SOCKET socket, const PHRSPDATA data, const PHRSPPAC
 		return FALSE;
 	}
 
+	BYTE header[8];
+
+	if(recv(socket, header, sizeof(header), MSG_WAITALL) == SOCKET_ERROR) {
+		ERROR_WIN32(L"recv", WSAGetLastError());
+		return FALSE;
+	}
+
+	int size = ((header[0] & 0xFF) << 24) | ((header[1] & 0xFF) << 16) | ((header[2] & 0xFF) << 8) | (header[3] & 0xFF);
+
+	if(size < 1) {
+		packet->size = 0;
+		packet->type = 0;
+		packet->data = NULL;
+		return TRUE;
+	}
+
+	BYTE* buffer = LocalAlloc(LMEM_FIXED, size);
+
+	if(!buffer) {
+		ERROR_WIN32(L"LocalAlloc", GetLastError());
+		return FALSE;
+	}
+
+	if(recv(socket, buffer, size, MSG_WAITALL) == SOCKET_ERROR) {
+		ERROR_WIN32(L"recv", WSAGetLastError());
+		LocalFree(buffer);
+		return FALSE;
+	}
+
+	packet->size = size;
+	packet->type = ((header[4] & 0xFF) << 24) | ((header[5] & 0xFF) << 16) | ((header[6] & 0xFF) << 8) | (header[7] & 0xFF);
+	packet->data = buffer;
 	return TRUE;
 }
