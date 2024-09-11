@@ -34,12 +34,6 @@ BOOL HRSPSendPacket(const SOCKET socket, const PHRSPDATA data, const PHRSPPACKET
 	return TRUE;
 }
 
-BOOL HRSPSendTypePacket(const SOCKET socket, const PHRSPDATA data, const UINT type, const PHRSPERROR error) {
-	HRSPPACKET packet = {0};
-	packet.type = type;
-	return HRSPSendPacket(socket, data, &packet, error);
-}
-
 BOOL HRSPReceivePacket(const SOCKET socket, const PHRSPDATA data, const PHRSPPACKET packet, const PHRSPERROR error) {
 	if(!socket || !data || !packet) {
 		ERROR_HRSP(L"HRSPReceivePacket", HRSP_ERROR_INVALID_FUNCTION_PARAMETER);
@@ -101,4 +95,10 @@ BOOL HRSPFreePacket(const PHRSPPACKET packet, const PHRSPERROR error) {
 	packet->type = 0;
 	packet->data = NULL;
 	return TRUE;
+}
+
+BOOL HRSPSendTypePacket(const SOCKET socket, const PHRSPDATA data, const UINT type, const PHRSPERROR error) {
+	HRSPPACKET packet = {0};
+	packet.type = type;
+	return HRSPSendPacket(socket, data, &packet, error);
 }
