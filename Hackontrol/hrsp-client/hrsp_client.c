@@ -93,12 +93,20 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 		goto closeSocket;
 	}
 
-	returnValue = TRUE;
+	while(HRSPReceivePacket(socketClient, &protocolData, &packet, &protocolError)) {
+		switch(packet.type) {
+		case HRSP_REMOTE_TERMINATE_PACKET:
+			goto breakPacketLoop;
+		}
 
-	if(!HRSPSendTypePacket(socketClient, &protocolData, HRSP_REMOTE_TERMINATE_PACKET, &protocolError)) {
-		ERROR_HRSP;
-		returnValue = FALSE;
+		HRSPFreePacket(&packet, NULL);
 	}
+
+	HRSPSendTypePacket(socketClient, &protocolData, HRSP_REMOTE_TERMINATE_PACKET, &protocolError);
+	ERROR_HRSP;
+	goto closeSocket;
+breakPacketLoop:
+	returnValue = TRUE;
 closeSocket:
 	if(closesocket(socketClient) == SOCKET_ERROR) {
 		ERROR_WIN32(L"closesocket", WSAGetLastError());
