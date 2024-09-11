@@ -3,7 +3,9 @@
 #include "hrsp.h"
 
 typedef struct {
-	int placeholder;
+	int size;
+	unsigned int type;
+	BYTE* data;
 } HRSPPACKET, *PHRSPPACKET;
 
 #ifdef __cplusplus
