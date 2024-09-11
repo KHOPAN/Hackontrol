@@ -25,16 +25,10 @@ LPWSTR HRSPGetErrorMessage(const LPCWSTR functionName, const PHRSPERROR error) {
 		message = (LPWSTR) HRSPGetErrorCode(error->code);
 	}
 
-	LPWSTR buffer;
+	LPWSTR buffer = KHFormatMessageW(message ? L"%ws() error occurred. Error type: %ws Error code: %lu Caused by %ws() Message:\n%ws" : L"%ws() error occurred. Error type: %ws Error code: %lu Caused by %ws()%ws", functionName, error->win32 ? L"Win32" : L"HRSP", error->code, error->function, message ? message : (LPWSTR) &message);
 
-	if(message) {
-		buffer = KHFormatMessageW(L"%ws() error occurred. Error type: %ws Error code: %lu Caused by %ws() Message:\n%ws", functionName, error->win32 ? L"Win32" : L"HRSP", error->code, error->function, message);
-
-		if(error->win32) {
-			LocalFree(message);
-		}
-	} else {
-		buffer = KHFormatMessageW(L"%ws() error occurred. Error type: %ws Error code: %lu Caused by %ws()", functionName, error->win32 ? L"Win32" : L"HRSP", error->code, error->function);
+	if(message && error->win32) {
+		LocalFree(message);
 	}
 
 	return buffer;
