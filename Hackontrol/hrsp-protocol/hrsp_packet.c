@@ -75,3 +75,24 @@ BOOL HRSPReceivePacket(const SOCKET socket, const PHRSPDATA data, const PHRSPPAC
 	packet->data = buffer;
 	return TRUE;
 }
+
+BOOL HRSPFreePacket(const PHRSPPACKET packet, const PHRSPERROR error) {
+	if(!packet) {
+		ERROR_HRSP(L"HRSPFreePacket", HRSP_ERROR_INVALID_FUNCTION_PARAMETER);
+		return FALSE;
+	}
+
+	if(!packet->data || packet->size < 1) {
+		return TRUE;
+	}
+
+	if(LocalFree(packet->data)) {
+		ERROR_WIN32(L"LocalFree", GetLastError());
+		return FALSE;
+	}
+
+	packet->size = 0;
+	packet->type = 0;
+	packet->data = NULL;
+	return TRUE;
+}

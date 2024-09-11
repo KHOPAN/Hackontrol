@@ -14,6 +14,7 @@ extern "C" {
 
 BOOL HRSPSendPacket(const SOCKET socket, const PHRSPDATA data, const PHRSPPACKET packet, const PHRSPERROR error);
 BOOL HRSPReceivePacket(const SOCKET socket, const PHRSPDATA data, const PHRSPPACKET packet, const PHRSPERROR error);
+BOOL HRSPFreePacket(const PHRSPPACKET packet, const PHRSPERROR error);
 
 #ifdef __cplusplus
 }

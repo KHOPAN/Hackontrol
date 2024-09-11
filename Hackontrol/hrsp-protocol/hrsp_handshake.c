@@ -1,3 +1,4 @@
+#include <WinSock2.h>
 #include "hrsp_handshake.h"
 
 #define ERROR_HRSP(functionName, errorCode) if(error){error->win32=FALSE;error->function=functionName;error->code=errorCode;}
@@ -23,7 +24,7 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PHRSPE
 		return FALSE;
 	}
 
-	if(recv(socket, buffer, 1, 0) == SOCKET_ERROR) {
+	if(recv(socket, buffer, 1, MSG_WAITALL) == SOCKET_ERROR) {
 		ERROR_WIN32(L"recv", WSAGetLastError());
 		return FALSE;
 	}
@@ -48,7 +49,7 @@ BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPDATA data, const PHRSPE
 
 	BYTE buffer[8];
 
-	if(recv(socket, buffer, 8, 0) == SOCKET_ERROR) {
+	if(recv(socket, buffer, 8, MSG_WAITALL) == SOCKET_ERROR) {
 		ERROR_WIN32(L"recv", WSAGetLastError());
 		return FALSE;
 	}
