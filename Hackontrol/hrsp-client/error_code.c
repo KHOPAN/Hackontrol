@@ -1,5 +1,5 @@
 #include <khopanstring.h>
-#include <hrsp_protocol.h>
+#include <hrsp.h>
 #include "hrsp_client.h"
 
 LPCWSTR HRSPClientGetErrorCode(const HRSPCLIENTERRORCODE code) {

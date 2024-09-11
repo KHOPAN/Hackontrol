@@ -1,17 +1,18 @@
 #include <WS2tcpip.h>
-#include <hrsp_protocol.h>
+#include <hrsp_handshake.h>
+#include <hrsp_packet.h>
 #include "hrsp_client.h"
 
-#define SETERROR_CLIENT(functionName, errorCode) if(error){error->type=HRSP_CLIENT_ERROR_TYPE_CLIENT;error->function=functionName;error->code=errorCode;}
-#define SETERROR_HRSP if(error){error->type=protocolError.win32?HRSP_CLIENT_ERROR_TYPE_WIN32:HRSP_CLIENT_ERROR_TYPE_HRSP;error->function=protocolError.function;error->code=protocolError.code;}
-#define SETERROR_WIN32(functionName, errorCode) if(error){error->type=HRSP_CLIENT_ERROR_TYPE_WIN32;error->function=functionName;error->code=errorCode;}
+#define ERROR_CLIENT(functionName, errorCode) if(error){error->type=HRSP_CLIENT_ERROR_TYPE_CLIENT;error->function=functionName;error->code=errorCode;}
+#define ERROR_HRSP if(error){error->type=protocolError.win32?HRSP_CLIENT_ERROR_TYPE_WIN32:HRSP_CLIENT_ERROR_TYPE_HRSP;error->function=protocolError.function;error->code=protocolError.code;}
+#define ERROR_WIN32(functionName, errorCode) if(error){error->type=HRSP_CLIENT_ERROR_TYPE_WIN32;error->function=functionName;error->code=errorCode;}
 
 BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PHRSPCLIENTERROR error) {
 	WSADATA data;
 	int status = WSAStartup(MAKEWORD(2, 2), &data);
 
 	if(status) {
-		SETERROR_WIN32(L"WSAStartup", status);
+		ERROR_WIN32(L"WSAStartup", status);
 		return FALSE;
 	}
 
@@ -24,7 +25,7 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 	BOOL returnValue = FALSE;
 
 	if(status) {
-		SETERROR_WIN32(L"getaddrinfo", status);
+		ERROR_WIN32(L"getaddrinfo", status);
 		goto cleanupResource;
 	}
 
@@ -34,7 +35,7 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 		socketClient = socket(pointer->ai_family, pointer->ai_socktype, pointer->ai_protocol);
 
 		if(socketClient == INVALID_SOCKET) {
-			SETERROR_WIN32(L"socket", WSAGetLastError());
+			ERROR_WIN32(L"socket", WSAGetLastError());
 			freeaddrinfo(result);
 			goto cleanupResource;
 		}
@@ -52,34 +53,34 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 	freeaddrinfo(result);
 
 	if(socketClient == INVALID_SOCKET) {
-		SETERROR_CLIENT(L"HRSPClientConnectToServer", HRSP_CLIENT_ERROR_CANNOT_CONNECT_SERVER);
+		ERROR_CLIENT(L"HRSPClientConnectToServer", HRSP_CLIENT_ERROR_CANNOT_CONNECT_SERVER);
 		goto cleanupResource;
 	}
 
-	HRSPPROTOCOLDATA protocolData;
-	HRSPPROTOCOLERROR protocolError;
+	HRSPDATA protocolData;
+	HRSPERROR protocolError;
 
 	if(!HRSPClientHandshake(socketClient, &protocolData, &protocolError)) {
-		SETERROR_HRSP;
+		ERROR_HRSP;
 		goto closeSocket;
 	}
 
-	HRSPPROTOCOLPACKET packet;
+	HRSPPACKET packet;
 
 	if(!HRSPSendPacket(socketClient, &protocolData, &packet, &protocolError)) {
-		SETERROR_HRSP;
+		ERROR_HRSP;
 		goto closeSocket;
 	}
 
 	returnValue = TRUE;
 closeSocket:
 	if(closesocket(socketClient) == SOCKET_ERROR) {
-		SETERROR_WIN32(L"closesocket", WSAGetLastError());
+		ERROR_WIN32(L"closesocket", WSAGetLastError());
 		returnValue = FALSE;
 	}
 cleanupResource:
 	if(WSACleanup() == SOCKET_ERROR) {
-		SETERROR_WIN32(L"WSACleanup", WSAGetLastError());
+		ERROR_WIN32(L"WSACleanup", WSAGetLastError());
 		return FALSE;
 	}
 
