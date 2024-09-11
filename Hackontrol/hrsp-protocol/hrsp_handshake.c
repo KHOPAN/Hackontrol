@@ -1,13 +1,13 @@
-#include "hrsp_protocol.h"
+#include "hrsp_handshake.h"
 
-#define SETERROR_HRSP(functionName, errorCode) if(error){error->win32=FALSE;error->function=functionName;error->code=errorCode;}
-#define SETERROR_WIN32(functionName, errorCode) if(error){error->win32=TRUE;error->function=functionName;error->code=errorCode;}
+#define ERROR_HRSP(functionName, errorCode) if(error){error->win32=FALSE;error->function=functionName;error->code=errorCode;}
+#define ERROR_WIN32(functionName, errorCode) if(error){error->win32=TRUE;error->function=functionName;error->code=errorCode;}
 
 #pragma warning(disable: 6385)
 
-BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPPROTOCOLDATA data, const PHRSPPROTOCOLERROR error) {
+BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PHRSPERROR error) {
 	if(!socket || !data) {
-		SETERROR_HRSP(L"HRSPClientHandshake", HRSP_ERROR_INVALID_FUNCTION_PARAMETER);
+		ERROR_HRSP(L"HRSPClientHandshake", HRSP_ERROR_INVALID_FUNCTION_PARAMETER);
 		return FALSE;
 	}
 
@@ -19,19 +19,19 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPPROTOCOLDATA data, cons
 	buffer[7] = HRSP_PROTOCOL_VERSION_MINOR & 0xFF;
 
 	if(send(socket, buffer, 8, 0) == SOCKET_ERROR) {
-		SETERROR_WIN32(L"send", WSAGetLastError());
+		ERROR_WIN32(L"send", WSAGetLastError());
 		return FALSE;
 	}
 
 	if(recv(socket, buffer, 1, 0) == SOCKET_ERROR) {
-		SETERROR_WIN32(L"recv", WSAGetLastError());
+		ERROR_WIN32(L"recv", WSAGetLastError());
 		return FALSE;
 	}
 
 	if(buffer[0] != HRSP_ERROR_SUCCESS) {
 		switch(buffer[0]) {
-		case HRSP_ERROR_UNSUPPORTED_VERSION: SETERROR_HRSP(L"HRSPClientHandshake", HRSP_ERROR_UNSUPPORTED_VERSION); break;
-		default:                             SETERROR_HRSP(L"HRSPClientHandshake", HRSP_ERROR_UNKNOWN_ERROR);       break;
+		case HRSP_ERROR_UNSUPPORTED_VERSION: ERROR_HRSP(L"HRSPClientHandshake", HRSP_ERROR_UNSUPPORTED_VERSION); break;
+		default:                             ERROR_HRSP(L"HRSPClientHandshake", HRSP_ERROR_UNKNOWN_ERROR);       break;
 		}
 
 		return FALSE;
@@ -40,21 +40,21 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPPROTOCOLDATA data, cons
 	return TRUE;
 }
 
-BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPPROTOCOLDATA data, const PHRSPPROTOCOLERROR error) {
+BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPDATA data, const PHRSPERROR error) {
 	if(!socket || !data) {
-		SETERROR_HRSP(L"HRSPServerHandshake", HRSP_ERROR_INVALID_FUNCTION_PARAMETER);
+		ERROR_HRSP(L"HRSPServerHandshake", HRSP_ERROR_INVALID_FUNCTION_PARAMETER);
 		return FALSE;
 	}
 
 	BYTE buffer[8];
 
 	if(recv(socket, buffer, 8, 0) == SOCKET_ERROR) {
-		SETERROR_WIN32(L"recv", WSAGetLastError());
+		ERROR_WIN32(L"recv", WSAGetLastError());
 		return FALSE;
 	}
 
 	if(memcmp(buffer, "HRSP", 4)) {
-		SETERROR_HRSP(L"recv", HRSP_ERROR_INVALID_MAGIC);
+		ERROR_HRSP(L"recv", HRSP_ERROR_INVALID_MAGIC);
 		return FALSE;
 	}
 
@@ -62,12 +62,12 @@ BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPPROTOCOLDATA data, cons
 	buffer[0] = buffer[1] ? HRSP_ERROR_UNSUPPORTED_VERSION : HRSP_ERROR_SUCCESS;
 
 	if(send(socket, buffer, 1, 0) == SOCKET_ERROR) {
-		SETERROR_WIN32(L"send", WSAGetLastError());
+		ERROR_WIN32(L"send", WSAGetLastError());
 		return FALSE;
 	}
 
 	if(buffer[1]) {
-		SETERROR_HRSP(L"HRSPServerHandshake", HRSP_ERROR_UNSUPPORTED_VERSION);
+		ERROR_HRSP(L"HRSPServerHandshake", HRSP_ERROR_UNSUPPORTED_VERSION);
 		return FALSE;
 	}
 
