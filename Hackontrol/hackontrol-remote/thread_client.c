@@ -25,27 +25,33 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 	}
 
 	LOG("[Client %ws]: Starting\n" COMMA client->address);
+	client->protocolData = LocalAlloc(LMEM_FIXED, sizeof(HRSPDATA));
 	int returnValue = 1;
-	HRSPDATA protocolData;
+
+	if(!client->protocolData) {
+		KHWIN32_LAST_ERROR(L"LocalAlloc");
+		goto cleanupResource;
+	}
+
 	HRSPERROR protocolError;
 	LPWSTR message;
 
-	if(!HRSPServerHandshake(client->socket, &protocolData, &protocolError)) {
+	if(!HRSPServerHandshake(client->socket, client->protocolData, &protocolError)) {
 		HRSPERROR_CONSOLE(L"HRSPServerHandshake");
-		goto cleanupResource;
+		goto freeProtocolData;
 	}
 
 	HRSPPACKET packet;
 
-	if(!HRSPReceivePacket(client->socket, &protocolData, &packet, &protocolError)) {
+	if(!HRSPReceivePacket(client->socket, client->protocolData, &packet, &protocolError)) {
 		HRSPERROR_CONSOLE(L"HRSPReceivePacket");
-		goto cleanupResource;
+		goto freeProtocolData;
 	}
 
 	if(packet.type != HRSP_REMOTE_CLIENT_INFORMATION_PACKET) {
 		LOG("[Client %ws]: Invalid first packet type: %u\n" COMMA client->address COMMA packet.type);
 		HRSPFreePacket(&packet, NULL);
-		goto cleanupResource;
+		goto freeProtocolData;
 	}
 
 	client->name = KHFormatMessageW(L"%S", packet.data);
@@ -78,7 +84,7 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 
 	MainWindowRefreshListView();
 
-	while(HRSPReceivePacket(client->socket, &protocolData, &packet, &protocolError)) {
+	while(HRSPReceivePacket(client->socket, client->protocolData, &packet, &protocolError)) {
 		switch(packet.type) {
 		case HRSP_REMOTE_TERMINATE_PACKET:
 			LOG("[Client %ws]: Terminate packet received\n" COMMA client->address);
@@ -93,7 +99,7 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 
 	HRSPERROR_CONSOLE(L"HRSPReceivePacket");
 
-	if(!HRSPSendTypePacket(client->socket, &protocolData, HRSP_REMOTE_TERMINATE_PACKET, &protocolError)) {
+	if(!HRSPSendTypePacket(client->socket, client->protocolData, HRSP_REMOTE_TERMINATE_PACKET, &protocolError)) {
 		HRSPERROR_CONSOLE(L"HRSPSendTypePacket");
 	}
 
@@ -241,6 +247,8 @@ freeName:
 	if(client->name) {
 		LocalFree(client->name);
 	}
+freeProtocolData:
+	LocalFree(client->protocolData);
 cleanupResource:
 	if(client->thread) {
 		CloseHandle(client->thread);
