@@ -6,8 +6,12 @@ int main(int argc, char** argv) {
 
 	if(!HRSPClientConnectToServer(NULL, NULL, &error)) {
 		LPWSTR message = HRSPClientGetErrorMessage(L"HRSPClientConnectToServer", &error);
-		printf("%ws\n", message);
-		LocalFree(message);
+
+		if(message) {
+			printf("%ws\n", message);
+			LocalFree(message);
+		}
+
 		return 1;
 	}
 
