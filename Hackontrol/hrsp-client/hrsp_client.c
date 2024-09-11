@@ -66,6 +66,9 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 	}
 
 	HRSPPACKET packet;
+	packet.size = 23;
+	packet.type = 0;
+	packet.data = "This is a test message";
 
 	if(!HRSPSendPacket(socketClient, &protocolData, &packet, &protocolError)) {
 		ERROR_HRSP;

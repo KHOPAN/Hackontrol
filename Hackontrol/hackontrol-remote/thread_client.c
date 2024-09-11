@@ -40,6 +40,8 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 		goto cleanupResource;
 	}
 
+	MessageBoxA(NULL, packet.data, "Received Message", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+	HRSPFreePacket(&packet, NULL);
 	returnValue = 0;
 	/*char buffer[17];
 	int returnValue = 1;
