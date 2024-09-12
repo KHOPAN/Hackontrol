@@ -103,6 +103,7 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 	client->connected = FALSE;
 breakUnknownPacket:
 	if(!protocolError.code) {
+		returnValue = 0;
 		goto sendTerminatePacket;
 	}
 

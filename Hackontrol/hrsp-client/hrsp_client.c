@@ -103,6 +103,7 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 	}
 
 	if(!protocolError.code) {
+		returnValue = TRUE;
 		goto sendTerminatePacket;
 	}
 
