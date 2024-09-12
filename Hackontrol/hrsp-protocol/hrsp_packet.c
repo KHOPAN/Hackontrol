@@ -3,6 +3,7 @@
 
 #define ERROR_HRSP(functionName, errorCode) if(error){error->win32=FALSE;error->function=functionName;error->code=errorCode;}
 #define ERROR_WIN32(functionName, errorCode) if(error){error->win32=TRUE;error->function=functionName;error->code=errorCode;}
+#define EMPTY_ERROR if(error){error->win32=FALSE;error->function=NULL;error->code=0;}
 
 BOOL HRSPSendPacket(const SOCKET socket, const PHRSPDATA data, const PHRSPPACKET packet, const PHRSPERROR error) {
 	if(!socket || !data || !packet) {
@@ -31,6 +32,7 @@ BOOL HRSPSendPacket(const SOCKET socket, const PHRSPDATA data, const PHRSPPACKET
 		return FALSE;
 	}
 
+	EMPTY_ERROR;
 	return TRUE;
 }
 
@@ -54,6 +56,7 @@ BOOL HRSPReceivePacket(const SOCKET socket, const PHRSPDATA data, const PHRSPPAC
 		packet->size = 0;
 		packet->type = type;
 		packet->data = NULL;
+		EMPTY_ERROR;
 		return TRUE;
 	}
 
@@ -73,6 +76,7 @@ BOOL HRSPReceivePacket(const SOCKET socket, const PHRSPDATA data, const PHRSPPAC
 	packet->size = size;
 	packet->type = type;
 	packet->data = buffer;
+	EMPTY_ERROR;
 	return TRUE;
 }
 
@@ -83,6 +87,7 @@ BOOL HRSPFreePacket(const PHRSPPACKET packet, const PHRSPERROR error) {
 	}
 
 	if(!packet->data || packet->size < 1) {
+		EMPTY_ERROR;
 		return TRUE;
 	}
 
@@ -94,6 +99,7 @@ BOOL HRSPFreePacket(const PHRSPPACKET packet, const PHRSPERROR error) {
 	packet->size = 0;
 	packet->type = 0;
 	packet->data = NULL;
+	EMPTY_ERROR;
 	return TRUE;
 }
 
