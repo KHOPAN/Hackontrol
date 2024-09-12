@@ -101,7 +101,7 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 		HRSPFreePacket(&packet, NULL);
 	}
 
-	if(!protocolError.code || (protocolError.win32 && protocolError.code == WSAECONNRESET)) {
+	if(!protocolError.code || (protocolError.win32 && protocolError.code == 0)) {
 		returnValue = TRUE;
 		goto closeSocket;
 	}
