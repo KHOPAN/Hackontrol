@@ -87,12 +87,8 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 
 	while(HRSPReceivePacket(client->socket, client->protocolData, &packet, &protocolError)) {
 		switch(packet.type) {
-		case HRSP_REMOTE_TERMINATE_PACKET:
-			LOG("[Client %ws]: Terminate packet received\n" COMMA client->address);
-			client->connected = FALSE;
-			goto breakPacketLoop;
 		default:
-			if(!client->connected) goto breakUnknownPacket;
+			//if(!client->connected) goto breakUnknownPacket;
 			LOG("[Client %ws]: Unknown packet type: %u\n" COMMA client->address COMMA packet.type);
 			break;
 		}
@@ -100,26 +96,12 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 		HRSPFreePacket(&packet, NULL);
 	}
 
-	client->connected = FALSE;
-breakUnknownPacket:
-	if(!protocolError.code) {
-		returnValue = 0;
-		goto sendTerminatePacket;
-	}
-
-	if(protocolError.win32 && (protocolError.code == WSAECONNRESET || protocolError.code == WSAENOTSOCK || protocolError.code == WSAEINTR || protocolError.code == WSAECONNABORTED)) {
+	if(!protocolError.code || (FALSE && protocolError.win32 && (protocolError.code == WSAECONNRESET || protocolError.code == WSAENOTSOCK || protocolError.code == WSAEINTR || protocolError.code == WSAECONNABORTED))) {
 		returnValue = 0;
 		goto freeName;
 	}
 
 	HRSPERROR_CONSOLE(L"HRSPReceivePacket");
-sendTerminatePacket:
-	if(!HRSPSendTypePacket(client->socket, client->protocolData, HRSP_REMOTE_TERMINATE_PACKET, &protocolError)) {
-		HRSPERROR_CONSOLE(L"HRSPSendTypePacket");
-	}
-
-	goto freeName;
-breakPacketLoop:
 	/*char buffer[17];
 	int returnValue = 1;
 
@@ -256,8 +238,6 @@ exitName:
 			goto freeName;
 		}
 	}*/
-
-	returnValue = 0;
 freeName:
 	if(client->name) {
 		LocalFree(client->name);
@@ -329,14 +309,7 @@ void ClientOpen(const PCLIENT client) {
 }
 
 void ClientDisconnect(const PCLIENT client) {
-	HRSPERROR protocolError;
-	LPWSTR message;
 	client->connected = FALSE;
-
-	if(!HRSPSendTypePacket(client->socket, client->protocolData, HRSP_REMOTE_TERMINATE_PACKET, &protocolError)) {
-		HRSPERROR(L"HRSPSendTypePacket");
-		return;
-	}
 
 	if(shutdown(client->socket, SD_BOTH) == SOCKET_ERROR) {
 		KHWIN32_LAST_WSA_ERROR(L"shutdown");

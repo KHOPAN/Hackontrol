@@ -107,7 +107,6 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 	}
 
 	ERROR_HRSP;
-	goto closeSocket;
 closeSocket:
 	if(closesocket(socketClient) == SOCKET_ERROR) {
 		ERROR_WIN32(L"closesocket", WSAGetLastError());
