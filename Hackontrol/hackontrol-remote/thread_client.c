@@ -102,7 +102,7 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 
 	client->connected = FALSE;
 breakUnknownPacket:
-	if(!protocolError.code || (protocolError.win32 && (protocolError.code == WSAECONNRESET || protocolError.code == WSAENOTSOCK || protocolError.code == WSAEINTR))) {
+	if(!protocolError.code || (protocolError.win32 && (protocolError.code == WSAECONNRESET || protocolError.code == WSAENOTSOCK || protocolError.code == WSAEINTR || protocolError.code == WSAECONNABORTED))) {
 		returnValue = 0;
 		goto freeName;
 	}
