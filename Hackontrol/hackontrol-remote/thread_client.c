@@ -97,6 +97,11 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 		HRSPFreePacket(&packet, NULL);
 	}
 
+	if(protocolError.win32 && protocolError.code == WSAECONNRESET) {
+		returnValue = 0;
+		goto freeName;
+	}
+
 	HRSPERROR_CONSOLE(L"HRSPReceivePacket");
 
 	if(!HRSPSendTypePacket(client->socket, client->protocolData, HRSP_REMOTE_TERMINATE_PACKET, &protocolError)) {
