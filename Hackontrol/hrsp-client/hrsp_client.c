@@ -102,13 +102,17 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 		HRSPFreePacket(&packet, NULL);
 	}
 
-	if(protocolError.code == 0 || (protocolError.win32 && protocolError.code == WSAECONNRESET)) {
+	if(!protocolError.code) {
+		goto sendTerminatePacket;
+	}
+
+	if(protocolError.win32 && protocolError.code == WSAECONNRESET) {
 		returnValue = TRUE;
 		goto closeSocket;
 	}
 
 	ERROR_HRSP;
-
+sendTerminatePacket:
 	if(HRSPSendTypePacket(socketClient, &protocolData, HRSP_REMOTE_TERMINATE_PACKET, &protocolError)) {
 		ERROR_HRSP;
 	}
