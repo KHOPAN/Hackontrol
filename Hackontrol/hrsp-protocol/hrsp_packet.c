@@ -1,6 +1,5 @@
 #include <WinSock2.h>
 #include "hrsp_packet.h"
-#include <stdio.h>
 
 #define ERROR_HRSP(functionName, errorCode) if(error){error->win32=FALSE;error->function=functionName;error->code=errorCode;}
 #define ERROR_WIN32(functionName, errorCode) if(error){error->win32=TRUE;error->function=functionName;error->code=errorCode;}
@@ -45,10 +44,14 @@ BOOL HRSPReceivePacket(const SOCKET socket, const PHRSPDATA data, const PHRSPPAC
 
 	BYTE header[8];
 	int result = recv(socket, header, sizeof(header), MSG_WAITALL);
-	printf("Result: %d\n", result);
 
 	if(result == SOCKET_ERROR) {
 		ERROR_WIN32(L"recv", WSAGetLastError());
+		return FALSE;
+	}
+
+	if(!result) {
+		ERROR_HRSP(L"HRSPReceivePacket", HRSP_ERROR_CONNECTION_CLOSED);
 		return FALSE;
 	}
 
@@ -70,8 +73,16 @@ BOOL HRSPReceivePacket(const SOCKET socket, const PHRSPDATA data, const PHRSPPAC
 		return FALSE;
 	}
 
-	if(recv(socket, buffer, size, MSG_WAITALL) == SOCKET_ERROR) {
+	result = recv(socket, buffer, size, MSG_WAITALL);
+
+	if(result == SOCKET_ERROR) {
 		ERROR_WIN32(L"recv", WSAGetLastError());
+		LocalFree(buffer);
+		return FALSE;
+	}
+
+	if(!result) {
+		ERROR_HRSP(L"HRSPReceivePacket", HRSP_ERROR_CONNECTION_CLOSED);
 		LocalFree(buffer);
 		return FALSE;
 	}
