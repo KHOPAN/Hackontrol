@@ -102,8 +102,12 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 		HRSPFreePacket(&packet, NULL);
 	}
 
-	HRSPSendTypePacket(socketClient, &protocolData, HRSP_REMOTE_TERMINATE_PACKET, &protocolError);
 	ERROR_HRSP;
+
+	if(HRSPSendTypePacket(socketClient, &protocolData, HRSP_REMOTE_TERMINATE_PACKET, &protocolError)) {
+		ERROR_HRSP;
+	}
+
 	goto closeSocket;
 breakPacketLoop:
 	returnValue = TRUE;
