@@ -53,6 +53,7 @@ typedef struct {
 
 typedef struct {
 	BOOL active;
+	BOOL connected;
 	HANDLE thread;
 	SOCKET socket;
 	PHRSPDATA protocolData;
