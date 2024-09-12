@@ -97,7 +97,7 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 		HRSPFreePacket(&packet, NULL);
 	}
 
-	if(protocolError.win32 && protocolError.code == WSAECONNRESET) {
+	if(protocolError.win32 && (protocolError.code == WSAECONNRESET || protocolError.code == WSAENOTSOCK)) {
 		returnValue = 0;
 		goto freeName;
 	}
