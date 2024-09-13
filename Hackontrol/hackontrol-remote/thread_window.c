@@ -3,6 +3,8 @@
 #include <khopanstring.h>
 #include <hackontrolpacket.h>
 #include "logger.h"
+#include <hrsp_packet.h>
+#include <hrsp_remote.h>
 
 #define CLASS_CLIENT_WINDOW L"HackontrolRemoteClientWindow"
 
@@ -22,11 +24,16 @@
 
 static void sendFrameCode(const PCLIENT client) {
 	BYTE data = ((client->window->menu.method & 0b11) << 1) | (client->window->menu.stream ? 0b1001 : 0);
-	PACKET packet;
+	/*PACKET packet;
 	packet.size = 1;
 	packet.packetType = PACKET_TYPE_STREAM_FRAME;
 	packet.data = &data;
-	SendPacket(client->socket, &packet);
+	SendPacket(client->socket, &packet);*/
+	HRSPPACKET packet;
+	packet.size = 1;
+	packet.type = HRSP_REMOTE_SERVER_STREAM_CODE_PACKET;
+	packet.data = &data;
+	HRSPSendPacket(client->socket, client->protocolData, &packet, NULL);
 }
 
 static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {

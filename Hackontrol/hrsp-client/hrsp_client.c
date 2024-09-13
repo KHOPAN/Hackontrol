@@ -4,6 +4,7 @@
 #include <hrsp_packet.h>
 #include <hrsp_remote.h>
 #include "hrsp_client.h"
+#include <stdio.h>
 
 #define ERROR_CLIENT(functionName, errorCode) if(error){error->type=HRSP_CLIENT_ERROR_TYPE_CLIENT;error->function=functionName;error->code=errorCode;}
 #define ERROR_HRSP if(error){error->type=protocolError.win32?HRSP_CLIENT_ERROR_TYPE_WIN32:HRSP_CLIENT_ERROR_TYPE_HRSP;error->function=protocolError.function;error->code=protocolError.code;}
@@ -95,7 +96,9 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 
 	while(HRSPReceivePacket(socketClient, &protocolData, &packet, &protocolError)) {
 		switch(packet.type) {
-
+		case HRSP_REMOTE_SERVER_STREAM_CODE_PACKET:
+			printf("Code: %d\n", *packet.data);
+			break;
 		}
 
 		HRSPFreePacket(&packet, NULL);
