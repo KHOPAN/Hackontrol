@@ -148,10 +148,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="error_code.c" />
+    <ClCompile Include="frame_encoder.c" />
     <ClCompile Include="hrsp_client.c" />
+    <ClCompile Include="thread_stream.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="hrsp_client.h" />
+    <ClInclude Include="hrsp_client_internal.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\hrsp-protocol\hrsp-protocol.vcxproj">

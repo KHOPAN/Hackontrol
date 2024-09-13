@@ -21,9 +21,18 @@
     <ClCompile Include="error_code.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="frame_encoder.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="thread_stream.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="hrsp_client.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="hrsp_client_internal.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
