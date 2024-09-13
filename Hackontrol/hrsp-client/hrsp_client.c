@@ -68,7 +68,7 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 
 	clientHRSPData = LocalAlloc(LMEM_FIXED, sizeof(HRSPDATA));
 
-	if(clientHRSPData) {
+	if(!clientHRSPData) {
 		ERROR_WIN32(L"LocalAlloc", GetLastError());
 		goto closeSocket;
 	}
