@@ -97,6 +97,7 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 	}
 
 	if(!protocolError.code || (protocolError.win32 && (protocolError.code == WSAEINTR || protocolError.code == WSAECONNABORTED || protocolError.code == WSAECONNRESET))) {
+	if(!protocolError.code || (!protocolError.win32 && protocolError.code == HRSP_ERROR_CONNECTION_CLOSED) || (protocolError.win32 && (protocolError.code == WSAEINTR || protocolError.code == WSAECONNABORTED || protocolError.code == WSAECONNRESET))) {
 		returnValue = 0;
 		goto freeName;
 	}
