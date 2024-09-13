@@ -86,6 +86,9 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 
 	while(HRSPReceivePacket(client->socket, client->protocolData, &packet, &protocolError)) {
 		switch(packet.type) {
+		case HRSP_REMOTE_CLIENT_STREAM_FRAME_PACKET:
+			DecodeHRSPFrame(packet.data, packet.size, client->window);
+			break;
 		default:
 			LOG("[Client %ws]: Unknown packet type: %u\n" COMMA client->address COMMA packet.type);
 			break;
