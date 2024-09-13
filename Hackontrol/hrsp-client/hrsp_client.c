@@ -12,6 +12,8 @@
 
 BOOL clientHRSPIsRunning;
 SOCKET clientHRSPSocket;
+PHRSPDATA clientHRSPData;
+BYTE clientHRSPStreamFlags;
 
 BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PHRSPCLIENTERROR error) {
 	clientHRSPIsRunning = TRUE;
@@ -64,50 +66,57 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 		goto cleanupResource;
 	}
 
-	HRSPDATA protocolData;
-	HRSPERROR protocolError;
+	clientHRSPData = LocalAlloc(LMEM_FIXED, sizeof(HRSPDATA));
 
-	if(!HRSPClientHandshake(clientHRSPSocket, &protocolData, &protocolError)) {
-		ERROR_HRSP;
+	if(clientHRSPData) {
+		ERROR_WIN32(L"LocalAlloc", GetLastError());
 		goto closeSocket;
 	}
 
+	HRSPERROR protocolError;
+
+	if(!HRSPClientHandshake(clientHRSPSocket, clientHRSPData, &protocolError)) {
+		ERROR_HRSP;
+		goto freeHRSPData;
+	}
+
 	DWORD size = UNLEN + 1;
-	BYTE* buffer = LocalAlloc(LMEM_FIXED, size);
+	PBYTE buffer = LocalAlloc(LMEM_FIXED, size);
 
 	if(!buffer) {
 		ERROR_WIN32(L"LocalAlloc", GetLastError());
-		goto closeSocket;
+		goto freeHRSPData;
 	}
 
 	if(!GetUserNameA(buffer, &size)) {
 		ERROR_WIN32(L"GetUserNameA", GetLastError());
 		LocalFree(buffer);
-		goto closeSocket;
+		goto freeHRSPData;
 	}
 
 	HRSPPACKET packet;
 	packet.size = size;
 	packet.type = HRSP_REMOTE_CLIENT_INFORMATION_PACKET;
 	packet.data = buffer;
-	status = HRSPSendPacket(clientHRSPSocket, &protocolData, &packet, &protocolError);
+	status = HRSPSendPacket(clientHRSPSocket, clientHRSPData, &packet, &protocolError);
 	LocalFree(buffer);
 
 	if(!status) {
 		ERROR_HRSP;
-		goto closeSocket;
+		goto freeHRSPData;
 	}
 
 	HANDLE streamThread = CreateThread(NULL, 0, HRSPClientStreamThread, NULL, 0, NULL);
 
 	if(!streamThread) {
 		ERROR_WIN32(L"CreateThread", GetLastError());
-		goto closeSocket;
+		goto freeHRSPData;
 	}
 
-	while(HRSPReceivePacket(clientHRSPSocket, &protocolData, &packet, &protocolError)) {
+	while(HRSPReceivePacket(clientHRSPSocket, clientHRSPData, &packet, &protocolError)) {
 		switch(packet.type) {
 		case HRSP_REMOTE_SERVER_STREAM_CODE_PACKET:
+			clientHRSPStreamFlags = *packet.data;
 			break;
 		}
 
@@ -129,6 +138,8 @@ closeStreamThread:
 	}
 
 	CloseHandle(streamThread);
+freeHRSPData:
+	LocalFree(clientHRSPData);
 closeSocket:
 	if(closesocket(clientHRSPSocket) == SOCKET_ERROR) {
 		ERROR_WIN32(L"closesocket", WSAGetLastError());
