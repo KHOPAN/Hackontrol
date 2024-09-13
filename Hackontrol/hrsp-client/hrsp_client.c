@@ -10,7 +10,11 @@
 #define ERROR_HRSP if(error){error->type=protocolError.win32?HRSP_CLIENT_ERROR_TYPE_WIN32:HRSP_CLIENT_ERROR_TYPE_HRSP;error->function=protocolError.function;error->code=protocolError.code;}
 #define ERROR_WIN32(functionName, errorCode) if(error){error->type=HRSP_CLIENT_ERROR_TYPE_WIN32;error->function=functionName;error->code=errorCode;}
 
+BOOL clientHRSPIsRunning;
+SOCKET clientHRSPSocket;
+
 BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PHRSPCLIENTERROR error) {
+	clientHRSPIsRunning = TRUE;
 	WSADATA data;
 	int status = WSAStartup(MAKEWORD(2, 2), &data);
 
@@ -32,30 +36,30 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 		goto cleanupResource;
 	}
 
-	SOCKET socketClient = INVALID_SOCKET;
+	clientHRSPSocket = INVALID_SOCKET;
 
 	for(struct addrinfo* pointer = result; pointer != NULL; pointer = pointer->ai_next) {
-		socketClient = socket(pointer->ai_family, pointer->ai_socktype, pointer->ai_protocol);
+		clientHRSPSocket = socket(pointer->ai_family, pointer->ai_socktype, pointer->ai_protocol);
 
-		if(socketClient == INVALID_SOCKET) {
+		if(clientHRSPSocket == INVALID_SOCKET) {
 			ERROR_WIN32(L"socket", WSAGetLastError());
 			freeaddrinfo(result);
 			goto cleanupResource;
 		}
 
-		status = connect(socketClient, pointer->ai_addr, (int) pointer->ai_addrlen);
+		status = connect(clientHRSPSocket, pointer->ai_addr, (int) pointer->ai_addrlen);
 
 		if(status != SOCKET_ERROR) {
 			break;
 		}
 
-		closesocket(socketClient);
-		socketClient = INVALID_SOCKET;
+		closesocket(clientHRSPSocket);
+		clientHRSPSocket = INVALID_SOCKET;
 	}
 
 	freeaddrinfo(result);
 
-	if(socketClient == INVALID_SOCKET) {
+	if(clientHRSPSocket == INVALID_SOCKET) {
 		ERROR_CLIENT(L"HRSPClientConnectToServer", HRSP_CLIENT_ERROR_CANNOT_CONNECT_SERVER);
 		goto cleanupResource;
 	}
@@ -63,7 +67,7 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 	HRSPDATA protocolData;
 	HRSPERROR protocolError;
 
-	if(!HRSPClientHandshake(socketClient, &protocolData, &protocolError)) {
+	if(!HRSPClientHandshake(clientHRSPSocket, &protocolData, &protocolError)) {
 		ERROR_HRSP;
 		goto closeSocket;
 	}
@@ -86,7 +90,7 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 	packet.size = size;
 	packet.type = HRSP_REMOTE_CLIENT_INFORMATION_PACKET;
 	packet.data = buffer;
-	status = HRSPSendPacket(socketClient, &protocolData, &packet, &protocolError);
+	status = HRSPSendPacket(clientHRSPSocket, &protocolData, &packet, &protocolError);
 	LocalFree(buffer);
 
 	if(!status) {
@@ -101,7 +105,7 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 		goto closeSocket;
 	}
 
-	while(HRSPReceivePacket(socketClient, &protocolData, &packet, &protocolError)) {
+	while(HRSPReceivePacket(clientHRSPSocket, &protocolData, &packet, &protocolError)) {
 		switch(packet.type) {
 		case HRSP_REMOTE_SERVER_STREAM_CODE_PACKET:
 			break;
@@ -117,6 +121,8 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 
 	ERROR_HRSP;
 closeStreamThread:
+	clientHRSPIsRunning = FALSE;
+
 	if(WaitForSingleObject(streamThread, INFINITE) == WAIT_FAILED) {
 		ERROR_WIN32(L"WaitForSingleObject", GetLastError());
 		returnValue = FALSE;
@@ -124,7 +130,7 @@ closeStreamThread:
 
 	CloseHandle(streamThread);
 closeSocket:
-	if(closesocket(socketClient) == SOCKET_ERROR) {
+	if(closesocket(clientHRSPSocket) == SOCKET_ERROR) {
 		ERROR_WIN32(L"closesocket", WSAGetLastError());
 		returnValue = FALSE;
 	}
