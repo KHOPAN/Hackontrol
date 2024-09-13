@@ -79,7 +79,6 @@ DWORD WINAPI serverThread(_In_ LPVOID parameter) {
 		}
 
 		client->active = TRUE;
-		client->connected = FALSE;
 		client->socket = socket;
 		client->name = NULL;
 		client->window = NULL;

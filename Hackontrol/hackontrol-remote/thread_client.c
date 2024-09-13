@@ -56,7 +56,6 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 
 	client->name = KHFormatMessageW(L"%S", packet.data);
 	HRSPFreePacket(&packet, NULL);
-	client->connected = TRUE;
 	LOG("[Client %ws]: Username: '%ws'\n" COMMA client->address COMMA client->name);
 
 	if(WaitForSingleObject(clientsLock, INFINITE) == WAIT_FAILED) {
@@ -88,7 +87,6 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 	while(HRSPReceivePacket(client->socket, client->protocolData, &packet, &protocolError)) {
 		switch(packet.type) {
 		default:
-			//if(!client->connected) goto breakUnknownPacket;
 			LOG("[Client %ws]: Unknown packet type: %u\n" COMMA client->address COMMA packet.type);
 			break;
 		}
@@ -96,7 +94,6 @@ DWORD WINAPI ClientThread(_In_ PCLIENT client) {
 		HRSPFreePacket(&packet, NULL);
 	}
 
-	if(!protocolError.code || (protocolError.win32 && (protocolError.code == WSAEINTR || protocolError.code == WSAECONNABORTED || protocolError.code == WSAECONNRESET))) {
 	if(!protocolError.code || (!protocolError.win32 && protocolError.code == HRSP_ERROR_CONNECTION_CLOSED) || (protocolError.win32 && (protocolError.code == WSAEINTR || protocolError.code == WSAECONNABORTED || protocolError.code == WSAECONNRESET))) {
 		returnValue = 0;
 		goto freeName;
@@ -310,8 +307,6 @@ void ClientOpen(const PCLIENT client) {
 }
 
 void ClientDisconnect(const PCLIENT client) {
-	client->connected = FALSE;
-
 	if(shutdown(client->socket, SD_BOTH) == SOCKET_ERROR) {
 		KHWIN32_LAST_WSA_ERROR(L"shutdown");
 		return;
