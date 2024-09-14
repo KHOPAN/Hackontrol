@@ -6,7 +6,6 @@
 #include "hrsp_client.h"
 #include "hrsp_client_internal.h"
 
-#define ERROR_CLIENT(functionName, errorCode) if(error){error->type=HRSP_CLIENT_ERROR_TYPE_CLIENT;error->function=functionName;error->code=errorCode;}
 #define ERROR_HRSP if(error){error->type=protocolError.win32?HRSP_CLIENT_ERROR_TYPE_WIN32:HRSP_CLIENT_ERROR_TYPE_HRSP;error->function=protocolError.function;error->code=protocolError.code;}
 #define ERROR_WIN32(functionName, errorCode) if(error){error->type=HRSP_CLIENT_ERROR_TYPE_WIN32;error->function=functionName;error->code=errorCode;}
 
@@ -18,7 +17,10 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 		return FALSE;
 	}
 
-	memset(stream, 0, sizeof(HRSPCLIENTSTREAMPARAMETER));
+	for(size_t i = 0; i < sizeof(HRSPCLIENTSTREAMPARAMETER); i++) {
+		((PBYTE) stream)[i] = 0;
+	}
+
 	stream->sensitive.mutex = CreateMutexExW(NULL, NULL, 0, SYNCHRONIZE | DELETE);
 	BOOL returnValue = FALSE;
 
@@ -49,7 +51,7 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 
 	stream->socket = INVALID_SOCKET;
 
-	for(struct addrinfo* pointer = result; pointer != NULL; pointer = pointer->ai_next) {
+	for(PADDRINFOA pointer = result; pointer != NULL; pointer = pointer->ai_next) {
 		stream->socket = socket(pointer->ai_family, pointer->ai_socktype, pointer->ai_protocol);
 
 		if(stream->socket == INVALID_SOCKET) {
@@ -58,16 +60,25 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 			goto cleanupSocket;
 		}
 
-		status = connect(stream->socket, pointer->ai_addr, (int) pointer->ai_addrlen);
-		if(status != SOCKET_ERROR) break;
-		closesocket(stream->socket);
+		if(connect(stream->socket, pointer->ai_addr, (int) pointer->ai_addrlen) != SOCKET_ERROR) break;
+
+		if(closesocket(stream->socket) == SOCKET_ERROR) {
+			ERROR_WIN32(L"closesocket", WSAGetLastError());
+			goto cleanupSocket;
+		}
+
 		stream->socket = INVALID_SOCKET;
 	}
 
 	freeaddrinfo(result);
 
 	if(stream->socket == INVALID_SOCKET) {
-		ERROR_CLIENT(L"HRSPClientConnectToServer", HRSP_CLIENT_ERROR_CANNOT_CONNECT_SERVER);
+		if(error) {
+			error->type = HRSP_CLIENT_ERROR_TYPE_CLIENT;
+			error->function = L"HRSPClientConnectToServer";
+			error->code = HRSP_CLIENT_ERROR_CANNOT_CONNECT_SERVER;
+		}
+
 		goto cleanupSocket;
 	}
 
@@ -88,7 +99,11 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 
 	if(!GetUserNameA(buffer, &size)) {
 		ERROR_WIN32(L"GetUserNameA", GetLastError());
-		LocalFree(buffer);
+
+		if(LocalFree(buffer)) {
+			ERROR_WIN32(L"LocalFree", GetLastError());
+		}
+
 		goto closeSocket;
 	}
 
@@ -97,7 +112,11 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 	packet.type = HRSP_REMOTE_CLIENT_INFORMATION_PACKET;
 	packet.data = buffer;
 	status = HRSPSendPacket(stream->socket, &stream->data, &packet, &protocolError);
-	LocalFree(buffer);
+
+	if(LocalFree(buffer)) {
+		ERROR_WIN32(L"LocalFree", GetLastError());
+		goto closeSocket;
+	}
 
 	if(!status) {
 		ERROR_HRSP;
@@ -114,8 +133,7 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 
 	while(HRSPReceivePacket(stream->socket, &stream->data, &packet, &protocolError)) {
 		if(packet.type != HRSP_REMOTE_SERVER_STREAM_CODE_PACKET) {
-			HRSPFreePacket(&packet, NULL);
-			continue;
+			goto freePacket;
 		}
 
 		if(WaitForSingleObject(stream->sensitive.mutex, INFINITE) == WAIT_FAILED) {
@@ -129,7 +147,7 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 			ERROR_WIN32(L"ReleaseMutex", GetLastError());
 			goto closeStreamThread;
 		}
-
+	freePacket:
 		if(!HRSPFreePacket(&packet, &protocolError)) {
 			ERROR_HRSP;
 			goto closeStreamThread;
