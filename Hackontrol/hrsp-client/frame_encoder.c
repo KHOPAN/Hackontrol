@@ -11,17 +11,17 @@
 BOOL HRSPClientEncodeCurrentFrame(const PHRSPCLIENTSTREAMPARAMETER parameter, const int width, const int height, const PBYTE screenshotBuffer, const PBYTE qoiBuffer, const PBYTE previousBuffer) {
 	HRSPPACKET packet;
 
-	if(!(parameter->flags & 1)) {
+	if(!(parameter->sensitive.flags & 1)) {
 		return TRUE;
 	}
 
-	BOOL boundaryDifference = (parameter->flags >> 1) & 1;
-	BOOL colorDifference = (parameter->flags >> 2) & 1;
+	BOOL boundaryDifference = (parameter->sensitive.flags >> 1) & 1;
+	BOOL colorDifference = (parameter->sensitive.flags >> 2) & 1;
 
-	if(parameter->flags & 0b1000) {
+	if(parameter->sensitive.flags & 0b1000) {
 		boundaryDifference = TRUE;
 		colorDifference = TRUE;
-		parameter->flags &= 0b11110111;
+		parameter->sensitive.flags &= 0b11110111;
 	}
 
 	HDC context = GetDC(NULL);
