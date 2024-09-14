@@ -98,7 +98,7 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 	}
 
 	stream->running = TRUE;
-	HANDLE streamThread = CreateThread(NULL, 0, HRSPClientStreamThread, NULL, 0, NULL);
+	HANDLE streamThread = CreateThread(NULL, 0, HRSPClientStreamThread, stream, 0, NULL);
 
 	if(!streamThread) {
 		ERROR_WIN32(L"CreateThread", GetLastError());
