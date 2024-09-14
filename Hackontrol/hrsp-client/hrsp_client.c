@@ -154,6 +154,10 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 		}
 	}
 
+	if(stream->streamError) {
+		goto closeStreamThread;
+	}
+
 	if(!protocolError.code || (!protocolError.win32 && protocolError.code == HRSP_ERROR_CONNECTION_CLOSED) || (protocolError.win32 && protocolError.code == WSAECONNRESET)) {
 		returnValue = TRUE;
 		goto closeStreamThread;
@@ -173,8 +177,8 @@ closeStreamThread:
 		returnValue = FALSE;
 	}
 closeSocket:
-	if(closesocket(stream->socket) == SOCKET_ERROR) {
-		ERROR_WIN32(L"closesocket", WSAGetLastError());
+	if(closesocket(stream->socket) == SOCKET_ERROR && (status = WSAGetLastError()) != WSAENOTSOCK) {
+		ERROR_WIN32(L"closesocket", status);
 		returnValue = FALSE;
 	}
 cleanupSocket:

@@ -5,6 +5,8 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 		return 1;
 	}
 
+	parameter->streamError = TRUE;
+	closesocket(parameter->socket);
 	int width = GetSystemMetrics(SM_CXSCREEN);
 	int height = GetSystemMetrics(SM_CYSCREEN);
 	size_t baseSize = width * height;
