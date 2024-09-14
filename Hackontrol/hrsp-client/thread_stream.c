@@ -215,6 +215,11 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 		return 1;
 	}
 
+	UINT oldWidth = 0;
+	UINT oldHeight = 0;
+	HDC context;
+	PBYTE screenBuffer = NULL;
+
 	while(parameter->running) {
 		if(WaitForSingleObject(parameter->sensitive.mutex, INFINITE) == WAIT_FAILED) {
 			ERROR_WIN32(L"WaitForSingleObject", GetLastError());
@@ -242,7 +247,32 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 
 		UINT width = GetSystemMetrics(SM_CXSCREEN);
 		UINT height = GetSystemMetrics(SM_CYSCREEN);
-		HDC context = GetDC(NULL);
+
+		if(oldWidth == width && oldHeight == height) {
+			goto capture;
+		}
+
+		oldWidth = width;
+		oldHeight = height;
+
+		if(screenBuffer && LocalFree(screenBuffer)) {
+			ERROR_WIN32(L"LocalFree", GetLastError());
+			return 1;
+		}
+
+		screenBuffer = LocalAlloc(LMEM_FIXED, width * height * 4);
+
+		if(!screenBuffer) {
+			ERROR_WIN32(L"LocalAlloc", GetLastError());
+			return 1;
+		}
+	capture:
+		context = GetDC(NULL);
+		HDC memoryContext = CreateCompatibleDC(context);
+		HBITMAP bitmap = CreateCompatibleBitmap(context, width, height);
+		HBITMAP oldBitmap = SelectObject(memoryContext, bitmap);
+		BitBlt(memoryContext, 0, 0, width, height, context, 0, 0, SRCCOPY);
+		bitmap = SelectObject(memoryContext, oldBitmap);
 		BITMAPINFO information = {0};
 		information.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 		information.bmiHeader.biWidth = width;
@@ -250,8 +280,21 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 		information.bmiHeader.biPlanes = 1;
 		information.bmiHeader.biBitCount = 32;
 		information.bmiHeader.biCompression = BI_RGB;
-		void* result;
-		CreateDIBSection(context, &information, DIB_RGB_COLORS, &result, NULL, 0);
+
+		if(!(streamEnabled = GetDIBits(memoryContext, bitmap, 0, height, screenBuffer, &information, DIB_RGB_COLORS))) {
+			ERROR_WIN32(L"GetDIBits", streamEnabled == ERROR_INVALID_PARAMETER ? ERROR_INVALID_PARAMETER : ERROR_FUNCTION_FAILED);
+			LocalFree(screenBuffer);
+			return 1;
+		}
+
+		DeleteObject(bitmap);
+		DeleteDC(memoryContext);
+		ReleaseDC(NULL, context);
+	}
+
+	if(screenBuffer && LocalFree(screenBuffer)) {
+		ERROR_WIN32(L"LocalFree", GetLastError());
+		return 1;
 	}
 
 	return 0;
