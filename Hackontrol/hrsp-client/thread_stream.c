@@ -1,13 +1,34 @@
 #include "hrsp_client_internal.h"
 
+#define ERROR_WIN32(functionName, errorCode) parameter->error.hasError=TRUE;parameter->error.function=functionName;parameter->error.code=errorCode;closesocket(parameter->socket)
+
 DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 	if(!parameter) {
 		return 1;
 	}
 
-	parameter->streamError = TRUE;
-	closesocket(parameter->socket);
-	int width = GetSystemMetrics(SM_CXSCREEN);
+	PBYTE screenshotBuffer = NULL;
+	PBYTE qoiBuffer = NULL;
+	PBYTE previousBuffer = NULL;
+	DWORD returnValue = 1;
+
+	while(parameter->running) {
+		if(WaitForSingleObject(parameter->sensitive.mutex, INFINITE) == WAIT_FAILED) {
+			ERROR_WIN32(L"WaitForSingleObject", GetLastError());
+			goto freeBuffers;
+		}
+
+		if(!(parameter->sensitive.flags & 1)) {
+			goto releaseMutex;
+		}
+	releaseMutex:
+		if(!ReleaseMutex(parameter->sensitive.mutex)) {
+			ERROR_WIN32(L"ReleaseMutex", GetLastError());
+			goto freeBuffers;
+		}
+	}
+
+	/*int width = GetSystemMetrics(SM_CXSCREEN);
 	int height = GetSystemMetrics(SM_CYSCREEN);
 	size_t baseSize = width * height;
 	size_t bufferSize = baseSize * 4;
@@ -34,14 +55,24 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 		if(!HRSPClientEncodeCurrentFrame(parameter, width, height, screenshotBuffer, qoiBuffer, previousBuffer)) {
 			goto freePreviousBuffer;
 		}
-	}
+	}*/
 
 	returnValue = 0;
-freePreviousBuffer:
-	LocalFree(previousBuffer);
-freeQOIBuffer:
-	LocalFree(qoiBuffer);
-freeScreenshotBuffer:
-	LocalFree(screenshotBuffer);
+freeBuffers:
+	if(previousBuffer && LocalFree(previousBuffer)) {
+		ERROR_WIN32(L"LocalFree", GetLastError());
+		returnValue = FALSE;
+	}
+
+	if(qoiBuffer && LocalFree(qoiBuffer)) {
+		ERROR_WIN32(L"LocalFree", GetLastError());
+		returnValue = FALSE;
+	}
+
+	if(screenshotBuffer && LocalFree(screenshotBuffer)) {
+		ERROR_WIN32(L"LocalFree", GetLastError());
+		return FALSE;
+	}
+
 	return returnValue;
 }

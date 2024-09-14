@@ -154,7 +154,13 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 		}
 	}
 
-	if(stream->streamError) {
+	if(stream->error.hasError) {
+		if(error) {
+			error->type = HRSP_CLIENT_ERROR_TYPE_CLIENT;
+			error->function = stream->error.function;
+			error->code = stream->error.code;
+		}
+
 		goto closeStreamThread;
 	}
 
