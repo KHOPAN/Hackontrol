@@ -225,7 +225,7 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 		BOOL boundaryDifference = (parameter->sensitive.flags >> 1) & 1;
 		BOOL colorDifference = (parameter->sensitive.flags >> 2) & 1;
 
-		if(parameter->sensitive.flags & 0b1000) {
+		if(streamEnabled && parameter->sensitive.flags & 0b1000) {
 			boundaryDifference = TRUE;
 			colorDifference = TRUE;
 			parameter->sensitive.flags &= 0b11110111;
@@ -239,6 +239,19 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 		if(!streamEnabled) {
 			continue;
 		}
+
+		UINT width = GetSystemMetrics(SM_CXSCREEN);
+		UINT height = GetSystemMetrics(SM_CYSCREEN);
+		HDC context = GetDC(NULL);
+		BITMAPINFO information = {0};
+		information.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+		information.bmiHeader.biWidth = width;
+		information.bmiHeader.biHeight = height;
+		information.bmiHeader.biPlanes = 1;
+		information.bmiHeader.biBitCount = 32;
+		information.bmiHeader.biCompression = BI_RGB;
+		void* result;
+		CreateDIBSection(context, &information, DIB_RGB_COLORS, &result, NULL, 0);
 	}
 
 	return 0;
