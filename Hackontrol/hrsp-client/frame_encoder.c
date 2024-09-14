@@ -8,24 +8,20 @@
 #define QOI_OP_LUMA  0b10000000
 #define QOI_OP_RUN   0b11000000
 
-SOCKET clientHRSPSocket;
-PHRSPDATA clientHRSPData;
-BYTE clientHRSPStreamFlags;
-
-BOOL HRSPClientEncodeCurrentFrame(const int width, const int height, const PBYTE screenshotBuffer, const PBYTE qoiBuffer, const PBYTE previousBuffer) {
+BOOL HRSPClientEncodeCurrentFrame(const PHRSPCLIENTSTREAMPARAMETER parameter, const int width, const int height, const PBYTE screenshotBuffer, const PBYTE qoiBuffer, const PBYTE previousBuffer) {
 	HRSPPACKET packet;
 
-	if(!(clientHRSPStreamFlags & 1)) {
+	if(!(parameter->flags & 1)) {
 		return TRUE;
 	}
 
-	BOOL boundaryDifference = (clientHRSPStreamFlags >> 1) & 1;
-	BOOL colorDifference = (clientHRSPStreamFlags >> 2) & 1;
+	BOOL boundaryDifference = (parameter->flags >> 1) & 1;
+	BOOL colorDifference = (parameter->flags >> 2) & 1;
 
-	if(clientHRSPStreamFlags & 0b1000) {
+	if(parameter->flags & 0b1000) {
 		boundaryDifference = TRUE;
 		colorDifference = TRUE;
-		clientHRSPStreamFlags &= 0b11110111;
+		parameter->flags &= 0b11110111;
 	}
 
 	HDC context = GetDC(NULL);
@@ -205,7 +201,7 @@ sendFrame:
 	packet.type = HRSP_REMOTE_CLIENT_STREAM_FRAME_PACKET;
 	packet.data = qoiBuffer;
 
-	if(!HRSPSendPacket(clientHRSPSocket, clientHRSPData, &packet, NULL)) {
+	if(!HRSPSendPacket(parameter->socket, &parameter->data, &packet, NULL)) {
 		goto cleanup;
 	}
 

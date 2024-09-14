@@ -29,7 +29,7 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 	}
 
 	while(parameter->running) {
-		if(!HRSPClientEncodeCurrentFrame(width, height, screenshotBuffer, qoiBuffer, previousBuffer)) {
+		if(!HRSPClientEncodeCurrentFrame(parameter, width, height, screenshotBuffer, qoiBuffer, previousBuffer)) {
 			goto freePreviousBuffer;
 		}
 	}
