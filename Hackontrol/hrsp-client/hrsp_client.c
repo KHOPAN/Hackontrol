@@ -113,13 +113,27 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 	}
 
 	while(HRSPReceivePacket(stream->socket, &stream->data, &packet, &protocolError)) {
-		switch(packet.type) {
-		case HRSP_REMOTE_SERVER_STREAM_CODE_PACKET:
-			stream->flags = *packet.data;
-			break;
+		if(packet.type != HRSP_REMOTE_SERVER_STREAM_CODE_PACKET) {
+			HRSPFreePacket(&packet, NULL);
+			continue;
 		}
 
-		HRSPFreePacket(&packet, NULL);
+		if(WaitForSingleObject(stream->sensitive.mutex, INFINITE) == WAIT_FAILED) {
+			ERROR_WIN32(L"WaitForSingleObject", GetLastError());
+			goto closeStreamThread;
+		}
+
+		stream->sensitive.flags = *packet.data;
+
+		if(!ReleaseMutex(stream->sensitive.mutex)) {
+			ERROR_WIN32(L"ReleaseMutex", GetLastError());
+			goto closeStreamThread;
+		}
+
+		if(!HRSPFreePacket(&packet, &protocolError)) {
+			ERROR_HRSP;
+			goto closeStreamThread;
+		}
 	}
 
 	if(!protocolError.code || (!protocolError.win32 && protocolError.code == HRSP_ERROR_CONNECTION_CLOSED) || (protocolError.win32 && protocolError.code == WSAECONNRESET)) {
