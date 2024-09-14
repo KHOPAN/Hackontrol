@@ -215,7 +215,34 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 		return 1;
 	}
 
-	UINT width;
+	while(parameter->running) {
+		if(WaitForSingleObject(parameter->sensitive.mutex, INFINITE) == WAIT_FAILED) {
+			ERROR_WIN32(L"WaitForSingleObject", GetLastError());
+			return 1;
+		}
+
+		BOOL streamEnabled = parameter->sensitive.flags & 1;
+		BOOL boundaryDifference = (parameter->sensitive.flags >> 1) & 1;
+		BOOL colorDifference = (parameter->sensitive.flags >> 2) & 1;
+
+		if(parameter->sensitive.flags & 0b1000) {
+			boundaryDifference = TRUE;
+			colorDifference = TRUE;
+			parameter->sensitive.flags &= 0b11110111;
+		}
+
+		if(!ReleaseMutex(parameter->sensitive.mutex)) {
+			ERROR_WIN32(L"ReleaseMutex", GetLastError());
+			return 1;
+		}
+
+		if(!streamEnabled) {
+			continue;
+		}
+	}
+
+	return 0;
+	/*UINT width;
 	UINT height;
 	UINT oldWidth = 0;
 	UINT oldHeight = 0;
@@ -323,5 +350,5 @@ freeBuffers:
 		return FALSE;
 	}
 
-	return returnValue;
+	return returnValue;*/
 }
