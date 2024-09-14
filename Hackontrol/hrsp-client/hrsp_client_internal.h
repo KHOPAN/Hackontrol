@@ -1,9 +1,11 @@
 #pragma once
 
-#include <Windows.h>
+#include <hrsp.h>
 
 typedef struct {
-	BYTE placeholder;
+	SOCKET socket;
+	HRSPDATA data;
+	BYTE flags;
 } HRSPCLIENTSTREAMPARAMETER, *PHRSPCLIENTSTREAMPARAMETER;
 
 DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter);
