@@ -19,13 +19,20 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 	}
 
 	memset(stream, 0, sizeof(HRSPCLIENTSTREAMPARAMETER));
+	stream->sensitive.mutex = CreateMutexExW(NULL, NULL, 0, SYNCHRONIZE | DELETE);
+	BOOL returnValue = FALSE;
+
+	if(!stream->sensitive.mutex) {
+		ERROR_WIN32(L"CreateMutexExW", GetLastError());
+		goto freeStream;
+	}
+
 	WSADATA data;
 	int status = WSAStartup(MAKEWORD(2, 2), &data);
-	BOOL returnValue = FALSE;
 
 	if(status) {
 		ERROR_WIN32(L"WSAStartup", status);
-		goto freeStream;
+		goto closeSensitiveMutex;
 	}
 
 	ADDRINFOA hints = {0};
@@ -141,6 +148,11 @@ closeSocket:
 cleanupSocket:
 	if(WSACleanup() == SOCKET_ERROR) {
 		ERROR_WIN32(L"WSACleanup", WSAGetLastError());
+		returnValue = FALSE;
+	}
+closeSensitiveMutex:
+	if(!CloseHandle(stream->sensitive.mutex)) {
+		ERROR_WIN32(L"CloseHandle", GetLastError());
 		returnValue = FALSE;
 	}
 freeStream:

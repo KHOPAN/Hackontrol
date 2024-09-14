@@ -3,10 +3,15 @@
 #include <hrsp.h>
 
 typedef struct {
+	HANDLE mutex;
+	BYTE flags;
+} HRSPCLIENTSTREAMSENSITIVE;
+
+typedef struct {
 	SOCKET socket;
 	HRSPDATA data;
-	BYTE flags;
 	BOOL running;
+	HRSPCLIENTSTREAMSENSITIVE sensitive;
 } HRSPCLIENTSTREAMPARAMETER, *PHRSPCLIENTSTREAMPARAMETER;
 
 DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter);
