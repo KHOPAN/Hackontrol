@@ -21,9 +21,6 @@
     <ClCompile Include="error_code.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="frame_encoder.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="thread_stream.c">
       <Filter>Source Files</Filter>
     </ClCompile>
