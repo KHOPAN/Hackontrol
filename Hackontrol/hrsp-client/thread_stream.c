@@ -28,7 +28,7 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 		goto freeQOIBuffer;
 	}
 
-	while(TRUE) {
+	while(parameter->running) {
 		if(!HRSPClientEncodeCurrentFrame(width, height, screenshotBuffer, qoiBuffer, previousBuffer)) {
 			goto freePreviousBuffer;
 		}

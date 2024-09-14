@@ -97,6 +97,7 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 		goto closeSocket;
 	}
 
+	stream->running = TRUE;
 	HANDLE streamThread = CreateThread(NULL, 0, HRSPClientStreamThread, NULL, 0, NULL);
 
 	if(!streamThread) {
@@ -121,6 +122,8 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 
 	ERROR_HRSP;
 closeStreamThread:
+	stream->running = FALSE;
+
 	if(WaitForSingleObject(streamThread, INFINITE) == WAIT_FAILED) {
 		ERROR_WIN32(L"WaitForSingleObject", GetLastError());
 		returnValue = FALSE;
