@@ -1,8 +1,4 @@
-#include <stdio.h>
 #include "hrsp_client_internal.h"
-
-extern BOOL clientHRSPIsRunning;
-extern SOCKET clientHRSPSocket;
 
 DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 	if(!parameter) {
@@ -32,7 +28,7 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 		goto freeQOIBuffer;
 	}
 
-	while(clientHRSPIsRunning) {
+	while(TRUE) {
 		if(!HRSPClientEncodeCurrentFrame(width, height, screenshotBuffer, qoiBuffer, previousBuffer)) {
 			goto freePreviousBuffer;
 		}

@@ -68,7 +68,7 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 
 	if(!HRSPClientHandshake(stream->socket, &stream->data, &protocolError)) {
 		ERROR_HRSP;
-		goto cleanupSocket;
+		goto closeSocket;
 	}
 
 	DWORD size = UNLEN + 1;
@@ -76,13 +76,13 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 
 	if(!buffer) {
 		ERROR_WIN32(L"LocalAlloc", GetLastError());
-		goto cleanupSocket;
+		goto closeSocket;
 	}
 
 	if(!GetUserNameA(buffer, &size)) {
 		ERROR_WIN32(L"GetUserNameA", GetLastError());
 		LocalFree(buffer);
-		goto cleanupSocket;
+		goto closeSocket;
 	}
 
 	HRSPPACKET packet;
@@ -94,14 +94,14 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 
 	if(!status) {
 		ERROR_HRSP;
-		goto cleanupSocket;
+		goto closeSocket;
 	}
 
 	HANDLE streamThread = CreateThread(NULL, 0, HRSPClientStreamThread, NULL, 0, NULL);
 
 	if(!streamThread) {
 		ERROR_WIN32(L"CreateThread", GetLastError());
-		goto cleanupSocket;
+		goto closeSocket;
 	}
 
 	while(HRSPReceivePacket(stream->socket, &stream->data, &packet, &protocolError)) {

@@ -8,9 +8,9 @@
 #define QOI_OP_LUMA  0b10000000
 #define QOI_OP_RUN   0b11000000
 
-extern SOCKET clientHRSPSocket;
-extern PHRSPDATA clientHRSPData;
-extern BYTE clientHRSPStreamFlags;
+SOCKET clientHRSPSocket;
+PHRSPDATA clientHRSPData;
+BYTE clientHRSPStreamFlags;
 
 BOOL HRSPClientEncodeCurrentFrame(const int width, const int height, const PBYTE screenshotBuffer, const PBYTE qoiBuffer, const PBYTE previousBuffer) {
 	HRSPPACKET packet;
