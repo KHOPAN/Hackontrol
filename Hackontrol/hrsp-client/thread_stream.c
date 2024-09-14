@@ -4,7 +4,11 @@
 extern BOOL clientHRSPIsRunning;
 extern SOCKET clientHRSPSocket;
 
-DWORD WINAPI HRSPClientStreamThread(_In_ LPVOID parameter) {
+DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
+	if(!parameter) {
+		return 1;
+	}
+
 	int width = GetSystemMetrics(SM_CXSCREEN);
 	int height = GetSystemMetrics(SM_CYSCREEN);
 	size_t baseSize = width * height;
