@@ -3,7 +3,6 @@
 #include <hrsp_handshake.h>
 #include <hrsp_packet.h>
 #include <hrsp_remote.h>
-#include "hrsp_client.h"
 #include "hrsp_client_internal.h"
 
 #define ERROR_HRSP if(error){error->type=protocolError.win32?HRSP_CLIENT_ERROR_TYPE_WIN32:HRSP_CLIENT_ERROR_TYPE_HRSP;error->function=protocolError.function;error->code=protocolError.code;}
@@ -154,11 +153,9 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 		}
 	}
 
-	if(stream->error.hasError) {
+	if(stream->hasError) {
 		if(error) {
-			error->type = HRSP_CLIENT_ERROR_TYPE_CLIENT;
-			error->function = stream->error.function;
-			error->code = stream->error.code;
+			(*error) = stream->error;
 		}
 
 		goto closeStreamThread;

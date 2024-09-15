@@ -1,6 +1,7 @@
 #pragma once
 
 #include <hrsp.h>
+#include "hrsp_client.h"
 
 typedef struct {
 	HANDLE mutex;
@@ -8,14 +9,9 @@ typedef struct {
 } HRSPCLIENTSTREAMSENSITIVE;
 
 typedef struct {
-	BOOL hasError;
-	LPWSTR function;
-	DWORD code;
-} HRSPCLIENTSTREAMERROR;
-
-typedef struct {
 	HRSPCLIENTSTREAMSENSITIVE sensitive;
-	HRSPCLIENTSTREAMERROR error;
+	BOOL hasError;
+	HRSPCLIENTERROR error;
 	SOCKET socket;
 	HRSPDATA data;
 	BOOL running;

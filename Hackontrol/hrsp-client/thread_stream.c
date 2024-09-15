@@ -1,9 +1,8 @@
-#include <stdio.h>
 #include <hrsp_packet.h>
 #include <hrsp_remote.h>
 #include "hrsp_client_internal.h"
 
-#define ERROR_WIN32(functionName, errorCode) parameter->error.hasError=TRUE;parameter->error.function=functionName;parameter->error.code=errorCode;closesocket(parameter->socket)
+#define ERROR_WIN32(functionName, errorCode) if(!parameter->hasError){parameter->hasError=TRUE;parameter->error.type=HRSP_CLIENT_ERROR_TYPE_WIN32;parameter->error.function=functionName;parameter->error.code=errorCode;}
 
 #define QOI_OP_RGB   0b11111110
 #define QOI_OP_INDEX 0b00000000
@@ -146,7 +145,7 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 	while(parameter->running) {
 		if(WaitForSingleObject(parameter->sensitive.mutex, INFINITE) == WAIT_FAILED) {
 			ERROR_WIN32(L"WaitForSingleObject", GetLastError());
-			return 1;
+			break;
 		}
 
 		BOOL streamEnabled = parameter->sensitive.flags & 1;
@@ -185,7 +184,7 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 
 		if(!buffer) {
 			ERROR_WIN32(L"LocalAlloc", GetLastError());
-			return 1;
+			break;
 		}
 
 		if(context) {
@@ -196,7 +195,7 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 
 		if(!context) {
 			ERROR_WIN32(L"GetDC", ERROR_FUNCTION_FAILED);
-			goto errorFreeBuffer;
+			break;
 		}
 
 		if(memoryContext) {
@@ -207,7 +206,7 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 
 		if(!memoryContext) {
 			ERROR_WIN32(L"CreateCompatibleDC", ERROR_FUNCTION_FAILED);
-			goto errorReleaseContext;
+			break;
 		}
 
 		if(bitmap) {
@@ -218,18 +217,10 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 
 		if(!bitmap) {
 			ERROR_WIN32(L"CreateCompatibleBitmap", ERROR_FUNCTION_FAILED);
-			goto errorDeleteMemoryContext;
+			break;
 		}
 
 		SelectObject(memoryContext, bitmap);
-		goto capture;
-	errorDeleteMemoryContext:
-		DeleteDC(memoryContext);
-	errorReleaseContext:
-		ReleaseDC(NULL, context);
-	errorFreeBuffer:
-		LocalFree(buffer);
-		return 1;
 	capture:
 		BitBlt(memoryContext, 0, 0, width, height, context, 0, 0, SRCCOPY);
 		BITMAPINFO information = {0};
@@ -242,11 +233,7 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 
 		if(!(streamEnabled = GetDIBits(memoryContext, bitmap, 0, height, buffer, &information, DIB_RGB_COLORS))) {
 			ERROR_WIN32(L"GetDIBits", streamEnabled == ERROR_INVALID_PARAMETER ? ERROR_INVALID_PARAMETER : ERROR_FUNCTION_FAILED);
-			DeleteObject(bitmap);
-			DeleteDC(memoryContext);
-			ReleaseDC(NULL, context);
-			LocalFree(buffer);
-			return 1;
+			break;
 		}
 
 		size_t pointer = offsetEncoded;
@@ -301,15 +288,11 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 		HRSPERROR protocolError;
 
 		if(!HRSPSendPacket(parameter->socket, &parameter->data, &packet, &protocolError)) {
-			DeleteObject(bitmap);
-			DeleteDC(memoryContext);
-			ReleaseDC(NULL, context);
-			LocalFree(buffer);
-			parameter->error.hasError = TRUE;
-			parameter->error.function = (LPWSTR) protocolError.function;
+			parameter->hasError = TRUE;
+			parameter->error.type = protocolError.win32 ? HRSP_CLIENT_ERROR_TYPE_WIN32 : HRSP_CLIENT_ERROR_TYPE_HRSP;
+			parameter->error.function = protocolError.function;
 			parameter->error.code = protocolError.code;
-			closesocket(parameter->socket);
-			return 1;
+			break;
 		}
 	}
 
@@ -327,6 +310,11 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 
 	if(buffer) {
 		LocalFree(buffer);
+	}
+
+	if(parameter->hasError) {
+		closesocket(parameter->socket);
+		return 1;
 	}
 
 	return 0;
