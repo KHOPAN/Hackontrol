@@ -134,6 +134,8 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 
 	UINT oldWidth = 0;
 	UINT oldHeight = 0;
+	ULONG offsetEncoded = 0;
+	ULONG offsetPrevious = 0;
 	PBYTE buffer = NULL;
 	HDC context = NULL;
 	HDC memoryContext = NULL;
@@ -169,8 +171,8 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 
 		oldWidth = width;
 		oldHeight = height;
-		ULONG offsetEncoded = width * height * 4;
-		ULONG offsetPrevious = offsetEncoded * 2;
+		offsetEncoded = width * height * 4;
+		offsetPrevious = offsetEncoded * 2;
 
 		if(buffer) {
 			LocalFree(buffer);
