@@ -65,31 +65,37 @@ int main(int argc, char** argv) {
 		goto releaseSurface;
 	}
 
-	ULONGLONG time = GetTickCount64();
-	result = device->lpVtbl->GetFrontBufferData(device, 0, surface);
+	while(TRUE) {
+		ULONGLONG time = GetTickCount64();
+		result = device->lpVtbl->GetFrontBufferData(device, 0, surface);
 
-	if(FAILED(result)) {
-		KHWIN32_ERROR_CONSOLE(KHHRESULT_DECODE(result), L"IDirect3DDevice9::GetFrontBufferData");
-		goto freeBuffer;
+		if(FAILED(result)) {
+			KHWIN32_ERROR_CONSOLE(KHHRESULT_DECODE(result), L"IDirect3DDevice9::GetFrontBufferData");
+			goto freeBuffer;
+		}
+
+		result = surface->lpVtbl->LockRect(surface, &bounds, NULL, 0);
+
+		if(FAILED(result)) {
+			KHWIN32_ERROR_CONSOLE(KHHRESULT_DECODE(result), L"IDirect3DSurface9::LockRect");
+			goto freeBuffer;
+		}
+
+		for(size_t i = 0; i < bounds.Pitch * mode.Height; i++) {
+			buffer[i] = ((PBYTE) bounds.pBits)[i];
+		}
+
+		result = surface->lpVtbl->UnlockRect(surface);
+
+		if(FAILED(result)) {
+			KHWIN32_ERROR_CONSOLE(KHHRESULT_DECODE(result), L"IDirect3DSurface9::UnlockRect");
+			goto freeBuffer;
+		}
+
+		time = GetTickCount64() - time;
+		printf("Elapsed: %llums (%f FPS)\n", time, 1000.0 / time);
 	}
 
-	result = surface->lpVtbl->LockRect(surface, &bounds, NULL, 0);
-
-	if(FAILED(result)) {
-		KHWIN32_ERROR_CONSOLE(KHHRESULT_DECODE(result), L"IDirect3DSurface9::LockRect");
-		goto freeBuffer;
-	}
-
-	memcpy(buffer, bounds.pBits, bounds.Pitch * mode.Height);
-	result = surface->lpVtbl->UnlockRect(surface);
-
-	if(FAILED(result)) {
-		KHWIN32_ERROR_CONSOLE(KHHRESULT_DECODE(result), L"IDirect3DSurface9::UnlockRect");
-		goto freeBuffer;
-	}
-
-	time = GetTickCount64() - time;
-	printf("Elapsed: %llums\n", time);
 	returnValue = 0;
 freeBuffer:
 	LocalFree(buffer);
