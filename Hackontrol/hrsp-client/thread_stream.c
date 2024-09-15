@@ -127,6 +127,49 @@ static void qoiEncode(const UINT startX, const UINT startY, const UINT endX, con
 	}
 }
 
+static void drawCursor(const HDC context) {
+	CURSORINFO cursorInformation;
+	cursorInformation.cbSize = sizeof(CURSORINFO);
+
+	if(!GetCursorInfo(&cursorInformation) || cursorInformation.flags != CURSOR_SHOWING) {
+		return;
+	}
+
+	HICON icon = CopyIcon(cursorInformation.hCursor);
+
+	if(!icon) {
+		return;
+	}
+
+	ICONINFO iconInformation;
+
+	if(!GetIconInfo(icon, &iconInformation)) {
+		goto destroyIcon;
+	}
+
+	if(!iconInformation.hbmColor) {
+		goto deleteIconBitmap;
+	}
+
+	BITMAP bitmap;
+
+	if(!GetObjectW(iconInformation.hbmColor, sizeof(bitmap), &bitmap)) {
+		goto deleteIconBitmap;
+	}
+
+	if(!DrawIconEx(context, cursorInformation.ptScreenPos.x - iconInformation.xHotspot, cursorInformation.ptScreenPos.y - iconInformation.yHotspot, cursorInformation.hCursor, bitmap.bmWidth, bitmap.bmHeight, 0, NULL, DI_NORMAL)) {
+		goto deleteIconBitmap;
+	}
+deleteIconBitmap:
+	DeleteObject(iconInformation.hbmMask);
+
+	if(iconInformation.hbmColor) {
+		DeleteObject(iconInformation.hbmColor);
+	}
+destroyIcon:
+	DestroyIcon(icon);
+}
+
 DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 	if(!parameter) {
 		return 1;
@@ -221,6 +264,7 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 	captureFrame:
 		bitmap = SelectObject(memoryContext, bitmap);
 		streamEnabled = BitBlt(memoryContext, 0, 0, width, height, context, 0, 0, SRCCOPY);
+		drawCursor(memoryContext);
 		bitmap = SelectObject(memoryContext, bitmap);
 
 		if(!streamEnabled) {
