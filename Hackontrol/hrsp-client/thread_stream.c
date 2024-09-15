@@ -10,6 +10,7 @@
 #define QOI_OP_LUMA  0b10000000
 #define QOI_OP_RUN   0b11000000
 
+#pragma warning(disable: 6385)
 #pragma warning(disable: 6386)
 
 static BOOL sendFrame(const PHRSPCLIENTSTREAMPARAMETER parameter, const int width, const int height, const PBYTE screenshotBuffer, const PBYTE qoiBuffer, const PBYTE previousBuffer) {
@@ -295,7 +296,7 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 		DeleteDC(memoryContext);
 		ReleaseDC(NULL, context);
 		size_t pointer = offsetEncoded;
-		buffer[pointer++] = ((colorDifference & 1) << 1) | (boundaryDifference & 1);
+		buffer[pointer++] = 0b11;// ((colorDifference & 1) << 1) | (boundaryDifference & 1);
 		buffer[pointer++] = (width >> 24) & 0xFF;
 		buffer[pointer++] = (width >> 16) & 0xFF;
 		buffer[pointer++] = (width >> 8) & 0xFF;
@@ -304,6 +305,32 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 		buffer[pointer++] = (height >> 16) & 0xFF;
 		buffer[pointer++] = (height >> 8) & 0xFF;
 		buffer[pointer++] = height & 0xFF;
+
+		for(UINT y = 0; y < height; y++) {
+			for(UINT x = 0; x < width; x++) {
+				ULONG baseIndex = (height - y - 1) * width + x;
+				ULONG screenshotIndex = baseIndex * 4;
+				ULONG previousIndex = baseIndex * 3;
+				buffer[pointer++] = /*previousBuffer[previousIndex] =*/ buffer[screenshotIndex + 2];
+				buffer[pointer++] = /*previousBuffer[previousIndex + 1] =*/ buffer[screenshotIndex + 1];
+				buffer[pointer++] = /*previousBuffer[previousIndex + 2] =*/ buffer[screenshotIndex];
+			}
+		}
+
+		HRSPPACKET packet;
+		packet.size = (int) (pointer - offsetEncoded);
+		packet.type = HRSP_REMOTE_CLIENT_STREAM_FRAME_PACKET;
+		packet.data = buffer + offsetEncoded;
+		HRSPERROR protocolError;
+
+		if(!HRSPSendPacket(parameter->socket, &parameter->data, &packet, &protocolError)) {
+			LocalFree(buffer);
+			parameter->error.hasError = TRUE;
+			parameter->error.function = (LPWSTR) protocolError.function;
+			parameter->error.code = protocolError.code;
+			closesocket(parameter->socket);
+			return 1;
+		}
 	}
 
 	if(buffer && LocalFree(buffer)) {
