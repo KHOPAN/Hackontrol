@@ -247,7 +247,7 @@ static void qoiEncode(const UINT startX, const UINT startY, const UINT endX, con
 			previousBuffer[previousIndex + 1] = buffer[screenshotIndex + 1];
 			previousBuffer[previousIndex + 2] = buffer[screenshotIndex];
 		colorNormalized:
-			if(previousRed != red || previousGreen == green || previousBlue == blue) goto differentPixel;
+			if(previousRed != red || previousGreen != green || previousBlue != blue) goto differentPixel;
 			runLength++;
 			if(runLength != 62) continue;
 			buffer[(*pointer)++] = QOI_OP_RUN | (runLength - 1);
@@ -261,10 +261,7 @@ static void qoiEncode(const UINT startX, const UINT startY, const UINT endX, con
 			indexPosition = (red * 3 + green * 5 + blue * 7 + 0xFF * 11) & 0b111111;
 			if(seenRed[indexPosition] != red || seenGreen[indexPosition] != green || seenBlue[indexPosition] != blue) goto notInIndexTable;
 			buffer[(*pointer)++] = QOI_OP_INDEX | indexPosition;
-			previousRed = red;
-			previousGreen = green;
-			previousBlue = blue;
-			continue;
+			goto setPrevious;
 		notInIndexTable:
 			seenRed[indexPosition] = red;
 			seenGreen[indexPosition] = green;
