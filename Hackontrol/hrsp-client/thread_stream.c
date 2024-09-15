@@ -138,7 +138,10 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 	size_t offsetEncoded = 0;
 	size_t offsetPrevious = 0;
 	PBYTE buffer = NULL;
-	HDC context;
+	HDC context = NULL;
+	HDC memoryContext = NULL;
+	HBITMAP bitmap = NULL;
+	HBITMAP oldBitmap;
 
 	while(parameter->running) {
 		if(WaitForSingleObject(parameter->sensitive.mutex, INFINITE) == WAIT_FAILED) {
@@ -188,13 +191,15 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 			ERROR_WIN32(L"LocalAlloc", GetLastError());
 			return 1;
 		}
-	capture:
+
 		context = GetDC(NULL);
-		HDC memoryContext = CreateCompatibleDC(context);
-		HBITMAP bitmap = CreateCompatibleBitmap(context, width, height);
-		HBITMAP oldBitmap = SelectObject(memoryContext, bitmap);
+		memoryContext = CreateCompatibleDC(context);
+		bitmap = CreateCompatibleBitmap(context, width, height);
+		SelectObject(memoryContext, bitmap);
+	capture:
+		//oldBitmap = SelectObject(memoryContext, bitmap);
 		BitBlt(memoryContext, 0, 0, width, height, context, 0, 0, SRCCOPY);
-		bitmap = SelectObject(memoryContext, oldBitmap);
+		//bitmap = SelectObject(memoryContext, oldBitmap);
 		BITMAPINFO information = {0};
 		information.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 		information.bmiHeader.biWidth = width;
@@ -209,9 +214,9 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 			return 1;
 		}
 
-		DeleteObject(bitmap);
-		DeleteDC(memoryContext);
-		ReleaseDC(NULL, context);
+		//DeleteObject(bitmap);
+		//DeleteDC(memoryContext);
+		//ReleaseDC(NULL, context);
 		size_t pointer = offsetEncoded;
 		buffer[pointer++] = ((colorDifference & 1) << 1) | (boundaryDifference & 1);
 		buffer[pointer++] = (width >> 24) & 0xFF;
