@@ -229,6 +229,7 @@ static void qoiEncode(const UINT startX, const UINT startY, const UINT endX, con
 	BYTE previousGreen = 0;
 	BYTE previousBlue = 0;
 	BYTE runLength = 0;
+	BYTE indexPosition;
 
 	for(UINT y = startY; y <= endY; y++) {
 		for(x = startX; x <= endX; x++) {
@@ -238,66 +239,56 @@ static void qoiEncode(const UINT startX, const UINT startY, const UINT endX, con
 			BYTE red = buffer[screenshotIndex + 2];
 			BYTE green = buffer[screenshotIndex + 1];
 			BYTE blue = buffer[screenshotIndex];
-
-			if(colorDifference) {
-				red = previousBuffer[previousIndex] - buffer[screenshotIndex + 2];
-				green = previousBuffer[previousIndex + 1] - buffer[screenshotIndex + 1];
-				blue = previousBuffer[previousIndex + 2] - buffer[screenshotIndex];
-				previousBuffer[previousIndex] = buffer[screenshotIndex + 2];
-				previousBuffer[previousIndex + 1] = buffer[screenshotIndex + 1];
-				previousBuffer[previousIndex + 2] = buffer[screenshotIndex];
-			}
-
-			if(red == previousRed && green == previousGreen && blue == previousBlue) {
-				runLength++;
-
-				if(runLength == 62) {
-					buffer[(*pointer)++] = QOI_OP_RUN | (runLength - 1);
-					runLength = 0;
-				}
-
-				continue;
-			}
-
-			if(runLength > 0) {
-				buffer[(*pointer)++] = QOI_OP_RUN | ((runLength - 1) & 0b111111);
-				runLength = 0;
-			}
-
-			BYTE indexPosition = (red * 3 + green * 5 + blue * 7 + 0xFF * 11) & 0b111111;
-
-			if(red == seenRed[indexPosition] && green == seenGreen[indexPosition] && blue == seenBlue[indexPosition]) {
-				buffer[(*pointer)++] = QOI_OP_INDEX | indexPosition;
-				previousRed = red;
-				previousGreen = green;
-				previousBlue = blue;
-				continue;
-			}
-
+			if(!colorDifference) goto colorNormalized;
+			red = previousBuffer[previousIndex] - buffer[screenshotIndex + 2];
+			green = previousBuffer[previousIndex + 1] - buffer[screenshotIndex + 1];
+			blue = previousBuffer[previousIndex + 2] - buffer[screenshotIndex];
+			previousBuffer[previousIndex] = buffer[screenshotIndex + 2];
+			previousBuffer[previousIndex + 1] = buffer[screenshotIndex + 1];
+			previousBuffer[previousIndex + 2] = buffer[screenshotIndex];
+		colorNormalized:
+			if(previousRed != red || previousGreen == green || previousBlue == blue) goto differentPixel;
+			runLength++;
+			if(runLength != 62) continue;
+			buffer[(*pointer)++] = QOI_OP_RUN | (runLength - 1);
+			runLength = 0;
+			continue;
+		differentPixel:
+			if(runLength < 1) goto zeroRunLength;
+			buffer[(*pointer)++] = QOI_OP_RUN | ((runLength - 1) & 0b111111);
+			runLength = 0;
+		zeroRunLength:
+			indexPosition = (red * 3 + green * 5 + blue * 7 + 0xFF * 11) & 0b111111;
+			if(seenRed[indexPosition] != red || seenGreen[indexPosition] != green || seenBlue[indexPosition] != blue) goto notInIndexTable;
+			buffer[(*pointer)++] = QOI_OP_INDEX | indexPosition;
+			previousRed = red;
+			previousGreen = green;
+			previousBlue = blue;
+			continue;
+		notInIndexTable:
 			seenRed[indexPosition] = red;
 			seenGreen[indexPosition] = green;
 			seenBlue[indexPosition] = blue;
 			char differenceRed = red - previousRed;
 			char differenceGreen = green - previousGreen;
 			char differenceBlue = blue - previousBlue;
-
-			if(differenceRed > -3 && differenceRed < 2 && differenceGreen > -3 && differenceGreen < 2 && differenceBlue > -3 && differenceBlue < 2) {
-				buffer[(*pointer)++] = QOI_OP_DIFF | ((differenceRed + 2) << 4) | ((differenceGreen + 2) << 2) | (differenceBlue + 2);
-			} else {
-				char relativeRed = differenceRed - differenceGreen;
-				char relativeBlue = differenceBlue - differenceGreen;
-
-				if(relativeRed > -9 && relativeRed < 8 && differenceGreen > -33 && differenceGreen < 32 && relativeBlue > -9 && relativeBlue < 8) {
-					buffer[(*pointer)++] = QOI_OP_LUMA | (differenceGreen + 32);
-					buffer[(*pointer)++] = ((relativeRed + 8) << 4) | (relativeBlue + 8);
-				} else {
-					buffer[(*pointer)++] = QOI_OP_RGB;
-					buffer[(*pointer)++] = red;
-					buffer[(*pointer)++] = green;
-					buffer[(*pointer)++] = blue;
-				}
-			}
-
+			if(differenceRed > -3 && differenceRed < 2 && differenceGreen > -3 && differenceGreen < 2 && differenceBlue > -3 && differenceBlue < 2) goto smallDifference;
+			differenceRed -= differenceGreen;
+			differenceBlue -= differenceGreen;
+			if(differenceRed > -9 && differenceRed < 8 && differenceGreen > -33 && differenceGreen < 32 && differenceBlue > -9 && differenceBlue < 8) goto largeDifference;
+			buffer[(*pointer)++] = QOI_OP_RGB;
+			buffer[(*pointer)++] = red;
+			buffer[(*pointer)++] = green;
+			buffer[(*pointer)++] = blue;
+			goto setPrevious;
+		largeDifference:
+			buffer[(*pointer)++] = QOI_OP_LUMA | (differenceGreen + 32);
+			buffer[(*pointer)++] = ((differenceRed + 8) << 4) | (differenceBlue + 8);
+			goto setPrevious;
+		smallDifference:
+			buffer[(*pointer)++] = QOI_OP_DIFF | ((differenceRed + 2) << 4) | ((differenceGreen + 2) << 2) | (differenceBlue + 2);
+			goto setPrevious;
+		setPrevious:
 			previousRed = red;
 			previousGreen = green;
 			previousBlue = blue;
