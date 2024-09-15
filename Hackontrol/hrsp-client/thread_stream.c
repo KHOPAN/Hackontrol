@@ -142,7 +142,6 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 	HDC context = NULL;
 	HDC memoryContext = NULL;
 	HBITMAP bitmap = NULL;
-	ULONGLONG time;
 
 	while(parameter->running) {
 		if(WaitForSingleObject(parameter->sensitive.mutex, INFINITE) == WAIT_FAILED) {
@@ -231,8 +230,7 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 	errorFreeBuffer:
 		LocalFree(buffer);
 		return 1;
-capture:
-		time = GetTickCount64();
+	capture:
 		BitBlt(memoryContext, 0, 0, width, height, context, 0, 0, SRCCOPY);
 		BITMAPINFO information = {0};
 		information.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -251,8 +249,6 @@ capture:
 			return 1;
 		}
 
-		time = GetTickCount64() - time;
-		printf("Framerate: %f FPS\n", 1000.0 / time);
 		size_t pointer = offsetEncoded;
 		buffer[pointer++] = ((colorDifference & 1) << 1) | (boundaryDifference & 1);
 		buffer[pointer++] = (width >> 24) & 0xFF;
