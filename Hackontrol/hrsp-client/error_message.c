@@ -8,7 +8,11 @@ LPWSTR HRSPClientGetErrorMessage(const LPCWSTR functionName, const PHRSPCLIENTER
 	}
 
 	if(error->type == HRSP_CLIENT_ERROR_TYPE_HRSP || error->type == HRSP_CLIENT_ERROR_TYPE_WIN32) {
-		return HRSPGetErrorMessage(functionName, error);
+		HRSPERROR protocolError;
+		protocolError.win32 = error->type == HRSP_CLIENT_ERROR_TYPE_WIN32;
+		protocolError.function = error->function;
+		protocolError.code = error->code;
+		return HRSPGetErrorMessage(functionName, &protocolError);
 	}
 
 	if(error->type != HRSP_CLIENT_ERROR_TYPE_CLIENT) {

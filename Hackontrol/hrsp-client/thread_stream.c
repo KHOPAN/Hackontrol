@@ -13,7 +13,7 @@
 #pragma warning(disable: 6386)
 #pragma warning(disable: 6387)
 
-static void rawEncode(const UINT width, const UINT height, const PBYTE buffer, const PBYTE previousBuffer, size_t* const pointer) {
+static void rawEncode(const UINT width, const UINT height, const PBYTE buffer, const PBYTE previousBuffer, const PULONG pointer) {
 	for(UINT y = 0; y < height; y++) {
 		for(UINT x = 0; x < width; x++) {
 			ULONG baseIndex = (height - y - 1) * width + x;
@@ -29,9 +29,9 @@ static void rawEncode(const UINT width, const UINT height, const PBYTE buffer, c
 static void findBoundary(const PUINT startX, const PUINT startY, const PUINT endX, const PUINT endY, const UINT width, const UINT height, const PBYTE buffer, const PBYTE previousBuffer) {
 	for(UINT y = 0; y < height; y++) {
 		for(UINT x = 0; x < width; x++) {
-			UINT baseIndex = (height - y - 1) * width + x;
-			UINT screenshotIndex = baseIndex * 4;
-			UINT previousIndex = baseIndex * 3;
+			ULONG baseIndex = (height - y - 1) * width + x;
+			ULONG screenshotIndex = baseIndex * 4;
+			ULONG previousIndex = baseIndex * 3;
 			if(buffer[screenshotIndex + 2] == previousBuffer[previousIndex] && buffer[screenshotIndex + 1] == previousBuffer[previousIndex + 1] && buffer[screenshotIndex] == previousBuffer[previousIndex + 2]) continue;
 			previousBuffer[previousIndex] = buffer[screenshotIndex + 2];
 			previousBuffer[previousIndex + 1] = buffer[screenshotIndex + 1];
@@ -44,7 +44,7 @@ static void findBoundary(const PUINT startX, const PUINT startY, const PUINT end
 	}
 }
 
-static void qoiEncode(const UINT startX, const UINT startY, const UINT endX, const UINT endY, const UINT width, const UINT height, const PBYTE buffer, const PBYTE previousBuffer, size_t* const pointer, const BOOL colorDifference) {
+static void qoiEncode(const UINT startX, const UINT startY, const UINT endX, const UINT endY, const UINT width, const UINT height, const PBYTE buffer, const PBYTE previousBuffer, const PULONG pointer, const BOOL colorDifference) {
 	BYTE seenRed[64];
 	BYTE seenGreen[64];
 	BYTE seenBlue[64];
@@ -127,49 +127,6 @@ static void qoiEncode(const UINT startX, const UINT startY, const UINT endX, con
 	}
 }
 
-static void drawCursor(const HDC context) {
-	CURSORINFO cursorInformation;
-	cursorInformation.cbSize = sizeof(CURSORINFO);
-
-	if(!GetCursorInfo(&cursorInformation) || cursorInformation.flags != CURSOR_SHOWING) {
-		return;
-	}
-
-	HICON icon = CopyIcon(cursorInformation.hCursor);
-
-	if(!icon) {
-		return;
-	}
-
-	ICONINFO iconInformation;
-
-	if(!GetIconInfo(icon, &iconInformation)) {
-		goto destroyIcon;
-	}
-
-	if(!iconInformation.hbmColor) {
-		goto deleteIconBitmap;
-	}
-
-	BITMAP bitmap;
-
-	if(!GetObjectW(iconInformation.hbmColor, sizeof(bitmap), &bitmap)) {
-		goto deleteIconBitmap;
-	}
-
-	if(!DrawIconEx(context, cursorInformation.ptScreenPos.x - iconInformation.xHotspot, cursorInformation.ptScreenPos.y - iconInformation.yHotspot, cursorInformation.hCursor, bitmap.bmWidth, bitmap.bmHeight, 0, NULL, DI_NORMAL)) {
-		goto deleteIconBitmap;
-	}
-deleteIconBitmap:
-	DeleteObject(iconInformation.hbmMask);
-
-	if(iconInformation.hbmColor) {
-		DeleteObject(iconInformation.hbmColor);
-	}
-destroyIcon:
-	DestroyIcon(icon);
-}
-
 DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 	if(!parameter) {
 		return 1;
@@ -177,35 +134,32 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 
 	UINT oldWidth = 0;
 	UINT oldHeight = 0;
-	size_t offsetEncoded = 0;
-	size_t offsetPrevious = 0;
 	PBYTE buffer = NULL;
 	HDC context = NULL;
 	HDC memoryContext = NULL;
 	HBITMAP bitmap = NULL;
 
 	while(parameter->running) {
-		if(WaitForSingleObject(parameter->sensitive.mutex, INFINITE) == WAIT_FAILED) {
+		if(WaitForSingleObject(parameter->mutex, INFINITE) == WAIT_FAILED) {
 			ERROR_WIN32(L"WaitForSingleObject", GetLastError());
 			break;
 		}
 
-		BOOL streamEnabled = parameter->sensitive.flags & 1;
-		BOOL boundaryDifference = (parameter->sensitive.flags >> 1) & 1;
-		BOOL colorDifference = (parameter->sensitive.flags >> 2) & 1;
-
-		if(streamEnabled && parameter->sensitive.flags & 0b1000) {
-			boundaryDifference = TRUE;
-			colorDifference = TRUE;
-			parameter->sensitive.flags &= 0b11110111;
-		}
-
-		ReleaseMutex(parameter->sensitive.mutex);
-
-		if(!streamEnabled) {
+		if(!(parameter->flags & 1)) {
+			ReleaseMutex(parameter->mutex);
 			continue;
 		}
 
+		BYTE boundaryDifference = (parameter->flags >> 1) & 1;
+		BYTE colorDifference = (parameter->flags >> 2) & 1;
+
+		if(parameter->flags & 0b1000) {
+			boundaryDifference = TRUE;
+			colorDifference = TRUE;
+			parameter->flags &= 0b11110111;
+		}
+
+		ReleaseMutex(parameter->mutex);
 		UINT width = GetSystemMetrics(SM_CXSCREEN);
 		UINT height = GetSystemMetrics(SM_CYSCREEN);
 
@@ -215,8 +169,8 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 
 		oldWidth = width;
 		oldHeight = height;
-		offsetEncoded = width * height * 4;
-		offsetPrevious = offsetEncoded * 2;
+		ULONG offsetEncoded = width * height * 4;
+		ULONG offsetPrevious = offsetEncoded * 2;
 
 		if(buffer) {
 			LocalFree(buffer);
@@ -263,15 +217,47 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 		}
 	captureFrame:
 		bitmap = SelectObject(memoryContext, bitmap);
-		streamEnabled = BitBlt(memoryContext, 0, 0, width, height, context, 0, 0, SRCCOPY);
-		drawCursor(memoryContext);
-		bitmap = SelectObject(memoryContext, bitmap);
 
-		if(!streamEnabled) {
+		if(!BitBlt(memoryContext, 0, 0, width, height, context, 0, 0, SRCCOPY)) {
 			ERROR_WIN32(L"BitBlt", GetLastError());
+			bitmap = SelectObject(memoryContext, bitmap);
 			break;
 		}
 
+		CURSORINFO cursorInformation;
+		cursorInformation.cbSize = sizeof(CURSORINFO);
+
+		if(!GetCursorInfo(&cursorInformation) || cursorInformation.flags != CURSOR_SHOWING) {
+			goto finishDrawCursor;
+		}
+
+		HICON icon = CopyIcon(cursorInformation.hCursor);
+
+		if(!icon) {
+			goto finishDrawCursor;
+		}
+
+		ICONINFO iconInformation;
+
+		if(!GetIconInfo(icon, &iconInformation)) {
+			DestroyIcon(icon);
+			goto finishDrawCursor;
+		}
+
+		if(iconInformation.hbmColor) {
+			BITMAP iconBitmap;
+			if(GetObjectW(iconInformation.hbmColor, sizeof(iconBitmap), &iconBitmap)) DrawIconEx(context, cursorInformation.ptScreenPos.x - iconInformation.xHotspot, cursorInformation.ptScreenPos.y - iconInformation.yHotspot, cursorInformation.hCursor, iconBitmap.bmWidth, iconBitmap.bmHeight, 0, NULL, DI_NORMAL);
+		}
+
+		DeleteObject(iconInformation.hbmMask);
+
+		if(iconInformation.hbmColor) {
+			DeleteObject(iconInformation.hbmColor);
+		}
+
+		DestroyIcon(icon);
+	finishDrawCursor:
+		bitmap = SelectObject(memoryContext, bitmap);
 		BITMAPINFO information = {0};
 		information.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 		information.bmiHeader.biWidth = width;
@@ -279,14 +265,13 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 		information.bmiHeader.biPlanes = 1;
 		information.bmiHeader.biBitCount = 32;
 		information.bmiHeader.biCompression = BI_RGB;
-		streamEnabled = GetDIBits(memoryContext, bitmap, 0, height, buffer, &information, DIB_RGB_COLORS);
 
-		if(!streamEnabled) {
-			ERROR_WIN32(L"GetDIBits", streamEnabled == ERROR_INVALID_PARAMETER ? ERROR_INVALID_PARAMETER : ERROR_FUNCTION_FAILED);
+		if(!GetDIBits(memoryContext, bitmap, 0, height, buffer, &information, DIB_RGB_COLORS)) {
+			ERROR_WIN32(L"GetDIBits", ERROR_FUNCTION_FAILED);
 			break;
 		}
 
-		size_t pointer = offsetEncoded;
+		ULONG pointer = offsetEncoded;
 		buffer[pointer++] = ((colorDifference & 1) << 1) | (boundaryDifference & 1);
 		buffer[pointer++] = (width >> 24) & 0xFF;
 		buffer[pointer++] = (width >> 16) & 0xFF;

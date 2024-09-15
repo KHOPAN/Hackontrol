@@ -50,12 +50,12 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 
 	stream->socket = INVALID_SOCKET;
 
-	for(PADDRINFOA pointer = result; pointer != NULL; pointer = pointer->ai_next) {
+	for(PADDRINFOW pointer = result; pointer != NULL; pointer = pointer->ai_next) {
 		stream->socket = socket(pointer->ai_family, pointer->ai_socktype, pointer->ai_protocol);
 
 		if(stream->socket == INVALID_SOCKET) {
 			ERROR_WIN32(L"socket", WSAGetLastError());
-			freeaddrinfo(result);
+			FreeAddrInfoW(result);
 			goto cleanupSocket;
 		}
 
@@ -71,7 +71,7 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 		stream->socket = INVALID_SOCKET;
 	}
 
-	freeaddrinfo(result);
+	FreeAddrInfoW(result);
 
 	if(stream->socket == INVALID_SOCKET) {
 		if(error) {
