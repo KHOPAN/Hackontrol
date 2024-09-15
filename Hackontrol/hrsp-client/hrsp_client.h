@@ -2,6 +2,8 @@
 
 #include <Windows.h>
 
+typedef void(__stdcall* HRSPCLIENTCALLBACK) (LPVOID parameter);
+
 typedef enum {
 	HRSP_CLIENT_ERROR_TYPE_CLIENT = 0,
 	HRSP_CLIENT_ERROR_TYPE_HRSP,
@@ -11,12 +13,12 @@ typedef enum {
 typedef enum {
 	HRSP_CLIENT_ERROR_SUCCESS = 0,
 	HRSP_CLIENT_ERROR_UNKNOWN_ERROR,
-	HRSP_CLIENT_ERROR_INVALID_FUNCTION_PARAMETER,
 	HRSP_CLIENT_ERROR_CANNOT_CONNECT_SERVER
 } HRSPCLIENTERRORCODE;
 
 typedef struct {
-	int placeholder;
+	LPVOID parameter;
+	HRSPCLIENTCALLBACK callbackConnected;
 } HRSPCLIENTINPUT, *PHRSPCLIENTINPUT;
 
 typedef struct {
