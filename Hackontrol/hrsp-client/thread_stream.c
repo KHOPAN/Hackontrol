@@ -10,7 +10,6 @@
 #define QOI_OP_LUMA  0b10000000
 #define QOI_OP_RUN   0b11000000
 
-#pragma warning(disable: 6385)
 #pragma warning(disable: 6386)
 #pragma warning(disable: 6387)
 
