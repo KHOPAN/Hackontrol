@@ -59,7 +59,9 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 			goto cleanupSocket;
 		}
 
-		if(connect(stream->socket, pointer->ai_addr, (int) pointer->ai_addrlen) != SOCKET_ERROR) break;
+		if(connect(stream->socket, pointer->ai_addr, (int) pointer->ai_addrlen) != SOCKET_ERROR) {
+			break;
+		}
 
 		if(closesocket(stream->socket) == SOCKET_ERROR) {
 			ERROR_WIN32(L"closesocket", WSAGetLastError());
@@ -98,11 +100,7 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 
 	if(!GetUserNameA(buffer, &size)) {
 		ERROR_WIN32(L"GetUserNameA", GetLastError());
-
-		if(LocalFree(buffer)) {
-			ERROR_WIN32(L"LocalFree", GetLastError());
-		}
-
+		LocalFree(buffer);
 		goto closeSocket;
 	}
 
@@ -111,11 +109,7 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 	packet.type = HRSP_REMOTE_CLIENT_INFORMATION_PACKET;
 	packet.data = buffer;
 	status = HRSPSendPacket(stream->socket, &stream->data, &packet, &protocolError);
-
-	if(LocalFree(buffer)) {
-		ERROR_WIN32(L"LocalFree", GetLastError());
-		goto closeSocket;
-	}
+	LocalFree(buffer);
 
 	if(!status) {
 		ERROR_HRSP;
@@ -132,7 +126,8 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 
 	while(HRSPReceivePacket(stream->socket, &stream->data, &packet, &protocolError)) {
 		if(packet.type != HRSP_REMOTE_SERVER_STREAM_CODE_PACKET) {
-			goto freePacket;
+			HRSPFreePacket(&packet, &protocolError);
+			continue;
 		}
 
 		if(WaitForSingleObject(stream->sensitive.mutex, INFINITE) == WAIT_FAILED) {
@@ -141,16 +136,8 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 		}
 
 		stream->sensitive.flags = *packet.data;
-
-		if(!ReleaseMutex(stream->sensitive.mutex)) {
-			ERROR_WIN32(L"ReleaseMutex", GetLastError());
-			goto closeStreamThread;
-		}
-	freePacket:
-		if(!HRSPFreePacket(&packet, &protocolError)) {
-			ERROR_HRSP;
-			goto closeStreamThread;
-		}
+		ReleaseMutex(stream->sensitive.mutex);
+		HRSPFreePacket(&packet, &protocolError);
 	}
 
 	if(stream->hasError) {
@@ -175,10 +162,7 @@ closeStreamThread:
 		returnValue = FALSE;
 	}
 
-	if(!CloseHandle(streamThread)) {
-		ERROR_WIN32(L"CloseHandle", GetLastError());
-		returnValue = FALSE;
-	}
+	CloseHandle(streamThread);
 closeSocket:
 	if(closesocket(stream->socket) == SOCKET_ERROR && (status = WSAGetLastError()) != WSAENOTSOCK) {
 		ERROR_WIN32(L"closesocket", status);
@@ -190,15 +174,8 @@ cleanupSocket:
 		returnValue = FALSE;
 	}
 closeSensitiveMutex:
-	if(!CloseHandle(stream->sensitive.mutex)) {
-		ERROR_WIN32(L"CloseHandle", GetLastError());
-		returnValue = FALSE;
-	}
+	CloseHandle(stream->sensitive.mutex);
 freeStream:
-	if(LocalFree(stream)) {
-		ERROR_WIN32(L"LocalFree", GetLastError());
-		return FALSE;
-	}
-
+	LocalFree(stream);
 	return returnValue;
 }

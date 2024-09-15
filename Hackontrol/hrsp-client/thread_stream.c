@@ -115,7 +115,6 @@ static void qoiEncode(const UINT startX, const UINT startY, const UINT endX, con
 			goto setPrevious;
 		smallDifference:
 			buffer[(*pointer)++] = QOI_OP_DIFF | ((differenceRed + 2) << 4) | ((differenceGreen + 2) << 2) | (differenceBlue + 2);
-			goto setPrevious;
 		setPrevious:
 			previousRed = red;
 			previousGreen = green;
