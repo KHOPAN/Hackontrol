@@ -5,10 +5,16 @@
 #include <hrsp_remote.h>
 #include "hrsp_client_internal.h"
 
+#define ERROR_CLIENT(errorCode) if(error){error->type=HRSP_CLIENT_ERROR_TYPE_CLIENT;error->function=L"HRSPClientConnectToServer";error->code=errorCode;}
 #define ERROR_HRSP if(error){error->type=protocolError.win32?HRSP_CLIENT_ERROR_TYPE_WIN32:HRSP_CLIENT_ERROR_TYPE_HRSP;error->function=protocolError.function;error->code=protocolError.code;}
 #define ERROR_WIN32(functionName, errorCode) if(error){error->type=HRSP_CLIENT_ERROR_TYPE_WIN32;error->function=functionName;error->code=errorCode;}
 
-BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const PHRSPCLIENTERROR error) {
+BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const PHRSPCLIENTINPUT input, const PHRSPCLIENTERROR error) {
+	if(!input) {
+		ERROR_CLIENT(HRSP_CLIENT_ERROR_INVALID_FUNCTION_PARAMETER);
+		return FALSE;
+	}
+
 	PHRSPCLIENTSTREAMPARAMETER stream = LocalAlloc(LMEM_FIXED, sizeof(HRSPCLIENTSTREAMPARAMETER));
 
 	if(!stream) {
@@ -74,12 +80,7 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 	FreeAddrInfoW(result);
 
 	if(stream->socket == INVALID_SOCKET) {
-		if(error) {
-			error->type = HRSP_CLIENT_ERROR_TYPE_CLIENT;
-			error->function = L"HRSPClientConnectToServer";
-			error->code = HRSP_CLIENT_ERROR_CANNOT_CONNECT_SERVER;
-		}
-
+		ERROR_CLIENT(HRSP_CLIENT_ERROR_CANNOT_CONNECT_SERVER);
 		goto cleanupSocket;
 	}
 

@@ -11,8 +11,13 @@ typedef enum {
 typedef enum {
 	HRSP_CLIENT_ERROR_SUCCESS = 0,
 	HRSP_CLIENT_ERROR_UNKNOWN_ERROR,
+	HRSP_CLIENT_ERROR_INVALID_FUNCTION_PARAMETER,
 	HRSP_CLIENT_ERROR_CANNOT_CONNECT_SERVER
 } HRSPCLIENTERRORCODE;
+
+typedef struct {
+	int placeholder;
+} HRSPCLIENTINPUT, *PHRSPCLIENTINPUT;
 
 typedef struct {
 	HRSPCLIENTERRORTYPE type;
@@ -26,7 +31,7 @@ extern "C" {
 
 LPWSTR HRSPClientGetErrorMessage(const LPCWSTR functionName, const PHRSPCLIENTERROR error);
 LPCWSTR HRSPClientGetErrorCode(const HRSPCLIENTERRORCODE code);
-BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const PHRSPCLIENTERROR error);
+BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const PHRSPCLIENTINPUT input, const PHRSPCLIENTERROR error);
 
 #ifdef __cplusplus
 }

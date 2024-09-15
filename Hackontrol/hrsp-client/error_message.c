@@ -24,8 +24,9 @@ LPWSTR HRSPClientGetErrorMessage(const LPCWSTR functionName, const PHRSPCLIENTER
 
 LPCWSTR HRSPClientGetErrorCode(const HRSPCLIENTERRORCODE code) {
 	switch(code) {
-	case HRSP_CLIENT_ERROR_SUCCESS:               return L"An operation was successful";
-	case HRSP_CLIENT_ERROR_CANNOT_CONNECT_SERVER: return L"Cannot connect to the server";
+	case HRSP_CLIENT_ERROR_SUCCESS:                    return L"An operation was successful";
+	case HRSP_CLIENT_ERROR_INVALID_FUNCTION_PARAMETER: return L"Invalid function parameter";
+	case HRSP_CLIENT_ERROR_CANNOT_CONNECT_SERVER:      return L"Cannot connect to the server";
 	}
 
 	return L"Unknown error code";
