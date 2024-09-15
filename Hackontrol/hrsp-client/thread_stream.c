@@ -12,6 +12,7 @@
 
 #pragma warning(disable: 6385)
 #pragma warning(disable: 6386)
+#pragma warning(disable: 6387)
 
 static void rawEncode(const UINT width, const UINT height, const PBYTE buffer, const PBYTE previousBuffer, size_t* const pointer) {
 	for(UINT y = 0; y < height; y++) {
@@ -168,7 +169,7 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 		UINT height = GetSystemMetrics(SM_CYSCREEN);
 
 		if(oldWidth == width && oldHeight == height && buffer && context && memoryContext && bitmap) {
-			goto capture;
+			goto captureFrame;
 		}
 
 		oldWidth = width;
@@ -219,10 +220,16 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 			ERROR_WIN32(L"CreateCompatibleBitmap", ERROR_FUNCTION_FAILED);
 			break;
 		}
+	captureFrame:
+		bitmap = SelectObject(memoryContext, bitmap);
+		streamEnabled = BitBlt(memoryContext, 0, 0, width, height, context, 0, 0, SRCCOPY);
+		bitmap = SelectObject(memoryContext, bitmap);
 
-		SelectObject(memoryContext, bitmap);
-	capture:
-		BitBlt(memoryContext, 0, 0, width, height, context, 0, 0, SRCCOPY);
+		if(!streamEnabled) {
+			ERROR_WIN32(L"BitBlt", GetLastError());
+			break;
+		}
+
 		BITMAPINFO information = {0};
 		information.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 		information.bmiHeader.biWidth = width;
@@ -230,8 +237,9 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 		information.bmiHeader.biPlanes = 1;
 		information.bmiHeader.biBitCount = 32;
 		information.bmiHeader.biCompression = BI_RGB;
+		streamEnabled = GetDIBits(memoryContext, bitmap, 0, height, buffer, &information, DIB_RGB_COLORS);
 
-		if(!(streamEnabled = GetDIBits(memoryContext, bitmap, 0, height, buffer, &information, DIB_RGB_COLORS))) {
+		if(!streamEnabled) {
 			ERROR_WIN32(L"GetDIBits", streamEnabled == ERROR_INVALID_PARAMETER ? ERROR_INVALID_PARAMETER : ERROR_FUNCTION_FAILED);
 			break;
 		}
@@ -251,37 +259,36 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 
 		if(colorDifference && boundaryDifference) {
 			rawEncode(width, height, buffer, previousBuffer, &pointer);
-			goto sendFrame;
+			goto framePacket;
 		}
 
-		if(!boundaryDifference) goto skipBoundaryFinder;
-		UINT startX = width - 1;
-		UINT startY = height - 1;
-		UINT endX = 0;
-		UINT endY = 0;
-		findBoundary(&startX, &startY, &endX, &endY, width, height, buffer, previousBuffer);
-		buffer[pointer++] = (startX >> 24) & 0xFF;
-		buffer[pointer++] = (startX >> 16) & 0xFF;
-		buffer[pointer++] = (startX >> 8) & 0xFF;
-		buffer[pointer++] = startX & 0xFF;
-		buffer[pointer++] = (startY >> 24) & 0xFF;
-		buffer[pointer++] = (startY >> 16) & 0xFF;
-		buffer[pointer++] = (startY >> 8) & 0xFF;
-		buffer[pointer++] = startY & 0xFF;
-		buffer[pointer++] = (endX >> 24) & 0xFF;
-		buffer[pointer++] = (endX >> 16) & 0xFF;
-		buffer[pointer++] = (endX >> 8) & 0xFF;
-		buffer[pointer++] = endX & 0xFF;
-		buffer[pointer++] = (endY >> 24) & 0xFF;
-		buffer[pointer++] = (endY >> 16) & 0xFF;
-		buffer[pointer++] = (endY >> 8) & 0xFF;
-		buffer[pointer++] = endY & 0xFF;
+		UINT startX = boundaryDifference ? width - 1 : 0;
+		UINT startY = boundaryDifference ? height - 1 : 0;
+		UINT endX = boundaryDifference ? 0 : width - 1;
+		UINT endY = boundaryDifference ? 0 : height - 1;
+
+		if(boundaryDifference) {
+			findBoundary(&startX, &startY, &endX, &endY, width, height, buffer, previousBuffer);
+			buffer[pointer++] = (startX >> 24) & 0xFF;
+			buffer[pointer++] = (startX >> 16) & 0xFF;
+			buffer[pointer++] = (startX >> 8) & 0xFF;
+			buffer[pointer++] = startX & 0xFF;
+			buffer[pointer++] = (startY >> 24) & 0xFF;
+			buffer[pointer++] = (startY >> 16) & 0xFF;
+			buffer[pointer++] = (startY >> 8) & 0xFF;
+			buffer[pointer++] = startY & 0xFF;
+			buffer[pointer++] = (endX >> 24) & 0xFF;
+			buffer[pointer++] = (endX >> 16) & 0xFF;
+			buffer[pointer++] = (endX >> 8) & 0xFF;
+			buffer[pointer++] = endX & 0xFF;
+			buffer[pointer++] = (endY >> 24) & 0xFF;
+			buffer[pointer++] = (endY >> 16) & 0xFF;
+			buffer[pointer++] = (endY >> 8) & 0xFF;
+			buffer[pointer++] = endY & 0xFF;
+		}
+
 		qoiEncode(startX, startY, endX, endY, width, height, buffer, previousBuffer, &pointer, colorDifference);
-		goto sendFrame;
-	skipBoundaryFinder:
-		qoiEncode(0, 0, width - 1, height - 1, width, height, buffer, previousBuffer, &pointer, colorDifference);
-		goto sendFrame;
-	sendFrame:
+	framePacket:
 		packet.size = (int) (pointer - offsetEncoded);
 		packet.type = HRSP_REMOTE_CLIENT_STREAM_FRAME_PACKET;
 		packet.data = buffer + offsetEncoded;
