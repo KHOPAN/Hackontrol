@@ -141,7 +141,6 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 	HDC context = NULL;
 	HDC memoryContext = NULL;
 	HBITMAP bitmap = NULL;
-	HBITMAP oldBitmap;
 
 	while(parameter->running) {
 		if(WaitForSingleObject(parameter->sensitive.mutex, INFINITE) == WAIT_FAILED) {
@@ -159,10 +158,7 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 			parameter->sensitive.flags &= 0b11110111;
 		}
 
-		if(!ReleaseMutex(parameter->sensitive.mutex)) {
-			ERROR_WIN32(L"ReleaseMutex", GetLastError());
-			return 1;
-		}
+		ReleaseMutex(parameter->sensitive.mutex);
 
 		if(!streamEnabled) {
 			continue;
@@ -171,20 +167,19 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 		UINT width = GetSystemMetrics(SM_CXSCREEN);
 		UINT height = GetSystemMetrics(SM_CYSCREEN);
 
-		if(oldWidth == width && oldHeight == height && buffer) {
+		if(oldWidth == width && oldHeight == height && buffer && context && memoryContext && bitmap) {
 			goto capture;
 		}
 
 		oldWidth = width;
 		oldHeight = height;
-
-		if(buffer && LocalFree(buffer)) {
-			ERROR_WIN32(L"LocalFree", GetLastError());
-			return 1;
-		}
-
 		offsetEncoded = width * height * 4;
 		offsetPrevious = offsetEncoded * 2;
+
+		if(buffer) {
+			LocalFree(buffer);
+		}
+
 		buffer = LocalAlloc(LMEM_FIXED, width * height * 11);
 
 		if(!buffer) {
@@ -192,14 +187,50 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 			return 1;
 		}
 
+		if(context) {
+			ReleaseDC(NULL, context);
+		}
+
 		context = GetDC(NULL);
+
+		if(!context) {
+			ERROR_WIN32(L"GetDC", ERROR_FUNCTION_FAILED);
+			goto errorFreeBuffer;
+		}
+
+		if(memoryContext) {
+			DeleteDC(memoryContext);
+		}
+
 		memoryContext = CreateCompatibleDC(context);
+
+		if(!memoryContext) {
+			ERROR_WIN32(L"CreateCompatibleDC", ERROR_FUNCTION_FAILED);
+			goto errorReleaseContext;
+		}
+
+		if(bitmap) {
+			DeleteObject(bitmap);
+		}
+
 		bitmap = CreateCompatibleBitmap(context, width, height);
+
+		if(!bitmap) {
+			ERROR_WIN32(L"CreateCompatibleBitmap", ERROR_FUNCTION_FAILED);
+			goto errorDeleteMemoryContext;
+		}
+
 		SelectObject(memoryContext, bitmap);
+		goto capture;
+	errorDeleteMemoryContext:
+		DeleteDC(memoryContext);
+	errorReleaseContext:
+		ReleaseDC(NULL, context);
+	errorFreeBuffer:
+		LocalFree(buffer);
+		return 1;
 	capture:
-		//oldBitmap = SelectObject(memoryContext, bitmap);
 		BitBlt(memoryContext, 0, 0, width, height, context, 0, 0, SRCCOPY);
-		//bitmap = SelectObject(memoryContext, oldBitmap);
 		BITMAPINFO information = {0};
 		information.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 		information.bmiHeader.biWidth = width;
@@ -210,13 +241,13 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 
 		if(!(streamEnabled = GetDIBits(memoryContext, bitmap, 0, height, buffer, &information, DIB_RGB_COLORS))) {
 			ERROR_WIN32(L"GetDIBits", streamEnabled == ERROR_INVALID_PARAMETER ? ERROR_INVALID_PARAMETER : ERROR_FUNCTION_FAILED);
+			DeleteObject(bitmap);
+			DeleteDC(memoryContext);
+			ReleaseDC(NULL, context);
 			LocalFree(buffer);
 			return 1;
 		}
 
-		//DeleteObject(bitmap);
-		//DeleteDC(memoryContext);
-		//ReleaseDC(NULL, context);
 		size_t pointer = offsetEncoded;
 		buffer[pointer++] = ((colorDifference & 1) << 1) | (boundaryDifference & 1);
 		buffer[pointer++] = (width >> 24) & 0xFF;
@@ -269,6 +300,9 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 		HRSPERROR protocolError;
 
 		if(!HRSPSendPacket(parameter->socket, &parameter->data, &packet, &protocolError)) {
+			DeleteObject(bitmap);
+			DeleteDC(memoryContext);
+			ReleaseDC(NULL, context);
 			LocalFree(buffer);
 			parameter->error.hasError = TRUE;
 			parameter->error.function = (LPWSTR) protocolError.function;
@@ -278,9 +312,20 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 		}
 	}
 
-	if(buffer && LocalFree(buffer)) {
-		ERROR_WIN32(L"LocalFree", GetLastError());
-		return 1;
+	if(context) {
+		ReleaseDC(NULL, context);
+	}
+
+	if(memoryContext) {
+		DeleteDC(memoryContext);
+	}
+
+	if(bitmap) {
+		DeleteObject(bitmap);
+	}
+
+	if(buffer) {
+		LocalFree(buffer);
 	}
 
 	return 0;
