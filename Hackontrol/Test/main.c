@@ -34,8 +34,35 @@ int main(int argc, char** argv) {
 		goto releaseDirect;
 	}
 
-	device->lpVtbl->Release(device);
+	IDirect3DSurface9* surface;
+	result = device->lpVtbl->CreateOffscreenPlainSurface(device, mode.Width, mode.Height, D3DFMT_A8R8G8B8, D3DPOOL_SYSTEMMEM, &surface, NULL);
+
+	if(FAILED(result)) {
+		KHWIN32_ERROR_CONSOLE(KHHRESULT_DECODE(result), L"IDirect3DDevice9::CreateOffscreenPlainSurface");
+		goto releaseDevice;
+	}
+
+	D3DLOCKED_RECT bounds;
+	result = surface->lpVtbl->LockRect(surface, &bounds, NULL, 0);
+
+	if(FAILED(result)) {
+		KHWIN32_ERROR_CONSOLE(KHHRESULT_DECODE(result), L"IDirect3DSurface9::LockRect");
+		goto releaseSurface;
+	}
+
+	printf("Pitch: %d\n", bounds.Pitch);
+	result = surface->lpVtbl->UnlockRect(surface);
+
+	if(FAILED(result)) {
+		KHWIN32_ERROR_CONSOLE(KHHRESULT_DECODE(result), L"IDirect3DSurface9::UnlockRect");
+		goto releaseSurface;
+	}
+
 	returnValue = 0;
+releaseSurface:
+	surface->lpVtbl->Release(surface);
+releaseDevice:
+	device->lpVtbl->Release(device);
 releaseDirect:
 	direct->lpVtbl->Release(direct);
 	return returnValue;
