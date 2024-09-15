@@ -8,7 +8,7 @@
 #define ERROR_HRSP if(error){error->type=protocolError.win32?HRSP_CLIENT_ERROR_TYPE_WIN32:HRSP_CLIENT_ERROR_TYPE_HRSP;error->function=protocolError.function;error->code=protocolError.code;}
 #define ERROR_WIN32(functionName, errorCode) if(error){error->type=HRSP_CLIENT_ERROR_TYPE_WIN32;error->function=functionName;error->code=errorCode;}
 
-BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PHRSPCLIENTERROR error) {
+BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const PHRSPCLIENTERROR error) {
 	PHRSPCLIENTSTREAMPARAMETER stream = LocalAlloc(LMEM_FIXED, sizeof(HRSPCLIENTSTREAMPARAMETER));
 
 	if(!stream) {
@@ -20,10 +20,10 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 		((PBYTE) stream)[i] = 0;
 	}
 
-	stream->sensitive.mutex = CreateMutexExW(NULL, NULL, 0, SYNCHRONIZE | DELETE);
+	stream->mutex = CreateMutexExW(NULL, NULL, 0, SYNCHRONIZE | DELETE);
 	BOOL returnValue = FALSE;
 
-	if(!stream->sensitive.mutex) {
+	if(!stream->mutex) {
 		ERROR_WIN32(L"CreateMutexExW", GetLastError());
 		goto freeStream;
 	}
@@ -33,15 +33,15 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 
 	if(status) {
 		ERROR_WIN32(L"WSAStartup", status);
-		goto closeSensitiveMutex;
+		goto closeMutex;
 	}
 
-	ADDRINFOA hints = {0};
+	ADDRINFOW hints = {0};
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
-	ADDRINFOA* result;
-	status = getaddrinfo(address ? address : "localhost", port ? port : HRSP_PROTOCOL_PORT_STRING, &hints, &result);
+	ADDRINFOW* result;
+	status = GetAddrInfoW(address ? address : L"localhost", port ? port : HRSP_PROTOCOL_PORT_STRING, &hints, &result);
 
 	if(status) {
 		ERROR_WIN32(L"getaddrinfo", status);
@@ -130,13 +130,13 @@ BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PH
 			continue;
 		}
 
-		if(WaitForSingleObject(stream->sensitive.mutex, INFINITE) == WAIT_FAILED) {
+		if(WaitForSingleObject(stream->mutex, INFINITE) == WAIT_FAILED) {
 			ERROR_WIN32(L"WaitForSingleObject", GetLastError());
 			goto closeStreamThread;
 		}
 
-		stream->sensitive.flags = *packet.data;
-		ReleaseMutex(stream->sensitive.mutex);
+		stream->flags = *packet.data;
+		ReleaseMutex(stream->mutex);
 		HRSPFreePacket(&packet, &protocolError);
 	}
 
@@ -173,8 +173,8 @@ cleanupSocket:
 		ERROR_WIN32(L"WSACleanup", WSAGetLastError());
 		returnValue = FALSE;
 	}
-closeSensitiveMutex:
-	CloseHandle(stream->sensitive.mutex);
+closeMutex:
+	CloseHandle(stream->mutex);
 freeStream:
 	LocalFree(stream);
 	return returnValue;

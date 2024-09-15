@@ -140,7 +140,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="error_message.c" />
-    <ClCompile Include="hrsp_client.c" />
+    <ClCompile Include="server_connect.c" />
     <ClCompile Include="thread_stream.c" />
   </ItemGroup>
   <ItemGroup>

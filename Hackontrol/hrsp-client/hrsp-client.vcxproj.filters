@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="hrsp_client.c">
+    <ClCompile Include="server_connect.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="error_message.c">
