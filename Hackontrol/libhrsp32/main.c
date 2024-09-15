@@ -1,34 +1,20 @@
-#include <WS2tcpip.h>
-#include <hackontrolpacket.h>
-#include <hackontroljava.h>
+#include <khopanstring.h>
 #include <khopanjava.h>
-#include <lmcons.h>
-#include "stream.h"
+#include <hrsp_client.h>
+#include <jni.h>
 
-#pragma warning(disable: 6258)
+typedef struct {
+	JNIEnv* environment;
+	jobject callback;
+	jmethodID acceptMethod;
+} CONNECTEDPARAMETER, *PCONNECTEDPARAMETER;
 
-#define WAIT_MAXIMUM 5000
-
-static BOOL sendInformationPacket(JNIEnv* const environment, const SOCKET clientSocket) {
-	BYTE buffer[UNLEN + 1];
-	DWORD usernameSize = UNLEN + 1;
-
-	if(!GetUserNameA(buffer, &usernameSize)) {
-		HackontrolThrowWin32Error(environment, L"GetUserNameA");
-		return FALSE;
+static void connected(PCONNECTEDPARAMETER parameter) {
+	if(!parameter) {
+		return;
 	}
 
-	PACKET packet;
-	packet.size = (long) usernameSize - 1;
-	packet.packetType = PACKET_TYPE_INFORMATION;
-	packet.data = buffer;
-
-	if(!SendPacket(clientSocket, &packet)) {
-		HackontrolThrowWin32Error(environment, L"SendPacket");
-		return FALSE;
-	}
-
-	return TRUE;
+	(*parameter->environment)->CallObjectMethod(parameter->environment, parameter->callback, parameter->acceptMethod, (*parameter->environment)->NewStringUTF(parameter->environment, "**Connected**"));
 }
 
 _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment, LPCSTR hostName, LPCSTR port, const jobject callback) {
@@ -44,151 +30,38 @@ _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment,
 		return;
 	}
 
-	WSADATA windowsSocketData;
-	int status = WSAStartup(MAKEWORD(2, 2), &windowsSocketData);
+	PCONNECTEDPARAMETER parameter = LocalAlloc(LMEM_FIXED, sizeof(CONNECTEDPARAMETER));
 
-	if(status) {
-		SetLastError(status);
-		HackontrolThrowWin32Error(environment, L"WSAStartup");
+	if(!parameter) {
 		return;
 	}
 
-	struct addrinfo hints = {0};
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_protocol = IPPROTO_TCP;
-	struct addrinfo* result;
-	status = getaddrinfo(hostName, port, &hints, &result);
-	BOOL disconnect = FALSE;
+	parameter->environment = environment;
+	parameter->callback = callback;
+	parameter->acceptMethod = acceptMethod;
+	LPWSTR serverAddress = KHFormatMessageW(L"%S", hostName);
+	LPWSTR serverPort = KHFormatMessageW(L"%S", port);
+	HRSPCLIENTINPUT input = {0};
+	input.parameter = parameter;
+	input.callbackConnected = connected;
+	HRSPCLIENTERROR error;
+	BOOL status = HRSPClientConnectToServer(serverAddress, serverPort, &input, &error);
+	LocalFree(parameter);
 
-	if(status) {
-		SetLastError(status);
-		HackontrolThrowWin32Error(environment, L"getaddrinfo");
-		goto wsaCleanup;
+	if(serverAddress) {
+		LocalFree(serverAddress);
 	}
 
-	SOCKET clientSocket = INVALID_SOCKET;
+	if(serverPort) {
+		LocalFree(serverPort);
+	}
 
-	for(struct addrinfo* pointer = result; pointer != NULL; pointer = pointer->ai_next) {
-		clientSocket = socket(pointer->ai_family, pointer->ai_socktype, pointer->ai_protocol);
+	if(!status) {
+		LPWSTR message = HRSPClientGetErrorMessage(L"HRSPClientConnectToServer", &error);
 
-		if(clientSocket == INVALID_SOCKET) {
-			SetLastError(WSAGetLastError());
-			HackontrolThrowWin32Error(environment, L"socket");
-			freeaddrinfo(result);
-			goto wsaCleanup;
+		if(message) {
+			KHJavaThrowW(environment, "com/khopan/hackontrol/Win32Error", message);
+			LocalFree(message);
 		}
-
-		status = connect(clientSocket, pointer->ai_addr, (int) pointer->ai_addrlen);
-
-		if(status != SOCKET_ERROR) {
-			break;
-		}
-
-		closesocket(clientSocket);
-		clientSocket = INVALID_SOCKET;
-	}
-
-	freeaddrinfo(result);
-
-	if(clientSocket == INVALID_SOCKET) {
-		KHJavaThrowInternalErrorW(environment, L"Unable to connect to the server");
-		goto wsaCleanup;
-	}
-
-	const char* header = "HRSP 1.0 CONNECT";
-	status = send(clientSocket, header, (int) strlen(header), 0);
-
-	if(status == SOCKET_ERROR) {
-		SetLastError(WSAGetLastError());
-		HackontrolThrowWin32Error(environment, L"send");
-		goto closeSocket;
-	}
-
-	char buffer[12];
-	status = recv(clientSocket, buffer, 11, 0);
-
-	if(status == SOCKET_ERROR) {
-		SetLastError(WSAGetLastError());
-		HackontrolThrowWin32Error(environment, L"recv");
-		goto closeSocket;
-	}
-
-	buffer[11] = 0;
-
-	if(strcmp(buffer, "HRSP 1.0 OK")) {
-		KHJavaThrowInternalErrorW(environment, L"Server responded with an invalid response");
-		goto closeSocket;
-	}
-
-	(*environment)->CallObjectMethod(environment, callback, acceptMethod, (*environment)->NewStringUTF(environment, "**Connected**"));
-
-	if(!sendInformationPacket(environment, clientSocket)) {
-		goto closeSocket;
-	}
-
-	JavaVM* virtualMachine;
-
-	if((*environment)->GetJavaVM(environment, &virtualMachine) != JNI_OK) {
-		SetLastError(ERROR_FUNCTION_FAILED);
-		HackontrolThrowWin32Error(environment, L"JNIEnv::GetJavaVM");
-		goto closeSocket;
-	}
-
-	STREAMPARAMETER* streamParameter = LocalAlloc(LMEM_FIXED, sizeof(STREAMPARAMETER));
-
-	if(!streamParameter) {
-		HackontrolThrowWin32Error(environment, L"LocalAlloc");
-		goto closeSocket;
-	}
-
-	streamParameter->virtualMachine = virtualMachine;
-	streamParameter->clientSocket = clientSocket;
-	HANDLE screenStreamThread = CreateThread(NULL, 0, ScreenStreamThread, streamParameter, 0, NULL);
-
-	if(!screenStreamThread) {
-		HackontrolThrowWin32Error(environment, L"CreateThread");
-		LocalFree(streamParameter);
-		goto closeSocket;
-	}
-
-	if(!SetThreadPriority(screenStreamThread, THREAD_PRIORITY_HIGHEST)) {
-		HackontrolThrowWin32Error(environment, L"SetThreadPriority");
-		goto closeScreenStreamThread;
-	}
-
-	PACKET packet;
-
-	while(TRUE) {
-		if(!ReceivePacket(clientSocket, &packet)) {
-			HackontrolThrowWin32Error(environment, L"ReceivePacket");
-			goto closeScreenStreamThread;
-		}
-
-		switch(packet.packetType) {
-		case PACKET_TYPE_INFORMATION:
-			SetStreamParameter(1, 0);
-			disconnect = TRUE;
-			goto closeScreenStreamThread;
-		case PACKET_TYPE_STREAM_FRAME:
-			SetStreamParameter(0, packet.data ? ((unsigned char*) packet.data)[0] : 0);
-			break;
-		}
-
-		if(packet.data) {
-			LocalFree(packet.data);
-		}
-	}
-closeScreenStreamThread:
-	WaitForSingleObject(screenStreamThread, WAIT_MAXIMUM);
-	TerminateThread(screenStreamThread, 0);
-	CloseHandle(screenStreamThread);
-closeSocket:
-	closesocket(clientSocket);
-wsaCleanup:
-	WSACleanup();
-
-	if(disconnect) {
-		(*environment)->CallObjectMethod(environment, callback, acceptMethod, (*environment)->NewStringUTF(environment, "**Disconnected**"));
 	}
 }
