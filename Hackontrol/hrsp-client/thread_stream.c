@@ -217,8 +217,9 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 
 	UINT oldWidth = 0;
 	UINT oldHeight = 0;
+	size_t offsetPixels = 0;
+	PBYTE buffer = NULL;
 	HDC context;
-	PBYTE screenBuffer = NULL;
 
 	while(parameter->running) {
 		if(WaitForSingleObject(parameter->sensitive.mutex, INFINITE) == WAIT_FAILED) {
@@ -255,14 +256,15 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 		oldWidth = width;
 		oldHeight = height;
 
-		if(screenBuffer && LocalFree(screenBuffer)) {
+		if(buffer && LocalFree(buffer)) {
 			ERROR_WIN32(L"LocalFree", GetLastError());
 			return 1;
 		}
 
-		screenBuffer = LocalAlloc(LMEM_FIXED, width * height * 4);
+		offsetPixels = width * height * 4;
+		buffer = LocalAlloc(LMEM_FIXED, offsetPixels * 2);
 
-		if(!screenBuffer) {
+		if(!buffer) {
 			ERROR_WIN32(L"LocalAlloc", GetLastError());
 			return 1;
 		}
@@ -281,9 +283,9 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 		information.bmiHeader.biBitCount = 32;
 		information.bmiHeader.biCompression = BI_RGB;
 
-		if(!(streamEnabled = GetDIBits(memoryContext, bitmap, 0, height, screenBuffer, &information, DIB_RGB_COLORS))) {
+		if(!(streamEnabled = GetDIBits(memoryContext, bitmap, 0, height, buffer + offsetPixels, &information, DIB_RGB_COLORS))) {
 			ERROR_WIN32(L"GetDIBits", streamEnabled == ERROR_INVALID_PARAMETER ? ERROR_INVALID_PARAMETER : ERROR_FUNCTION_FAILED);
-			LocalFree(screenBuffer);
+			LocalFree(buffer);
 			return 1;
 		}
 
@@ -292,7 +294,7 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 		ReleaseDC(NULL, context);
 	}
 
-	if(screenBuffer && LocalFree(screenBuffer)) {
+	if(buffer && LocalFree(buffer)) {
 		ERROR_WIN32(L"LocalFree", GetLastError());
 		return 1;
 	}
