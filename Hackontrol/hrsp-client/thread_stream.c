@@ -213,6 +213,37 @@ cleanup:
 	return returnValue;
 }
 
+static void rawEncode(const UINT width, const UINT height, const PBYTE buffer, const PBYTE previousBuffer, size_t* const pointer) {
+	for(UINT y = 0; y < height; y++) {
+		for(UINT x = 0; x < width; x++) {
+			ULONG baseIndex = (height - y - 1) * width + x;
+			ULONG screenshotIndex = baseIndex * 4;
+			ULONG previousIndex = baseIndex * 3;
+			buffer[(*pointer)++] = previousBuffer[previousIndex] = buffer[screenshotIndex + 2];
+			buffer[(*pointer)++] = previousBuffer[previousIndex + 1] = buffer[screenshotIndex + 1];
+			buffer[(*pointer)++] = previousBuffer[previousIndex + 2] = buffer[screenshotIndex];
+		}
+	}
+}
+
+static void findBoundary(const PUINT startX, const PUINT startY, const PUINT endX, const PUINT endY, const UINT width, const UINT height, const PBYTE buffer, const PBYTE previousBuffer) {
+	for(UINT y = 0; y < height; y++) {
+		for(UINT x = 0; x < width; x++) {
+			UINT baseIndex = (height - y - 1) * width + x;
+			UINT screenshotIndex = baseIndex * 4;
+			UINT previousIndex = baseIndex * 3;
+			if(buffer[screenshotIndex + 2] == previousBuffer[previousIndex] && buffer[screenshotIndex + 1] == previousBuffer[previousIndex + 1] && buffer[screenshotIndex] == previousBuffer[previousIndex + 2]) continue;
+			previousBuffer[previousIndex] = buffer[screenshotIndex + 2];
+			previousBuffer[previousIndex + 1] = buffer[screenshotIndex + 1];
+			previousBuffer[previousIndex + 2] = buffer[screenshotIndex];
+			(*startX) = min((*startX), x);
+			(*startY) = min((*startY), y);
+			(*endX) = max((*endX), x);
+			(*endY) = max((*endY), y);
+		}
+	}
+}
+
 static void qoiEncode(const UINT startX, const UINT startY, const UINT endX, const UINT endY, const UINT width, const UINT height, const PBYTE buffer, const PBYTE previousBuffer, size_t* const pointer, const BOOL colorDifference) {
 	BYTE seenRed[64];
 	BYTE seenGreen[64];
@@ -395,22 +426,37 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 		HRSPPACKET packet;
 
 		if(colorDifference && boundaryDifference) {
-			goto formatRaw;
+			rawEncode(width, height, buffer, previousBuffer, &pointer);
+			goto sendFrame;
 		}
 
-		qoiEncode(boundaryDifference ? width - 1 : 0, boundaryDifference ? height - 1 : 0, boundaryDifference ? 0 : width - 1, boundaryDifference ? 0 : height - 1, width, height, buffer, previousBuffer, &pointer, colorDifference);
+		if(!boundaryDifference) goto skipBoundaryFinder;
+		UINT startX = width - 1;
+		UINT startY = height - 1;
+		UINT endX = 0;
+		UINT endY = 0;
+		findBoundary(&startX, &startY, &endX, &endY, width, height, buffer, previousBuffer);
+		buffer[pointer++] = (startX >> 24) & 0xFF;
+		buffer[pointer++] = (startX >> 16) & 0xFF;
+		buffer[pointer++] = (startX >> 8) & 0xFF;
+		buffer[pointer++] = startX & 0xFF;
+		buffer[pointer++] = (startY >> 24) & 0xFF;
+		buffer[pointer++] = (startY >> 16) & 0xFF;
+		buffer[pointer++] = (startY >> 8) & 0xFF;
+		buffer[pointer++] = startY & 0xFF;
+		buffer[pointer++] = (endX >> 24) & 0xFF;
+		buffer[pointer++] = (endX >> 16) & 0xFF;
+		buffer[pointer++] = (endX >> 8) & 0xFF;
+		buffer[pointer++] = endX & 0xFF;
+		buffer[pointer++] = (endY >> 24) & 0xFF;
+		buffer[pointer++] = (endY >> 16) & 0xFF;
+		buffer[pointer++] = (endY >> 8) & 0xFF;
+		buffer[pointer++] = endY & 0xFF;
+		qoiEncode(startX, startY, endX, endY, width, height, buffer, previousBuffer, & pointer, colorDifference);
 		goto sendFrame;
-	formatRaw:
-		for(UINT y = 0; y < height; y++) {
-			for(UINT x = 0; x < width; x++) {
-				ULONG baseIndex = (height - y - 1) * width + x;
-				ULONG screenshotIndex = baseIndex * 4;
-				ULONG previousIndex = baseIndex * 3;
-				buffer[pointer++] = previousBuffer[previousIndex] = buffer[screenshotIndex + 2];
-				buffer[pointer++] = previousBuffer[previousIndex + 1] = buffer[screenshotIndex + 1];
-				buffer[pointer++] = previousBuffer[previousIndex + 2] = buffer[screenshotIndex];
-			}
-		}
+	skipBoundaryFinder:
+		qoiEncode(0, 0, width - 1, height - 1, width, height, buffer, previousBuffer, &pointer, colorDifference);
+		goto sendFrame;
 	sendFrame:
 		packet.size = (int) (pointer - offsetEncoded);
 		packet.type = HRSP_REMOTE_CLIENT_STREAM_FRAME_PACKET;
