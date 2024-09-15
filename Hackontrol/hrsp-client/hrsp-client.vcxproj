@@ -139,7 +139,7 @@
     <Lib />
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="error_code.c" />
+    <ClCompile Include="error_message.c" />
     <ClCompile Include="hrsp_client.c" />
     <ClCompile Include="thread_stream.c" />
   </ItemGroup>

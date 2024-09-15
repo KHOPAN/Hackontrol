@@ -4,17 +4,13 @@
 #include "hrsp_client.h"
 
 typedef struct {
-	HANDLE mutex;
-	BYTE flags;
-} HRSPCLIENTSTREAMSENSITIVE;
-
-typedef struct {
-	HRSPCLIENTSTREAMSENSITIVE sensitive;
-	BOOL hasError;
-	HRSPCLIENTERROR error;
+	BOOL running;
 	SOCKET socket;
 	HRSPDATA data;
-	BOOL running;
+	BOOL hasError;
+	HRSPCLIENTERROR error;
+	HANDLE mutex;
+	BYTE flags;
 } HRSPCLIENTSTREAMPARAMETER, *PHRSPCLIENTSTREAMPARAMETER;
 
 DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter);

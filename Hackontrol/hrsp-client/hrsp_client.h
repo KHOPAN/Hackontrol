@@ -3,9 +3,9 @@
 #include <Windows.h>
 
 typedef enum {
-	HRSP_CLIENT_ERROR_TYPE_CLIENT = 0,
-	HRSP_CLIENT_ERROR_TYPE_HRSP,
-	HRSP_CLIENT_ERROR_TYPE_WIN32
+	HRSP_CLIENT_ERROR_TYPE_HRSP = 0,
+	HRSP_CLIENT_ERROR_TYPE_WIN32,
+	HRSP_CLIENT_ERROR_TYPE_CLIENT
 } HRSPCLIENTERRORTYPE;
 
 typedef enum {
@@ -24,9 +24,9 @@ typedef struct {
 extern "C" {
 #endif
 
-LPCWSTR HRSPClientGetErrorCode(const HRSPCLIENTERRORCODE code);
 LPWSTR HRSPClientGetErrorMessage(const LPCWSTR functionName, const PHRSPCLIENTERROR error);
-BOOL HRSPClientConnectToServer(const LPCSTR address, const LPCSTR port, const PHRSPCLIENTERROR error);
+LPCWSTR HRSPClientGetErrorCode(const HRSPCLIENTERRORCODE code);
+BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const PHRSPCLIENTERROR error);
 
 #ifdef __cplusplus
 }
