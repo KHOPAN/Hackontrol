@@ -10,6 +10,8 @@
 #define QOI_OP_LUMA  0b10000000
 #define QOI_OP_RUN   0b11000000
 
+#pragma warning(disable: 6386)
+
 static BOOL sendFrame(const PHRSPCLIENTSTREAMPARAMETER parameter, const int width, const int height, const PBYTE screenshotBuffer, const PBYTE qoiBuffer, const PBYTE previousBuffer) {
 	HRSPPACKET packet;
 	BOOL boundaryDifference = (parameter->sensitive.flags >> 1) & 1;
@@ -217,7 +219,7 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 
 	UINT oldWidth = 0;
 	UINT oldHeight = 0;
-	size_t offsetPixels = 0;
+	size_t offsetEncoded = 0;
 	PBYTE buffer = NULL;
 	HDC context;
 
@@ -249,7 +251,7 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 		UINT width = GetSystemMetrics(SM_CXSCREEN);
 		UINT height = GetSystemMetrics(SM_CYSCREEN);
 
-		if(oldWidth == width && oldHeight == height) {
+		if(oldWidth == width && oldHeight == height && buffer) {
 			goto capture;
 		}
 
@@ -261,8 +263,8 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 			return 1;
 		}
 
-		offsetPixels = width * height * 4;
-		buffer = LocalAlloc(LMEM_FIXED, offsetPixels * 2);
+		offsetEncoded = width * height * 4;
+		buffer = LocalAlloc(LMEM_FIXED, offsetEncoded * 2);
 
 		if(!buffer) {
 			ERROR_WIN32(L"LocalAlloc", GetLastError());
@@ -283,7 +285,7 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 		information.bmiHeader.biBitCount = 32;
 		information.bmiHeader.biCompression = BI_RGB;
 
-		if(!(streamEnabled = GetDIBits(memoryContext, bitmap, 0, height, buffer + offsetPixels, &information, DIB_RGB_COLORS))) {
+		if(!(streamEnabled = GetDIBits(memoryContext, bitmap, 0, height, buffer, &information, DIB_RGB_COLORS))) {
 			ERROR_WIN32(L"GetDIBits", streamEnabled == ERROR_INVALID_PARAMETER ? ERROR_INVALID_PARAMETER : ERROR_FUNCTION_FAILED);
 			LocalFree(buffer);
 			return 1;
@@ -292,6 +294,16 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 		DeleteObject(bitmap);
 		DeleteDC(memoryContext);
 		ReleaseDC(NULL, context);
+		size_t pointer = offsetEncoded;
+		buffer[pointer++] = ((colorDifference & 1) << 1) | (boundaryDifference & 1);
+		buffer[pointer++] = (width >> 24) & 0xFF;
+		buffer[pointer++] = (width >> 16) & 0xFF;
+		buffer[pointer++] = (width >> 8) & 0xFF;
+		buffer[pointer++] = width & 0xFF;
+		buffer[pointer++] = (height >> 24) & 0xFF;
+		buffer[pointer++] = (height >> 16) & 0xFF;
+		buffer[pointer++] = (height >> 8) & 0xFF;
+		buffer[pointer++] = height & 0xFF;
 	}
 
 	if(buffer && LocalFree(buffer)) {
