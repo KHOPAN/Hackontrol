@@ -248,7 +248,7 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 
 		if(iconInformation.hbmColor) {
 			BITMAP iconBitmap;
-			if(GetObjectW(iconInformation.hbmColor, sizeof(iconBitmap), &iconBitmap)) DrawIconEx(context, cursorInformation.ptScreenPos.x - iconInformation.xHotspot, cursorInformation.ptScreenPos.y - iconInformation.yHotspot, cursorInformation.hCursor, iconBitmap.bmWidth, iconBitmap.bmHeight, 0, NULL, DI_NORMAL);
+			if(GetObjectW(iconInformation.hbmColor, sizeof(iconBitmap), &iconBitmap)) DrawIconEx(memoryContext, cursorInformation.ptScreenPos.x - iconInformation.xHotspot, cursorInformation.ptScreenPos.y - iconInformation.yHotspot, cursorInformation.hCursor, iconBitmap.bmWidth, iconBitmap.bmHeight, 0, NULL, DI_NORMAL);
 		}
 
 		DeleteObject(iconInformation.hbmMask);
