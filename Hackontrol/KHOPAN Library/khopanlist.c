@@ -6,6 +6,16 @@ BOOL KHOPANArrayInitialize(const PARRAYLIST list, size_t size) {
 		return FALSE;
 	}
 
+	PBYTE buffer = LocalAlloc(LMEM_FIXED, size * KHOPAN_ARRAY_INITIAL_CAPACITY);
+
+	if(!buffer) {
+		return FALSE;
+	}
+
+	list->count = 0;
+	list->size = size;
+	list->capacity = KHOPAN_ARRAY_INITIAL_CAPACITY;
+	list->data = buffer;
 	SetLastError(ERROR_SUCCESS);
 	return TRUE;
 }

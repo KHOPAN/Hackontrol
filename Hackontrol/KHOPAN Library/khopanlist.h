@@ -2,6 +2,9 @@
 
 #include <Windows.h>
 
+#define KHOPAN_ARRAY_INITIAL_CAPACITY 10
+#define KHOPAN_ARRAY_SCALE_FACTOR     2
+
 typedef struct {
 	size_t count;
 	size_t size;
