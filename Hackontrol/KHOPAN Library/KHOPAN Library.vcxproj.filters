@@ -51,6 +51,9 @@
     <ClCompile Include="khopanwin32_registry.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="khopanlist.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="khopanjava.h">
@@ -72,6 +75,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="khopanjson.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="khopanlist.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

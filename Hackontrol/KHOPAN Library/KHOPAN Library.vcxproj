@@ -148,6 +148,7 @@
     <ClCompile Include="khopandatastream.c" />
     <ClCompile Include="khopanjava_jni.c" />
     <ClCompile Include="khopanjson.c" />
+    <ClCompile Include="khopanlist.c" />
     <ClCompile Include="khopanstring.c" />
     <ClCompile Include="khopanjava.c" />
     <ClCompile Include="khopanwin32.c" />
@@ -162,6 +163,7 @@
     <ClInclude Include="khopandatastream.h" />
     <ClInclude Include="khopanjava.h" />
     <ClInclude Include="khopanjson.h" />
+    <ClInclude Include="khopanlist.h" />
     <ClInclude Include="khopanstring.h" />
     <ClInclude Include="khopanwin32.h" />
   </ItemGroup>
