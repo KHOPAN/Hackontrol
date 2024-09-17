@@ -60,6 +60,14 @@ BOOL KHOPANArrayFree(const PARRAYLIST list) {
 		return FALSE;
 	}
 
+	if(list->data) {
+		LocalFree(list->data);
+		list->count = 0;
+		list->size = 0;
+		list->capacity = 0;
+		list->data = NULL;
+	}
+
 	SetLastError(ERROR_SUCCESS);
 	return TRUE;
 }
