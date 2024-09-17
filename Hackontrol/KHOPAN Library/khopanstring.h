@@ -10,9 +10,3 @@ LPWSTR KHFormatMessageW(const LPWSTR format, ...);
 #ifdef __cplusplus
 }
 #endif
-
-#ifdef UNICODE
-#define KHFormatMessage KHFormatMessageW
-#else
-#define KHFormatMessage KHFormatMessageA
-#endif

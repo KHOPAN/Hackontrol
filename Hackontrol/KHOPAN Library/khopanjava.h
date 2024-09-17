@@ -27,25 +27,3 @@ void KHJavaThrowInternalErrorW(JNIEnv* environment, const LPWSTR message);
 #ifdef __cplusplus
 }
 #endif
-
-#ifdef UNICODE
-#define KHJavaStandardOutput                KHJavaStandardOutputW
-#define KHJavaStandardError                 KHJavaStandardErrorW
-#define KHJavaWin32Error                    KHJavaWin32ErrorW
-#define KHJavaToNativeString                KHJavaToNativeStringW
-#define KHJavaFromNativeString              KHJavaFromNativeStringW
-#define KHJavaThrow                         KHJavaThrowW
-#define KHJavaThrowRuntimeException         KHJavaThrowRuntimeExceptionW
-#define KHJavaThrowIllegalArgumentException KHJavaThrowIllegalArgumentExceptionW
-#define KHJavaThrowInternalError            KHJavaThrowInternalErrorW
-#else
-#define KHJavaStandardOutput                KHJavaStandardOutputA
-#define KHJavaStandardError                 KHJavaStandardErrorA
-#define KHJavaWin32Error                    KHJavaWin32ErrorA
-#define KHJavaToNativeString                KHJavaToNativeStringA
-#define KHJavaFromNativeString              KHJavaFromNativeStringA
-#define KHJavaThrow                         KHJavaThrowA
-#define KHJavaThrowRuntimeException         KHJavaThrowRuntimeExceptionA
-#define KHJavaThrowIllegalArgumentException KHJavaThrowIllegalArgumentExceptionA
-#define KHJavaThrowInternalError            KHJavaThrowInternalErrorA
-#endif

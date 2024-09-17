@@ -17,13 +17,3 @@ void KHCURLConsoleErrorW(CURLcode errorCode, const LPWSTR functionName);
 #ifdef __cplusplus
 }
 #endif
-
-#ifdef UNICODE
-#define KHCURLGetErrorMessage KHCURLGetErrorMessageW
-#define KHCURLDialogError     KHCURLDialogErrorW
-#define KHCURLConsoleError    KHCURLConsoleErrorW
-#else
-#define KHCURLGetErrorMessage KHCURLGetErrorMessageA
-#define KHCURLDialogError     KHCURLDialogErrorA
-#define KHCURLConsoleError    KHCURLConsoleErrorA
-#endif

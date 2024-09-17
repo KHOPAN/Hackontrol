@@ -47,23 +47,3 @@ BOOL KHWin32RegistrySetStringValueW(const HKEY key, const LPWSTR valueName, cons
 #ifdef __cplusplus
 }
 #endif
-
-#ifdef UNICODE
-#define KHWin32GetWindowsDirectory     KHWin32GetWindowsDirectoryW
-#define KHWin32StartProcess            KHWin32StartProcessW
-#define KHWin32GetRundll32File         KHWin32GetRundll32FileW
-#define KHWin32StartDynamicLibrary     KHWin32StartDynamicLibraryW
-#define KHWin32GetCmdFile              KHWin32GetCmdFileW
-#define KHWin32ExecuteCommand          KHWin32ExecuteCommandW
-#define KHWin32ExecuteRundll32Function KHWin32ExecuteRundll32FunctionW
-#define KHWin32EnablePrivilege         KHWin32EnablePrivilegeW
-#else
-#define KHWin32GetWindowsDirectory     KHWin32GetWindowsDirectoryA
-#define KHWin32StartProcess            KHWin32StartProcessA
-#define KHWin32GetRundll32File         KHWin32GetRundll32FileA
-#define KHWin32StartDynamicLibrary     KHWin32StartDynamicLibraryA
-#define KHWin32GetCmdFile              KHWin32GetCmdFileA
-#define KHWin32ExecuteCommand          KHWin32ExecuteCommandA
-#define KHWin32ExecuteRundll32Function KHWin32ExecuteRundll32FunctionA
-#define KHWin32EnablePrivilege         KHWin32EnablePrivilegeA
-#endif
