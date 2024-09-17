@@ -132,6 +132,30 @@ BOOL KHOPANStreamAdd(const PDATASTREAM stream, const PBYTE data, const size_t si
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
 	}
+
+	size_t length = stream->data ? stream->size : 0;
+	PBYTE buffer = LocalAlloc(LMEM_FIXED, length + size);
+
+	if(!buffer) {
+		return FALSE;
+	}
+
+	size_t index;
+
+	if(stream->data) {
+		for(index = 0; index < length; index++) {
+			buffer[index] = stream->data[index];
+		}
+
+		LocalFree(stream->data);
+	}
+
+	for(index = 0; index < size; index++) {
+		buffer[index + length] = data[index];
+	}
+
+	stream->size = length + size;
+	stream->data = buffer;
 success:
 	SetLastError(ERROR_SUCCESS);
 	return TRUE;
@@ -141,6 +165,13 @@ BOOL KHOPANStreamFree(const PDATASTREAM stream) {
 	if(!stream) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
+	}
+
+	stream->size = 0;
+
+	if(stream->data) {
+		LocalFree(stream->data);
+		stream->data = NULL;
 	}
 
 	SetLastError(ERROR_SUCCESS);
