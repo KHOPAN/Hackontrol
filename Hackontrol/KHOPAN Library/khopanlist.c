@@ -21,11 +21,38 @@ BOOL KHOPANArrayInitialize(const PARRAYLIST list, size_t size) {
 }
 
 BOOL KHOPANArrayAdd(const PARRAYLIST list, const PBYTE data) {
-	if(!list || !data) {
+	if(!list || !data || !list->size || !list->capacity || !list->data) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
 	}
 
+	PBYTE buffer;
+	size_t index;
+
+	if(list->count >= list->capacity) {
+		size_t size = list->size * list->capacity;
+		buffer = LocalAlloc(LMEM_FIXED, size * KHOPAN_ARRAY_SCALE_FACTOR);
+
+		if(!buffer) {
+			return FALSE;
+		}
+
+		for(index = 0; index < size; index++) {
+			buffer[index] = list->data[index];
+		}
+
+		LocalFree(list->data);
+		list->capacity *= KHOPAN_ARRAY_SCALE_FACTOR;
+		list->data = buffer;
+	}
+
+	buffer = list->data + list->size * list->capacity;
+
+	for(index = 0; index < list->size; index++) {
+		buffer[index] = data[index];
+	}
+
+	list->count++;
 	SetLastError(ERROR_SUCCESS);
 	return TRUE;
 }
