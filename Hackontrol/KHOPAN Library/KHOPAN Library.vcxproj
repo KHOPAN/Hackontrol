@@ -143,9 +143,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="khopanarray.c" />
     <ClCompile Include="khopancurl_error.c" />
-    <ClCompile Include="khopandatastream.c" />
     <ClCompile Include="khopanjava_jni.c" />
     <ClCompile Include="khopanjson.c" />
     <ClCompile Include="khopanlist.c" />
@@ -158,9 +156,7 @@
     <ClCompile Include="khopanwin32_rundll32_function.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="khopanarray.h" />
     <ClInclude Include="khopancurl.h" />
-    <ClInclude Include="khopandatastream.h" />
     <ClInclude Include="khopanjava.h" />
     <ClInclude Include="khopanjson.h" />
     <ClInclude Include="khopanlist.h" />
