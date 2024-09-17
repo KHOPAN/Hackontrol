@@ -1,9 +1,10 @@
 #include <stdio.h>
-#include <d3d9.h>
+//#include <d3d9.h>
 #include <khopanwin32.h>
 
 int main(int argc, char** argv) {
-	IDirect3D9* direct = Direct3DCreate9(D3D_SDK_VERSION);
+	printf("%ws\n", KHOPANGetErrorMessageNTSTATUS(25, L"Direct3DCreate9"));
+	/*IDirect3D9* direct = Direct3DCreate9(D3D_SDK_VERSION);
 
 	if(!direct) {
 		KHWIN32_ERROR_CONSOLE(ERROR_FUNCTION_FAILED, L"Direct3DCreate9");
@@ -105,5 +106,5 @@ releaseDevice:
 	device->lpVtbl->Release(device);
 releaseDirect:
 	direct->lpVtbl->Release(direct);
-	return returnValue;
+	return returnValue;*/
 }

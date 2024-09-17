@@ -25,6 +25,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+LPWSTR KHOPANGetErrorMessageWin32(const DWORD code, const LPCWSTR function);
+LPWSTR KHOPANGetErrorMessageHRESULT(const HRESULT code, const LPCWSTR function);
+LPWSTR KHOPANGetErrorMessageNTSTATUS(const NTSTATUS code, const LPCWSTR function);
+
 LPSTR KHWin32GetWindowsDirectoryA();
 LPWSTR KHWin32GetWindowsDirectoryW();
 LPWSTR KHInternal_ErrorMessage(const DWORD errorCode, const LPCWSTR functionName, const LPCWSTR fileName, const UINT lineNumber, const BOOL specialError);

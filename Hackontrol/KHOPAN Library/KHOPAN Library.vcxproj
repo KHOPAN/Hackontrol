@@ -150,6 +150,7 @@
     <ClCompile Include="khopanstring.c" />
     <ClCompile Include="khopanjava.c" />
     <ClCompile Include="khopanwin32.c" />
+    <ClCompile Include="khopanwin32_error.c" />
     <ClCompile Include="khopanwin32_privilege.c" />
     <ClCompile Include="khopanwin32_process.c" />
     <ClCompile Include="khopanwin32_registry.c" />
