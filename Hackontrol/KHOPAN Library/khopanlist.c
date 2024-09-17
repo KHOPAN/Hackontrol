@@ -58,24 +58,48 @@ BOOL KHOPANArrayAdd(const PARRAYLIST list, const PBYTE data) {
 }
 
 BOOL KHOPANArrayRemove(const PARRAYLIST list, const size_t index) {
-	if(!list) {
+	if(!list || !list->size || !list->data) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
 	}
 
+	if(index >= list->count) {
+		SetLastError(ERROR_INDEX_OUT_OF_BOUNDS);
+		return FALSE;
+	}
+
+	list->count--;
+
+	if(!list->count) {
+		goto success;
+	}
+
+	PBYTE target = list->data + list->size * index;
+
+	for(size_t i = 0; i < (list->count - index) * list->size; i++) {
+		target[i] = target[i + list->size];
+	}
+success:
 	SetLastError(ERROR_SUCCESS);
 	return TRUE;
 }
 
-BOOL KHOPANArrayGet(const PARRAYLIST list, const size_t index, const PBYTE* data) {
+BOOL KHOPANArrayGet(const PARRAYLIST list, const size_t index, PBYTE* const data) {
 	if(!data) {
 		goto success;
 	}
 
-	if(!list) {
+	if(!list || !list->size || !list->data) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
 	}
+
+	if(index >= list->count) {
+		SetLastError(ERROR_INDEX_OUT_OF_BOUNDS);
+		return FALSE;
+	}
+
+	(*data) = list->data + list->size * index;
 success:
 	SetLastError(ERROR_SUCCESS);
 	return TRUE;
