@@ -8,7 +8,9 @@ LPWSTR KHOPANInternalGetErrorMessage(const DWORD code, const LPCWSTR function, c
 	}
 
 	LPWSTR message = function ? KHOPANFormatMessage(L"%ws() error occurred. Error code: %lu Message:\n%ws", function, code, buffer) : KHOPANFormatMessage(L"Error occurred. Error code: %lu Message:\n%ws", code, buffer);
+	DWORD error = GetLastError();
 	LocalFree(buffer);
+	SetLastError(error);
 	return message;
 }
 
@@ -19,6 +21,7 @@ LPWSTR KHOPANFormatMessage(const LPWSTR format, ...) {
 	LPWSTR buffer = NULL;
 
 	if(length == -1) {
+		SetLastError(ERROR_INVALID_PARAMETER);
 		goto functionExit;
 	}
 
@@ -31,7 +34,11 @@ LPWSTR KHOPANFormatMessage(const LPWSTR format, ...) {
 	if(vswprintf_s(buffer, ((size_t) length) + 1, format, list) == -1) {
 		LocalFree(buffer);
 		buffer = NULL;
+		SetLastError(ERROR_INVALID_PARAMETER);
+		goto functionExit;
 	}
+
+	SetLastError(ERROR_SUCCESS);
 functionExit:
 	va_end(list);
 	return buffer;
@@ -51,10 +58,13 @@ LPWSTR KHOPANDirectoryGetWindows() {
 	}
 
 	if(!GetSystemWindowsDirectoryW(buffer, size)) {
+		DWORD error = GetLastError();
 		LocalFree(buffer);
+		SetLastError(error);
 		return NULL;
 	}
 
+	SetLastError(ERROR_SUCCESS);
 	return buffer;
 }
 
@@ -66,6 +76,8 @@ LPWSTR KHOPANFileGetRundll32() {
 	}
 
 	LPWSTR fileRundll32 = KHOPANFormatMessage(L"%ws\\" FOLDER_SYSTEM32 L"\\" FILE_RUNDLL32, folderWindows);
+	DWORD error = GetLastError();
 	LocalFree(folderWindows);
+	SetLastError(error);
 	return fileRundll32;
 }
