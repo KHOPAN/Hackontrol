@@ -20,7 +20,9 @@
 #define KHWIN32_LAST_WSA_ERROR(function)         KHWIN32_ERROR(WSAGetLastError(),function)
 #define KHWIN32_LAST_WSA_ERROR_CONSOLE(function) KHWIN32_ERROR_CONSOLE(WSAGetLastError(),function)
 
-#define KHOPANERRORMESSAGE_WIN32(code, function) do{LPWSTR __temporaryMessage__=KHOPANInternalGetErrorMessage(code,function,TRUE);if(__temporaryMessage__){MessageBoxW(NULL,__temporaryMessage__,L"Error",MB_OK|MB_DEFBUTTON1|MB_ICONERROR|MB_SYSTEMMODAL);LocalFree(__temporaryMessage__);}}while(0)
+#define KHOPANERRORMESSAGE_WIN32(code, function)    do{LPWSTR __temporaryMessage__=KHOPANInternalGetErrorMessage(code,function,TRUE);if(__temporaryMessage__){MessageBoxW(NULL,__temporaryMessage__,L"Error",MB_OK|MB_DEFBUTTON1|MB_ICONERROR|MB_SYSTEMMODAL);LocalFree(__temporaryMessage__);}}while(0)
+#define KHOPANERRORMESSAGE_HRESULT(code, function)  do{LPWSTR __temporaryMessage__=KHOPANInternalGetErrorMessage((code)==S_OK?ERROR_SUCCESS:(HRESULT)(((HRESULT)code)&0xFFFF0000)==MAKE_HRESULT(SEVERITY_ERROR,FACILITY_WIN32,0)?HRESULT_CODE((HRESULT)code):ERROR_FUNCTION_FAILED,function,TRUE);if(__temporaryMessage__){MessageBoxW(NULL,__temporaryMessage__,L"Error",MB_OK|MB_DEFBUTTON1|MB_ICONERROR|MB_SYSTEMMODAL);LocalFree(__temporaryMessage__);}}while(0)
+#define KHOPANERRORMESSAGE_NTSTATUS(code, function) do{LPWSTR __temporaryMessage__=KHOPANInternalGetErrorMessage(code,function,FALSE);if(__temporaryMessage__){MessageBoxW(NULL,__temporaryMessage__,L"Error",MB_OK|MB_DEFBUTTON1|MB_ICONERROR|MB_SYSTEMMODAL);LocalFree(__temporaryMessage__);}}while(0)
 
 #ifdef __cplusplus
 extern "C" {
