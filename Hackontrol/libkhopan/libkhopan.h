@@ -28,11 +28,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-LPWSTR KHOPANInternalGetErrorMessage(const DWORD code, const LPCWSTR function, const BOOL win32);
-LPWSTR KHOPANFormatMessage(const LPWSTR format, ...);
-LPWSTR KHOPANFolderGetWindows();
+BOOL KHOPANEnablePrivilege(const LPWSTR privilege);
 LPWSTR KHOPANFileGetCmd();
 LPWSTR KHOPANFileGetRundll32();
+LPWSTR KHOPANFolderGetWindows();
+LPWSTR KHOPANFormatMessage(const LPWSTR format, ...);
+LPWSTR KHOPANInternalGetErrorMessage(const DWORD code, const LPCWSTR function, const BOOL win32);
 
 BOOL KHWin32StartProcessA(const LPSTR filePath, const LPSTR argument, BOOL wait);
 BOOL KHWin32StartProcessW(const LPWSTR filePath, const LPWSTR argument, BOOL wait);
@@ -43,8 +44,6 @@ BOOL KHWin32ExecuteCommandA(const LPSTR command, BOOL wait);
 BOOL KHWin32ExecuteCommandW(const LPWSTR command, BOOL wait);
 BOOL KHWin32ExecuteRundll32FunctionA(const LPSTR moduleName, const LPSTR functionName, LPSTR argument, BOOL threaded);
 BOOL KHWin32ExecuteRundll32FunctionW(const LPWSTR moduleName, const LPSTR functionName, LPSTR argument, BOOL threaded);
-BOOL KHWin32EnablePrivilegeA(const LPSTR privilege);
-BOOL KHWin32EnablePrivilegeW(const LPWSTR privilege);
 BOOL KHWin32RegistrySetStringValueA(const HKEY key, const LPSTR valueName, const LPSTR value);
 BOOL KHWin32RegistrySetStringValueW(const HKEY key, const LPWSTR valueName, const LPWSTR value);
 #ifdef __cplusplus
