@@ -53,7 +53,7 @@
     <ClInclude Include="khopanjava.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="khopanwin32.h">
+    <ClInclude Include="libkhopan.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="khopancurl.h">
