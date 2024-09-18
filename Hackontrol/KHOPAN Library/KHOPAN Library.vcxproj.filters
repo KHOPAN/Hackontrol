@@ -18,9 +18,6 @@
     <ClCompile Include="khopanjava.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="khopanstring.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="khopanwin32.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -54,9 +51,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="khopanjava.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="khopanstring.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="khopanwin32.h">
