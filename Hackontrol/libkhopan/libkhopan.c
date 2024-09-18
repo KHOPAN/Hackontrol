@@ -13,8 +13,7 @@ BOOL KHOPANEnablePrivilege(const LPWSTR privilege) {
 	}
 
 	LUID identifier;
-	DWORD error = ERROR_SUCCESS;
-	BOOL returnValue = FALSE;
+	DWORD error = ERROR_INVALID_FUNCTION;
 
 	if(!LookupPrivilegeValueW(NULL, privilege, &identifier)) {
 		error = GetLastError();
@@ -26,18 +25,18 @@ BOOL KHOPANEnablePrivilege(const LPWSTR privilege) {
 	privileges.PrivilegeCount = 1;
 	privileges.Privileges[0].Luid = identifier;
 	privileges.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+	identifier.LowPart = AdjustTokenPrivileges(token, FALSE, &privileges, sizeof(privileges), NULL, NULL);
+	error = GetLastError();
+	CloseHandle(token);
 
-	if(!AdjustTokenPrivileges(token, FALSE, &privileges, sizeof(privileges), NULL, NULL)) {
-		error = GetLastError();
-		CloseHandle(token);
+	if(!identifier.LowPart) {
 		goto functionExit;
 	}
 
-	CloseHandle(token);
-	returnValue = TRUE;
+	error = ERROR_SUCCESS;
 functionExit:
 	SetLastError(error);
-	return returnValue;
+	return error ? FALSE : TRUE;
 }
 
 LPWSTR KHOPANFileGetCmd() {
