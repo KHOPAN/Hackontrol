@@ -45,7 +45,7 @@ functionExit:
 	return buffer;
 }
 
-LPWSTR KHOPANDirectoryGetWindows() {
+LPWSTR KHOPANFolderGetWindows() {
 	UINT size = GetSystemWindowsDirectoryW(NULL,0);
 
 	if(!size) {
@@ -71,22 +71,8 @@ functionExit:
 	return buffer;
 }
 
-LPWSTR KHOPANFileGetRundll32() {
-	LPWSTR folderWindows = KHOPANDirectoryGetWindows();
-
-	if(!folderWindows) {
-		return NULL;
-	}
-
-	LPWSTR fileRundll32 = KHOPANFormatMessage(L"%ws\\" FOLDER_SYSTEM32 L"\\" FILE_RUNDLL32, folderWindows);
-	DWORD error = GetLastError();
-	LocalFree(folderWindows);
-	SetLastError(error);
-	return fileRundll32;
-}
-
 LPWSTR KHOPANFileGetCmd() {
-	LPWSTR folderWindows = KHOPANDirectoryGetWindows();
+	LPWSTR folderWindows = KHOPANFolderGetWindows();
 
 	if(!folderWindows) {
 		return NULL;
@@ -97,4 +83,18 @@ LPWSTR KHOPANFileGetCmd() {
 	LocalFree(folderWindows);
 	SetLastError(error);
 	return fileCommandPrompt;
+}
+
+LPWSTR KHOPANFileGetRundll32() {
+	LPWSTR folderWindows = KHOPANFolderGetWindows();
+
+	if(!folderWindows) {
+		return NULL;
+	}
+
+	LPWSTR fileRundll32 = KHOPANFormatMessage(L"%ws\\" FOLDER_SYSTEM32 L"\\" FILE_RUNDLL32, folderWindows);
+	DWORD error = GetLastError();
+	LocalFree(folderWindows);
+	SetLastError(error);
+	return fileRundll32;
 }

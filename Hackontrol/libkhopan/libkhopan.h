@@ -30,9 +30,9 @@ extern "C" {
 #endif
 LPWSTR KHOPANInternalGetErrorMessage(const DWORD code, const LPCWSTR function, const BOOL win32);
 LPWSTR KHOPANFormatMessage(const LPWSTR format, ...);
-LPWSTR KHOPANDirectoryGetWindows();
-LPWSTR KHOPANFileGetRundll32();
+LPWSTR KHOPANFolderGetWindows();
 LPWSTR KHOPANFileGetCmd();
+LPWSTR KHOPANFileGetRundll32();
 
 BOOL KHWin32StartProcessA(const LPSTR filePath, const LPSTR argument, BOOL wait);
 BOOL KHWin32StartProcessW(const LPWSTR filePath, const LPWSTR argument, BOOL wait);
