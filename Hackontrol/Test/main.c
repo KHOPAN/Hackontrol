@@ -4,7 +4,7 @@
 
 int main(int argc, char** argv) {
 	//printf("%ws\n", KHOPANGetErrorMessageNTSTATUS(25, L"Direct3DCreate9"));
-	KHOPANERRORCONSOLE_WIN32(ERROR_ALREADY_REGISTERED, L"main");
+	KHOPANLASTERRORCONSOLE_WIN32(L"main");
 	/*IDirect3D9* direct = Direct3DCreate9(D3D_SDK_VERSION);
 
 	if(!direct) {

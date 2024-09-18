@@ -28,6 +28,12 @@
 #define KHOPANERRORCONSOLE_HRESULT(code, function)  do{LPWSTR __temporaryMessage__=KHOPANInternalGetErrorMessage((code)==S_OK?ERROR_SUCCESS:(HRESULT)(((HRESULT)code)&0xFFFF0000)==MAKE_HRESULT(SEVERITY_ERROR,FACILITY_WIN32,0)?HRESULT_CODE((HRESULT)code):ERROR_FUNCTION_FAILED,function,TRUE);if(__temporaryMessage__){_putws(__temporaryMessage__);LocalFree(__temporaryMessage__);}}while(0)
 #define KHOPANERRORCONSOLE_NTSTATUS(code, function) do{LPWSTR __temporaryMessage__=KHOPANInternalGetErrorMessage(code,function,FALSE);if(__temporaryMessage__){_putws(__temporaryMessage__);LocalFree(__temporaryMessage__);}}while(0)
 
+#define KHOPANLASTERRORMESSAGE_WIN32(function) KHOPANERRORMESSAGE_WIN32(GetLastError(),function)
+#define KHOPANLASTERRORMESSAGE_WSA(function)   KHOPANERRORMESSAGE_WIN32(WSAGetLastError(),function)
+
+#define KHOPANLASTERRORCONSOLE_WIN32(function) KHOPANERRORCONSOLE_WIN32(GetLastError(),function)
+#define KHOPANLASTERRORCONSOLE_WSA(function)   KHOPANERRORCONSOLE_WIN32(WSAGetLastError(),function)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
