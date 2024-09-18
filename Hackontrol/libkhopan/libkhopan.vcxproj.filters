@@ -18,9 +18,6 @@
     <ClCompile Include="khopanjava.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="khopanwin32.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="khopanjava_jni.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -45,7 +42,7 @@
     <ClCompile Include="khopanlist.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="khopanwin32_error.c">
+    <ClCompile Include="libkhopan.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

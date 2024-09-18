@@ -1,4 +1,4 @@
-#include "khopanwin32.h"
+#include "libkhopan.h"
 
 LPWSTR KHOPANInternalGetErrorMessage(const DWORD code, const LPCWSTR function, const BOOL win32) {
 	LPWSTR buffer;
@@ -22,17 +22,38 @@ LPWSTR KHOPANFormatMessage(const LPWSTR format, ...) {
 		goto functionExit;
 	}
 
-	buffer = LocalAlloc(LMEM_FIXED, (length + 1) * sizeof(WCHAR));
+	buffer = LocalAlloc(LMEM_FIXED, (((size_t) length) + 1) * sizeof(WCHAR));
 
 	if(!buffer) {
 		goto functionExit;
 	}
 
-	if(vswprintf_s(buffer, length + 1, format, list) == -1) {
+	if(vswprintf_s(buffer, ((size_t) length) + 1, format, list) == -1) {
 		LocalFree(buffer);
 		buffer = NULL;
 	}
 functionExit:
 	va_end(list);
+	return buffer;
+}
+
+LPWSTR KHOPANDirectoryGetWindows() {
+	UINT size = GetSystemWindowsDirectoryW(NULL,0);
+
+	if(!size) {
+		return NULL;
+	}
+
+	LPWSTR buffer = LocalAlloc(LMEM_FIXED, size * sizeof(WCHAR));
+
+	if(!buffer) {
+		return NULL;
+	}
+
+	if(!GetSystemWindowsDirectoryW(buffer, size)) {
+		LocalFree(buffer);
+		return NULL;
+	}
+
 	return buffer;
 }
