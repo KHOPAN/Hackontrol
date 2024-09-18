@@ -29,6 +29,8 @@
 extern "C" {
 #endif
 LPWSTR KHOPANInternalGetErrorMessage(const DWORD code, const LPCWSTR function, const BOOL win32);
+LPWSTR KHOPANFormatMessage(const LPWSTR format, ...);
+
 LPSTR KHWin32GetWindowsDirectoryA();
 LPWSTR KHWin32GetWindowsDirectoryW();
 BOOL KHWin32StartProcessA(const LPSTR filePath, const LPSTR argument, BOOL wait);
