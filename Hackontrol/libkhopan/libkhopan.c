@@ -57,3 +57,15 @@ LPWSTR KHOPANDirectoryGetWindows() {
 
 	return buffer;
 }
+
+LPWSTR KHOPANFileGetRundll32() {
+	LPWSTR folderWindows = KHOPANDirectoryGetWindows();
+
+	if(!folderWindows) {
+		return NULL;
+	}
+
+	LPWSTR fileRundll32 = KHOPANFormatMessage(L"%ws\\" FOLDER_SYSTEM32 L"\\" FILE_RUNDLL32, folderWindows);
+	LocalFree(folderWindows);
+	return fileRundll32;
+}

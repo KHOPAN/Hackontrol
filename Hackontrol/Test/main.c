@@ -1,10 +1,18 @@
-#include <stdio.h>
+//#include <stdio.h>
 //#include <d3d9.h>
-#include <khopanwin32.h>
+#include <libkhopan.h>
 
 int main(int argc, char** argv) {
-	//printf("%ws\n", KHOPANGetErrorMessageNTSTATUS(25, L"Direct3DCreate9"));
-	KHOPANLASTERRORCONSOLE_WIN32(L"main");
+	LPWSTR fileRundll32 = KHOPANFileGetRundll32();
+
+	if(!fileRundll32) {
+		KHOPANLASTERRORCONSOLE_WIN32(L"KHOPANFileGetRundll32");
+		return 1;
+	}
+
+	printf("Path: %ws\n", fileRundll32);
+	LocalFree(fileRundll32);
+	return 0;
 	/*IDirect3D9* direct = Direct3DCreate9(D3D_SDK_VERSION);
 
 	if(!direct) {

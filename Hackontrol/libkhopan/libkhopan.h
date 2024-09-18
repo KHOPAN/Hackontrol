@@ -31,13 +31,11 @@ extern "C" {
 LPWSTR KHOPANInternalGetErrorMessage(const DWORD code, const LPCWSTR function, const BOOL win32);
 LPWSTR KHOPANFormatMessage(const LPWSTR format, ...);
 LPWSTR KHOPANDirectoryGetWindows();
+LPWSTR KHOPANFileGetRundll32();
 
-LPSTR KHWin32GetWindowsDirectoryA();
-LPWSTR KHWin32GetWindowsDirectoryW();
 BOOL KHWin32StartProcessA(const LPSTR filePath, const LPSTR argument, BOOL wait);
 BOOL KHWin32StartProcessW(const LPWSTR filePath, const LPWSTR argument, BOOL wait);
-LPSTR KHWin32GetRundll32FileA();
-LPWSTR KHWin32GetRundll32FileW();
+
 BOOL KHWin32StartDynamicLibraryA(const LPSTR filePath, const LPSTR functionName, const LPSTR argument);
 BOOL KHWin32StartDynamicLibraryW(const LPWSTR filePath, const LPWSTR functionName, const LPWSTR argument);
 LPSTR KHWin32GetCmdFileA();
