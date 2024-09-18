@@ -20,12 +20,16 @@
 #define KHWIN32_LAST_WSA_ERROR(function)         KHWIN32_ERROR(WSAGetLastError(),function)
 #define KHWIN32_LAST_WSA_ERROR_CONSOLE(function) KHWIN32_ERROR_CONSOLE(WSAGetLastError(),function)
 
+#define KHOPANERRORMESSAGE_WIN32(code, function) do{LPWSTR __temporaryMessage__=KHOPANInternalGetErrorMessage(code,function,TRUE);if(__temporaryMessage__){MessageBoxW(NULL,__temporaryMessage__,L"Error",MB_OK|MB_DEFBUTTON1|MB_ICONERROR|MB_SYSTEMMODAL);LocalFree(__temporaryMessage__);}}while(0)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 LPWSTR KHOPANGetErrorMessageWin32(const DWORD code, const LPCWSTR function);
 LPWSTR KHOPANGetErrorMessageHRESULT(const HRESULT code, const LPCWSTR function);
 LPWSTR KHOPANGetErrorMessageNTSTATUS(const NTSTATUS code, const LPCWSTR function);
+
+LPWSTR KHOPANInternalGetErrorMessage(const DWORD code, const LPCWSTR function, const BOOL win32);
 
 LPSTR KHWin32GetWindowsDirectoryA();
 LPWSTR KHWin32GetWindowsDirectoryW();

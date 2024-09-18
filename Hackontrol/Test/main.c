@@ -3,7 +3,8 @@
 #include <khopanwin32.h>
 
 int main(int argc, char** argv) {
-	printf("%ws\n", KHOPANGetErrorMessageNTSTATUS(25, L"Direct3DCreate9"));
+	//printf("%ws\n", KHOPANGetErrorMessageNTSTATUS(25, L"Direct3DCreate9"));
+	KHOPANERRORMESSAGE_WIN32(ERROR_ACCESS_AUDIT_BY_POLICY, L"main");
 	/*IDirect3D9* direct = Direct3DCreate9(D3D_SDK_VERSION);
 
 	if(!direct) {
