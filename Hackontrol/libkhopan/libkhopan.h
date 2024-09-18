@@ -32,14 +32,13 @@ LPWSTR KHOPANInternalGetErrorMessage(const DWORD code, const LPCWSTR function, c
 LPWSTR KHOPANFormatMessage(const LPWSTR format, ...);
 LPWSTR KHOPANDirectoryGetWindows();
 LPWSTR KHOPANFileGetRundll32();
+LPWSTR KHOPANFileGetCmd();
 
 BOOL KHWin32StartProcessA(const LPSTR filePath, const LPSTR argument, BOOL wait);
 BOOL KHWin32StartProcessW(const LPWSTR filePath, const LPWSTR argument, BOOL wait);
 
 BOOL KHWin32StartDynamicLibraryA(const LPSTR filePath, const LPSTR functionName, const LPSTR argument);
 BOOL KHWin32StartDynamicLibraryW(const LPWSTR filePath, const LPWSTR functionName, const LPWSTR argument);
-LPSTR KHWin32GetCmdFileA();
-LPWSTR KHWin32GetCmdFileW();
 BOOL KHWin32ExecuteCommandA(const LPSTR command, BOOL wait);
 BOOL KHWin32ExecuteCommandW(const LPWSTR command, BOOL wait);
 BOOL KHWin32ExecuteRundll32FunctionA(const LPSTR moduleName, const LPSTR functionName, LPSTR argument, BOOL threaded);

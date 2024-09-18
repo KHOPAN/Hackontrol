@@ -19,28 +19,29 @@ LPWSTR KHOPANFormatMessage(const LPWSTR format, ...) {
 	va_start(list, format);
 	int length = _vscwprintf(format, list);
 	LPWSTR buffer = NULL;
+	DWORD error = ERROR_SUCCESS;
 
 	if(length == -1) {
-		SetLastError(ERROR_INVALID_PARAMETER);
+		error = ERROR_INVALID_PARAMETER;
 		goto functionExit;
 	}
 
 	buffer = LocalAlloc(LMEM_FIXED, (((size_t) length) + 1) * sizeof(WCHAR));
 
 	if(!buffer) {
+		error = GetLastError();
 		goto functionExit;
 	}
 
 	if(vswprintf_s(buffer, ((size_t) length) + 1, format, list) == -1) {
 		LocalFree(buffer);
 		buffer = NULL;
-		SetLastError(ERROR_INVALID_PARAMETER);
+		error = ERROR_INVALID_PARAMETER;
 		goto functionExit;
 	}
-
-	SetLastError(ERROR_SUCCESS);
 functionExit:
 	va_end(list);
+	SetLastError(error);
 	return buffer;
 }
 
@@ -57,14 +58,16 @@ LPWSTR KHOPANDirectoryGetWindows() {
 		return NULL;
 	}
 
-	if(!GetSystemWindowsDirectoryW(buffer, size)) {
-		DWORD error = GetLastError();
-		LocalFree(buffer);
-		SetLastError(error);
-		return NULL;
-	}
+	DWORD error = ERROR_SUCCESS;
 
-	SetLastError(ERROR_SUCCESS);
+	if(!GetSystemWindowsDirectoryW(buffer, size)) {
+		error = GetLastError();
+		LocalFree(buffer);
+		buffer = NULL;
+		goto functionExit;
+	}
+functionExit:
+	SetLastError(error);
 	return buffer;
 }
 
@@ -80,4 +83,18 @@ LPWSTR KHOPANFileGetRundll32() {
 	LocalFree(folderWindows);
 	SetLastError(error);
 	return fileRundll32;
+}
+
+LPWSTR KHOPANFileGetCmd() {
+	LPWSTR folderWindows = KHOPANDirectoryGetWindows();
+
+	if(!folderWindows) {
+		return NULL;
+	}
+
+	LPWSTR fileCommandPrompt = KHOPANFormatMessage(L"%ws\\" FOLDER_SYSTEM32 L"\\" FILE_CMD, folderWindows);
+	DWORD error = GetLastError();
+	LocalFree(folderWindows);
+	SetLastError(error);
+	return fileCommandPrompt;
 }
