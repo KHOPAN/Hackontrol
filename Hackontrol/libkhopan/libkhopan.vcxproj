@@ -22,7 +22,7 @@
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{8c1e7669-d899-4b10-8d65-557b98a620b5}</ProjectGuid>
-    <RootNamespace>KHOPANLibrary</RootNamespace>
+    <RootNamespace>libkhopan</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

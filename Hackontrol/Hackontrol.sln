@@ -13,7 +13,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libnative32", "libnative32\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test", "Test\Test.vcxproj", "{9E13269A-C30B-4F6D-B87C-90B7CC2E20CC}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KHOPAN Library", "KHOPAN Library\KHOPAN Library.vcxproj", "{8C1E7669-D899-4B10-8D65-557B98A620B5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libkhopan", "libkhopan\libkhopan.vcxproj", "{8C1E7669-D899-4B10-8D65-557B98A620B5}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libupdate32", "libupdate32\libupdate32.vcxproj", "{E81461D8-4C91-4F48-AA4A-7A0D77508F50}"
 EndProject
