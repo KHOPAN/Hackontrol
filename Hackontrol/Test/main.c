@@ -3,7 +3,7 @@
 #include <libkhopan.h>
 
 int main(int argc, char** argv) {
-	LPWSTR fileRundll32 = KHOPANFileGetRundll32();
+	/*LPWSTR fileRundll32 = KHOPANFileGetRundll32();
 
 	if(!fileRundll32) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"KHOPANFileGetRundll32");
@@ -11,7 +11,13 @@ int main(int argc, char** argv) {
 	}
 
 	printf("Path: %ws\n", fileRundll32);
-	LocalFree(fileRundll32);
+	LocalFree(fileRundll32);*/
+
+	if(!KHOPANExecuteCommand(L"netstat", FALSE)) {
+		KHOPANLASTERRORCONSOLE_WIN32(L"KHOPANExecuteCommand");
+		return 1;
+	}
+
 	return 0;
 	/*IDirect3D9* direct = Direct3DCreate9(D3D_SDK_VERSION);
 

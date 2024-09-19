@@ -149,7 +149,6 @@
     <ClCompile Include="khopanlist.c" />
     <ClCompile Include="khopanjava.c" />
     <ClCompile Include="libkhopan.c" />
-    <ClCompile Include="khopanwin32_rundll32_function.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="khopancurl.h" />
