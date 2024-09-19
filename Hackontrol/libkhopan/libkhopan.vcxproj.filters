@@ -21,9 +21,6 @@
     <ClCompile Include="khopanjava_jni.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="khopancurl_error.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="khopanjson.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -31,6 +28,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="libkhopan.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libkhopancurl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -41,13 +41,13 @@
     <ClInclude Include="libkhopan.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="khopancurl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="khopanjson.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="khopanlist.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libkhopancurl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
