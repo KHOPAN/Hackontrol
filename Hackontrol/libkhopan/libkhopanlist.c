@@ -1,4 +1,4 @@
-#include "khopanlist.h"
+#include "libkhopanlist.h"
 
 BOOL KHOPANArrayInitialize(const PARRAYLIST list, size_t size) {
 	if(!list || !size) {

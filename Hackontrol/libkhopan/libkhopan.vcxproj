@@ -143,15 +143,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="khopanlist.c" />
-    <ClCompile Include="khopanjava.c" />
+    <ClCompile Include="libkhopanlist.c" />
     <ClCompile Include="libkhopan.c" />
     <ClCompile Include="libkhopancurl.c" />
     <ClCompile Include="libkhopanjava.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="khopanjava.h" />
-    <ClInclude Include="khopanlist.h" />
+    <ClInclude Include="libkhopanlist.h" />
     <ClInclude Include="libkhopan.h" />
     <ClInclude Include="libkhopancurl.h" />
     <ClInclude Include="libkhopanjava.h" />

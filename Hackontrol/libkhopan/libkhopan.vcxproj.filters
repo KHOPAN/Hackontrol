@@ -15,10 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="khopanjava.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="khopanlist.c">
+    <ClCompile Include="libkhopanlist.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="libkhopan.c">
@@ -32,13 +29,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="khopanjava.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="libkhopan.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="khopanlist.h">
+    <ClInclude Include="libkhopanlist.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="libkhopancurl.h">
