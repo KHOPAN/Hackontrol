@@ -2,7 +2,7 @@
 
 #define SAFECALL(x) {DWORD internalError=GetLastError();x;SetLastError(internalError);}
 
-BOOL KHOPANEnablePrivilege(const LPWSTR privilege) {
+BOOL KHOPANEnablePrivilege(const LPCWSTR privilege) {
 	if(!privilege) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
@@ -29,6 +29,48 @@ BOOL KHOPANEnablePrivilege(const LPWSTR privilege) {
 	SAFECALL(CloseHandle(token));
 
 	if(!identifier.LowPart) {
+		return FALSE;
+	}
+
+	SetLastError(ERROR_SUCCESS);
+	return TRUE;
+}
+
+BOOL KHOPANExecuteCommand(const LPCWSTR command, const BOOL block) {
+	return TRUE;
+}
+
+BOOL KHOPANExecuteProcess(const LPCWSTR file, const LPCWSTR argument, const BOOL block) {
+	if(!file) {
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	LPWSTR argumentMutable = KHOPANStringDuplicate(argument);
+
+	if(!argumentMutable) {
+		return FALSE;
+	}
+
+	STARTUPINFOW startup = {0};
+	startup.cb = sizeof(startup);
+	PROCESS_INFORMATION process;
+	startup.cb = CreateProcessW(file, argumentMutable, NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, NULL, NULL, &startup, &process);
+	SAFECALL(LocalFree(argumentMutable));
+
+	if(!startup.cb) {
+		return FALSE;
+	}
+
+	if(block && WaitForSingleObject(process.hProcess, INFINITE) == WAIT_FAILED) {
+		return FALSE;
+	}
+
+	if(!CloseHandle(process.hProcess)) {
+		return FALSE;
+	}
+
+	if(!CloseHandle(process.hThread)) {
 		return FALSE;
 	}
 
@@ -82,7 +124,7 @@ LPWSTR KHOPANFolderGetWindows() {
 	return buffer;
 }
 
-LPWSTR KHOPANFormatMessage(const LPWSTR format, ...) {
+LPWSTR KHOPANFormatMessage(const LPCWSTR format, ...) {
 	if(!format) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return NULL;
@@ -127,4 +169,32 @@ LPWSTR KHOPANInternalGetErrorMessage(const DWORD code, const LPCWSTR function, c
 	LPWSTR message = function ? KHOPANFormatMessage(L"%ws() error occurred. Error code: %lu Message:\n%ws", function, code, buffer) : KHOPANFormatMessage(L"Error occurred. Error code: %lu Message:\n%ws", code, buffer);
 	SAFECALL(LocalFree(buffer));
 	return message;
+}
+
+LPWSTR KHOPANStringDuplicate(const LPCWSTR text) {
+	if(!text) {
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return NULL;
+	}
+
+	size_t length = wcslen(text);
+
+	if(length < 1) {
+		SetLastError(ERROR_INVALID_DATA);
+		return NULL;
+	}
+
+	LPWSTR buffer = LocalAlloc(LMEM_FIXED, (length + 1) * sizeof(WCHAR));
+
+	if(!buffer) {
+		return NULL;
+	}
+
+	for(size_t i = 0; i < length; i++) {
+		buffer[i] = text[i];
+	}
+
+	buffer[length] = 0;
+	SetLastError(ERROR_SUCCESS);
+	return buffer;
 }
