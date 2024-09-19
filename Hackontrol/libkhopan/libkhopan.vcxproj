@@ -144,7 +144,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="khopanjava_jni.c" />
-    <ClCompile Include="khopanjson.c" />
     <ClCompile Include="khopanlist.c" />
     <ClCompile Include="khopanjava.c" />
     <ClCompile Include="libkhopan.c" />
@@ -152,7 +151,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="khopanjava.h" />
-    <ClInclude Include="khopanjson.h" />
     <ClInclude Include="khopanlist.h" />
     <ClInclude Include="libkhopan.h" />
     <ClInclude Include="libkhopancurl.h" />

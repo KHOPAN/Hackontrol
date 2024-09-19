@@ -21,9 +21,6 @@
     <ClCompile Include="khopanjava_jni.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="khopanjson.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="khopanlist.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -39,9 +36,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="libkhopan.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="khopanjson.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="khopanlist.h">
