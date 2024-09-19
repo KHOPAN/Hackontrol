@@ -2,6 +2,30 @@
 
 #define SAFECALL(x) {DWORD internalError=GetLastError();x;SetLastError(internalError);}
 
+typedef void(__stdcall* RUNDLL32FUNCTION) (HWND window, HINSTANCE instance, LPSTR argument, int command);
+
+typedef struct {
+	RUNDLL32FUNCTION function;
+	LPSTR argument;
+} RUNDLL32DATA, *PRUNDLL32DATA;
+
+static DWORD WINAPI KHOPANExecuteRundll32FunctionThread(_In_ LPVOID parameter) {
+	if(!parameter) {
+		return 1;
+	}
+
+	PRUNDLL32DATA data = parameter;
+
+	if(!data->function) {
+		return 1;
+	}
+
+	data->function(NULL, GetModuleHandleW(NULL), data->argument, 0);
+	LocalFree(data->argument);
+	LocalFree(data);
+	return 0;
+}
+
 BOOL KHOPANEnablePrivilege(const LPCWSTR privilege) {
 	if(!privilege) {
 		SetLastError(ERROR_INVALID_PARAMETER);
@@ -61,7 +85,7 @@ BOOL KHOPANExecuteCommand(const LPCWSTR command, const BOOL block) {
 	return response;
 }
 
-BOOL KHOPANExecuteDynamicLibrary(const LPCWSTR file, const LPCWSTR function, const LPCWSTR argument) {
+BOOL KHOPANExecuteDynamicLibrary(const LPCWSTR file, const LPCSTR function, const LPCSTR argument) {
 	if(!file || !function) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
@@ -73,14 +97,14 @@ BOOL KHOPANExecuteDynamicLibrary(const LPCWSTR file, const LPCWSTR function, con
 		return FALSE;
 	}
 
-	LPWSTR argumentRundll32 = argument ? KHOPANFormatMessage(L"%ws \"%ws\" %ws %ws", fileRundll32, file, function, argument) : KHOPANFormatMessage(L"%ws \"%ws\" %ws", fileRundll32, file, function);
+	LPWSTR argumentRundll32 = argument ? KHOPANFormatMessage(L"%ws \"%ws\" %S %S", fileRundll32, file, function, argument) : KHOPANFormatMessage(L"%ws \"%ws\" %S", fileRundll32, file, function);
 
 	if(!argumentRundll32) {
 		SAFECALL(LocalFree(fileRundll32));
 		return FALSE;
 	}
 
-	BOOL response = KHOPANExecuteProcess(fileRundll32, argument, FALSE);
+	BOOL response = KHOPANExecuteProcess(fileRundll32, argumentRundll32, FALSE);
 	SAFECALL(LocalFree(argumentRundll32));
 	SAFECALL(LocalFree(fileRundll32));
 	return response;
@@ -120,6 +144,64 @@ BOOL KHOPANExecuteProcess(const LPCWSTR file, const LPCWSTR argument, const BOOL
 		return FALSE;
 	}
 
+	SetLastError(ERROR_SUCCESS);
+	return TRUE;
+}
+
+BOOL KHOPANExecuteRundll32Function(const LPWSTR file, const LPCSTR function, const LPCSTR argument, const BOOL block) {
+	if(!file || !function) {
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	HMODULE executable = LoadLibraryW(file);
+
+	if(!executable) {
+		return FALSE;
+	}
+
+	RUNDLL32FUNCTION functionRundll32 = (RUNDLL32FUNCTION) GetProcAddress(executable, function);
+
+	if(!functionRundll32) {
+		return FALSE;
+	}
+
+	size_t length = argument ? strlen(argument) : 0;
+	LPSTR argumentDuplicate = LocalAlloc(LMEM_FIXED, length + 1);
+
+	if(!argumentDuplicate) {
+		return FALSE;
+	}
+
+	for(size_t i = 0; i < length; i++) {
+		argumentDuplicate[i] = argument[i];
+	}
+
+	if(block) {
+		functionRundll32(NULL, GetModuleHandleW(NULL), argumentDuplicate, 0);
+		LocalFree(argumentDuplicate);
+		SetLastError(ERROR_SUCCESS);
+		return TRUE;
+	}
+
+	PRUNDLL32DATA data = LocalAlloc(LMEM_FIXED, sizeof(RUNDLL32DATA));
+
+	if(!data) {
+		SAFECALL(LocalFree(argumentDuplicate));
+		return FALSE;
+	}
+
+	data->function = functionRundll32;
+	data->argument = argumentDuplicate;
+	HANDLE thread = CreateThread(NULL, 0, KHOPANExecuteRundll32FunctionThread, data, 0, NULL);
+
+	if(!thread) {
+		SAFECALL(LocalFree(data));
+		SAFECALL(LocalFree(argumentDuplicate));
+		return FALSE;
+	}
+
+	CloseHandle(thread);
 	SetLastError(ERROR_SUCCESS);
 	return TRUE;
 }

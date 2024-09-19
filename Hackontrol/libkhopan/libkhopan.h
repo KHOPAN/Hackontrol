@@ -30,17 +30,15 @@ extern "C" {
 #endif
 BOOL KHOPANEnablePrivilege(const LPCWSTR privilege);
 BOOL KHOPANExecuteCommand(const LPCWSTR command, const BOOL block);
-BOOL KHOPANExecuteDynamicLibrary(const LPCWSTR file, const LPCWSTR function, const LPCWSTR argument);
+BOOL KHOPANExecuteDynamicLibrary(const LPCWSTR file, const LPCSTR function, const LPCSTR argument);
 BOOL KHOPANExecuteProcess(const LPCWSTR file, const LPCWSTR argument, const BOOL block);
+BOOL KHOPANExecuteRundll32Function(const LPWSTR file, const LPCSTR function, const LPCSTR argument, const BOOL block);
 LPWSTR KHOPANFileGetCmd();
 LPWSTR KHOPANFileGetRundll32();
 LPWSTR KHOPANFolderGetWindows();
 LPWSTR KHOPANFormatMessage(const LPCWSTR format, ...);
 LPWSTR KHOPANInternalGetErrorMessage(const DWORD code, const LPCWSTR function, const BOOL win32);
 LPWSTR KHOPANStringDuplicate(const LPCWSTR text);
-
-BOOL KHWin32ExecuteRundll32FunctionA(const LPSTR moduleName, const LPSTR functionName, LPSTR argument, BOOL threaded);
-BOOL KHWin32ExecuteRundll32FunctionW(const LPWSTR moduleName, const LPSTR functionName, LPSTR argument, BOOL threaded);
 #ifdef __cplusplus
 }
 #endif
