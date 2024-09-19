@@ -1,4 +1,4 @@
-#include "khopanstring.h"
+#include "libkhopan.h"
 #include "khopancurl.h"
 
 #define FORMATA "%s() error ocurred. Error code: %u Message:\n%s"

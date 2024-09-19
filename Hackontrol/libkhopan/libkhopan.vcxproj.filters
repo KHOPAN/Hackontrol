@@ -24,9 +24,6 @@
     <ClCompile Include="khopancurl_error.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="khopanwin32_process.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="khopanwin32_rundll32_function.c">
       <Filter>Source Files</Filter>
     </ClCompile>

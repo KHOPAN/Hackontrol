@@ -1,4 +1,4 @@
-#include "khopanwin32.h"
+#include "libkhopan.h"
 
 BOOL KHWin32RegistrySetStringValueA(const HKEY key, const LPSTR valueName, const LPSTR value) {
 	if(!key) {

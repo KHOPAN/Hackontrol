@@ -1,4 +1,4 @@
-#include "khopanwin32.h"
+#include "libkhopan.h"
 
 typedef void(__stdcall* Rundll32Function) (HWND window, HINSTANCE instance, LPSTR argument, int command);
 

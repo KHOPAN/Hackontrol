@@ -81,7 +81,7 @@ BOOL KHOPANExecuteDynamicLibrary(const LPCWSTR file, const LPCWSTR function, con
 	}
 
 	BOOL response = KHOPANExecuteProcess(fileRundll32, argument, FALSE);
-	SAFECALL(LocalFree(argument));
+	SAFECALL(LocalFree(argumentRundll32));
 	SAFECALL(LocalFree(fileRundll32));
 	return response;
 }

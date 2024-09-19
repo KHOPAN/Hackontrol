@@ -1,5 +1,4 @@
-#include "khopanwin32.h"
-#include "khopanstring.h"
+#include "libkhopan.h"
 #include "khopanjava.h"
 
 static void print(JNIEnv* environment, const LPVOID message, const LPSTR fieldName, BOOL wide) {
