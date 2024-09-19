@@ -37,7 +37,28 @@ BOOL KHOPANEnablePrivilege(const LPCWSTR privilege) {
 }
 
 BOOL KHOPANExecuteCommand(const LPCWSTR command, const BOOL block) {
-	return TRUE;
+	if(!command) {
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	LPWSTR fileCommandPrompt = KHOPANFileGetCmd();
+
+	if(!fileCommandPrompt) {
+		return FALSE;
+	}
+
+	LPWSTR argument = KHOPANFormatMessage(L"%ws /c \"%ws\"", fileCommandPrompt, command);
+
+	if(!argument) {
+		SAFECALL(LocalFree(fileCommandPrompt));
+		return FALSE;
+	}
+
+	BOOL response = KHOPANExecuteProcess(fileCommandPrompt, argument, block);
+	SAFECALL(LocalFree(argument));
+	SAFECALL(LocalFree(fileCommandPrompt));
+	return response;
 }
 
 BOOL KHOPANExecuteProcess(const LPCWSTR file, const LPCWSTR argument, const BOOL block) {
