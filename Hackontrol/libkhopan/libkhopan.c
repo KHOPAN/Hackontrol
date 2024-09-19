@@ -107,7 +107,7 @@ LPWSTR KHOPANFormatMessage(const LPWSTR format, ...) {
 	if(vswprintf_s(buffer, ((size_t) length) + 1, format, list) == -1) {
 		LocalFree(buffer);
 		buffer = NULL;
-		SetLastError(ERROR_SUCCESS);
+		SetLastError(ERROR_INVALID_PARAMETER);
 		goto functionExit;
 	}
 
