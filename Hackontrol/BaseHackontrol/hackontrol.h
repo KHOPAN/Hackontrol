@@ -1,9 +1,9 @@
 #pragma once
 
-#include <khopandatastream.h>
+#include <khopanlist.h>
 
 #define FILE_LIBDLL32 L"libdll32.dll"
 
-LPWSTR HackontrolGetDirectory(BOOL createIfNotExist);
+LPWSTR HackontrolGetHomeDirectory();
 BOOL HackontrolWriteFile(LPCWSTR const filePath, const DataStream* const stream);
 BOOL HackontrolEnsureDirectoryExistence(LPCWSTR const folderPath);
