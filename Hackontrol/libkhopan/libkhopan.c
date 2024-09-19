@@ -61,6 +61,31 @@ BOOL KHOPANExecuteCommand(const LPCWSTR command, const BOOL block) {
 	return response;
 }
 
+BOOL KHOPANExecuteDynamicLibrary(const LPCWSTR file, const LPCWSTR function, const LPCWSTR argument) {
+	if(!file || !function) {
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	LPWSTR fileRundll32 = KHOPANFileGetRundll32();
+
+	if(!fileRundll32) {
+		return FALSE;
+	}
+
+	LPWSTR argumentRundll32 = argument ? KHOPANFormatMessage(L"%ws \"%ws\" %ws %ws", fileRundll32, file, function, argument) : KHOPANFormatMessage(L"%ws \"%ws\" %ws", fileRundll32, file, function);
+
+	if(!argumentRundll32) {
+		SAFECALL(LocalFree(fileRundll32));
+		return FALSE;
+	}
+
+	BOOL response = KHOPANExecuteProcess(fileRundll32, argument, FALSE);
+	SAFECALL(LocalFree(argument));
+	SAFECALL(LocalFree(fileRundll32));
+	return response;
+}
+
 BOOL KHOPANExecuteProcess(const LPCWSTR file, const LPCWSTR argument, const BOOL block) {
 	if(!file) {
 		SetLastError(ERROR_INVALID_PARAMETER);
