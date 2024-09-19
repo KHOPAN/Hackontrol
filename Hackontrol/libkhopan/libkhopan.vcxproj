@@ -148,12 +148,14 @@
     <ClCompile Include="khopanjava.c" />
     <ClCompile Include="libkhopan.c" />
     <ClCompile Include="libkhopancurl.c" />
+    <ClCompile Include="libkhopanjava.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="khopanjava.h" />
     <ClInclude Include="khopanlist.h" />
     <ClInclude Include="libkhopan.h" />
     <ClInclude Include="libkhopancurl.h" />
+    <ClInclude Include="libkhopanjava.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
