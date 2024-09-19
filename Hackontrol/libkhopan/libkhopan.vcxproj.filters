@@ -30,9 +30,6 @@
     <ClCompile Include="khopanjson.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="khopanwin32_registry.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="khopanlist.c">
       <Filter>Source Files</Filter>
     </ClCompile>
