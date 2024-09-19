@@ -1,5 +1,7 @@
 #include "libkhopan.h"
 
+#define SAFECALL(x) {DWORD internalError=GetLastError();x;SetLastError(internalError);}
+
 BOOL KHOPANEnablePrivilege(const LPWSTR privilege) {
 	if(!privilege) {
 		SetLastError(ERROR_INVALID_PARAMETER);
@@ -13,12 +15,10 @@ BOOL KHOPANEnablePrivilege(const LPWSTR privilege) {
 	}
 
 	LUID identifier;
-	DWORD error = ERROR_INVALID_FUNCTION;
 
 	if(!LookupPrivilegeValueW(NULL, privilege, &identifier)) {
-		error = GetLastError();
-		CloseHandle(token);
-		goto functionExit;
+		SAFECALL(CloseHandle(token));
+		return FALSE;
 	}
 
 	TOKEN_PRIVILEGES privileges = {0};
@@ -26,17 +26,14 @@ BOOL KHOPANEnablePrivilege(const LPWSTR privilege) {
 	privileges.Privileges[0].Luid = identifier;
 	privileges.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
 	identifier.LowPart = AdjustTokenPrivileges(token, FALSE, &privileges, sizeof(privileges), NULL, NULL);
-	error = GetLastError();
-	CloseHandle(token);
+	SAFECALL(CloseHandle(token));
 
 	if(!identifier.LowPart) {
-		goto functionExit;
+		return FALSE;
 	}
 
-	error = ERROR_SUCCESS;
-functionExit:
-	SetLastError(error);
-	return error ? FALSE : TRUE;
+	SetLastError(ERROR_SUCCESS);
+	return TRUE;
 }
 
 LPWSTR KHOPANFileGetCmd() {
@@ -47,9 +44,7 @@ LPWSTR KHOPANFileGetCmd() {
 	}
 
 	LPWSTR fileCommandPrompt = KHOPANFormatMessage(L"%ws\\" FOLDER_SYSTEM32 L"\\" FILE_CMD, folderWindows);
-	DWORD error = GetLastError();
-	LocalFree(folderWindows);
-	SetLastError(error);
+	SAFECALL(LocalFree(folderWindows));
 	return fileCommandPrompt;
 }
 
@@ -61,9 +56,7 @@ LPWSTR KHOPANFileGetRundll32() {
 	}
 
 	LPWSTR fileRundll32 = KHOPANFormatMessage(L"%ws\\" FOLDER_SYSTEM32 L"\\" FILE_RUNDLL32, folderWindows);
-	DWORD error = GetLastError();
-	LocalFree(folderWindows);
-	SetLastError(error);
+	SAFECALL(LocalFree(folderWindows));
 	return fileRundll32;
 }
 
@@ -80,16 +73,12 @@ LPWSTR KHOPANFolderGetWindows() {
 		return NULL;
 	}
 
-	DWORD error = ERROR_SUCCESS;
-
 	if(!GetSystemWindowsDirectoryW(buffer, size)) {
-		error = GetLastError();
-		LocalFree(buffer);
-		buffer = NULL;
-		goto functionExit;
+		SAFECALL(LocalFree(buffer));
+		return NULL;
 	}
-functionExit:
-	SetLastError(error);
+
+	SetLastError(ERROR_SUCCESS);
 	return buffer;
 }
 
@@ -103,29 +92,28 @@ LPWSTR KHOPANFormatMessage(const LPWSTR format, ...) {
 	va_start(list, format);
 	int length = _vscwprintf(format, list);
 	LPWSTR buffer = NULL;
-	DWORD error = ERROR_SUCCESS;
 
 	if(length == -1) {
-		error = ERROR_INVALID_PARAMETER;
+		SetLastError(ERROR_INVALID_PARAMETER);
 		goto functionExit;
 	}
 
 	buffer = LocalAlloc(LMEM_FIXED, (((size_t) length) + 1) * sizeof(WCHAR));
 
 	if(!buffer) {
-		error = GetLastError();
 		goto functionExit;
 	}
 
 	if(vswprintf_s(buffer, ((size_t) length) + 1, format, list) == -1) {
 		LocalFree(buffer);
 		buffer = NULL;
-		error = ERROR_INVALID_PARAMETER;
+		SetLastError(ERROR_SUCCESS);
 		goto functionExit;
 	}
+
+	SetLastError(ERROR_SUCCESS);
 functionExit:
 	va_end(list);
-	SetLastError(error);
 	return buffer;
 }
 
@@ -137,8 +125,6 @@ LPWSTR KHOPANInternalGetErrorMessage(const DWORD code, const LPCWSTR function, c
 	}
 
 	LPWSTR message = function ? KHOPANFormatMessage(L"%ws() error occurred. Error code: %lu Message:\n%ws", function, code, buffer) : KHOPANFormatMessage(L"Error occurred. Error code: %lu Message:\n%ws", code, buffer);
-	DWORD error = GetLastError();
-	LocalFree(buffer);
-	SetLastError(error);
+	SAFECALL(LocalFree(buffer));
 	return message;
 }
