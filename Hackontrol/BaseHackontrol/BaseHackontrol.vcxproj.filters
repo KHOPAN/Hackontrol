@@ -24,9 +24,6 @@
     <ClInclude Include="hackontroljava.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="hackontrolpacket.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="hackontrol_get_directory.c">
