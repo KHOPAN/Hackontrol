@@ -1,4 +1,4 @@
-#include "hackontrol.h"
+#include "libhackontrol.h"
 #include <ShlObj_core.h>
 
 #define HACKONTROL_DIRECTORY L"%LOCALAPPDATA%\\Microsoft\\InstallService"

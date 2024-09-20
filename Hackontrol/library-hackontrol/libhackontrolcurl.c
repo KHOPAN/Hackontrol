@@ -1,4 +1,4 @@
-#include "hackontrolcurl.h"
+#include "libhackontrolcurl.h"
 
 static size_t addDataStream(void* const data, const size_t size, const size_t count, const PDATASTREAM stream) {
 	size_t total = size * count;

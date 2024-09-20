@@ -15,18 +15,18 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="hackontrol.h">
+    <ClInclude Include="libhackontrol.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="hackontrolcurl.h">
+    <ClInclude Include="libhackontrolcurl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="hackontrol.c">
+    <ClCompile Include="libhackontrol.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="hackontrolcurl.c">
+    <ClCompile Include="libhackontrolcurl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

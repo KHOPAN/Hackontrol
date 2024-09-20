@@ -139,12 +139,12 @@
     <Lib />
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="hackontrol.h" />
-    <ClInclude Include="hackontrolcurl.h" />
+    <ClInclude Include="libhackontrol.h" />
+    <ClInclude Include="libhackontrolcurl.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="hackontrol.c" />
-    <ClCompile Include="hackontrolcurl.c" />
+    <ClCompile Include="libhackontrol.c" />
+    <ClCompile Include="libhackontrolcurl.c" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\library-khopan\library-khopan.vcxproj">
