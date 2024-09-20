@@ -76,15 +76,16 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\cJSON\include;D:\library\libcurl-8.7.1\include;D:\library\openssl-3.3.0\x64\include;D:\GitHub Repository\Hackontrol\Hackontrol\BaseHackontrol;D:\GitHub Repository\Hackontrol\Hackontrol\libkhopan</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\cJSON\include;D:\library\libcurl-8.7.1\include;$(SolutionDir)library-hackontrol;$(SolutionDir)library-khopan;D:\library\openssl-3.3.0\x64\include</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <AdditionalDependencies>libssl.lib;libcrypto.lib;Taskschd.lib;cJSON-debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\library\openssl-3.3.0\x64\lib;D:\library\libcurl-8.7.1\lib;D:\cJSON\bin\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\cJSON\bin\x64;D:\library\openssl-3.3.0\x64\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -95,9 +96,10 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\cJSON\include;D:\library\libcurl-8.7.1\include;D:\openssl-build\Release\include;D:\GitHub Repository\Hackontrol\Hackontrol\BaseHackontrol;D:\GitHub Repository\Hackontrol\Hackontrol\libkhopan</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\cJSON\include;D:\library\libcurl-8.7.1\include;$(SolutionDir)library-hackontrol;$(SolutionDir)library-khopan;D:\openssl-build\Release\include</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -105,7 +107,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <AdditionalDependencies>libssl.lib;libcrypto.lib;Taskschd.lib;cJSON-release.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\openssl-build\Release\lib;D:\library\libcurl-8.7.1\lib;D:\cJSON\bin\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\cJSON\bin\x64;D:\openssl-build\Release\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -114,15 +116,16 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\cJSON\include;D:\library\libcurl-8.7.1\include;D:\library\openssl-3.3.0\x64\include;D:\GitHub Repository\Hackontrol\Hackontrol\BaseHackontrol;D:\GitHub Repository\Hackontrol\Hackontrol\libkhopan</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\cJSON\include;D:\library\libcurl-8.7.1\include;$(SolutionDir)library-hackontrol;$(SolutionDir)library-khopan;D:\library\openssl-3.3.0\x64\include</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <AdditionalDependencies>libssl.lib;libcrypto.lib;Taskschd.lib;cJSON-debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\library\openssl-3.3.0\x64\lib;D:\library\libcurl-8.7.1\lib;D:\cJSON\bin\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\cJSON\bin\x64;D:\library\openssl-3.3.0\x64\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -133,9 +136,10 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\cJSON\include;D:\library\libcurl-8.7.1\include;D:\openssl-build\Release\include;D:\GitHub Repository\Hackontrol\Hackontrol\BaseHackontrol;D:\GitHub Repository\Hackontrol\Hackontrol\libkhopan</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\cJSON\include;D:\library\libcurl-8.7.1\include;$(SolutionDir)library-hackontrol;$(SolutionDir)library-khopan;D:\openssl-build\Release\include</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -143,7 +147,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <AdditionalDependencies>libssl.lib;libcrypto.lib;Taskschd.lib;cJSON-release.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\openssl-build\Release\lib;D:\library\libcurl-8.7.1\lib;D:\cJSON\bin\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\cJSON\bin\x64;D:\openssl-build\Release\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -165,7 +169,7 @@
     <None Include="..\..\release\update" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\BaseHackontrol\BaseHackontrol.vcxproj">
+    <ProjectReference Include="..\library-hackontrol\library-hackontrol.vcxproj">
       <Project>{7ad64c41-0110-4779-bdaa-7f2017f2692f}</Project>
     </ProjectReference>
   </ItemGroup>

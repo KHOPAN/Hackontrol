@@ -1,31 +1,50 @@
-#include <khopanwin32.h>
+#include <libkhopan.h>
 
 #define CLASS_NAME L"SimpleWindowClass"
 
-static LRESULT CALLBACK WindowProcedure(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
-static void PaintWindow(HWND window);
+static LRESULT CALLBACK windowProcedure(HWND window, UINT message, WPARAM wparam, LPARAM lparam) {
+	switch(message) {
+	case WM_CLOSE:
+		DestroyWindow(window);
+		return 0;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+	case WM_PAINT: {
+		PAINTSTRUCT paintStruct;
+		HDC context = BeginPaint(window, &paintStruct);
+		HBRUSH brush = GetStockObject(DC_BRUSH);
+		RECT bounds;
+		GetClientRect(window, &bounds);
+		SetDCBrushColor(context, 0x1E1E1E);
+		FillRect(context, &bounds, brush);
+		EndPaint(window, &paintStruct);
+		return 0;
+	}
+	}
+
+	return DefWindowProcW(window, message, wparam, lparam);
+}
 
 __declspec(dllexport) void __stdcall SimpleWindow(HWND window, HINSTANCE instance, LPSTR argument, int command) {
 	WNDCLASSW windowClass = {0};
-	windowClass.style = CS_HREDRAW | CS_VREDRAW;
-	windowClass.lpfnWndProc = WindowProcedure;
+	//windowClass.style = CS_HREDRAW | CS_VREDRAW;
+	windowClass.lpfnWndProc = windowProcedure;
 	windowClass.hInstance = instance;
 	windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
 	windowClass.lpszClassName = CLASS_NAME;
 
 	if(!RegisterClassW(&windowClass)) {
-		KHWin32DialogErrorW(GetLastError(), L"RegisterClassW");
+		KHOPANLASTERRORMESSAGE_WIN32(L"RegisterClassW");
 		return;
 	}
 
 	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
 	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	int windowSize = screenHeight / 2;
-	int windowX = (screenWidth - windowSize) / 2;
-	int windowY = (screenHeight - windowSize) / 2;
 
-	if(!CreateWindowExW(0L, CLASS_NAME, L"Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, windowX, windowY, windowSize, windowSize, NULL, NULL, instance, NULL)) {
-		KHWin32DialogErrorW(GetLastError(), L"CreateWindowExW");
+	if(!CreateWindowExW(0L, CLASS_NAME, L"Window", WS_OVERLAPPEDWINDOW | WS_VISIBLE, (screenWidth - windowSize) / 2, (screenHeight - windowSize) / 2, windowSize, windowSize, NULL, NULL, instance, NULL)) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"CreateWindowExW");
 		return;
 	}
 
@@ -37,33 +56,6 @@ __declspec(dllexport) void __stdcall SimpleWindow(HWND window, HINSTANCE instanc
 	}
 
 	if(!UnregisterClassW(CLASS_NAME, instance)) {
-		KHWin32DialogErrorW(GetLastError(), L"UnregisterClassW");
+		KHOPANLASTERRORMESSAGE_WIN32(L"UnregisterClassW");
 	}
-}
-
-static LRESULT CALLBACK WindowProcedure(HWND window, UINT message, WPARAM wparam, LPARAM lparam) {
-	switch(message) {
-	case WM_CLOSE:
-		DestroyWindow(window);
-		return 0;
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		return 0;
-	case WM_PAINT:
-		PaintWindow(window);
-		return 0;
-	}
-
-	return DefWindowProcW(window, message, wparam, lparam);
-}
-
-static void PaintWindow(HWND window) {
-	PAINTSTRUCT paintStruct;
-	HDC context = BeginPaint(window, &paintStruct);
-	HBRUSH brush = GetStockObject(DC_BRUSH);
-	SetDCBrushColor(context, 0x1E1E1E);
-	RECT rectangle;
-	GetClientRect(window, &rectangle);
-	FillRect(context, &rectangle, brush);
-	EndPaint(window, &paintStruct);
 }
