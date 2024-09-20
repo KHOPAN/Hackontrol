@@ -1,4 +1,5 @@
 #include "hackontrol.h"
+#include <ShlObj_core.h>
 
 #define HACKONTROL_DIRECTORY L"%LOCALAPPDATA%\\Microsoft\\InstallService"
 
@@ -55,4 +56,21 @@ BOOL HackontrolWriteFile(const LPCWSTR file, const PBYTE data, const size_t size
 closeFile:
 	CloseHandle(handleFile);
 	return returnValue;
+}
+
+BOOL HackontrolCreateDirectory(const LPCWSTR folder) {
+	if(!folder) {
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	int code = SHCreateDirectoryExW(NULL, folder, NULL);
+
+	if(code && code != ERROR_FILE_EXISTS && code != ERROR_ALREADY_EXISTS) {
+		SetLastError(code);
+		return FALSE;
+	}
+
+	SetLastError(ERROR_SUCCESS);
+	return TRUE;
 }

@@ -146,7 +146,6 @@
   <ItemGroup>
     <ClCompile Include="hackontrol.c" />
     <ClCompile Include="hackontroljava.c" />
-    <ClCompile Include="hackontrol_ensure_directory_existence.c" />
     <ClCompile Include="hackontrol_download.c" />
   </ItemGroup>
   <ItemGroup>

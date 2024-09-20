@@ -29,9 +29,6 @@
     <ClCompile Include="hackontrol_download.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="hackontrol_ensure_directory_existence.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="hackontroljava.c">
       <Filter>Source Files</Filter>
     </ClCompile>
