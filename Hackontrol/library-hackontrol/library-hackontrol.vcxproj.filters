@@ -35,5 +35,8 @@
     <ClCompile Include="hackontrol.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="hackontrolcurl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
