@@ -21,17 +21,8 @@
     <ClInclude Include="hackontrolcurl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="hackontroljava.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="hackontrol_download.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="hackontroljava.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="hackontrol.c">
       <Filter>Source Files</Filter>
     </ClCompile>
