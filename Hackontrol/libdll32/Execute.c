@@ -1,6 +1,4 @@
 #include <libkhopan.h>
-#include <khopanjson.h>
-#include <hackontrolcurl.h>
 #include "execute.h"
 #include "resource.h"
 
