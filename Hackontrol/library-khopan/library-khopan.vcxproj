@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{7ad64c41-0110-4779-bdaa-7f2017f2692f}</ProjectGuid>
-    <RootNamespace>BaseHackontrol</RootNamespace>
+    <ProjectGuid>{8c1e7669-d899-4b10-8d65-557b98a620b5}</ProjectGuid>
+    <RootNamespace>library-khopan</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -76,15 +76,18 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;D:\library\libcurl-8.7.1\include;D:\GitHub Repository\Hackontrol\Hackontrol\libkhopan</AdditionalIncludeDirectories>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>C:\Program Files\Java\jdk-21\include;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include\win32\bridge;$(SolutionDir)library-khopan;D:\library\libcurl-8.10.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CompileAs>CompileAsC</CompileAs>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>Ws2_32.lib;Crypt32.lib;Wldap32.lib;Normaliz.lib;libcurl-debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\library\libcurl-8.7.1\lib;</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\library\libcurl-8.10.1\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Crypt32.lib;Normaliz.lib;Wldap32.lib;Ws2_32.lib;libcurl-debug.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -95,7 +98,10 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;D:\library\libcurl-8.7.1\include;D:\GitHub Repository\Hackontrol\Hackontrol\libkhopan</AdditionalIncludeDirectories>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>C:\Program Files\Java\jdk-21\include;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include\win32\bridge;$(SolutionDir)library-khopan;D:\library\libcurl-8.10.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CompileAs>CompileAsC</CompileAs>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -104,8 +110,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>Ws2_32.lib;Crypt32.lib;Wldap32.lib;Normaliz.lib;libcurl-release.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\library\libcurl-8.7.1\lib;</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\library\libcurl-8.10.1\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Crypt32.lib;Normaliz.lib;Wldap32.lib;Ws2_32.lib;libcurl-release.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -114,15 +120,18 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;D:\library\libcurl-8.7.1\include;D:\GitHub Repository\Hackontrol\Hackontrol\libkhopan</AdditionalIncludeDirectories>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>C:\Program Files\Java\jdk-21\include;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include\win32\bridge;$(SolutionDir)library-khopan;D:\library\libcurl-8.10.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CompileAs>CompileAsC</CompileAs>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>Ws2_32.lib;Crypt32.lib;Wldap32.lib;Normaliz.lib;libcurl-debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\library\libcurl-8.7.1\lib;</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\library\libcurl-8.10.1\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Crypt32.lib;Normaliz.lib;Wldap32.lib;Ws2_32.lib;libcurl-debug.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -133,7 +142,10 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Program Files\Java\jdk-21\include\win32\bridge;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include;D:\library\libcurl-8.7.1\include;D:\GitHub Repository\Hackontrol\Hackontrol\libkhopan</AdditionalIncludeDirectories>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>C:\Program Files\Java\jdk-21\include;C:\Program Files\Java\jdk-21\include\win32;C:\Program Files\Java\jdk-21\include\win32\bridge;$(SolutionDir)library-khopan;D:\library\libcurl-8.10.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CompileAs>CompileAsC</CompileAs>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -142,27 +154,21 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>Ws2_32.lib;Crypt32.lib;Wldap32.lib;Normaliz.lib;libcurl-release.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\library\libcurl-8.7.1\lib;</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\library\libcurl-8.10.1\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Crypt32.lib;Normaliz.lib;Wldap32.lib;Ws2_32.lib;libcurl-release.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="hackontrol.h" />
-    <ClInclude Include="hackontrolcurl.h" />
-    <ClInclude Include="hackontroljava.h" />
+    <ClCompile Include="libkhopanlist.c" />
+    <ClCompile Include="libkhopan.c" />
+    <ClCompile Include="libkhopancurl.c" />
+    <ClCompile Include="libkhopanjava.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="hackontrol.c" />
-    <ClCompile Include="hackontroljava.c" />
-    <ClCompile Include="hackontrol_ensure_directory_existence.c" />
-    <ClCompile Include="hackontrol_get_directory.c" />
-    <ClCompile Include="hackontrol_download.c" />
-    <ClCompile Include="hackontrol_write_file.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\KHOPAN Library\KHOPAN Library.vcxproj">
-      <Project>{8c1e7669-d899-4b10-8d65-557b98a620b5}</Project>
-    </ProjectReference>
+    <ClInclude Include="libkhopanlist.h" />
+    <ClInclude Include="libkhopan.h" />
+    <ClInclude Include="libkhopancurl.h" />
+    <ClInclude Include="libkhopanjava.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
