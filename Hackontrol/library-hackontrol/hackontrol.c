@@ -25,3 +25,34 @@ LPWSTR HackontrolGetHomeDirectory() {
 	SetLastError(ERROR_SUCCESS);
 	return buffer;
 }
+
+BOOL HackontrolWriteFile(const LPCWSTR file, const PBYTE data, const size_t size) {
+	if(!file || !data || !size) {
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	HANDLE handleFile = CreateFileW(file, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+
+	if(handleFile == INVALID_HANDLE_VALUE) {
+		return FALSE;
+	}
+
+	DWORD written;
+	BOOL returnValue = FALSE;
+
+	if(!WriteFile(handleFile, data, (DWORD) size, &written, NULL)) {
+		goto closeFile;
+	}
+
+	if(size != written) {
+		SetLastError(ERROR_FUNCTION_FAILED);
+		goto closeFile;
+	}
+
+	SetLastError(ERROR_SUCCESS);
+	returnValue = TRUE;
+closeFile:
+	CloseHandle(handleFile);
+	return returnValue;
+}
