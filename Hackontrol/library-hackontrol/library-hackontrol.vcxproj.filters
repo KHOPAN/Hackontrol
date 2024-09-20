@@ -26,13 +26,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="hackontrol_get_directory.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="hackontrol_download.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="hackontrol_write_file.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="hackontrol_ensure_directory_existence.c">
