@@ -15,46 +15,43 @@
 
 static HINSTANCE globalInstance;
 
-__declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LPSTR argument, int command) {
-	BOOL waitForProcess = FALSE;
-	DWORD waitingProcess = 0;
-	BOOL noUpdate = FALSE;
-
+static void parseArgument(const LPCSTR argument, const PDWORD processIdentifier, const PBOOL update) {
 	if(!argument || !strlen(argument)) {
-		goto exitParameter;
+		return;
 	}
 
-	LPWSTR wideArgument = KHFormatMessageW(L"%S", argument);
+	LPWSTR buffer = KHOPANFormatMessage(L"%S", argument);
 
-	if(!wideArgument) {
-		goto exitParameter;
+	if(!buffer) {
+		return;
 	}
 
 	int count;
-	LPWSTR* arguments = CommandLineToArgvW(wideArgument, &count);
-	LocalFree(wideArgument);
+	LPWSTR* arguments = CommandLineToArgvW(buffer, &count);
+	LocalFree(buffer);
 
 	if(!arguments) {
-		goto exitParameter;
+		return;
 	}
 
 	if(count > 0) {
-		waitForProcess = TRUE;
-		waitingProcess = (DWORD) _wtoll(arguments[0]);
+		(*processIdentifier) = (DWORD) _wtoll(arguments[0]);
 	}
 
-	if(count > 1) {
-		noUpdate = _wtoi(arguments[1]);
-	}
-
+	(*update) = count > 1 && !_wtoll(arguments[1]) ? FALSE : TRUE;
 	LocalFree(arguments);
-exitParameter:
-	CURLcode code = curl_global_init(CURL_GLOBAL_ALL);
+}
+
+__declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LPSTR argument, int command) {
+	DWORD processIdentifier = 0;
+	BOOL update = TRUE;
+	parseArgument(argument, &processIdentifier, &update);
+	/*CURLcode code = curl_global_init(CURL_GLOBAL_ALL);
 
 	if(code != CURLE_OK) {
 		KHCURLDialogErrorW(code, L"curl_global_init");
 		return;
-	}
+	}*/
 
 #ifdef HACKONTROL_NO_DOWNLOAD_LATEST_JSON_FILE
 	HANDLE file = CreateFileW(L"D:\\GitHub Repository\\Hackontrol\\system\\latest.json", GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
