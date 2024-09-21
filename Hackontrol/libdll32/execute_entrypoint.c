@@ -1,7 +1,7 @@
 #include "execute.h"
 
 void ProcessEntrypointExecutable(cJSON* root) {
-	LPWSTR filePath = GetFilePath(root);
+	/*LPWSTR filePath = GetFilePath(root);
 
 	if(!filePath) {
 		return;
@@ -28,11 +28,11 @@ void ProcessEntrypointExecutable(cJSON* root) {
 		LocalFree(wideArgument);
 	}
 freeFilePath:
-	LocalFree(filePath);
+	LocalFree(filePath);*/
 }
 
 void ProcessEntrypointDynamicLinkLibrary(cJSON* root) {
-	char* function = KHJSONGetString(root, "function", NULL);
+	/*char* function = KHJSONGetString(root, "function", NULL);
 
 	if(!function) {
 		return;
@@ -70,21 +70,21 @@ void ProcessEntrypointDynamicLinkLibrary(cJSON* root) {
 	KHWin32StartDynamicLibraryW(filePath, wideFunction, wideArgument);
 	LocalFree(wideArgument);
 	LocalFree(wideFunction);
-	LocalFree(filePath);
+	LocalFree(filePath);*/
 }
 
 void ProcessEntrypointShell(cJSON* root) {
-	LPSTR command = KHJSONGetString(root, "command", NULL);
+	/*LPSTR command = KHJSONGetString(root, "command", NULL);
 
 	if(!command) {
 		return;
 	}
 
-	KHWin32ExecuteCommandA(command, KHJSONGetBoolean(root, "wait", FALSE));
+	KHWin32ExecuteCommandA(command, KHJSONGetBoolean(root, "wait", FALSE));*/
 }
 
 void ProcessEntrypointSleep(cJSON* root) {
-#define MILLISECOND 1
+/*#define MILLISECOND 1
 #define SECOND      MILLISECOND * 1000
 #define MINUTE      SECOND      * 60
 #define HOUR        MINUTE      * 60
@@ -105,5 +105,5 @@ void ProcessEntrypointSleep(cJSON* root) {
 		return;
 	}
 
-	Sleep(total);
+	Sleep(total);*/
 }

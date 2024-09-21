@@ -53,7 +53,7 @@ closeHandle:
 }
 
 LPWSTR GetFilePath(cJSON* root) {
-	char* file = KHJSONGetString(root, "file", NULL);
+	/*char* file = KHJSONGetString(root, "file", NULL);
 
 	if(!file) {
 		return NULL;
@@ -71,7 +71,8 @@ LPWSTR GetFilePath(cJSON* root) {
 
 	LPWSTR filePath = KHFormatMessageW(L"%ws\\%S", pathFolderHackontrol, file);
 	LocalFree(pathFolderHackontrol);
-	return filePath;
+	return filePath;*/
+	return NULL;
 }
 
 static void hexDump(char* output, unsigned long size, unsigned char* input) {
