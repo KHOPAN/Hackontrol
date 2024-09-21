@@ -1,5 +1,3 @@
-#include <khopanstring.h>
-#include <khopanjson.h>
 #include "execute.h"
 
 void ProcessEntrypointExecutable(cJSON* root) {

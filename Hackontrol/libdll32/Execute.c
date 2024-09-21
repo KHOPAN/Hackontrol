@@ -1,4 +1,4 @@
-#include <libkhopan.h>
+#include <libkhopancurl.h>
 #include "execute.h"
 #include "resource.h"
 
@@ -46,14 +46,13 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 	DWORD processIdentifier = 0;
 	BOOL update = TRUE;
 	parseArgument(argument, &processIdentifier, &update);
-	/*CURLcode code = curl_global_init(CURL_GLOBAL_ALL);
+	CURLcode code = curl_global_init(CURL_GLOBAL_ALL);
 
 	if(code != CURLE_OK) {
-		KHCURLDialogErrorW(code, L"curl_global_init");
+		KHOPANERRORMESSAGE_CURL(code, L"curl_global_init");
 		return;
-	}*/
-
-#ifdef HACKONTROL_NO_DOWNLOAD_LATEST_JSON_FILE
+	}
+/*#ifdef HACKONTROL_NO_DOWNLOAD_LATEST_JSON_FILE
 	HANDLE file = CreateFileW(L"D:\\GitHub Repository\\Hackontrol\\system\\latest.json", GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
 	if(!file) {
@@ -226,7 +225,7 @@ exitUpdate:
 deleteJson:
 #endif
 	cJSON_Delete(rootObject);
-globalCleanup:
+globalCleanup:*/
 	curl_global_cleanup();
 }
 

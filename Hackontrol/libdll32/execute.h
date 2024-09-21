@@ -1,6 +1,6 @@
 #pragma once
 
-#include <khopanwin32.h>
+#include <libkhopan.h>
 #include <cJSON.h>
 
 #define FILE_LIBUPDATE32     L"libupdate32.dll"

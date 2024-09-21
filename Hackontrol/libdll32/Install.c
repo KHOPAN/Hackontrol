@@ -1,6 +1,3 @@
-#include <khopanwin32.h>
-#include <khopanstring.h>
-#include <hackontrol.h>
 #include <taskschd.h>
 
 #define FREE(x) if(LocalFree(x)) KHWin32DialogErrorW(GetLastError(), L"LocalFree")
@@ -10,7 +7,7 @@
 #define TASK_FOLDER       L"Microsoft\\Windows\\Registry"
 
 __declspec(dllexport) void __stdcall Install(HWND window, HINSTANCE instance, LPSTR argument, int command) {
-	HRESULT result = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+	/*HRESULT result = CoInitializeEx(NULL, COINIT_MULTITHREADED);
 
 	if(FAILED(result)) {
 		KHWin32DialogErrorW(result, L"CoInitializeEx");
@@ -307,5 +304,5 @@ releaseTaskDefinition:
 releaseTaskFolder:
 	taskFolder->lpVtbl->Release(taskFolder);
 uninitialize:
-	CoUninitialize();
+	CoUninitialize();*/
 }

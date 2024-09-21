@@ -1,6 +1,3 @@
-#include <khopanstring.h>
-#include <khopanjson.h>
-#include <hackontrol.h>
 #include "execute.h"
 
 #pragma warning(disable: 4996)

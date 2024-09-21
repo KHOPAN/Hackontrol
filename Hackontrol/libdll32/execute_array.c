@@ -1,6 +1,3 @@
-#include <khopanstring.h>
-#include <khopanjson.h>
-#include <hackontrolcurl.h>
 #include "execute.h"
 
 typedef enum {
@@ -49,7 +46,7 @@ void ProcessEntrypointsArray(cJSON* root) {
 }
 
 static void processFileEntry(cJSON* root) {
-	if(!root || !cJSON_IsObject(root)) {
+	/*if(!root || !cJSON_IsObject(root)) {
 		return;
 	}
 
@@ -80,7 +77,7 @@ static void processFileEntry(cJSON* root) {
 	HackontrolWriteFile(filePath, &stream);
 	KHDataStreamFree(&stream);
 freeFilePath:
-	LocalFree(filePath);
+	LocalFree(filePath);*/
 }
 
 static void processEntrypointEntry(cJSON* root) {
