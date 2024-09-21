@@ -61,7 +61,8 @@ CURLcode HackontrolDownload(const LPCSTR location, const PDATASTREAM stream, con
 		goto cleanupEasy;
 	}
 
-	while(curl_easy_perform(curl) != CURLE_OK) {
+	while((code = curl_easy_perform(curl)) != CURLE_OK) {
+		KHOPANERRORMESSAGE_CURL(code, L"curl_easy_perform");
 		KHOPANStreamFree(stream);
 		Sleep(DELAY_FORCE_DOWNLOAD);
 	}

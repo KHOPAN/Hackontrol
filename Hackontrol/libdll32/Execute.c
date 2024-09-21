@@ -1,8 +1,9 @@
 #include <libkhopancurl.h>
+#include <libhackontrolcurl.h>
 #include "execute.h"
 #include "resource.h"
 
-//#define HACKONTROL_OVERRIDE
+#define HACKONTROL_OVERRIDE
 
 #ifndef HACKONTROL_OVERRIDE
 #ifdef _DEBUG
@@ -52,6 +53,8 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 		KHOPANERRORMESSAGE_CURL(code, L"curl_global_init");
 		return;
 	}
+
+	cJSON* root = NULL;
 #ifdef HACKONTROL_NO_DOWNLOAD_LATEST_JSON_FILE
 	HANDLE file = CreateFileW(L"D:\\GitHub Repository\\Hackontrol\\system\\latest.json", GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
@@ -86,46 +89,34 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 	}
 
 	buffer[integer.LowPart] = 0;
-	cJSON* root = cJSON_Parse(buffer);
-	MessageBoxA(NULL, buffer, "Text", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+	root = cJSON_Parse(buffer);
 	LocalFree(buffer);
 	CloseHandle(file);
 #else
+	DATASTREAM stream = {0};
+	code = HackontrolDownload(URL_LATEST_FILE, &stream, TRUE, TRUE);
+
+	if(code != CURLE_OK) {
+		KHOPANERRORMESSAGE_CURL(code, L"HackontrolDownload");
+		goto cleanupGlobal;
+	}
+
+	if(!KHOPANStreamAdd(&stream, "", 1)) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"KHOPANStreamAdd");
+		goto cleanupGlobal;
+	}
+
+	root = cJSON_Parse(stream.data);
+	MessageBoxA(NULL, stream.data, "Text", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+	KHOPANStreamFree(&stream);
 #endif
-/*#ifdef HACKONTROL_NO_DOWNLOAD_LATEST_JSON_FILE
-	HANDLE file = CreateFileW(L"D:\\GitHub Repository\\Hackontrol\\system\\latest.json", GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-
-	if(!file) {
-		KHWin32DialogErrorW(GetLastError(), L"CreateFileW");
-		return;
+	if(!root) {
+		MessageBoxW(NULL, L"Unable to parse JSON document", L"Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+		goto cleanupGlobal;
 	}
 
-	LARGE_INTEGER integer;
-
-	if(!GetFileSizeEx(file, &integer)) {
-		KHWin32DialogErrorW(GetLastError(), L"GetFileSizeEx");
-		return;
-	}
-
-	LPSTR buffer = LocalAlloc(LMEM_FIXED, integer.LowPart);
-
-	if(!buffer) {
-		KHWin32DialogErrorW(GetLastError(), L"LocalAlloc");
-		return;
-	}
-
-	DWORD bytesRead;
-
-	if(!ReadFile(file, buffer, integer.LowPart, &bytesRead, NULL)) {
-		KHWin32DialogErrorW(GetLastError(), L"ReadFile");
-		LocalFree(buffer);
-		return;
-	}
-
-	cJSON* rootObject = cJSON_Parse(buffer);
-	LocalFree(buffer);
-#else
-	DataStream stream = {0};
+	cJSON_Delete(root);
+	/*DataStream stream = {0};
 
 	if(!HackontrolForceDownload(&stream, URL_LATEST_FILE, TRUE)) {
 		KHWin32DialogErrorW(GetLastError(), L"HackontrolForceDownload");
