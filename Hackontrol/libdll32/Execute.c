@@ -38,7 +38,7 @@ static void parseArgument(const LPCSTR argument, const PDWORD processIdentifier,
 		(*processIdentifier) = (DWORD) _wtoll(arguments[0]);
 	}
 
-	(*update) = count > 1 && !_wtoll(arguments[1]) ? FALSE : TRUE;
+	(*update) = count > 1 && _wtoll(arguments[1]) ? FALSE : TRUE;
 	LocalFree(arguments);
 }
 
@@ -46,6 +46,13 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 	DWORD processIdentifier = 0;
 	BOOL update = TRUE;
 	parseArgument(argument, &processIdentifier, &update);
+	LPWSTR message = KHOPANFormatMessage(L"Identifier: %lu Update: %d", processIdentifier, update);
+	MessageBoxW(NULL, message, L"Text", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+
+	if(!message) {
+		LocalFree(message);
+	}
+
 	CURLcode code = curl_global_init(CURL_GLOBAL_ALL);
 
 	if(code != CURLE_OK) {
