@@ -147,14 +147,14 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 		goto initializeGlobal;
 	}
 
-	buffer = KHOPANFormatMessage(L"%S", argument);
+	buffer = (PBYTE) KHOPANFormatMessage(L"%S", argument);
 
 	if(!buffer) {
 		goto initializeGlobal;
 	}
 
 	int count;
-	LPWSTR* arguments = CommandLineToArgvW(buffer, &count);
+	LPWSTR* arguments = CommandLineToArgvW((LPCWSTR) buffer, &count);
 	LocalFree(buffer);
 
 	if(!arguments) {

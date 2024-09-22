@@ -1,3 +1,5 @@
+#include <libhackontrol.h>
+#include <libhackontrolcurl.h>
 #include "execute.h"
 
 static void download(const cJSON* const root) {
@@ -5,34 +7,40 @@ static void download(const cJSON* const root) {
 		return;
 	}
 
-	LPWSTR file = HackontrolGetFile(root);
+	LPWSTR file = ExecuteGetFile(root);
 
 	if(!file) {
 		return;
 	}
 
-	BOOL match = CheckFileHash(root, filePath);
+	BOOL match = HashFileCheck(root, file);
 
 	if(match) {
-		goto freeFilePath;
+		goto freeFile;
 	}
 
-	LPSTR url = KHJSONGetString(root, "url", NULL);
+	cJSON* urlField = cJSON_GetObjectItem(root, "url");
+
+	if(!urlField || !cJSON_IsString(urlField)) {
+		goto freeFile;
+	}
+
+	LPSTR url = cJSON_GetStringValue(urlField);
 
 	if(!url) {
-		goto freeFilePath;
+		goto freeFile;
 	}
 
-	DataStream stream = {0};
+	DATASTREAM stream = {0};
 
-	if(!HackontrolForceDownload(&stream, url, TRUE)) {
-		goto freeFilePath;
+	if(!HackontrolDownload(url, &stream, TRUE, TRUE)) {
+		goto freeFile;
 	}
 
-	HackontrolWriteFile(filePath, &stream);
-	KHDataStreamFree(&stream);
-freeFilePath:
-	LocalFree(filePath);
+	HackontrolWriteFile(file, stream.data, stream.size);
+	KHOPANStreamFree(&stream);
+freeFile:
+	LocalFree(file);
 }
 
 void ExecuteDownload(const cJSON* const root) {
