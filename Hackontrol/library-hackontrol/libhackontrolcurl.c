@@ -38,6 +38,12 @@ CURLcode HackontrolDownload(const LPCSTR location, const PDATASTREAM stream, con
 		goto cleanupEasy;
 	}
 
+	code = curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
+
+	if(code != CURLE_OK) {
+		goto cleanupEasy;
+	}
+
 	code = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, addDataStream);
 
 	if(code != CURLE_OK) {
@@ -61,13 +67,12 @@ CURLcode HackontrolDownload(const LPCSTR location, const PDATASTREAM stream, con
 		goto cleanupEasy;
 	}
 
-	while((code = curl_easy_perform(curl)) != CURLE_OK) {
-		KHOPANERRORMESSAGE_CURL(code, L"curl_easy_perform");
+	code = CURLE_OK;
+
+	while(curl_easy_perform(curl) != CURLE_OK) {
 		KHOPANStreamFree(stream);
 		Sleep(DELAY_FORCE_DOWNLOAD);
 	}
-
-	code = CURLE_OK;
 cleanupEasy:
 	curl_easy_cleanup(curl);
 cleanupGlobal:

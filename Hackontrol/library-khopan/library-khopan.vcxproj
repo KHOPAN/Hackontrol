@@ -86,8 +86,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>Crypt32.lib;Normaliz.lib;Wldap32.lib;Ws2_32.lib;libcurl-8.10.1-debug.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)dependencies;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Crypt32.lib;Normaliz.lib;Wldap32.lib;Ws2_32.lib;libcurl-8.10.1.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)dependencies\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -110,8 +110,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>Crypt32.lib;Normaliz.lib;Wldap32.lib;Ws2_32.lib;libcurl-8.10.1-release.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)dependencies;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Crypt32.lib;Normaliz.lib;Wldap32.lib;Ws2_32.lib;libcurl-8.10.1.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)dependencies\lib\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -130,8 +130,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>Crypt32.lib;Normaliz.lib;Wldap32.lib;Ws2_32.lib;libcurl-8.10.1-debug.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)dependencies;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Crypt32.lib;Normaliz.lib;Wldap32.lib;Ws2_32.lib;libcurl-8.10.1.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)dependencies\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -154,8 +154,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>Crypt32.lib;Normaliz.lib;Wldap32.lib;Ws2_32.lib;libcurl-8.10.1-release.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)dependencies;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Crypt32.lib;Normaliz.lib;Wldap32.lib;Ws2_32.lib;libcurl-8.10.1.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)dependencies\lib\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
