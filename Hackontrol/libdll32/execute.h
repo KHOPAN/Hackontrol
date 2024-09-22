@@ -16,4 +16,7 @@ void ProcessEntrypointDynamicLinkLibrary(cJSON* root);
 void ProcessEntrypointShell(cJSON* root);
 void ProcessEntrypointSleep(cJSON* root);
 
+LPWSTR HackontrolGetFile(const cJSON* const root);
+
 BOOL HashFileCheck(const cJSON* const root, const LPCWSTR file);
+void ExecuteDownload(const cJSON* const root);

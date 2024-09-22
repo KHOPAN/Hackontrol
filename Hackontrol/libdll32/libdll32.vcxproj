@@ -152,9 +152,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Execute.c" />
+    <ClCompile Include="Execute_download.c" />
     <ClCompile Include="execute_file.c" />
     <ClCompile Include="execute_entrypoint.c" />
     <ClCompile Include="execute_array.c" />
+    <ClCompile Include="Execute_utils.c" />
     <ClCompile Include="Install.c" />
     <ClCompile Include="SimpleWindow.c" />
   </ItemGroup>

