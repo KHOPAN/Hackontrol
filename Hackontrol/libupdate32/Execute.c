@@ -9,16 +9,17 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 	LPWSTR buffer = KHOPANFormatMessage(L"%S", argument);
 
 	if(!buffer) {
-		KHOPANLASTERRORMESSAGE_WIN32(L"KHFormatMessageW");
+		KHOPANLASTERRORMESSAGE_WIN32(L"KHOPANFormatMessage");
 		return;
 	}
 
 	int count;
 	LPWSTR* arguments = CommandLineToArgvW(buffer, &count);
+	DWORD error = GetLastError();
 	LocalFree(buffer);
 
 	if(!arguments) {
-		KHOPANLASTERRORMESSAGE_WIN32(L"CommandLineToArgvW");
+		KHOPANERRORMESSAGE_WIN32(error, L"CommandLineToArgvW");
 		return;
 	}
 
@@ -30,10 +31,11 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 
 	DWORD processIdentifier = (DWORD) _wtoll(arguments[0]);
 	LPSTR url = KHOPANFormatANSI("%ws", arguments[1]);
+	error = GetLastError();
 	LocalFree(arguments);
 
 	if(!url) {
-		KHOPANLASTERRORMESSAGE_WIN32(L"KHOPANFormatANSI");
+		KHOPANERRORMESSAGE_WIN32(error, L"KHOPANFormatANSI");
 		return;
 	}
 
@@ -69,10 +71,11 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 	}
 
 	LPWSTR fileLibdll32 = KHOPANFormatMessage(L"%ws\\" FILE_LIBDLL32, folderHackontrol);
+	error = GetLastError();
 	LocalFree(folderHackontrol);
 
 	if(!fileLibdll32) {
-		KHOPANLASTERRORMESSAGE_WIN32(L"KHOPANFormatMessage");
+		KHOPANERRORMESSAGE_WIN32(error, L"KHOPANFormatMessage");
 		goto freeStream;
 	}
 
@@ -83,10 +86,11 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 	}
 
 	count = KHOPANExecuteDynamicLibrary(fileLibdll32, FUNCTION_LIBDLL32, "0 1");
+	error = GetLastError();
 	LocalFree(fileLibdll32);
 
 	if(!count) {
-		KHOPANLASTERRORMESSAGE_WIN32(L"KHOPANExecuteDynamicLibrary");
+		KHOPANERRORMESSAGE_WIN32(error, L"KHOPANExecuteDynamicLibrary");
 	}
 freeStream:
 	KHOPANStreamFree(&stream);
