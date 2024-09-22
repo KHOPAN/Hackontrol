@@ -37,6 +37,7 @@ LPWSTR KHOPANFileGetCmd();
 LPWSTR KHOPANFileGetRundll32();
 LPWSTR KHOPANFolderGetWindows();
 LPWSTR KHOPANFormatMessage(const LPCWSTR format, ...);
+LPSTR KHOPANFormatANSI(const LPCSTR format, ...);
 LPWSTR KHOPANInternalGetErrorMessage(const DWORD code, const LPCWSTR function, const BOOL win32);
 LPWSTR KHOPANStringDuplicate(const LPCWSTR text);
 #ifdef __cplusplus

