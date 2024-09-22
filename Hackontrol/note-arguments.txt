@@ -1,0 +1,2 @@
+libdll32: [<waitingProcessIdentifier>] [noUpdate]
+libupdate32: <waitingProcessIdentifier> <url>
