@@ -23,7 +23,7 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 	}
 
 	if(count < 2) {
-		MessageBoxW(NULL, L"Invalid argument. Expected:\n<pid> <url>", L"Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+		MessageBoxW(NULL, L"Invalid argument. Expected:\n<processIdentifier> <url>", L"Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 		LocalFree(arguments);
 		return;
 	}
@@ -46,11 +46,13 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 		return;
 	}
 
-	HANDLE process = OpenProcess(PROCESS_ALL_ACCESS, FALSE, processIdentifier);
+	if(processIdentifier) {
+		HANDLE process = OpenProcess(PROCESS_ALL_ACCESS, FALSE, processIdentifier);
 
-	if(process) {
-		WaitForSingleObject(process, INFINITE);
-		CloseHandle(process);
+		if(process) {
+			WaitForSingleObject(process, INFINITE);
+			CloseHandle(process);
+		}
 	}
 
 	LPWSTR folderHackontrol = HackontrolGetHomeDirectory();
@@ -80,7 +82,7 @@ __declspec(dllexport) void __stdcall Execute(HWND window, HINSTANCE instance, LP
 		goto freeStream;
 	}
 
-	count = KHOPANExecuteDynamicLibrary(fileLibdll32, FUNCTION_LIBDLL32, NULL);
+	count = KHOPANExecuteDynamicLibrary(fileLibdll32, FUNCTION_LIBDLL32, "0 1");
 	LocalFree(fileLibdll32);
 
 	if(!count) {
