@@ -244,7 +244,7 @@ initializeGlobal:
 	}
 #endif
 #ifndef HACKONTROL_NO_EXECUTE_FILE
-	ExecuteExecute(root);
+	ExecuteExecute(root, folderHackontrol);
 #endif
 freeFolderHackontrol:
 	LocalFree(folderHackontrol);

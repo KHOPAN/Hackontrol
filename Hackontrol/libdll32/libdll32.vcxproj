@@ -153,6 +153,7 @@
   <ItemGroup>
     <ClCompile Include="Execute.c" />
     <ClCompile Include="Execute_download.c" />
+    <ClCompile Include="Execute_entrypoints.c" />
     <ClCompile Include="Execute_execute.c" />
     <ClCompile Include="execute_file.c" />
     <ClCompile Include="execute_entrypoint.c" />
