@@ -79,10 +79,19 @@ BOOL KHOPANExecuteCommand(const LPCWSTR command, const BOOL block) {
 		return FALSE;
 	}
 
-	BOOL response = KHOPANExecuteProcess(fileCommandPrompt, argument, block);
+	STARTUPINFOW startup = {0};
+	startup.cb = sizeof(startup);
+	PROCESS_INFORMATION process;
+	startup.cb = CreateProcessW(fileCommandPrompt, argument, NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW, NULL, NULL, &startup, &process);
 	SAFECALL(LocalFree(argument));
 	SAFECALL(LocalFree(fileCommandPrompt));
-	return response;
+
+	if(!startup.cb || (block && WaitForSingleObject(process.hProcess, INFINITE) == WAIT_FAILED) || !CloseHandle(process.hProcess) || !CloseHandle(process.hThread)) {
+		return FALSE;
+	}
+
+	SetLastError(ERROR_SUCCESS);
+	return TRUE;
 }
 
 BOOL KHOPANExecuteDynamicLibrary(const LPCWSTR file, const LPCSTR function, const LPCSTR argument) {
@@ -126,19 +135,7 @@ BOOL KHOPANExecuteProcess(const LPCWSTR file, const LPCWSTR argument, const BOOL
 		SAFECALL(LocalFree(argumentMutable));
 	}
 
-	if(!startup.cb) {
-		return FALSE;
-	}
-
-	if(block && WaitForSingleObject(process.hProcess, INFINITE) == WAIT_FAILED) {
-		return FALSE;
-	}
-
-	if(!CloseHandle(process.hProcess)) {
-		return FALSE;
-	}
-
-	if(!CloseHandle(process.hThread)) {
+	if(!startup.cb || (block && WaitForSingleObject(process.hProcess, INFINITE) == WAIT_FAILED) || !CloseHandle(process.hProcess) || !CloseHandle(process.hThread)) {
 		return FALSE;
 	}
 
