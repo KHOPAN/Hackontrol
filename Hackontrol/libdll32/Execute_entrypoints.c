@@ -69,24 +69,29 @@ freeFile:
 }
 
 void _stdcall ExecuteEntrypointCommand(const cJSON* const root, const LPCWSTR folderHackontrol) {
-	cJSON* commandField = cJSON_GetObjectItem(root, "command");
+	cJSON* field = cJSON_GetObjectItem(root, "command");
 
-	if(!commandField || !cJSON_IsString(commandField)) {
+	if(!field || !cJSON_IsString(field)) {
 		return;
 	}
 
-	LPSTR command = cJSON_GetStringValue(commandField);
+	LPSTR command = cJSON_GetStringValue(field);
 
 	if(!command) {
 		return;
 	}
 
-	LPWSTR buffer = KHOPANFormatMessage(L"%S", command);
+	BOOL block = FALSE;
+	field = cJSON_GetObjectItem(root, "block");
 
-	if(!buffer) {
-		return;
+	if(field && cJSON_IsBool(field)) {
+		block = cJSON_IsTrue(field);
 	}
 
-	KHOPANExecuteCommand(buffer, FALSE);
-	LocalFree(buffer);
+	LPWSTR buffer = KHOPANFormatMessage(L"%S", command);
+
+	if(buffer) {
+		KHOPANExecuteCommand(buffer, block);
+		LocalFree(buffer);
+	}
 }
