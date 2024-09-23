@@ -117,16 +117,14 @@ BOOL KHOPANExecuteProcess(const LPCWSTR file, const LPCWSTR argument, const BOOL
 	}
 
 	LPWSTR argumentMutable = KHOPANStringDuplicate(argument);
-
-	if(!argumentMutable) {
-		return FALSE;
-	}
-
 	STARTUPINFOW startup = {0};
 	startup.cb = sizeof(startup);
 	PROCESS_INFORMATION process;
 	startup.cb = CreateProcessW(file, argumentMutable, NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, NULL, NULL, &startup, &process);
-	SAFECALL(LocalFree(argumentMutable));
+
+	if(argumentMutable) {
+		SAFECALL(LocalFree(argumentMutable));
+	}
 
 	if(!startup.cb) {
 		return FALSE;
