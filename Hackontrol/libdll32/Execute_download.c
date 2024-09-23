@@ -33,7 +33,7 @@ static void download(const cJSON* const root) {
 
 	DATASTREAM stream = {0};
 
-	if(!HackontrolDownload(url, &stream, TRUE, TRUE)) {
+	if(HackontrolDownload(url, &stream, TRUE, FALSE) != CURLE_OK) {
 		goto freeFile;
 	}
 
