@@ -28,7 +28,6 @@ static LRESULT CALLBACK windowProcedure(HWND window, UINT message, WPARAM wparam
 
 __declspec(dllexport) void __stdcall SimpleWindow(HWND window, HINSTANCE instance, LPSTR argument, int command) {
 	WNDCLASSW windowClass = {0};
-	//windowClass.style = CS_HREDRAW | CS_VREDRAW;
 	windowClass.lpfnWndProc = windowProcedure;
 	windowClass.hInstance = instance;
 	windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
