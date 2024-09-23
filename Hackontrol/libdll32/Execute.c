@@ -22,19 +22,19 @@ BOOL WINAPI DllMain(HINSTANCE application, DWORD reason, LPVOID reserved) {
 }
 
 static BOOL selfUpdate(const cJSON* const root, const LPCWSTR folderHackontrol) {
-	cJSON* self = cJSON_GetObjectItem(root, "self");
+	cJSON* selfField = cJSON_GetObjectItem(root, "self");
 
-	if(!self || !cJSON_IsObject(self)) {
+	if(!selfField || !cJSON_IsObject(selfField)) {
 		return FALSE;
 	}
 
-	cJSON* urlField = cJSON_GetObjectItem(self, "url");
+	cJSON* urlField = cJSON_GetObjectItem(selfField, "url");
 
 	if(!urlField || !cJSON_IsString(urlField)) {
 		return FALSE;
 	}
 
-	char* url = cJSON_GetStringValue(urlField);
+	LPSTR url = cJSON_GetStringValue(urlField);
 
 	if(!url) {
 		return FALSE;
@@ -46,7 +46,7 @@ static BOOL selfUpdate(const cJSON* const root, const LPCWSTR folderHackontrol) 
 		return FALSE;
 	}
 
-	BOOL result = ExecuteHashFileCheck(self, fileLibdll32);
+	BOOL result = ExecuteHashFileCheck(selfField, fileLibdll32);
 	LocalFree(fileLibdll32);
 
 	if(result) {

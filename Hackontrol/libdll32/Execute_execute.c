@@ -1,7 +1,9 @@
 #include "execute.h"
 
 static EXECUTEENTRYPOINT entrypoints[] = {
-	{"executable", "exe", ExecuteEntrypointExecutable}
+	{"executable", "exe",   ExecuteEntrypointExecutable},
+	{"dynamic",    "dll",   ExecuteEntrypointDynamic},
+	{"command",    "shell", ExecuteEntrypointCommand}
 };
 
 static void entrypoint(const cJSON* const root, const LPCWSTR folderHackontrol) {
