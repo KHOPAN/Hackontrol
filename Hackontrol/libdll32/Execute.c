@@ -12,7 +12,7 @@
 #ifndef HACKONTROL_OVERRIDE
 #ifdef _DEBUG
 #define HACKONTROL_NO_DOWNLOAD_LATEST_JSON_FILE
-//#define HACKONTROL_NO_SELF_UPDATE
+#define HACKONTROL_NO_SELF_UPDATE
 //#define HACKONTROL_NO_DOWNLOAD_FILE
 #define HACKONTROL_NO_EXECUTE_FILE
 #endif
@@ -25,7 +25,7 @@ BOOL WINAPI DllMain(HINSTANCE application, DWORD reason, LPVOID reserved) {
 	return TRUE;
 }
 
-static BOOL selfUpdate(const cJSON* const root) {
+static BOOL selfUpdate(const cJSON* const root, const LPCWSTR folderHackontrol) {
 	cJSON* self = cJSON_GetObjectItem(root, "self");
 
 	if(!self || !cJSON_IsObject(self)) {
@@ -44,64 +44,46 @@ static BOOL selfUpdate(const cJSON* const root) {
 		return FALSE;
 	}
 
-	LPWSTR folderHackontrol = HackontrolGetHomeDirectory();
-
-	if(!folderHackontrol) {
-		return FALSE;
-	}
-
-	if(!HackontrolCreateDirectory(folderHackontrol)) {
-		LocalFree(folderHackontrol);
-		return FALSE;
-	}
-
 	LPWSTR fileLibdll32 = KHOPANFormatMessage(L"%ws\\" FILE_LIBDLL32, folderHackontrol);
 
 	if(!fileLibdll32) {
-		LocalFree(folderHackontrol);
 		return FALSE;
 	}
 
-	BOOL result = HashFileCheck(self, fileLibdll32);
+	BOOL result = ExecuteHashFileCheck(self, fileLibdll32);
 	LocalFree(fileLibdll32);
 
 	if(result) {
-		LocalFree(folderHackontrol);
 		return TRUE;
 	}
 
 	HRSRC handle = FindResourceW(instance, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
 
 	if(!handle) {
-		LocalFree(folderHackontrol);
 		return FALSE;
 	}
 
 	DWORD size = SizeofResource(instance, handle);
 
 	if(!size) {
-		LocalFree(folderHackontrol);
 		return FALSE;
 	}
 
 	HGLOBAL resource = LoadResource(instance, handle);
 
 	if(!resource) {
-		LocalFree(folderHackontrol);
 		return FALSE;
 	}
 
 	PBYTE data = LockResource(resource);
 
 	if(!data) {
-		LocalFree(folderHackontrol);
 		return FALSE;
 	}
 
 	PBYTE buffer = LocalAlloc(LMEM_FIXED, size);
 
 	if(!buffer) {
-		LocalFree(folderHackontrol);
 		return FALSE;
 	}
 
@@ -110,7 +92,6 @@ static BOOL selfUpdate(const cJSON* const root) {
 	}
 
 	LPWSTR fileLibupdate32 = KHOPANFormatMessage(L"%ws\\" FILE_LIBUPDATE32, folderHackontrol);
-	LocalFree(folderHackontrol);
 
 	if(!fileLibupdate32) {
 		LocalFree(buffer);
@@ -177,9 +158,6 @@ initializeGlobal:
 
 	cJSON* root = NULL;
 	HANDLE handle;
-	LARGE_INTEGER integer;
-	DWORD read;
-	DATASTREAM stream = {0};
 #ifdef HACKONTROL_NO_DOWNLOAD_LATEST_JSON_FILE
 	handle = CreateFileW(L"D:\\GitHub Repository\\Hackontrol\\system\\latest.json", GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
@@ -187,6 +165,8 @@ initializeGlobal:
 		KHOPANLASTERRORMESSAGE_WIN32(L"CreateFileW");
 		goto cleanupGlobal;
 	}
+
+	LARGE_INTEGER integer;
 
 	if(!GetFileSizeEx(handle, &integer)) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"GetFileSizeEx");
@@ -202,7 +182,9 @@ initializeGlobal:
 		goto cleanupGlobal;
 	}
 
-	if(!ReadFile(handle, buffer, integer.LowPart, &read, NULL)) {
+	DWORD bytesRead;
+
+	if(!ReadFile(handle, buffer, integer.LowPart, &bytesRead, NULL)) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"ReadFile");
 		LocalFree(buffer);
 		CloseHandle(handle);
@@ -214,6 +196,7 @@ initializeGlobal:
 	LocalFree(buffer);
 	CloseHandle(handle);
 #else
+	DATASTREAM stream = {0};
 	code = HackontrolDownload(URL_LATEST_FILE, &stream, TRUE, TRUE);
 
 	if(code != CURLE_OK) {
@@ -238,9 +221,21 @@ initializeGlobal:
 		KHOPANERRORMESSAGE_WIN32(ERROR_BAD_FORMAT, L"cJSON_IsObject");
 		goto deleteJson;
 	}
-#ifndef HACKONTROL_NO_SELF_UPDATE
-	if(update && selfUpdate(root)) {
+
+	LPWSTR folderHackontrol = HackontrolGetHomeDirectory();
+
+	if(!folderHackontrol) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"HackontrolGetHomeDirectory");
 		goto deleteJson;
+	}
+
+	if(!HackontrolCreateDirectory(folderHackontrol)) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"HackontrolCreateDirectory");
+		goto freeFolderHackontrol;
+	}
+#ifndef HACKONTROL_NO_SELF_UPDATE
+	if(update && selfUpdate(root, folderHackontrol)) {
+		goto freeFolderHackontrol;
 	}
 #endif
 	if(processIdentifier && (handle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, processIdentifier))) {
@@ -249,15 +244,15 @@ initializeGlobal:
 	}
 #ifndef HACKONTROL_NO_DOWNLOAD_FILE
 	if(update) {
-		ExecuteDownload(root);
+		ExecuteDownload(root, folderHackontrol);
 	}
 #endif
 /*#ifndef HACKONTROL_NO_EXECUTE_FILE
 	ProcessEntrypointsArray(rootObject);
 #endif*/
-#ifndef HACKONTROL_NO_SELF_UPDATE
+freeFolderHackontrol:
+	LocalFree(folderHackontrol);
 deleteJson:
-#endif
 	cJSON_Delete(root);
 cleanupGlobal:
 	curl_global_cleanup();

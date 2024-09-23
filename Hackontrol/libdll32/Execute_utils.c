@@ -1,7 +1,7 @@
 #include <libhackontrol.h>
 #include "execute.h"
 
-LPWSTR ExecuteGetFile(const cJSON* const root) {
+LPWSTR ExecuteGetFile(const cJSON* const root, const LPCWSTR folderHackontrol) {
 	cJSON* fileField = cJSON_GetObjectItem(root, "file");
 
 	if(!fileField || !cJSON_IsString(fileField)) {
@@ -31,22 +31,9 @@ LPWSTR ExecuteGetFile(const cJSON* const root) {
 		return KHOPANFormatMessage(L"%S", file);
 	}
 
-	LPWSTR folderHackontrol = HackontrolGetHomeDirectory();
-
-	if(!folderHackontrol) {
-		return NULL;
-	}
-
-	if(!HackontrolCreateDirectory(folderHackontrol)) {
-		LocalFree(folderHackontrol);
-		return NULL;
-	}
-
-	LPWSTR path = KHOPANFormatMessage(L"%ws\\%S", folderHackontrol, file);
-	LocalFree(folderHackontrol);
-	return path;
+	return KHOPANFormatMessage(L"%ws\\%S", folderHackontrol, file);
 }
 
-BOOL HashFileCheck(const cJSON* const root, const LPCWSTR file) {
+BOOL ExecuteHashFileCheck(const cJSON* const root, const LPCWSTR file) {
 	return FALSE;
 }
