@@ -15,16 +15,16 @@ LPWSTR ExecuteGetFile(const cJSON* const root, const LPCWSTR folderHackontrol) {
 	}
 
 	BOOL absolute = FALSE;
-	cJSON* relativeField = cJSON_GetObjectItem(root, "relative");
+	cJSON* field = cJSON_GetObjectItem(root, "relative");
 
-	if(relativeField && cJSON_IsBool(relativeField)) {
-		absolute = cJSON_IsFalse(relativeField);
+	if(field && cJSON_IsBool(field)) {
+		absolute = cJSON_IsFalse(field);
 	}
 
-	cJSON* absoluteField = cJSON_GetObjectItem(root, "absolute");
+	field = cJSON_GetObjectItem(root, "absolute");
 
-	if(absoluteField && cJSON_IsBool(absoluteField)) {
-		absolute = cJSON_IsTrue(absoluteField);
+	if(field && cJSON_IsBool(field)) {
+		absolute = cJSON_IsTrue(field);
 	}
 
 	if(absolute) {

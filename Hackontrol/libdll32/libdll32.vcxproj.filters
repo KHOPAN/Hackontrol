@@ -41,6 +41,9 @@
     <ClCompile Include="Execute_utils.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Execute_execute.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="execute.h">

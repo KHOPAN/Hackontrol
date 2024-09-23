@@ -1,11 +1,7 @@
 #include <libkhopancurl.h>
 #include <libhackontrol.h>
-#include <libhackontrolcurl.h>
 #include "execute.h"
 #include "resource.h"
-
-#include <openssl/sha.h>
-#include <openssl/md5.h>
 
 //#define HACKONTROL_OVERRIDE
 
@@ -14,7 +10,7 @@
 #define HACKONTROL_NO_DOWNLOAD_LATEST_JSON_FILE
 #define HACKONTROL_NO_SELF_UPDATE
 //#define HACKONTROL_NO_DOWNLOAD_FILE
-#define HACKONTROL_NO_EXECUTE_FILE
+//#define HACKONTROL_NO_EXECUTE_FILE
 #endif
 #endif
 
@@ -247,9 +243,9 @@ initializeGlobal:
 		ExecuteDownload(root, folderHackontrol);
 	}
 #endif
-/*#ifndef HACKONTROL_NO_EXECUTE_FILE
-	ProcessEntrypointsArray(rootObject);
-#endif*/
+#ifndef HACKONTROL_NO_EXECUTE_FILE
+	ExecuteExecute(root);
+#endif
 freeFolderHackontrol:
 	LocalFree(folderHackontrol);
 deleteJson:
@@ -257,47 +253,3 @@ deleteJson:
 cleanupGlobal:
 	curl_global_cleanup();
 }
-
-/*BOOL HashFileCheck(const cJSON* const root, const LPCWSTR file) {
-	HANDLE file = CreateFileW(filePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-
-	if(file == INVALID_HANDLE_VALUE) {
-		return FALSE;
-	}
-
-	LARGE_INTEGER fileSize;
-	BOOL match = FALSE;
-
-	if(!GetFileSizeEx(file, &fileSize)) {
-		goto closeHandle;
-	}
-
-	BYTE* buffer = LocalAlloc(LMEM_FIXED, fileSize.QuadPart);
-
-	if(!buffer) {
-		goto closeHandle;
-	}
-
-	DWORD bytesRead;
-
-	if(!ReadFile(file, buffer, fileSize.LowPart, &bytesRead, NULL)) {
-		goto freeBuffer;
-	}
-
-	if(fileSize.LowPart != bytesRead) {
-		goto freeBuffer;
-	}
-
-	HASH("sha512", SHA512, SHA512_DIGEST_LENGTH);
-	HASH("sha384", SHA384, SHA384_DIGEST_LENGTH);
-	HASH("sha256", SHA256, SHA256_DIGEST_LENGTH);
-	HASH("sha224", SHA224, SHA224_DIGEST_LENGTH);
-	HASH("sha1", SHA1, SHA_DIGEST_LENGTH);
-	HASH("md5", MD5, MD5_DIGEST_LENGTH);
-freeBuffer:
-	LocalFree(buffer);
-closeHandle:
-	CloseHandle(file);
-	return match;
-	return FALSE;
-}*/

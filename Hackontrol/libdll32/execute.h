@@ -18,5 +18,5 @@ void ProcessEntrypointSleep(cJSON* root);
 
 LPWSTR ExecuteGetFile(const cJSON* const root, const LPCWSTR folderHackontrol);
 BOOL ExecuteHashFileCheck(const cJSON* const root, const LPCWSTR file);
-
 void ExecuteDownload(const cJSON* const root, const LPCWSTR folderHackontrol);
+void ExecuteExecute(const cJSON* const root);
