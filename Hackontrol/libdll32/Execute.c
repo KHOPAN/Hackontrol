@@ -326,7 +326,7 @@ BOOL ExecuteHashFileCheck(const cJSON* const root, const LPCWSTR file) {
 	DEFINE_HASH("sha384", SHA384, SHA384_DIGEST_LENGTH);
 	DEFINE_HASH("sha256", SHA256, SHA256_DIGEST_LENGTH);
 	DEFINE_HASH("sha224", SHA224, SHA224_DIGEST_LENGTH);
-	DEFINE_HASH("sha1", SHA1, SHA_DIGEST_LENGTH);
+	DEFINE_HASH("sha1",   SHA1,   SHA_DIGEST_LENGTH);
 freeBuffer:
 	LocalFree(buffer);
 closeHandle:
