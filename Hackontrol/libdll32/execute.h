@@ -3,10 +3,6 @@
 #include <libkhopan.h>
 #include <cJSON.h>
 
-#define FILE_LIBUPDATE32     L"libupdate32.dll"
-#define FUNCTION_LIBUPDATE32 "Update"
-#define URL_LATEST_FILE      "https://raw.githubusercontent.com/KHOPAN/Hackontrol/main/system/latest.json"
-
 typedef void(__stdcall* ENTRYPOINTFUNCTION) (const cJSON* const root, const LPCWSTR folderHackontrol);
 
 typedef struct {
