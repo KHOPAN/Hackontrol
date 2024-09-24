@@ -69,6 +69,13 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
+	if(!HackontrolCreateDirectory(folderHackontrol)) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"HackontrolCreateDirectory");
+		LocalFree(folderHackontrol);
+		LocalFree(buffer);
+		return 1;
+	}
+
 	LPWSTR fileLibdll32 = KHOPANFormatMessage(L"%ws\\" FILE_LIBDLL32, folderHackontrol);
 	error = GetLastError();
 	LocalFree(folderHackontrol);
