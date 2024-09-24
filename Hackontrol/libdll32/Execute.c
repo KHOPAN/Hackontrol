@@ -57,7 +57,7 @@ static BOOL selfUpdate(const cJSON* const root, const LPCWSTR folderHackontrol) 
 	LocalFree(fileLibdll32);
 
 	if(result) {
-		return TRUE;
+		return FALSE;
 	}
 
 	HRSRC handle = FindResourceW(instance, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
