@@ -29,10 +29,8 @@ typedef struct {
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 LPCWSTR HRSPGetErrorCode(const HRSPERRORCODE code);
-LPWSTR HRSPGetErrorMessage(const LPCWSTR functionName, const PHRSPERROR error);
-
+LPWSTR HRSPGetErrorMessage(const LPCWSTR function, const PHRSPERROR error);
 #ifdef __cplusplus
 }
 #endif
