@@ -1,4 +1,4 @@
-#include "execute.h"
+#include "Execute.h"
 
 static EXECUTEENTRYPOINT entrypoints[] = {
 	{"executable", "exe",   ExecuteEntrypointExecutable},

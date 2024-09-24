@@ -1,6 +1,6 @@
 #include <libhackontrol.h>
 #include <libhackontrolcurl.h>
-#include "execute.h"
+#include "Execute.h"
 
 static void download(const cJSON* const root, const LPCWSTR folderHackontrol) {
 	if(!root || !cJSON_IsObject(root)) {

@@ -15,15 +15,6 @@ typedef struct {
 	ENTRYPOINTFUNCTION function;
 } EXECUTEENTRYPOINT;
 
-BOOL CheckFileHash(cJSON* root, LPWSTR const filePath);
-LPWSTR GetFilePath(cJSON* root);
-void ProcessFilesArray(cJSON* root);
-void ProcessEntrypointsArray(cJSON* root);
-void ProcessEntrypointExecutable(cJSON* root);
-void ProcessEntrypointDynamicLinkLibrary(cJSON* root);
-void ProcessEntrypointShell(cJSON* root);
-void ProcessEntrypointSleep(cJSON* root);
-
 LPWSTR ExecuteGetFile(const cJSON* const root, const LPCWSTR folderHackontrol);
 BOOL ExecuteHashFileCheck(const cJSON* const root, const LPCWSTR file);
 void ExecuteDownload(const cJSON* const root, const LPCWSTR folderHackontrol);

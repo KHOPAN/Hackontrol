@@ -9,12 +9,6 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="Source Files\execute">
-      <UniqueIdentifier>{82433ae0-9f12-4728-99c5-8201ebf5e8ac}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\execute">
-      <UniqueIdentifier>{e2896ff9-9508-4306-b48d-3b4aeb33ed44}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Execute.c">
@@ -25,15 +19,6 @@
     </ClCompile>
     <ClCompile Include="SimpleWindow.c">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="execute_file.c">
-      <Filter>Source Files\execute</Filter>
-    </ClCompile>
-    <ClCompile Include="execute_array.c">
-      <Filter>Source Files\execute</Filter>
-    </ClCompile>
-    <ClCompile Include="execute_entrypoint.c">
-      <Filter>Source Files\execute</Filter>
     </ClCompile>
     <ClCompile Include="Execute_download.c">
       <Filter>Source Files</Filter>
@@ -49,10 +34,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="execute.h">
-      <Filter>Header Files\execute</Filter>
-    </ClInclude>
     <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Execute.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,6 +1,6 @@
 #include <libkhopancurl.h>
 #include <libhackontrol.h>
-#include "execute.h"
+#include "Execute.h"
 #include "resource.h"
 
 //#define HACKONTROL_OVERRIDE

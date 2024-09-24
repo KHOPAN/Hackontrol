@@ -1,6 +1,6 @@
 #include <libhackontrol.h>
 #include <openssl/sha.h>
-#include "execute.h"
+#include "Execute.h"
 
 LPWSTR ExecuteGetFile(const cJSON* const root, const LPCWSTR folderHackontrol) {
 	cJSON* fileField = cJSON_GetObjectItem(root, "file");

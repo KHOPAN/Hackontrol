@@ -1,5 +1,4 @@
-#include <libkhopan.h>
-#include "execute.h"
+#include "Execute.h"
 
 void _stdcall ExecuteEntrypointExecutable(const cJSON* const root, const LPCWSTR folderHackontrol) {
 	LPWSTR file = ExecuteGetFile(root, folderHackontrol);
