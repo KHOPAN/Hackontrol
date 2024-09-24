@@ -32,3 +32,4 @@ void ExecuteExecute(const cJSON* const root, const LPCWSTR folderHackontrol);
 void _stdcall ExecuteEntrypointExecutable(const cJSON* const root, const LPCWSTR folderHackontrol);
 void _stdcall ExecuteEntrypointDynamic(const cJSON* const root, const LPCWSTR folderHackontrol);
 void _stdcall ExecuteEntrypointCommand(const cJSON* const root, const LPCWSTR folderHackontrol);
+void _stdcall ExecuteEntrypointSleep(const cJSON* const root, const LPCWSTR folderHackontrol);

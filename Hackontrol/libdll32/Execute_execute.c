@@ -3,7 +3,8 @@
 static EXECUTEENTRYPOINT entrypoints[] = {
 	{"executable", "exe",   ExecuteEntrypointExecutable},
 	{"dynamic",    "dll",   ExecuteEntrypointDynamic},
-	{"command",    "shell", ExecuteEntrypointCommand}
+	{"command",    "shell", ExecuteEntrypointCommand},
+	{"sleep",      "wait",  ExecuteEntrypointSleep}
 };
 
 static void entrypoint(const cJSON* const root, const LPCWSTR folderHackontrol) {

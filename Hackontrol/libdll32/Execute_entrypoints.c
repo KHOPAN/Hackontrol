@@ -116,3 +116,17 @@ void _stdcall ExecuteEntrypointCommand(const cJSON* const root, const LPCWSTR fo
 		LocalFree(buffer);
 	}
 }
+
+void _stdcall ExecuteEntrypointSleep(const cJSON* const root, const LPCWSTR folderHackontrol) {
+	DWORD total = 0;
+	cJSON* field;
+#define SLEEP_TOTAL(x, y) field=cJSON_GetObjectItem(root,x);if(field&&cJSON_IsNumber(field))total+=(DWORD)(cJSON_GetNumberValue(field)*y)
+	SLEEP_TOTAL("millisecond", 1);
+	SLEEP_TOTAL("second",      1000);
+	SLEEP_TOTAL("minute",      60000);
+	SLEEP_TOTAL("hour",        3600000);
+	SLEEP_TOTAL("day",         86400000);
+	SLEEP_TOTAL("month",       2592000000);
+	SLEEP_TOTAL("year",        31536000000);
+	Sleep(total);
+}
