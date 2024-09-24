@@ -18,8 +18,8 @@ typedef enum {
 
 typedef struct {
 	BOOL win32;
-	LPCWSTR function;
 	DWORD code;
+	LPCWSTR function;
 } HRSPERROR, *PHRSPERROR;
 
 typedef struct {
@@ -29,8 +29,8 @@ typedef struct {
 #ifdef __cplusplus
 extern "C" {
 #endif
-LPCWSTR HRSPGetErrorCode(const HRSPERRORCODE code);
 LPWSTR HRSPGetErrorMessage(const LPCWSTR function, const PHRSPERROR error);
+LPCWSTR HRSPGetErrorCode(const HRSPERRORCODE code);
 #ifdef __cplusplus
 }
 #endif
