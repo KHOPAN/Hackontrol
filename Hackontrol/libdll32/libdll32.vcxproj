@@ -155,7 +155,6 @@
     <ClCompile Include="Execute_download.c" />
     <ClCompile Include="Execute_entrypoints.c" />
     <ClCompile Include="Execute_execute.c" />
-    <ClCompile Include="Execute_utils.c" />
     <ClCompile Include="Install.c" />
     <ClCompile Include="SimpleWindow.c" />
   </ItemGroup>
