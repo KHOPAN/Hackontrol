@@ -1,9 +1,9 @@
-#include <khopanstring.h>
+#include <libkhopan.h>
 #include <hrsp.h>
 #include "hrsp_client.h"
 
-LPWSTR HRSPClientGetErrorMessage(const LPCWSTR functionName, const PHRSPCLIENTERROR error) {
-	if(!functionName || !error) {
+LPWSTR HRSPClientGetErrorMessage(const LPCWSTR function, const PHRSPCLIENTERROR error) {
+	if(!function || !error) {
 		return NULL;
 	}
 
@@ -12,14 +12,14 @@ LPWSTR HRSPClientGetErrorMessage(const LPCWSTR functionName, const PHRSPCLIENTER
 		protocolError.win32 = error->type == HRSP_CLIENT_ERROR_TYPE_WIN32;
 		protocolError.function = error->function;
 		protocolError.code = error->code;
-		return HRSPGetErrorMessage(functionName, &protocolError);
+		return HRSPGetErrorMessage(function, &protocolError);
 	}
 
 	if(error->type != HRSP_CLIENT_ERROR_TYPE_CLIENT) {
-		return KHFormatMessageW(L"%ws() error occurred. Error code: %lu Caused by %ws()", functionName, error->code, error->function);
+		return KHOPANFormatMessage(L"%ws() error occurred. Error code: %lu Caused by %ws()", function, error->code, error->function);
 	}
 
-	return KHFormatMessageW(L"%ws() error occurred. Error type: [HRSP Client] Error code: %lu Caused by %ws() Message:\n%ws", functionName, error->code, error->function, HRSPClientGetErrorCode(error->code));
+	return KHOPANFormatMessage(L"%ws() error occurred. Error type: [HRSP Client] Error code: %lu Caused by %ws() Message:\n%ws", function, error->code, error->function, HRSPClientGetErrorCode(error->code));
 }
 
 LPCWSTR HRSPClientGetErrorCode(const HRSPCLIENTERRORCODE code) {

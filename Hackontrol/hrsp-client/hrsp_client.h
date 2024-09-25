@@ -30,11 +30,9 @@ typedef struct {
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-LPWSTR HRSPClientGetErrorMessage(const LPCWSTR functionName, const PHRSPCLIENTERROR error);
+LPWSTR HRSPClientGetErrorMessage(const LPCWSTR function, const PHRSPCLIENTERROR error);
 LPCWSTR HRSPClientGetErrorCode(const HRSPCLIENTERRORCODE code);
 BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const PHRSPCLIENTINPUT input, const PHRSPCLIENTERROR error);
-
 #ifdef __cplusplus
 }
 #endif
