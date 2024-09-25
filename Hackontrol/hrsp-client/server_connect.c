@@ -5,14 +5,14 @@
 #include <hrsp_remote.h>
 #include "hrsp_client_internal.h"
 
-#define ERROR_HRSP if(error){error->type=protocolError.win32?HRSP_CLIENT_ERROR_TYPE_WIN32:HRSP_CLIENT_ERROR_TYPE_HRSP;error->function=protocolError.function;error->code=protocolError.code;}
-#define ERROR_WIN32(functionName, errorCode) if(error){error->type=HRSP_CLIENT_ERROR_TYPE_WIN32;error->function=functionName;error->code=errorCode;}
+#define ERROR_HRSP if(error){error->type=protocolError.win32?HRSP_CLIENT_ERROR_TYPE_WIN32:HRSP_CLIENT_ERROR_TYPE_HRSP;error->code=protocolError.code;error->function=protocolError.function;}
+#define ERROR_WIN32(errorCode, functionName) if(error){error->type=HRSP_CLIENT_ERROR_TYPE_WIN32;error->code=errorCode;error->function=functionName;}
 
 BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const PHRSPCLIENTINPUT input, const PHRSPCLIENTERROR error) {
 	PHRSPCLIENTSTREAMPARAMETER stream = LocalAlloc(LMEM_FIXED, sizeof(HRSPCLIENTSTREAMPARAMETER));
 
 	if(!stream) {
-		ERROR_WIN32(L"LocalAlloc", GetLastError());
+		ERROR_WIN32(GetLastError(), L"LocalAlloc");
 		return FALSE;
 	}
 
@@ -24,7 +24,7 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 	BOOL returnValue = FALSE;
 
 	if(!stream->mutex) {
-		ERROR_WIN32(L"CreateMutexExW", GetLastError());
+		ERROR_WIN32(GetLastError(), L"CreateMutexExW");
 		goto freeStream;
 	}
 
@@ -32,7 +32,7 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 	int status = WSAStartup(MAKEWORD(2, 2), &data);
 
 	if(status) {
-		ERROR_WIN32(L"WSAStartup", status);
+		ERROR_WIN32(status, L"WSAStartup");
 		goto closeMutex;
 	}
 
@@ -40,11 +40,11 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
-	ADDRINFOW* result;
+	PADDRINFOW result;
 	status = GetAddrInfoW(address ? address : L"localhost", port ? port : HRSP_PROTOCOL_PORT_STRING, &hints, &result);
 
 	if(status) {
-		ERROR_WIN32(L"getaddrinfo", status);
+		ERROR_WIN32(status, L"GetAddrInfoW");
 		goto cleanupSocket;
 	}
 
@@ -54,7 +54,7 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 		stream->socket = socket(pointer->ai_family, pointer->ai_socktype, pointer->ai_protocol);
 
 		if(stream->socket == INVALID_SOCKET) {
-			ERROR_WIN32(L"socket", WSAGetLastError());
+			ERROR_WIN32(WSAGetLastError(), L"socket");
 			FreeAddrInfoW(result);
 			goto cleanupSocket;
 		}
@@ -64,7 +64,7 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 		}
 
 		if(closesocket(stream->socket) == SOCKET_ERROR) {
-			ERROR_WIN32(L"closesocket", WSAGetLastError());
+			ERROR_WIN32(WSAGetLastError(), L"closesocket");
 			goto cleanupSocket;
 		}
 
@@ -94,12 +94,12 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 	PBYTE buffer = LocalAlloc(LMEM_FIXED, size);
 
 	if(!buffer) {
-		ERROR_WIN32(L"LocalAlloc", GetLastError());
+		ERROR_WIN32(GetLastError(), L"LocalAlloc");
 		goto closeSocket;
 	}
 
 	if(!GetUserNameA(buffer, &size)) {
-		ERROR_WIN32(L"GetUserNameA", GetLastError());
+		ERROR_WIN32(GetLastError(), L"GetUserNameA");
 		LocalFree(buffer);
 		goto closeSocket;
 	}
@@ -124,7 +124,7 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 	HANDLE streamThread = CreateThread(NULL, 0, HRSPClientStreamThread, stream, 0, NULL);
 
 	if(!streamThread) {
-		ERROR_WIN32(L"CreateThread", GetLastError());
+		ERROR_WIN32(GetLastError(), L"CreateThread");
 		goto closeSocket;
 	}
 
@@ -135,7 +135,7 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 		}
 
 		if(WaitForSingleObject(stream->mutex, INFINITE) == WAIT_FAILED) {
-			ERROR_WIN32(L"WaitForSingleObject", GetLastError());
+			ERROR_WIN32(GetLastError(), L"WaitForSingleObject");
 			goto closeStreamThread;
 		}
 
@@ -162,19 +162,19 @@ closeStreamThread:
 	stream->running = FALSE;
 
 	if(WaitForSingleObject(streamThread, INFINITE) == WAIT_FAILED) {
-		ERROR_WIN32(L"WaitForSingleObject", GetLastError());
+		ERROR_WIN32(GetLastError(), L"WaitForSingleObject");
 		returnValue = FALSE;
 	}
 
 	CloseHandle(streamThread);
 closeSocket:
 	if(closesocket(stream->socket) == SOCKET_ERROR && (status = WSAGetLastError()) != WSAENOTSOCK) {
-		ERROR_WIN32(L"closesocket", status);
+		ERROR_WIN32(status, L"closesocket");
 		returnValue = FALSE;
 	}
 cleanupSocket:
 	if(WSACleanup() == SOCKET_ERROR) {
-		ERROR_WIN32(L"WSACleanup", WSAGetLastError());
+		ERROR_WIN32(WSAGetLastError(), L"WSACleanup");
 		returnValue = FALSE;
 	}
 closeMutex:
