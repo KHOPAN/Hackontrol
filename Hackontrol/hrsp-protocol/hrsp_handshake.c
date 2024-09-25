@@ -32,11 +32,7 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PHRSPE
 	}
 
 	if(buffer[0] != HRSP_ERROR_SUCCESS) {
-		switch(buffer[0]) {
-		case HRSP_ERROR_UNSUPPORTED_VERSION: ERROR_HRSP(HRSP_ERROR_UNSUPPORTED_VERSION, L"HRSPClientHandshake"); break;
-		default:                             ERROR_HRSP(HRSP_ERROR_UNKNOWN_ERROR,       L"HRSPClientHandshake"); break;
-		}
-
+		ERROR_HRSP(buffer[0] == HRSP_ERROR_UNSUPPORTED_VERSION ? HRSP_ERROR_UNSUPPORTED_VERSION : HRSP_ERROR_UNKNOWN_ERROR, L"HRSPClientHandshake");
 		return FALSE;
 	}
 
