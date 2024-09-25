@@ -1,13 +1,13 @@
 #include <WinSock2.h>
 #include "hrsp_packet.h"
 
-#define ERROR_HRSP(functionName, errorCode) if(error){error->win32=FALSE;error->function=functionName;error->code=errorCode;}
-#define ERROR_WIN32(functionName, errorCode) if(error){error->win32=TRUE;error->function=functionName;error->code=errorCode;}
-#define EMPTY_ERROR if(error){error->win32=FALSE;error->function=NULL;error->code=0;}
+#define ERROR_HRSP(errorCode, functionName) if(error){error->win32=FALSE;error->code=errorCode;error->function=functionName;}
+#define ERROR_WIN32(errorCode, functionName) if(error){error->win32=TRUE;error->code=errorCode;error->function=functionName;}
+#define ERROR_NEUTRAL if(error){error->win32=FALSE;error->code=0;error->function=NULL;}
 
 BOOL HRSPSendPacket(const SOCKET socket, const PHRSPDATA data, const PHRSPPACKET packet, const PHRSPERROR error) {
 	if(!socket || !data || !packet) {
-		ERROR_HRSP(L"HRSPSendPacket", HRSP_ERROR_INVALID_FUNCTION_PARAMETER);
+		ERROR_HRSP(HRSP_ERROR_INVALID_FUNCTION_PARAMETER, L"HRSPSendPacket");
 		return FALSE;
 	}
 
@@ -23,22 +23,22 @@ BOOL HRSPSendPacket(const SOCKET socket, const PHRSPDATA data, const PHRSPPACKET
 	header[7] = packet->type & 0xFF;
 
 	if(send(socket, header, sizeof(header), 0) == SOCKET_ERROR) {
-		ERROR_WIN32(L"send", WSAGetLastError());
+		ERROR_WIN32(WSAGetLastError(), L"send");
 		return FALSE;
 	}
 
 	if(size && send(socket, packet->data, packet->size, 0) == SOCKET_ERROR) {
-		ERROR_WIN32(L"send", WSAGetLastError());
+		ERROR_WIN32(WSAGetLastError(), L"send");
 		return FALSE;
 	}
 
-	EMPTY_ERROR;
+	ERROR_NEUTRAL;
 	return TRUE;
 }
 
 BOOL HRSPReceivePacket(const SOCKET socket, const PHRSPDATA data, const PHRSPPACKET packet, const PHRSPERROR error) {
 	if(!socket || !data || !packet) {
-		ERROR_HRSP(L"HRSPReceivePacket", HRSP_ERROR_INVALID_FUNCTION_PARAMETER);
+		ERROR_HRSP(HRSP_ERROR_INVALID_FUNCTION_PARAMETER, L"HRSPReceivePacket");
 		return FALSE;
 	}
 
@@ -46,12 +46,12 @@ BOOL HRSPReceivePacket(const SOCKET socket, const PHRSPDATA data, const PHRSPPAC
 	int result = recv(socket, header, sizeof(header), MSG_WAITALL);
 
 	if(result == SOCKET_ERROR) {
-		ERROR_WIN32(L"recv", WSAGetLastError());
+		ERROR_WIN32(WSAGetLastError(), L"recv");
 		return FALSE;
 	}
 
 	if(!result) {
-		ERROR_HRSP(L"HRSPReceivePacket", HRSP_ERROR_CONNECTION_CLOSED);
+		ERROR_HRSP(HRSP_ERROR_CONNECTION_CLOSED, L"HRSPReceivePacket");
 		return FALSE;
 	}
 
@@ -62,27 +62,27 @@ BOOL HRSPReceivePacket(const SOCKET socket, const PHRSPDATA data, const PHRSPPAC
 		packet->size = 0;
 		packet->type = type;
 		packet->data = NULL;
-		EMPTY_ERROR;
+		ERROR_NEUTRAL;
 		return TRUE;
 	}
 
-	BYTE* buffer = LocalAlloc(LMEM_FIXED, size);
+	PBYTE buffer = LocalAlloc(LMEM_FIXED, size);
 
 	if(!buffer) {
-		ERROR_WIN32(L"LocalAlloc", GetLastError());
+		ERROR_WIN32(GetLastError(), L"LocalAlloc");
 		return FALSE;
 	}
 
 	result = recv(socket, buffer, size, MSG_WAITALL);
 
 	if(result == SOCKET_ERROR) {
-		ERROR_WIN32(L"recv", WSAGetLastError());
+		ERROR_WIN32(WSAGetLastError(), L"recv");
 		LocalFree(buffer);
 		return FALSE;
 	}
 
 	if(!result) {
-		ERROR_HRSP(L"HRSPReceivePacket", HRSP_ERROR_CONNECTION_CLOSED);
+		ERROR_HRSP(HRSP_ERROR_CONNECTION_CLOSED, L"HRSPReceivePacket");
 		LocalFree(buffer);
 		return FALSE;
 	}
@@ -90,30 +90,30 @@ BOOL HRSPReceivePacket(const SOCKET socket, const PHRSPDATA data, const PHRSPPAC
 	packet->size = size;
 	packet->type = type;
 	packet->data = buffer;
-	EMPTY_ERROR;
+	ERROR_NEUTRAL;
 	return TRUE;
 }
 
 BOOL HRSPFreePacket(const PHRSPPACKET packet, const PHRSPERROR error) {
 	if(!packet) {
-		ERROR_HRSP(L"HRSPFreePacket", HRSP_ERROR_INVALID_FUNCTION_PARAMETER);
+		ERROR_HRSP(HRSP_ERROR_INVALID_FUNCTION_PARAMETER, L"HRSPFreePacket");
 		return FALSE;
 	}
 
 	if(!packet->data || packet->size < 1) {
-		EMPTY_ERROR;
+		ERROR_NEUTRAL;
 		return TRUE;
 	}
 
 	if(LocalFree(packet->data)) {
-		ERROR_WIN32(L"LocalFree", GetLastError());
+		ERROR_WIN32(GetLastError(), L"LocalFree");
 		return FALSE;
 	}
 
 	packet->size = 0;
 	packet->type = 0;
 	packet->data = NULL;
-	EMPTY_ERROR;
+	ERROR_NEUTRAL;
 	return TRUE;
 }
 
