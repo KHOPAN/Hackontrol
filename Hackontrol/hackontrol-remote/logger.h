@@ -1,18 +1,16 @@
 #pragma once
 
+#include <libkhopan.h>
+
 #define LOGGER_ENABLE
 //#define NO_CONSOLE
 
 #ifdef LOGGER_ENABLE
-#include <stdio.h>
-#define COMMA ,
 #ifdef NO_CONSOLE
-#include <khopanstring.h>
-#include <debugapi.h>
-#define LOG(x) do{LPSTR xxx_result_xxx=KHFormatMessageA(x);if(xxx_result_xxx){OutputDebugStringA(xxx_result_xxx);LocalFree(xxx_result_xxx);}}while(0)
+#define LOG(format, ...) do{LPSTR __format_message__=KHOPANFormatANSI(format,__VA_ARGS__);if(__format_message__){OutputDebugStringA(__format_message__);LocalFree(__format_message__);}}while(0)
 #else
-#define LOG(x) do{printf(x);_flushall();}while(0)
+#define LOG(format, ...) do{printf(format,__VA_ARGS__);_flushall();}while(0)
 #endif
 #else
-#define LOG(x)
+#define LOG(format, ...)
 #endif
