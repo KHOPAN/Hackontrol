@@ -1,5 +1,5 @@
-#include <khopanstring.h>
-#include <khopanjava.h>
+#include <libkhopan.h>
+#include <libkhopanjava.h>
 #include <hrsp_client.h>
 #include <jni.h>
 
@@ -10,11 +10,9 @@ typedef struct {
 } CONNECTEDPARAMETER, *PCONNECTEDPARAMETER;
 
 static void connected(PCONNECTEDPARAMETER parameter) {
-	if(!parameter) {
-		return;
+	if(parameter) {
+		(*parameter->environment)->CallObjectMethod(parameter->environment, parameter->callback, parameter->acceptMethod, (*parameter->environment)->NewStringUTF(parameter->environment, "**Connected**"));
 	}
-
-	(*parameter->environment)->CallObjectMethod(parameter->environment, parameter->callback, parameter->acceptMethod, (*parameter->environment)->NewStringUTF(parameter->environment, "**Connected**"));
 }
 
 _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment, LPCSTR hostName, LPCSTR port, const jobject callback) {
@@ -39,8 +37,8 @@ _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment,
 	parameter->environment = environment;
 	parameter->callback = callback;
 	parameter->acceptMethod = acceptMethod;
-	LPWSTR serverAddress = KHFormatMessageW(L"%S", hostName);
-	LPWSTR serverPort = KHFormatMessageW(L"%S", port);
+	LPWSTR serverAddress = KHOPANFormatMessage(L"%S", hostName);
+	LPWSTR serverPort = KHOPANFormatMessage(L"%S", port);
 	HRSPCLIENTINPUT input = {0};
 	input.parameter = parameter;
 	input.callbackConnected = connected;
@@ -60,7 +58,7 @@ _declspec(dllexport) void __stdcall ConnectHRSPServer(JNIEnv* const environment,
 		LPWSTR message = HRSPClientGetErrorMessage(L"HRSPClientConnectToServer", &error);
 
 		if(message) {
-			KHJavaThrowW(environment, "com/khopan/hackontrol/Win32Error", message);
+			KHOPANJavaThrow(environment, "com/khopan/hackontrol/Win32Error", message);
 			LocalFree(message);
 		}
 	}
