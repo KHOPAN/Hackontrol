@@ -2,7 +2,7 @@
 #include <hrsp_remote.h>
 #include "hrsp_client_internal.h"
 
-#define ERROR_WIN32(functionName, errorCode) if(!parameter->hasError){parameter->hasError=TRUE;parameter->error.type=HRSP_CLIENT_ERROR_TYPE_WIN32;parameter->error.function=functionName;parameter->error.code=errorCode;}
+#define ERROR_WIN32(errorCode, functionName) if(!parameter->hasError){parameter->hasError=TRUE;parameter->error.type=HRSP_CLIENT_ERROR_TYPE_WIN32;parameter->error.code=errorCode;parameter->error.function=functionName;}
 
 #define QOI_OP_RGB   0b11111110
 #define QOI_OP_INDEX 0b00000000
@@ -143,7 +143,7 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 
 	while(parameter->running) {
 		if(WaitForSingleObject(parameter->mutex, INFINITE) == WAIT_FAILED) {
-			ERROR_WIN32(L"WaitForSingleObject", GetLastError());
+			ERROR_WIN32(GetLastError(), L"WaitForSingleObject");
 			break;
 		}
 
@@ -181,7 +181,7 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 		buffer = LocalAlloc(LMEM_FIXED, width * height * 11);
 
 		if(!buffer) {
-			ERROR_WIN32(L"LocalAlloc", GetLastError());
+			ERROR_WIN32(GetLastError(), L"LocalAlloc");
 			break;
 		}
 
@@ -192,7 +192,7 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 		context = GetDC(NULL);
 
 		if(!context) {
-			ERROR_WIN32(L"GetDC", ERROR_FUNCTION_FAILED);
+			ERROR_WIN32(ERROR_FUNCTION_FAILED, L"GetDC");
 			break;
 		}
 
@@ -203,7 +203,7 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 		memoryContext = CreateCompatibleDC(context);
 
 		if(!memoryContext) {
-			ERROR_WIN32(L"CreateCompatibleDC", ERROR_FUNCTION_FAILED);
+			ERROR_WIN32(ERROR_FUNCTION_FAILED, L"CreateCompatibleDC");
 			break;
 		}
 
@@ -214,14 +214,14 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 		bitmap = CreateCompatibleBitmap(context, width, height);
 
 		if(!bitmap) {
-			ERROR_WIN32(L"CreateCompatibleBitmap", ERROR_FUNCTION_FAILED);
+			ERROR_WIN32(ERROR_FUNCTION_FAILED, L"CreateCompatibleBitmap");
 			break;
 		}
 	captureFrame:
 		bitmap = SelectObject(memoryContext, bitmap);
 
 		if(!BitBlt(memoryContext, 0, 0, width, height, context, 0, 0, SRCCOPY)) {
-			ERROR_WIN32(L"BitBlt", GetLastError());
+			ERROR_WIN32(GetLastError(), L"BitBlt");
 			bitmap = SelectObject(memoryContext, bitmap);
 			break;
 		}
@@ -269,7 +269,7 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 		information.bmiHeader.biCompression = BI_RGB;
 
 		if(!GetDIBits(memoryContext, bitmap, 0, height, buffer, &information, DIB_RGB_COLORS)) {
-			ERROR_WIN32(L"GetDIBits", ERROR_FUNCTION_FAILED);
+			ERROR_WIN32(ERROR_FUNCTION_FAILED, L"GetDIBits");
 			break;
 		}
 
