@@ -170,11 +170,39 @@ BOOL KHOPANArrayFree(const PARRAYLIST list) {
 }
 
 BOOL KHOPANLinkedInitialize(const PLINKEDLIST list, const size_t size) {
+	if(!list || !size) {
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	list->mutex = CreateMutexExW(NULL, NULL, 0, SYNCHRONIZE | DELETE);
+
+	if(!list->mutex) {
+		return FALSE;
+	}
+
+	list->size = size;
+	list->item = NULL;
 	SetLastError(ERROR_SUCCESS);
 	return TRUE;
 }
 
 BOOL KHOPANLinkedAdd(const PLINKEDLIST list, const PPLINKEDLISTITEM item) {
+	if(!list || !item) {
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	SetLastError(ERROR_SUCCESS);
+	return TRUE;
+}
+
+BOOL KHOPANLinkedFree(const PLINKEDLIST list) {
+	if(!list) {
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
 	SetLastError(ERROR_SUCCESS);
 	return TRUE;
 }
