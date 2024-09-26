@@ -17,13 +17,16 @@ typedef struct {
 	PBYTE data;
 } ARRAYLIST, *PARRAYLIST;
 
+struct _LINKEDLIST;
+
 typedef struct _LINKEDLISTITEM {
 	PBYTE data;
+	struct _LINKEDLIST* list;
 	struct _LINKEDLISTITEM* previous;
 	struct _LINKEDLISTITEM* next;
 } LINKEDLISTITEM, *PLINKEDLISTITEM, **PPLINKEDLISTITEM;
 
-typedef struct {
+typedef struct _LINKEDLIST {
 	size_t size;
 	HANDLE mutex;
 	PLINKEDLISTITEM item;

@@ -213,6 +213,7 @@ BOOL KHOPANLinkedAdd(const PLINKEDLIST list, const PBYTE data, const PPLINKEDLIS
 		buffer->data[index] = data[index];
 	}
 
+	buffer->list = list;
 	buffer->previous = NULL;
 	buffer->next = NULL;
 
@@ -255,10 +256,15 @@ BOOL KHOPANLinkedRemove(const PLINKEDLISTITEM item) {
 		return FALSE;
 	}
 
+	if(WaitForSingleObject(item->list->mutex, INFINITE) == WAIT_FAILED) {
+		return FALSE;
+	}
+
 	item->previous->next = item->next;
 	item->next->previous = item->previous;
 	LocalFree(item->data);
 	LocalFree(item);
+	ReleaseMutex(item->list->mutex);
 	SetLastError(ERROR_SUCCESS);
 	return TRUE;
 }
