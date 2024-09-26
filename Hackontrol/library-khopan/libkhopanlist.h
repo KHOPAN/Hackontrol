@@ -17,8 +17,13 @@ typedef struct {
 	PBYTE data;
 } ARRAYLIST, *PARRAYLIST;
 
+typedef struct _LINKEDLISTITEM {
+	struct _LINKEDLISTITEM* next;
+} LINKEDLISTITEM, *PLINKEDLISTITEM, **PPLINKEDLISTITEM;
+
 typedef struct {
-	int placeholder;
+	size_t size;
+	PLINKEDLISTITEM item;
 } LINKEDLIST, *PLINKEDLIST;
 
 #ifdef __cplusplus
@@ -31,7 +36,8 @@ BOOL KHOPANArrayAdd(const PARRAYLIST list, const PBYTE data);
 BOOL KHOPANArrayRemove(const PARRAYLIST list, const size_t index);
 BOOL KHOPANArrayGet(const PARRAYLIST list, const size_t index, PBYTE* const data);
 BOOL KHOPANArrayFree(const PARRAYLIST list);
-BOOL KHOPANLinkedInitialize(const PLINKEDLIST list);
+BOOL KHOPANLinkedInitialize(const PLINKEDLIST list, const size_t size);
+BOOL KHOPANLinkedAdd(const PLINKEDLIST list, const PPLINKEDLISTITEM item);
 #ifdef __cplusplus
 }
 #endif

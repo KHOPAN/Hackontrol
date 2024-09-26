@@ -169,7 +169,12 @@ BOOL KHOPANArrayFree(const PARRAYLIST list) {
 	return TRUE;
 }
 
-BOOL KHOPANLinkedInitialize(const PLINKEDLIST list) {
+BOOL KHOPANLinkedInitialize(const PLINKEDLIST list, const size_t size) {
+	SetLastError(ERROR_SUCCESS);
+	return TRUE;
+}
+
+BOOL KHOPANLinkedAdd(const PLINKEDLIST list, const PPLINKEDLISTITEM item) {
 	SetLastError(ERROR_SUCCESS);
 	return TRUE;
 }
