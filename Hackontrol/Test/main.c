@@ -10,13 +10,19 @@ int main(int argc, char** argv) {
 	}
 
 	int codeExit = 1;
-	PLINKEDLISTITEM pointer = NULL;
 
 	for(ULONGLONG i = 1; i <= 10; i++) {
-		if(!KHOPANLinkedAdd(&list, (PBYTE) &i, i == 6 ? &pointer : NULL)) {
+		if(!KHOPANLinkedAdd(&list, (PBYTE) &i, NULL)) {
 			KHOPANLASTERRORMESSAGE_WIN32(L"KHOPANLinkedAdd");
 			goto freeList;
 		}
+	}
+
+	PLINKEDLISTITEM pointer = NULL;
+
+	if(!KHOPANLinkedGet(&list, 4, &pointer)) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"KHOPANLinkedGet");
+		goto freeList;
 	}
 
 	if(!KHOPANLinkedRemove(pointer)) {

@@ -27,6 +27,7 @@ typedef struct _LINKEDLISTITEM {
 } LINKEDLISTITEM, *PLINKEDLISTITEM, **PPLINKEDLISTITEM;
 
 typedef struct _LINKEDLIST {
+	size_t count;
 	size_t size;
 	HANDLE mutex;
 	PLINKEDLISTITEM item;
