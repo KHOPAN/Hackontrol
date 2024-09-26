@@ -200,10 +200,10 @@ BOOL KHOPANLinkedAdd(const PLINKEDLIST list, const PBYTE data, const PPLINKEDLIS
 		return FALSE;
 	}
 
-	buffer->data = LocalAlloc(LMEM_FIXED, list->size);
+	//buffer->data = LocalAlloc(LMEM_FIXED, list->size);
 	size_t index;
 
-	if(!buffer->data) {
+	/*if(!buffer->data) {
 		index = GetLastError();
 		LocalFree(buffer);
 		SetLastError((DWORD) index);
@@ -212,7 +212,7 @@ BOOL KHOPANLinkedAdd(const PLINKEDLIST list, const PBYTE data, const PPLINKEDLIS
 
 	for(index = 0; index < list->size; index++) {
 		buffer->data[index] = data[index];
-	}
+	}*/
 
 	buffer->list = list;
 	buffer->previous = NULL;
@@ -320,7 +320,7 @@ BOOL KHOPANLinkedFree(const PLINKEDLIST list) {
 
 	while(item) {
 		PLINKEDLISTITEM buffer = item->next;
-		LocalFree(item->data);
+		//LocalFree(item->data);
 		LocalFree(item);
 		item = buffer;
 	}
