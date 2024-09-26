@@ -1,7 +1,14 @@
 #include <WS2tcpip.h>
 #include "remote.h"
 
-DWORD WINAPI ThreadServer(_In_ LPVOID parameter) {
+DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
+	DWORD codeExit = 1;
+
+	if(!socketListen) {
+		LOG("[Server]: Empty thread parameter\n");
+		goto functionExit;
+	}
+
 	LOG("[Server]: Initializing\n");
 	ADDRINFOW hints = {0};
 	hints.ai_family = AF_INET;
@@ -9,22 +16,21 @@ DWORD WINAPI ThreadServer(_In_ LPVOID parameter) {
 	hints.ai_protocol = IPPROTO_TCP;
 	hints.ai_flags = AI_PASSIVE;
 	int status = GetAddrInfoW(NULL, REMOTE_PORT, &hints, &hints.ai_next);
-	DWORD codeExit = 1;
 
 	if(status) {
 		KHOPANERRORMESSAGE_WIN32(status, L"GetAddrInfoW");
 		goto functionExit;
 	}
 
-	SOCKET socketListen = WSASocketW(hints.ai_next->ai_family, hints.ai_next->ai_socktype, hints.ai_next->ai_protocol, NULL, 0, WSA_FLAG_OVERLAPPED);
+	(*socketListen) = WSASocketW(hints.ai_next->ai_family, hints.ai_next->ai_socktype, hints.ai_next->ai_protocol, NULL, 0, WSA_FLAG_OVERLAPPED);
 
-	if(socketListen == INVALID_SOCKET) {
+	if((*socketListen) == INVALID_SOCKET) {
 		KHOPANLASTERRORMESSAGE_WSA(L"WSASocketW");
 		FreeAddrInfoW(hints.ai_next);
 		goto functionExit;
 	}
 
-	status = bind(socketListen, hints.ai_next->ai_addr, (int) hints.ai_next->ai_addrlen);
+	status = bind((*socketListen), hints.ai_next->ai_addr, (int) hints.ai_next->ai_addrlen);
 	FreeAddrInfoW(hints.ai_next);
 
 	if(status == SOCKET_ERROR) {
@@ -32,7 +38,7 @@ DWORD WINAPI ThreadServer(_In_ LPVOID parameter) {
 		goto functionExit;
 	}
 
-	if(listen(socketListen, SOMAXCONN) == SOCKET_ERROR) {
+	if(listen((*socketListen), SOMAXCONN) == SOCKET_ERROR) {
 		KHOPANLASTERRORMESSAGE_WSA(L"listen");
 		goto functionExit;
 	}

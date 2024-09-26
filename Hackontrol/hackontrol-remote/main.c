@@ -27,7 +27,8 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto functionExit;
 	}
 
-	HANDLE thread = CreateThread(NULL, 0, ThreadServer, NULL, 0, NULL);
+	SOCKET socketListen = NULL;
+	HANDLE thread = CreateThread(NULL, 0, ThreadServer, &socketListen, 0, NULL);
 
 	if(!thread) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"CreateThread");

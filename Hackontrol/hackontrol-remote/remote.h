@@ -17,14 +17,4 @@
 #define LOG(format, ...)
 #endif
 
-DWORD WINAPI ThreadServer(_In_ LPVOID parameter);
-typedef struct _CLIENT {
-	struct _CLIENT* next;
-} CLIENT, *PCLIENT;
-
-typedef struct {
-	size_t size;
-	PCLIENT client;
-	HANDLE mutex;
-} CLIENTLIST;
-
+DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen);
