@@ -10,12 +10,18 @@ int main(int argc, char** argv) {
 	}
 
 	int codeExit = 1;
+	PLINKEDLISTITEM pointer = NULL;
 
 	for(ULONGLONG i = 1; i <= 10; i++) {
-		if(!KHOPANLinkedAdd(&list, (PBYTE) &i, NULL)) {
+		if(!KHOPANLinkedAdd(&list, (PBYTE) &i, i == 6 ? &pointer : NULL)) {
 			KHOPANLASTERRORMESSAGE_WIN32(L"KHOPANLinkedAdd");
 			goto freeList;
 		}
+	}
+
+	if(!KHOPANLinkedRemove(pointer)) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"KHOPANLinkedRemove");
+		goto freeList;
 	}
 
 	for(PLINKEDLISTITEM item = list.item; item; item = item->next) {
