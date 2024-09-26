@@ -256,7 +256,9 @@ BOOL KHOPANLinkedRemove(const PLINKEDLISTITEM item) {
 		return FALSE;
 	}
 
-	if(WaitForSingleObject(item->list->mutex, INFINITE) == WAIT_FAILED) {
+	HANDLE mutex = item->list->mutex;
+
+	if(WaitForSingleObject(mutex, INFINITE) == WAIT_FAILED) {
 		return FALSE;
 	}
 
@@ -264,7 +266,12 @@ BOOL KHOPANLinkedRemove(const PLINKEDLISTITEM item) {
 	item->next->previous = item->previous;
 	LocalFree(item->data);
 	LocalFree(item);
-	ReleaseMutex(item->list->mutex);
+	ReleaseMutex(mutex);
+	SetLastError(ERROR_SUCCESS);
+	return TRUE;
+}
+
+BOOL KHOPANLinkedGet(const PLINKEDLIST list, const size_t index, const PPLINKEDLISTITEM item) {
 	SetLastError(ERROR_SUCCESS);
 	return TRUE;
 }

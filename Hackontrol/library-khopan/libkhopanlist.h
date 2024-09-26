@@ -45,6 +45,7 @@ BOOL KHOPANArrayFree(const PARRAYLIST list);
 BOOL KHOPANLinkedInitialize(const PLINKEDLIST list, const size_t size);
 BOOL KHOPANLinkedAdd(const PLINKEDLIST list, const PBYTE data, const PPLINKEDLISTITEM item);
 BOOL KHOPANLinkedRemove(const PLINKEDLISTITEM item);
+BOOL KHOPANLinkedGet(const PLINKEDLIST list, const size_t index, const PPLINKEDLISTITEM item);
 BOOL KHOPANLinkedFree(const PLINKEDLIST list);
 #ifdef __cplusplus
 }
