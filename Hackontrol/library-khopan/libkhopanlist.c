@@ -187,10 +187,60 @@ BOOL KHOPANLinkedInitialize(const PLINKEDLIST list, const size_t size) {
 	return TRUE;
 }
 
-BOOL KHOPANLinkedAdd(const PLINKEDLIST list, const PPLINKEDLISTITEM item) {
-	if(!list || !item) {
+BOOL KHOPANLinkedAdd(const PLINKEDLIST list, const PBYTE data, const PPLINKEDLISTITEM item) {
+	if(!list || !data) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
+	}
+
+	PLINKEDLISTITEM buffer = LocalAlloc(LMEM_FIXED, sizeof(LINKEDLISTITEM));
+
+	if(!buffer) {
+		return FALSE;
+	}
+
+	buffer->data = LocalAlloc(LMEM_FIXED, list->size);
+	size_t index;
+
+	if(!buffer->data) {
+		index = GetLastError();
+		LocalFree(buffer);
+		SetLastError((DWORD) index);
+		return FALSE;
+	}
+
+	for(index = 0; index < list->size; index++) {
+		buffer->data[index] = data[index];
+	}
+
+	buffer->next = NULL;
+
+	if(WaitForSingleObject(list->mutex, INFINITE) == WAIT_FAILED) {
+		index = GetLastError();
+		LocalFree(buffer->data);
+		LocalFree(buffer);
+		SetLastError((DWORD) index);
+		return FALSE;
+	}
+
+	PLINKEDLISTITEM listItem = list->item;
+	PLINKEDLISTITEM previous = NULL;
+
+	while(listItem) {
+		previous = listItem;
+		listItem = listItem->next;
+	}
+
+	if(previous) {
+		previous->next = buffer;
+	} else {
+		list->item = buffer;
+	}
+
+	ReleaseMutex(list->mutex);
+
+	if(item) {
+		(*item) = buffer;
 	}
 
 	SetLastError(ERROR_SUCCESS);
@@ -203,10 +253,23 @@ BOOL KHOPANLinkedFree(const PLINKEDLIST list) {
 		return FALSE;
 	}
 
-	if(WaitForSingleObject(list->mutex, INFINITE) == WAIT_FAILED || !ReleaseMutex(list->mutex)) {
+	if(WaitForSingleObject(list->mutex, INFINITE) == WAIT_FAILED) {
 		return FALSE;
 	}
 
+	CloseHandle(list->mutex);
+	PLINKEDLISTITEM item = list->item;
+
+	while(item) {
+		PLINKEDLISTITEM buffer = item->next;
+		LocalFree(item->data);
+		LocalFree(item);
+		item = buffer;
+	}
+
+	list->size = 0;
+	list->mutex = NULL;
+	list->item = NULL;
 	SetLastError(ERROR_SUCCESS);
 	return TRUE;
 }
