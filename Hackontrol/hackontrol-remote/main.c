@@ -1,4 +1,4 @@
-#include "logger.h"
+#include "remote.h"
 
 int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance, _In_ LPSTR argument, _In_ int options) {
 	int codeExit = 1;
@@ -18,6 +18,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto functionExit;
 	}
 #endif
+	LOG("[Remote]: Initializing\n");
 	WSADATA data;
 	int status = WSAStartup(MAKEWORD(2, 2), &data);
 
@@ -26,7 +27,6 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto functionExit;
 	}
 
-	LOG("[Remote]: Initializing\n");
 	codeExit = 0;
 cleanupSocket:
 	if(WSACleanup() == SOCKET_ERROR) {

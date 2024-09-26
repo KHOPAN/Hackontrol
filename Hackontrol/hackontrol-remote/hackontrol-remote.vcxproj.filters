@@ -14,12 +14,15 @@
     <ClCompile Include="main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="thread_server.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="hackontrol-remote.exe.manifest" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="logger.h">
+    <ClInclude Include="remote.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

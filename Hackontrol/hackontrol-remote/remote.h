@@ -14,3 +14,5 @@
 #else
 #define LOG(format, ...)
 #endif
+
+DWORD WINAPI ThreadServer(_In_ LPVOID parameter);

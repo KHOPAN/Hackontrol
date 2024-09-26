@@ -144,12 +144,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.c" />
+    <ClCompile Include="thread_server.c" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="hackontrol-remote.exe.manifest" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="logger.h" />
+    <ClInclude Include="remote.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\hrsp-protocol\hrsp-protocol.vcxproj">
