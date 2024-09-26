@@ -203,6 +203,10 @@ BOOL KHOPANLinkedFree(const PLINKEDLIST list) {
 		return FALSE;
 	}
 
+	if(WaitForSingleObject(list->mutex, INFINITE) == WAIT_FAILED || !ReleaseMutex(list->mutex)) {
+		return FALSE;
+	}
+
 	SetLastError(ERROR_SUCCESS);
 	return TRUE;
 }

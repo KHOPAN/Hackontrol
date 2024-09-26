@@ -9,5 +9,10 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
+	if(!KHOPANLinkedFree(&list)) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"KHOPANLinkedFree");
+		return 1;
+	}
+
 	return 0;
 }
