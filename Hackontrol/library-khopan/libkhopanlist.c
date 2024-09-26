@@ -1,3 +1,4 @@
+#include "libkhopan.h"
 #include "libkhopanlist.h"
 
 BOOL KHOPANStreamAdd(const PDATASTREAM stream, const PBYTE data, const size_t size) {
@@ -50,19 +51,28 @@ BOOL KHOPANStreamFree(const PDATASTREAM stream) {
 	return TRUE;
 }
 
-BOOL KHOPANArrayInitialize(const PARRAYLIST list, const size_t size) {
-	if(!list || !size) {
+BOOL KHOPANArrayInitialize(_Out_ const PARRAYLIST list, _In_ const size_t size) {
+	if(!list) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
 	}
 
-	PBYTE buffer = LocalAlloc(LMEM_FIXED, size * KHOPAN_ARRAY_INITIAL_CAPACITY);
+	for(size_t i = 0; i < sizeof(ARRAYLIST); i++) {
+		((PBYTE) list)[i] = 0;
+	}
 
-	if(!buffer) {
+	if(!size) {
+		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
 	}
 
-	list->count = 0;
+	PBYTE buffer = KHOPAN_ALLOCATE(size * KHOPAN_ARRAY_INITIAL_CAPACITY);
+
+	if(KHOPAN_ALLOCATE_HAS_ERROR(buffer)) {
+		SetLastError(KHOPAN_ALLOCATE_WIN32_ERROR_CODE);
+		return FALSE;
+	}
+
 	list->size = size;
 	list->capacity = KHOPAN_ARRAY_INITIAL_CAPACITY;
 	list->data = buffer;
