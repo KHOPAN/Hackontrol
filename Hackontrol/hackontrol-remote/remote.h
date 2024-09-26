@@ -5,6 +5,8 @@
 #define LOGGER_ENABLE
 //#define NO_CONSOLE
 
+#define REMOTE_PORT L"42485"
+
 #ifdef LOGGER_ENABLE
 #ifdef NO_CONSOLE
 #define LOG(format, ...) do{LPSTR __format_message__=KHOPANFormatANSI(format,__VA_ARGS__);if(__format_message__){OutputDebugStringA(__format_message__);LocalFree(__format_message__);}}while(0)
