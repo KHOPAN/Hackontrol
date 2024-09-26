@@ -1,6 +1,56 @@
 #include "libkhopanlist.h"
 
-BOOL KHOPANArrayInitialize(const PARRAYLIST list, size_t size) {
+BOOL KHOPANStreamAdd(const PDATASTREAM stream, const PBYTE data, const size_t size) {
+	if(!stream || !data || !size) {
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	size_t length = stream->data ? stream->size : 0;
+	PBYTE buffer = LocalAlloc(LMEM_FIXED, length + size);
+
+	if(!buffer) {
+		return FALSE;
+	}
+
+	size_t index;
+
+	if(stream->data) {
+		for(index = 0; index < length; index++) {
+			buffer[index] = stream->data[index];
+		}
+
+		LocalFree(stream->data);
+	}
+
+	for(index = 0; index < size; index++) {
+		buffer[index + length] = data[index];
+	}
+
+	stream->size = length + size;
+	stream->data = buffer;
+	SetLastError(ERROR_SUCCESS);
+	return TRUE;
+}
+
+BOOL KHOPANStreamFree(const PDATASTREAM stream) {
+	if(!stream) {
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	stream->size = 0;
+
+	if(stream->data) {
+		LocalFree(stream->data);
+		stream->data = NULL;
+	}
+
+	SetLastError(ERROR_SUCCESS);
+	return TRUE;
+}
+
+BOOL KHOPANArrayInitialize(const PARRAYLIST list, const size_t size) {
 	if(!list || !size) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
@@ -71,7 +121,8 @@ BOOL KHOPANArrayRemove(const PARRAYLIST list, const size_t index) {
 	list->count--;
 
 	if(!list->count) {
-		goto success;
+		SetLastError(ERROR_SUCCESS);
+		return TRUE;
 	}
 
 	PBYTE target = list->data + list->size * index;
@@ -79,17 +130,13 @@ BOOL KHOPANArrayRemove(const PARRAYLIST list, const size_t index) {
 	for(size_t i = 0; i < (list->count - index) * list->size; i++) {
 		target[i] = target[i + list->size];
 	}
-success:
+
 	SetLastError(ERROR_SUCCESS);
 	return TRUE;
 }
 
 BOOL KHOPANArrayGet(const PARRAYLIST list, const size_t index, PBYTE* const data) {
-	if(!data) {
-		goto success;
-	}
-
-	if(!list || !list->size || !list->data) {
+	if(!list || !data || !list->size || !list->data) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
 	}
@@ -100,7 +147,6 @@ BOOL KHOPANArrayGet(const PARRAYLIST list, const size_t index, PBYTE* const data
 	}
 
 	(*data) = list->data + list->size * index;
-success:
 	SetLastError(ERROR_SUCCESS);
 	return TRUE;
 }
@@ -123,57 +169,7 @@ BOOL KHOPANArrayFree(const PARRAYLIST list) {
 	return TRUE;
 }
 
-BOOL KHOPANStreamAdd(const PDATASTREAM stream, const PBYTE data, const size_t size) {
-	if(!data || !size) {
-		goto success;
-	}
-
-	if(!stream) {
-		SetLastError(ERROR_INVALID_PARAMETER);
-		return FALSE;
-	}
-
-	size_t length = stream->data ? stream->size : 0;
-	PBYTE buffer = LocalAlloc(LMEM_FIXED, length + size);
-
-	if(!buffer) {
-		return FALSE;
-	}
-
-	size_t index;
-
-	if(stream->data) {
-		for(index = 0; index < length; index++) {
-			buffer[index] = stream->data[index];
-		}
-
-		LocalFree(stream->data);
-	}
-
-	for(index = 0; index < size; index++) {
-		buffer[index + length] = data[index];
-	}
-
-	stream->size = length + size;
-	stream->data = buffer;
-success:
-	SetLastError(ERROR_SUCCESS);
-	return TRUE;
-}
-
-BOOL KHOPANStreamFree(const PDATASTREAM stream) {
-	if(!stream) {
-		SetLastError(ERROR_INVALID_PARAMETER);
-		return FALSE;
-	}
-
-	stream->size = 0;
-
-	if(stream->data) {
-		LocalFree(stream->data);
-		stream->data = NULL;
-	}
-
+BOOL KHOPANLinkedInitialize(const PLINKEDLIST list) {
 	SetLastError(ERROR_SUCCESS);
 	return TRUE;
 }
