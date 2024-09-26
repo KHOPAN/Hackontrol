@@ -39,7 +39,7 @@ extern "C" {
 BOOL KHOPANStreamAdd(const PDATASTREAM stream, const PBYTE data, const size_t size);
 BOOL KHOPANStreamFree(const PDATASTREAM stream);
 BOOL KHOPANArrayInitialize(_Out_ const PARRAYLIST list, _In_ const size_t size);
-BOOL KHOPANArrayAdd(const PARRAYLIST list, const PBYTE data);
+BOOL KHOPANArrayAdd(_Inout_ const PARRAYLIST list, _In_ const PBYTE data);
 BOOL KHOPANArrayRemove(const PARRAYLIST list, const size_t index);
 BOOL KHOPANArrayGet(const PARRAYLIST list, const size_t index, PBYTE* const data);
 BOOL KHOPANArrayFree(const PARRAYLIST list);
