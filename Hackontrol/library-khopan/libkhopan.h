@@ -25,11 +25,11 @@
 #define KHOPANLASTERRORCONSOLE_WIN32(function) KHOPANERRORCONSOLE_WIN32(GetLastError(),function)
 #define KHOPANLASTERRORCONSOLE_WSA(function)   KHOPANERRORCONSOLE_WIN32(WSAGetLastError(),function)
 
-#define KHOPAN_ALLOCATE(size) ((PBYTE)LocalAlloc(LMEM_FIXED,(size_t)size))
-#define KHOPAN_FREE(buffer) LocalFree((PBYTE)buffer)
-
-#define __REQUIRED__
-#define __OPTIONAL__
+#define KHOPAN_ALLOCATE(size)             ((PBYTE)LocalAlloc(LMEM_FIXED,(size_t)size))
+#define KHOPAN_ALLOCATE_HAS_ERROR(buffer) (((PBYTE)buffer)==NULL)
+#define KHOPAN_ALLOCATE_WIN32_ERROR_CODE  (GetLastError())
+#define KHOPAN_ALLOCATE_FUNCTION          (L"LocalAlloc")
+#define KHOPAN_FREE(buffer)               (LocalFree((PBYTE)buffer))
 
 #ifdef __cplusplus
 extern "C" {
