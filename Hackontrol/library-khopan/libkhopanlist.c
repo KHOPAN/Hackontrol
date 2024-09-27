@@ -225,7 +225,7 @@ BOOL KHOPANLinkedAdd(_Inout_ const PLINKEDLIST list, _In_ const PBYTE data, _Out
 	buffer->data = KHOPAN_ALLOCATE(list->size);
 	size_t index;
 
-	if(KHOPAN_ALLOCATE_ERROR(buffer)) {
+	if(KHOPAN_ALLOCATE_ERROR(buffer->data)) {
 		index = KHOPAN_ALLOCATE_WIN32_CODE;
 		KHOPAN_FREE(buffer);
 		SetLastError((DWORD) index);
@@ -241,9 +241,9 @@ BOOL KHOPANLinkedAdd(_Inout_ const PLINKEDLIST list, _In_ const PBYTE data, _Out
 	buffer->next = NULL;
 
 	if(WaitForSingleObject(list->mutex, INFINITE) == WAIT_FAILED) {
-		index = GetLastError();
-		LocalFree(buffer->data);
-		LocalFree(buffer);
+		index = KHOPAN_ALLOCATE_WIN32_CODE;
+		KHOPAN_FREE(buffer->data);
+		KHOPAN_FREE(buffer);
 		SetLastError((DWORD) index);
 		return FALSE;
 	}
