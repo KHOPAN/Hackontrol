@@ -27,7 +27,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto functionExit;
 	}
 
-	SOCKET socketListen = NULL;
+	SOCKET socketListen = 0;
 	HANDLE thread = CreateThread(NULL, 0, ThreadServer, &socketListen, 0, NULL);
 
 	if(!thread) {
@@ -38,6 +38,10 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	if(WaitForSingleObject(thread, INFINITE) == WAIT_FAILED) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"WaitForSingleObject");
 		goto closeThread;
+	}
+
+	if(socketListen) {
+		closesocket(socketListen);
 	}
 
 	codeExit = 0;

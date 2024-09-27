@@ -22,15 +22,15 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 		goto functionExit;
 	}
 
-	(*socketListen) = WSASocketW(hints.ai_next->ai_family, hints.ai_next->ai_socktype, hints.ai_next->ai_protocol, NULL, 0, WSA_FLAG_OVERLAPPED);
+	*socketListen = WSASocketW(hints.ai_next->ai_family, hints.ai_next->ai_socktype, hints.ai_next->ai_protocol, NULL, 0, WSA_FLAG_OVERLAPPED);
 
-	if((*socketListen) == INVALID_SOCKET) {
+	if(*socketListen == INVALID_SOCKET) {
 		KHOPANLASTERRORMESSAGE_WSA(L"WSASocketW");
 		FreeAddrInfoW(hints.ai_next);
 		goto functionExit;
 	}
 
-	status = bind((*socketListen), hints.ai_next->ai_addr, (int) hints.ai_next->ai_addrlen);
+	status = bind(*socketListen, hints.ai_next->ai_addr, (int) hints.ai_next->ai_addrlen);
 	FreeAddrInfoW(hints.ai_next);
 
 	if(status == SOCKET_ERROR) {
@@ -38,7 +38,7 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 		goto functionExit;
 	}
 
-	if(listen((*socketListen), SOMAXCONN) == SOCKET_ERROR) {
+	if(listen(*socketListen, SOMAXCONN) == SOCKET_ERROR) {
 		KHOPANLASTERRORMESSAGE_WSA(L"listen");
 		goto functionExit;
 	}
