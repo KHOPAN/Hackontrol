@@ -13,11 +13,15 @@ BOOL KHOPANStreamInitialize(_Out_ const PDATASTREAM stream, _In_opt_ const size_
 		return FALSE;
 	}
 
-	stream->data = KHOPAN_ALLOCATE(size);
+	if(size) {
+		stream->data = KHOPAN_ALLOCATE(size);
 
-	if(KHOPAN_ALLOCATE_ERROR(stream->data)) {
-		SetLastError(KHOPAN_ALLOCATE_WIN32_CODE);
-		return FALSE;
+		if(KHOPAN_ALLOCATE_ERROR(stream->data)) {
+			SetLastError(KHOPAN_ALLOCATE_WIN32_CODE);
+			return FALSE;
+		}
+	} else {
+		stream->data = NULL;
 	}
 
 	stream->capacity = size;
@@ -26,7 +30,7 @@ BOOL KHOPANStreamInitialize(_Out_ const PDATASTREAM stream, _In_opt_ const size_
 }
 
 BOOL KHOPANStreamAdd(_Inout_ const PDATASTREAM stream, _In_ const PBYTE data, _In_ const size_t size) {
-	if(!stream || !data || !size || !stream->capacity || !stream->data) {
+	if(!stream || !data || !size) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
 	}
@@ -42,11 +46,11 @@ BOOL KHOPANStreamAdd(_Inout_ const PDATASTREAM stream, _In_ const PBYTE data, _I
 			return FALSE;
 		}
 
-		for(index = 0; index < stream->size; index++) {
-			buffer[index] = stream->data[index];
+		if(stream->data) {
+			for(index = 0; index < stream->size; index++) buffer[index] = stream->data[index];
+			KHOPAN_FREE(stream->data);
 		}
 
-		KHOPAN_FREE(stream->data);
 		stream->capacity = length;
 		stream->data = buffer;
 	}
