@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
 	Sleep(5000);
 	int codeExit = 1;
 
-	for(ULONGLONG i = 1; i <= 10000; i++) {
+	for(ULONGLONG i = 1; i <= 10; i++) {
 		if(!KHOPANLinkedAdd(&list, (PBYTE) &i, NULL)) {
 			KHOPANLASTERRORMESSAGE_WIN32(L"KHOPANLinkedAdd");
 			goto freeList;
@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
 
 	PLINKEDLISTITEM pointer = NULL;
 
-	if(!KHOPANLinkedGet(&list, 3659, &pointer)) {
+	if(!KHOPANLinkedGet(&list, 5, &pointer)) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"KHOPANLinkedGet");
 		goto freeList;
 	}
@@ -31,9 +31,9 @@ int main(int argc, char** argv) {
 		goto freeList;
 	}
 
-	/*for(PLINKEDLISTITEM item = list.item; item; item = item->next) {
+	for(PLINKEDLISTITEM item = list.first; item; item = item->next) {
 		printf("Number: %llu\n", *((PULONGLONG) item->data));
-	}*/
+	}
 
 	Sleep(2000);
 	codeExit = 0;
