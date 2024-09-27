@@ -267,8 +267,8 @@ BOOL KHOPANLinkedAdd(_Inout_ const PLINKEDLIST list, _In_ const PBYTE data, _Out
 	return TRUE;
 }
 
-BOOL KHOPANLinkedRemove(const PLINKEDLISTITEM item) {
-	/*if(!item) {
+BOOL KHOPANLinkedRemove(_In_ const PLINKEDLISTITEM item) {
+	if(!item || !item->list) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
 	}
@@ -281,11 +281,11 @@ BOOL KHOPANLinkedRemove(const PLINKEDLISTITEM item) {
 
 	item->previous->next = item->next;
 	item->next->previous = item->previous;
-	LocalFree(item->data);
-	LocalFree(item);
+	KHOPAN_FREE(item->data);
+	KHOPAN_FREE(item);
 	list->count--;
 	ReleaseMutex(list->mutex);
-	SetLastError(ERROR_SUCCESS);*/
+	SetLastError(ERROR_SUCCESS);
 	return TRUE;
 }
 
