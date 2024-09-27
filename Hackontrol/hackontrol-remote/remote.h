@@ -5,7 +5,8 @@
 #define LOGGER_ENABLE
 //#define NO_CONSOLE
 
-#define REMOTE_PORT L"42485"
+#define REMOTE_PORT             L"42485"
+#define CLASS_HACKONTROL_REMOTE L"HackontrolRemote"
 
 #ifdef LOGGER_ENABLE
 #ifdef NO_CONSOLE
@@ -18,3 +19,4 @@
 #endif
 
 DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen);
+BOOL WindowMainInitialize(const HINSTANCE instance);

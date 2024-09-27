@@ -27,6 +27,10 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto functionExit;
 	}
 
+	if(!WindowMainInitialize(instance)) {
+		goto cleanupSocket;
+	}
+
 	SOCKET socketListen = 0;
 	HANDLE thread = CreateThread(NULL, 0, ThreadServer, &socketListen, 0, NULL);
 
