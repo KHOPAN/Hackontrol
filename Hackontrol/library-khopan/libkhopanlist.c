@@ -162,17 +162,18 @@ BOOL KHOPANArrayGet(const PARRAYLIST list, const size_t index, PBYTE* const data
 	return TRUE;
 }
 
-BOOL KHOPANArrayFree(const PARRAYLIST list) {
+BOOL KHOPANArrayFree(_Inout_ const PARRAYLIST list) {
 	if(!list) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
 	}
 
+	list->count = 0;
+	list->size = 0;
+	list->capacity = 0;
+
 	if(list->data) {
-		LocalFree(list->data);
-		list->count = 0;
-		list->size = 0;
-		list->capacity = 0;
+		KHOPAN_FREE(list->data);
 		list->data = NULL;
 	}
 
