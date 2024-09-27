@@ -51,7 +51,7 @@ freeList:
 		return 1;
 	}
 
-	Sleep(2000);
+	Sleep(5000);
 	int codeExit = 1;
 
 	for(ULONGLONG i = 0; i <= 10000; i++) {

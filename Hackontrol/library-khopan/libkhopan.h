@@ -25,6 +25,8 @@
 #define KHOPANLASTERRORCONSOLE_WIN32(function) KHOPANERRORCONSOLE_WIN32(GetLastError(),function)
 #define KHOPANLASTERRORCONSOLE_WSA(function)   KHOPANERRORCONSOLE_WIN32(WSAGetLastError(),function)
 
+#define KHOPAN_USE_HEAP
+
 #ifdef KHOPAN_USE_HEAP
 #define KHOPAN_ALLOCATE(size)             ((PBYTE)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,(size_t)(size)))
 #define KHOPAN_ALLOCATE_HAS_ERROR(buffer) (((PBYTE)(buffer))==NULL)
