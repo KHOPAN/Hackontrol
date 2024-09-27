@@ -320,8 +320,8 @@ BOOL KHOPANLinkedGet(const PLINKEDLIST list, const size_t index, const PPLINKEDL
 	return TRUE;
 }
 
-BOOL KHOPANLinkedFree(const PLINKEDLIST list) {
-	/*if(!list) {
+BOOL KHOPANLinkedFree(_Inout_ const PLINKEDLIST list) {
+	if(!list) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
 	}
@@ -331,19 +331,20 @@ BOOL KHOPANLinkedFree(const PLINKEDLIST list) {
 	}
 
 	CloseHandle(list->mutex);
-	PLINKEDLISTITEM item = list->item;
+	PLINKEDLISTITEM item = list->last;
 
 	while(item) {
-		PLINKEDLISTITEM buffer = item->next;
-		//LocalFree(item->data);
-		LocalFree(item);
+		PLINKEDLISTITEM buffer = item->previous;
+		KHOPAN_FREE(item->data);
+		KHOPAN_FREE(item);
 		item = buffer;
 	}
 
+	list->mutex = NULL;
 	list->count = 0;
 	list->size = 0;
-	list->mutex = NULL;
-	list->item = NULL;
-	SetLastError(ERROR_SUCCESS);*/
+	list->first = NULL;
+	list->last = NULL;
+	SetLastError(ERROR_SUCCESS);
 	return TRUE;
 }

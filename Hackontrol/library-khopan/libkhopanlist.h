@@ -49,7 +49,7 @@ BOOL KHOPANLinkedInitialize(_Out_ const PLINKEDLIST list, _In_ const size_t size
 BOOL KHOPANLinkedAdd(_Inout_ const PLINKEDLIST list, _In_ const PBYTE data, _Out_opt_ const PPLINKEDLISTITEM item);
 BOOL KHOPANLinkedRemove(const PLINKEDLISTITEM item);
 BOOL KHOPANLinkedGet(const PLINKEDLIST list, const size_t index, const PPLINKEDLISTITEM item);
-BOOL KHOPANLinkedFree(const PLINKEDLIST list);
+BOOL KHOPANLinkedFree(_Inout_ const PLINKEDLIST list);
 #ifdef __cplusplus
 }
 #endif

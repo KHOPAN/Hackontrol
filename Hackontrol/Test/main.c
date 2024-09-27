@@ -2,7 +2,7 @@
 #include <libkhopanlist.h>
 
 int main(int argc, char** argv) {
-	/*LINKEDLIST list;
+	LINKEDLIST list;
 
 	if(!KHOPANLinkedInitialize(&list, sizeof(ULONGLONG))) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"KHOPANLinkedInitialize");
@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
 		printf("Number: %llu\n", *((PULONGLONG) item->data));
 	}*/
 
-	/*Sleep(2000);
+	Sleep(2000);
 	codeExit = 0;
 freeList:
 	if(!KHOPANLinkedFree(&list)) {
@@ -43,8 +43,9 @@ freeList:
 		codeExit = 1;
 	}
 
-	return codeExit;*/
-	ARRAYLIST list = {0};
+	Sleep(INFINITE);
+	return codeExit;
+	/*ARRAYLIST list = {0};
 
 	if(!KHOPANArrayInitialize(&list, sizeof(ULONGLONG))) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"KHOPANArrayInitialize");
@@ -70,5 +71,5 @@ freeList:
 	}
 
 	Sleep(INFINITE);
-	return codeExit;
+	return codeExit;*/
 }
