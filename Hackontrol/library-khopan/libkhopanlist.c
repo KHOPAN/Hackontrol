@@ -1,6 +1,8 @@
 #include "libkhopan.h"
 #include "libkhopanlist.h"
 
+#pragma warning(disable: 6386)
+
 BOOL KHOPANStreamInitialize(_Out_ const PDATASTREAM stream, _In_opt_ const size_t size) {
 	if(stream) {
 		for(size_t i = 0; i < sizeof(DATASTREAM); i++) {
