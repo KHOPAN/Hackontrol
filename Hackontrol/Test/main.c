@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	/*PLINKEDLISTITEM pointer = NULL;
+	PLINKEDLISTITEM pointer = NULL;
 
 	if(!KHOPANLinkedGet(&list, 3659, &pointer)) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"KHOPANLinkedGet");
@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
 	if(!KHOPANLinkedRemove(pointer)) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"KHOPANLinkedRemove");
 		goto freeList;
-	}*/
+	}
 
 	/*for(PLINKEDLISTITEM item = list.item; item; item = item->next) {
 		printf("Number: %llu\n", *((PULONGLONG) item->data));
