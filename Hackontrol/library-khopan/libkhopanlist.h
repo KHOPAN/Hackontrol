@@ -17,21 +17,23 @@ typedef struct {
 	PBYTE data;
 } ARRAYLIST, *PARRAYLIST;
 
-struct _LINKEDLIST;
+typedef struct _LINKEDLIST LINKEDLIST, *PLINKEDLIST;
+typedef struct _LINKEDLISTITEM LINKEDLISTITEM, *PLINKEDLISTITEM, **PPLINKEDLISTITEM;
 
-typedef struct _LINKEDLISTITEM {
+struct _LINKEDLISTITEM {
 	PBYTE data;
-	struct _LINKEDLIST* list;
-	struct _LINKEDLISTITEM* previous;
-	struct _LINKEDLISTITEM* next;
-} LINKEDLISTITEM, *PLINKEDLISTITEM, **PPLINKEDLISTITEM;
+	PLINKEDLIST list;
+	PLINKEDLISTITEM previous;
+	PLINKEDLISTITEM next;
+};
 
-typedef struct _LINKEDLIST {
+struct _LINKEDLIST {
+	HANDLE mutex;
 	size_t count;
 	size_t size;
-	HANDLE mutex;
-	PLINKEDLISTITEM item;
-} LINKEDLIST, *PLINKEDLIST;
+	PLINKEDLISTITEM first;
+	PLINKEDLISTITEM last;
+};
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,7 +46,7 @@ BOOL KHOPANArrayRemove(_Inout_ const PARRAYLIST list, _In_ const size_t index);
 BOOL KHOPANArrayGet(_In_ const PARRAYLIST list, _In_ const size_t index, _Out_ PBYTE* const data);
 BOOL KHOPANArrayFree(_Inout_ const PARRAYLIST list);
 BOOL KHOPANLinkedInitialize(_Out_ const PLINKEDLIST list, _In_ const size_t size);
-BOOL KHOPANLinkedAdd(const PLINKEDLIST list, const PBYTE data, const PPLINKEDLISTITEM item);
+BOOL KHOPANLinkedAdd(_Inout_ const PLINKEDLIST list, _In_ const PBYTE data, _Out_opt_ const PPLINKEDLISTITEM item);
 BOOL KHOPANLinkedRemove(const PLINKEDLISTITEM item);
 BOOL KHOPANLinkedGet(const PLINKEDLIST list, const size_t index, const PPLINKEDLISTITEM item);
 BOOL KHOPANLinkedFree(const PLINKEDLIST list);
