@@ -116,12 +116,12 @@ BOOL KHOPANArrayAdd(_Inout_ const PARRAYLIST list, _In_ const PBYTE data) {
 }
 
 BOOL KHOPANArrayRemove(_Inout_ const PARRAYLIST list, _In_ const size_t index) {
-	if(!list) {
+	if(!list || !list->count) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
 	}
 
-	if(list->count > 0 && index >= list->count) {
+	if(index >= list->count) {
 		SetLastError(ERROR_INDEX_OUT_OF_BOUNDS);
 		return FALSE;
 	}
@@ -148,7 +148,7 @@ BOOL KHOPANArrayGet(_In_ const PARRAYLIST list, _In_ const size_t index, _Out_ P
 		*data = 0;
 	}
 
-	if(!list || !data) {
+	if(!list || !data || !list->count) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
 	}
