@@ -7,6 +7,7 @@
 
 typedef struct {
 	size_t size;
+	size_t capacity;
 	PBYTE data;
 } DATASTREAM, *PDATASTREAM;
 
@@ -38,8 +39,9 @@ struct _LINKEDLIST {
 #ifdef __cplusplus
 extern "C" {
 #endif
-BOOL KHOPANStreamAdd(const PDATASTREAM stream, const PBYTE data, const size_t size);
-BOOL KHOPANStreamFree(const PDATASTREAM stream);
+BOOL KHOPANStreamInitialize(_Out_ const PDATASTREAM stream, _In_opt_ const size_t size);
+BOOL KHOPANStreamAdd(_Inout_ const PDATASTREAM stream, _In_ const PBYTE data, _In_ const size_t size);
+BOOL KHOPANStreamFree(_Inout_ const PDATASTREAM stream);
 BOOL KHOPANArrayInitialize(_Out_ const PARRAYLIST list, _In_ const size_t size);
 BOOL KHOPANArrayAdd(_Inout_ const PARRAYLIST list, _In_ const PBYTE data);
 BOOL KHOPANArrayRemove(_Inout_ const PARRAYLIST list, _In_ const size_t index);

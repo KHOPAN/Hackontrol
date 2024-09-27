@@ -1,49 +1,76 @@
 #include "libkhopan.h"
 #include "libkhopanlist.h"
 
-BOOL KHOPANStreamAdd(const PDATASTREAM stream, const PBYTE data, const size_t size) {
-	if(!stream || !data || !size) {
+BOOL KHOPANStreamInitialize(_Out_ const PDATASTREAM stream, _In_opt_ const size_t size) {
+	if(stream) {
+		for(size_t i = 0; i < sizeof(DATASTREAM); i++) {
+			((PBYTE) stream)[i] = 0;
+		}
+	}
+
+	if(!stream) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
 	}
 
-	size_t length = stream->data ? stream->size : 0;
-	PBYTE buffer = LocalAlloc(LMEM_FIXED, length + size);
+	stream->data = KHOPAN_ALLOCATE(size);
 
-	if(!buffer) {
+	if(KHOPAN_ALLOCATE_ERROR(stream->data)) {
+		SetLastError(KHOPAN_ALLOCATE_WIN32_CODE);
 		return FALSE;
 	}
 
-	size_t index;
-
-	if(stream->data) {
-		for(index = 0; index < length; index++) {
-			buffer[index] = stream->data[index];
-		}
-
-		LocalFree(stream->data);
-	}
-
-	for(index = 0; index < size; index++) {
-		buffer[index + length] = data[index];
-	}
-
-	stream->size = length + size;
-	stream->data = buffer;
+	stream->capacity = size;
 	SetLastError(ERROR_SUCCESS);
 	return TRUE;
 }
 
-BOOL KHOPANStreamFree(const PDATASTREAM stream) {
+BOOL KHOPANStreamAdd(_Inout_ const PDATASTREAM stream, _In_ const PBYTE data, _In_ const size_t size) {
+	if(!stream || !data || !size || !stream->capacity || !stream->data) {
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	size_t length = stream->size + size;
+	size_t index;
+
+	if(length > stream->capacity) {
+		PBYTE buffer = KHOPAN_ALLOCATE(length);
+
+		if(KHOPAN_ALLOCATE_ERROR(buffer)) {
+			SetLastError(KHOPAN_ALLOCATE_WIN32_CODE);
+			return FALSE;
+		}
+
+		for(index = 0; index < stream->size; index++) {
+			buffer[index] = stream->data[index];
+		}
+
+		KHOPAN_FREE(stream->data);
+		stream->capacity = length;
+		stream->data = buffer;
+	}
+
+	for(index = 0; index < size; index++) {
+		stream->data[stream->size + index] = data[index];
+	}
+
+	stream->size += size;
+	SetLastError(ERROR_SUCCESS);
+	return TRUE;
+}
+
+BOOL KHOPANStreamFree(_Inout_ const PDATASTREAM stream) {
 	if(!stream) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
 	}
 
 	stream->size = 0;
+	stream->capacity = 0;
 
 	if(stream->data) {
-		LocalFree(stream->data);
+		KHOPAN_FREE(stream->data);
 		stream->data = NULL;
 	}
 
