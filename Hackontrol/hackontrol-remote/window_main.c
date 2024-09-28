@@ -1,6 +1,6 @@
 #include "remote.h"
 
-BOOL WindowMainInitialize(const HINSTANCE instance) {
+int WindowMain(const HINSTANCE instance) {
 	LOG("[Main Window]: Initializing\n");
 	WNDCLASSEXW windowClass = {0};
 	windowClass.cbSize = sizeof(WNDCLASSEXW);
@@ -12,8 +12,9 @@ BOOL WindowMainInitialize(const HINSTANCE instance) {
 
 	if(!RegisterClassExW(&windowClass)) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"RegisterClassExW");
-		return FALSE;
+		return 1;
 	}
 
-	return TRUE;
+	int codeExit = 1;
+	return codeExit;
 }

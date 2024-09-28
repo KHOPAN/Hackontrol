@@ -27,10 +27,6 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto functionExit;
 	}
 
-	if(!WindowMainInitialize(instance)) {
-		goto cleanupSocket;
-	}
-
 	SOCKET socketListen = 0;
 	HANDLE thread = CreateThread(NULL, 0, ThreadServer, &socketListen, 0, NULL);
 
@@ -39,18 +35,18 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto cleanupSocket;
 	}
 
+	codeExit = WindowMain(instance);
+
 	if(WaitForSingleObject(thread, INFINITE) == WAIT_FAILED) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"WaitForSingleObject");
-		goto closeThread;
+		codeExit = 1;
 	}
+
+	CloseHandle(thread);
 
 	if(socketListen) {
 		closesocket(socketListen);
 	}
-
-	codeExit = 0;
-closeThread:
-	CloseHandle(thread);
 cleanupSocket:
 	if(WSACleanup() == SOCKET_ERROR) {
 		KHOPANLASTERRORMESSAGE_WSA(L"WSACleanup");

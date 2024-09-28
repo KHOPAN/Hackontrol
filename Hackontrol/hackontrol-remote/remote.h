@@ -19,4 +19,4 @@
 #endif
 
 DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen);
-BOOL WindowMainInitialize(const HINSTANCE instance);
+int WindowMain(const HINSTANCE instance);
