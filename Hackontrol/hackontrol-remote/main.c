@@ -1,4 +1,8 @@
+#include <libkhopanlist.h>
 #include "remote.h"
+
+LINKEDLIST clientList;
+HANDLE clientListMutex;
 
 int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance, _In_ LPSTR argument, _In_ int options) {
 	int codeExit = 1;
@@ -27,12 +31,24 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto functionExit;
 	}
 
+	if(!KHOPANLinkedInitialize(&clientList, sizeof(CLIENT))) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"KHOPANLinkedInitialize");
+		goto cleanupSocket;
+	}
+
+	clientListMutex = CreateMutexExW(NULL, NULL, 0, SYNCHRONIZE | DELETE);
+
+	if(!clientListMutex) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"CreateMutexExW");
+		goto freeClientList;
+	}
+
 	SOCKET socketListen = 0;
 	HANDLE thread = CreateThread(NULL, 0, ThreadServer, &socketListen, 0, NULL);
 
 	if(!thread) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"CreateThread");
-		goto cleanupSocket;
+		goto closeClientListMutex;
 	}
 
 	codeExit = WindowMain(instance);
@@ -46,6 +62,18 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 
 	if(socketListen) {
 		closesocket(socketListen);
+	}
+closeClientListMutex:
+	if(!WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"WaitForSingleObject");
+		codeExit = 1;
+	}
+
+	CloseHandle(clientListMutex);
+freeClientList:
+	if(!KHOPANLinkedFree(&clientList)) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"KHOPANLinkedFree");
+		codeExit = 1;
 	}
 cleanupSocket:
 	if(WSACleanup() == SOCKET_ERROR) {

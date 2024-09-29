@@ -18,6 +18,10 @@
 #define LOG(format, ...)
 #endif
 
+typedef struct {
+	int placeholder;
+} CLIENT;
+
 DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen);
 int WindowMain(const HINSTANCE instance);
 void WindowMainExit();

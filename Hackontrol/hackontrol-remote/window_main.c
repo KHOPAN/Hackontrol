@@ -24,7 +24,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 		GetClientRect(border, &bounds);
 		SetWindowPos(listView, HWND_TOP, bounds.left + 9, bounds.top + 17, bounds.right - bounds.left - 8, bounds.bottom - bounds.top - 22, 0);
 		return 0;
-	case WM_CONTEXTMENU:
+	/*case WM_CONTEXTMENU:
 		GetCursorPos(&point);
 		ScreenToClient(listView, &point);
 		GetClientRect(window, &bounds);
@@ -49,7 +49,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 		SetForegroundWindow(window);
 		status = TrackPopupMenuEx(contextMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
 
-		return 0;
+		return 0;*/
 	}
 
 	return DefWindowProcW(inputWindow, message, wparam, lparam);
