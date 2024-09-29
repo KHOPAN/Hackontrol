@@ -1,6 +1,6 @@
 #include "remote.h"
 
-int WindowMain(const HINSTANCE instance) {
+int WindowMain(const HINSTANCE instance, HWND* const window) {
 	LOG("[Main Window]: Initializing\n");
 	WNDCLASSEXW windowClass = {0};
 	windowClass.cbSize = sizeof(WNDCLASSEXW);
@@ -16,5 +16,25 @@ int WindowMain(const HINSTANCE instance) {
 	}
 
 	int codeExit = 1;
+	*window = CreateWindowExW(WS_EX_TOPMOST, CLASS_HACKONTROL_REMOTE, L"Remote", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, 0, 0, 0, NULL, NULL, instance, NULL);
+
+	if(!(*window)) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"CreateWindowExW");
+		goto functionExit;
+	}
+
+	LOG("[Main Window]: Finished\n");
+	MSG message;
+
+	while(GetMessageW(&message, NULL, 0, 0)) {
+		TranslateMessage(&message);
+		DispatchMessageW(&message);
+	}
+
+	if(!UnregisterClassW(CLASS_HACKONTROL_REMOTE, instance)) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"UnregisterClassW");
+		goto functionExit;
+	}
+functionExit:
 	return codeExit;
 }
