@@ -50,14 +50,14 @@ int WindowMain(const HINSTANCE instance) {
 
 	if(!window) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"CreateWindowExW");
-		goto functionExit;
+		goto unregisterClass;
 	}
 
 	border = CreateWindowExW(WS_EX_NOPARENTNOTIFY, L"Button", L"Connected Devices", WS_CHILD | WS_VISIBLE | BS_GROUPBOX, 5, 0, 0, 0, window, NULL, NULL, NULL);
 
 	if(!border) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"CreateWindowExW");
-		goto functionExit;
+		goto unregisterClass;
 	}
 
 	INITCOMMONCONTROLSEX controls;
@@ -66,14 +66,14 @@ int WindowMain(const HINSTANCE instance) {
 
 	if(!InitCommonControlsEx(&controls)) {
 		KHOPANERRORMESSAGE_WIN32(ERROR_FUNCTION_FAILED, L"InitCommonControlsEx");
-		goto functionExit;
+		goto unregisterClass;
 	}
 
 	listView = CreateWindowExW(WS_EX_CLIENTEDGE, WC_LISTVIEW, L"", WS_CHILD | WS_VISIBLE | WS_VSCROLL | LVS_REPORT | LVS_SINGLESEL, 0, 0, 0, 0, window, NULL, NULL, NULL);
 
 	if(!listView) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"CreateWindowExW");
-		goto functionExit;
+		goto unregisterClass;
 	}
 
 	SendMessageW(listView, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT);
@@ -85,16 +85,32 @@ int WindowMain(const HINSTANCE instance) {
 
 	if(SendMessageW(listView, LVM_INSERTCOLUMN, 0, (LPARAM) &column) == -1) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"ListView_InsertColumn");
-		goto functionExit;
+		goto unregisterClass;
 	}
 
 	column.pszText = L"Username";
 
 	if(SendMessageW(listView, LVM_INSERTCOLUMN, 0, (LPARAM) &column) == 1) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"ListView_InsertColumn");
-		goto functionExit;
+		goto unregisterClass;
 	}
 
+	NONCLIENTMETRICS metrics;
+	metrics.cbSize = sizeof(NONCLIENTMETRICS);
+
+	if(!SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, metrics.cbSize, &metrics, 0)) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"SystemParametersInfoW");
+		goto unregisterClass;
+	}
+
+	HFONT font = CreateFontIndirectW(&metrics.lfCaptionFont);
+
+	if(!font) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"CreateFontIndirectW");
+		goto unregisterClass;
+	}
+
+	SendMessageW(border, WM_SETFONT, (WPARAM) font, TRUE);
 	ShowWindow(window, SW_NORMAL);
 	LOG("[Main Window]: Finished\n");
 	MSG message;
@@ -104,11 +120,14 @@ int WindowMain(const HINSTANCE instance) {
 		DispatchMessageW(&message);
 	}
 
+	DeleteObject(font);
+	codeExit = 0;
+unregisterClass:
 	if(!UnregisterClassW(CLASS_HACKONTROL_REMOTE, instance)) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"UnregisterClassW");
-		goto functionExit;
+		codeExit = 1;
 	}
-functionExit:
+
 	return codeExit;
 }
 
