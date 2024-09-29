@@ -7,6 +7,9 @@ static HWND listView;
 
 static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	RECT bounds;
+	POINT point;
+	int status;
+	LVHITTESTINFO information = {0};
 
 	switch(message) {
 	case WM_CLOSE:
@@ -20,6 +23,32 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 		SetWindowPos(border, HWND_TOP, 0, 0, bounds.right - bounds.left - 10, bounds.bottom - bounds.top - 4, SWP_NOMOVE);
 		GetClientRect(border, &bounds);
 		SetWindowPos(listView, HWND_TOP, bounds.left + 9, bounds.top + 17, bounds.right - bounds.left - 8, bounds.bottom - bounds.top - 22, 0);
+		return 0;
+	case WM_CONTEXTMENU:
+		GetCursorPos(&point);
+		ScreenToClient(listView, &point);
+		GetClientRect(window, &bounds);
+
+		if(point.x < bounds.left || point.x > bounds.right || point.y < bounds.top || point.y > bounds.bottom) {
+			return 0;
+		}
+
+		status = 0;
+
+		if(SendMessageW(listView, LVM_HITTEST, 0, (LPARAM) &information) != -1 && WaitForSingleObject(clientsLock, INFINITE) != WAIT_FAILED) {
+			status = activeItem(information.iItem, &client);
+			ReleaseMutex(clientsLock);
+		}
+
+		if(status) {
+			InsertMenuW(contextMenu, 0, MF_BYPOSITION | MF_SEPARATOR, 0, NULL);
+			InsertMenuW(contextMenu, 0, MF_BYPOSITION, IDM_REMOTE_DISCONNECT, L"Disconnect");
+			InsertMenuW(contextMenu, 0, MF_BYPOSITION, IDM_REMOTE_OPEN, L"Open");
+		}
+
+		SetForegroundWindow(window);
+		status = TrackPopupMenuEx(contextMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
+
 		return 0;
 	}
 
