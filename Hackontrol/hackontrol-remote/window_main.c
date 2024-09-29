@@ -5,11 +5,32 @@ static HWND window;
 static HWND border;
 static HWND listView;
 
+static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
+	RECT bounds;
+
+	switch(message) {
+	case WM_CLOSE:
+		DestroyWindow(window);
+		return 0;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+	case WM_SIZE:
+		GetClientRect(window, &bounds);
+		SetWindowPos(border, HWND_TOP, 0, 0, bounds.right - bounds.left - 10, bounds.bottom - bounds.top - 4, SWP_NOMOVE);
+		GetClientRect(border, &bounds);
+		SetWindowPos(listView, HWND_TOP, bounds.left + 9, bounds.top + 17, bounds.right - bounds.left - 8, bounds.bottom - bounds.top - 22, 0);
+		return 0;
+	}
+
+	return DefWindowProcW(inputWindow, message, wparam, lparam);
+}
+
 int WindowMain(const HINSTANCE instance) {
 	LOG("[Main Window]: Initializing\n");
 	WNDCLASSEXW windowClass = {0};
 	windowClass.cbSize = sizeof(WNDCLASSEXW);
-	windowClass.lpfnWndProc = DefWindowProcW;
+	windowClass.lpfnWndProc = windowProcedure;
 	windowClass.hInstance = instance;
 	windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
 	windowClass.hbrBackground = (HBRUSH) COLOR_WINDOW;
