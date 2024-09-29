@@ -29,7 +29,6 @@ struct _LINKEDLISTITEM {
 };
 
 struct _LINKEDLIST {
-	HANDLE mutex;
 	size_t count;
 	size_t size;
 	PLINKEDLISTITEM first;

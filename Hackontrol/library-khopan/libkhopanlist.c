@@ -227,12 +227,6 @@ BOOL KHOPANLinkedInitialize(_Out_ const PLINKEDLIST list, _In_ const size_t size
 		return FALSE;
 	}
 
-	list->mutex = CreateMutexExW(NULL, NULL, 0, SYNCHRONIZE | DELETE);
-
-	if(!list->mutex) {
-		return FALSE;
-	}
-
 	list->size = size;
 	SetLastError(ERROR_SUCCESS);
 	return TRUE;
@@ -243,7 +237,7 @@ BOOL KHOPANLinkedAdd(_Inout_ const PLINKEDLIST list, _In_ const PBYTE data, _Out
 		*item = NULL;
 	}
 
-	if(!list || !data || !list->mutex || !list->size) {
+	if(!list || !data || !list->size) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
 	}
@@ -273,14 +267,6 @@ BOOL KHOPANLinkedAdd(_Inout_ const PLINKEDLIST list, _In_ const PBYTE data, _Out
 	buffer->previous = NULL;
 	buffer->next = NULL;
 
-	if(WaitForSingleObject(list->mutex, INFINITE) == WAIT_FAILED) {
-		index = KHOPAN_ALLOCATE_WIN32_CODE;
-		KHOPAN_FREE(buffer->data);
-		KHOPAN_FREE(buffer);
-		SetLastError((DWORD) index);
-		return FALSE;
-	}
-
 	if(list->last) {
 		list->last->next = buffer;
 		buffer->previous = list->last;
@@ -295,7 +281,6 @@ BOOL KHOPANLinkedAdd(_Inout_ const PLINKEDLIST list, _In_ const PBYTE data, _Out
 	}
 
 	list->count++;
-	ReleaseMutex(list->mutex);
 	SetLastError(ERROR_SUCCESS);
 	return TRUE;
 }
@@ -308,12 +293,8 @@ BOOL KHOPANLinkedRemove(_In_ const PLINKEDLISTITEM item) {
 
 	PLINKEDLIST list = item->list;
 
-	if(!list || !list->mutex) {
+	if(!list) {
 		SetLastError(ERROR_INVALID_PARAMETER);
-		return FALSE;
-	}
-
-	if(WaitForSingleObject(list->mutex, INFINITE) == WAIT_FAILED) {
 		return FALSE;
 	}
 
@@ -331,7 +312,6 @@ BOOL KHOPANLinkedRemove(_In_ const PLINKEDLISTITEM item) {
 
 	KHOPAN_FREE(item);
 	list->count--;
-	ReleaseMutex(list->mutex);
 	SetLastError(ERROR_SUCCESS);
 	return TRUE;
 }
@@ -341,17 +321,13 @@ BOOL KHOPANLinkedGet(_In_ const PLINKEDLIST list, _In_ const size_t index, _Out_
 		*item = NULL;
 	}
 
-	if(!list || !item || !list->mutex) {
+	if(!list || !item) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
 	}
 
 	if(index >= list->count) {
 		SetLastError(ERROR_INDEX_OUT_OF_BOUNDS);
-		return FALSE;
-	}
-
-	if(WaitForSingleObject(list->mutex, INFINITE) == WAIT_FAILED) {
 		return FALSE;
 	}
 
@@ -368,22 +344,16 @@ BOOL KHOPANLinkedGet(_In_ const PLINKEDLIST list, _In_ const size_t index, _Out_
 		count++;
 	}
 
-	ReleaseMutex(list->mutex);
 	SetLastError(found ? ERROR_SUCCESS : ERROR_INDEX_OUT_OF_BOUNDS);
 	return TRUE;
 }
 
 BOOL KHOPANLinkedFree(_Inout_ const PLINKEDLIST list) {
-	if(!list || !list->mutex) {
+	if(!list) {
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
 	}
 
-	if(WaitForSingleObject(list->mutex, INFINITE) == WAIT_FAILED) {
-		return FALSE;
-	}
-
-	CloseHandle(list->mutex);
 	PLINKEDLISTITEM item = list->last;
 
 	while(item) {
@@ -397,7 +367,6 @@ BOOL KHOPANLinkedFree(_Inout_ const PLINKEDLIST list) {
 		item = buffer;
 	}
 
-	list->mutex = NULL;
 	list->count = 0;
 	list->size = 0;
 	list->first = NULL;
