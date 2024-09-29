@@ -35,8 +35,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto cleanupSocket;
 	}
 
-	HWND window = NULL;
-	codeExit = WindowMain(instance, &window);
+	codeExit = WindowMain(instance);
 
 	if(WaitForSingleObject(thread, INFINITE) == WAIT_FAILED) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"WaitForSingleObject");

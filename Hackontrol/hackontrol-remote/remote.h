@@ -19,4 +19,5 @@
 #endif
 
 DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen);
-int WindowMain(const HINSTANCE instance, HWND* const window);
+int WindowMain(const HINSTANCE instance);
+void WindowMainExit();
