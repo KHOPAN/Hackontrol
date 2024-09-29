@@ -41,11 +41,20 @@ int WindowMain(const HINSTANCE instance) {
 		return 1;
 	}
 
+	INITCOMMONCONTROLSEX controls;
+	controls.dwSize = sizeof(INITCOMMONCONTROLSEX);
+	controls.dwICC = ICC_LISTVIEW_CLASSES;
 	int codeExit = 1;
+
+	if(!InitCommonControlsEx(&controls)) {
+		KHOPANERRORMESSAGE_WIN32(ERROR_FUNCTION_FAILED, L"InitCommonControlsEx");
+		goto unregisterClass;
+	}
+
 	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
 	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	int width = (int) (screenWidth * 0.292825769);
-	int height  = (int) (screenHeight * 0.78125);
+	int height = (int) (screenHeight * 0.78125);
 	window = CreateWindowExW(WS_EX_TOPMOST, CLASS_HACKONTROL_REMOTE, L"Remote", WS_OVERLAPPEDWINDOW, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, instance, NULL);
 
 	if(!window) {
@@ -57,15 +66,6 @@ int WindowMain(const HINSTANCE instance) {
 
 	if(!border) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"CreateWindowExW");
-		goto unregisterClass;
-	}
-
-	INITCOMMONCONTROLSEX controls;
-	controls.dwSize = sizeof(INITCOMMONCONTROLSEX);
-	controls.dwICC = ICC_LISTVIEW_CLASSES;
-
-	if(!InitCommonControlsEx(&controls)) {
-		KHOPANERRORMESSAGE_WIN32(ERROR_FUNCTION_FAILED, L"InitCommonControlsEx");
 		goto unregisterClass;
 	}
 
@@ -123,11 +123,7 @@ int WindowMain(const HINSTANCE instance) {
 	DeleteObject(font);
 	codeExit = 0;
 unregisterClass:
-	if(!UnregisterClassW(CLASS_HACKONTROL_REMOTE, instance)) {
-		KHOPANLASTERRORMESSAGE_WIN32(L"UnregisterClassW");
-		codeExit = 1;
-	}
-
+	UnregisterClassW(CLASS_HACKONTROL_REMOTE, instance);
 	return codeExit;
 }
 
