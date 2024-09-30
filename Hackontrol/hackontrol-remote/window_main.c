@@ -142,6 +142,7 @@ int WindowMain(const HINSTANCE instance) {
 	SendMessageW(border, WM_SETFONT, (WPARAM) font, TRUE);
 	ShowWindow(window, SW_NORMAL);
 	LOG("[Main Window]: Finished\n");
+	WindowMainRefresh();
 	MSG message;
 
 	while(GetMessageW(&message, NULL, 0, 0)) {
@@ -154,6 +155,10 @@ int WindowMain(const HINSTANCE instance) {
 unregisterClass:
 	UnregisterClassW(CLASS_HACKONTROL_REMOTE, instance);
 	return codeExit;
+}
+
+void WindowMainRefresh() {
+
 }
 
 void WindowMainExit() {

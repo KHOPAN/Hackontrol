@@ -24,4 +24,5 @@ typedef struct {
 
 DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen);
 int WindowMain(const HINSTANCE instance);
+void WindowMainRefresh();
 void WindowMainExit();
