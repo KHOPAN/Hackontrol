@@ -1,5 +1,8 @@
+#include <libkhopanlist.h>
 #include "remote.h"
 #include <CommCtrl.h>
+
+extern LINKEDLIST clientList;
 
 static HWND window;
 static HWND border;
@@ -158,7 +161,11 @@ unregisterClass:
 }
 
 void WindowMainRefresh() {
+	PLINKEDLISTITEM item;
 
+	KHOPAN_LINKED_LIST_ITERATE(item, &clientList) {
+
+	}
 }
 
 void WindowMainExit() {

@@ -335,7 +335,7 @@ BOOL KHOPANLinkedGet(_In_ const PLINKEDLIST list, _In_ const size_t index, _Out_
 	BOOL found = FALSE;
 	PLINKEDLISTITEM listItem;
 
-	KHOPAN_LIST_ITERATE(listItem, list) {
+	KHOPAN_LINKED_LIST_ITERATE(listItem, list) {
 		if(index == count) {
 			*item = listItem;
 			found = TRUE;
