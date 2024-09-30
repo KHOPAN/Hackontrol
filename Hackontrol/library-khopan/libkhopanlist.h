@@ -5,6 +5,9 @@
 #define KHOPAN_ARRAY_INITIAL_CAPACITY 10
 #define KHOPAN_ARRAY_SCALE_FACTOR     2
 
+#define KHOPAN_LIST_ITERATE(variable, list) for(variable=list->first;variable;variable=((PLINKEDLISTITEM)variable)->next)
+#define KHOPAN_LIST_ITERATE_REVERSE(variable, list) for(variable=list->last;variable;variable=((PLINKEDLISTITEM)variable)->previous)
+
 typedef struct {
 	size_t size;
 	size_t capacity;
