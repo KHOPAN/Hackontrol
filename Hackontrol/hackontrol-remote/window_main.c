@@ -146,6 +146,18 @@ int WindowMain(const HINSTANCE instance) {
 	SendMessageW(border, WM_SETFONT, (WPARAM) font, TRUE);
 	ShowWindow(window, SW_NORMAL);
 	LOG("[Main Window]: Finished\n");
+	CLIENT client;
+	client.name = L"FakeKHOPAN";
+	client.address = L"55.55.55.55";
+
+	if(!KHOPANLinkedAdd(&clientList, (PBYTE) &client, NULL)) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"KHOPANLinkedAdd");
+	}
+
+	if(!KHOPANLinkedAdd(&clientList, (PBYTE) &client, NULL)) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"KHOPANLinkedAdd");
+	}
+
 	WindowMainRefresh();
 	MSG message;
 
@@ -175,10 +187,10 @@ void WindowMainRefresh() {
 		PCLIENT client = (PCLIENT) item->data;
 		listItem.iSubItem = 0;
 		listItem.pszText = client && client->name ? client->name : L"(Missing name)";
-		SendMessageW(listView, LVM_INSERTITEM, 0, (LPARAM) &item);
+		SendMessageW(listView, LVM_INSERTITEM, 0, (LPARAM) &listItem);
 		listItem.iSubItem = 1;
 		listItem.pszText = client && client->address ? client->address : L"(Missing address)";
-		SendMessageW(listView, LVM_SETITEM, 0, (LPARAM) &item);
+		SendMessageW(listView, LVM_SETITEM, 0, (LPARAM) &listItem);
 	}
 
 	ReleaseMutex(clientListMutex);
