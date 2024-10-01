@@ -68,6 +68,21 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 		SetForegroundWindow(window);
 		status = TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
 		DestroyMenu(menu);
+
+		switch(status) {
+		case IDM_REMOTE_OPEN:
+			return 1;
+		case IDM_REMOTE_DISCONNECT:
+			return 1;
+		case IDM_REMOTE_REFRESH:
+			return 1;
+		case IDM_REMOTE_ALWAYS_ON_TOP:
+			return 1;
+		case IDM_REMOTE_EXIT:
+			WindowMainExit();
+			return 1;
+		}
+
 		return 0;
 	}
 
