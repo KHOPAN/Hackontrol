@@ -3,6 +3,7 @@
 #include <CommCtrl.h>
 
 extern LINKEDLIST clientList;
+extern HANDLE clientListMutex;
 
 static HWND window;
 static HWND border;
@@ -161,11 +162,26 @@ unregisterClass:
 }
 
 void WindowMainRefresh() {
+	if(WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
+		return;
+	}
+
+	SendMessageW(listView, LVM_DELETEALLITEMS, 0, 0);
+	LVITEMW listItem = {0};
+	listItem.mask = LVIF_TEXT;
 	PLINKEDLISTITEM item;
 
 	KHOPAN_LINKED_LIST_ITERATE(item, &clientList) {
-
+		PCLIENT client = (PCLIENT) item->data;
+		listItem.iSubItem = 0;
+		listItem.pszText = client && client->name ? client->name : L"(Missing name)";
+		SendMessageW(listView, LVM_INSERTITEM, 0, (LPARAM) &item);
+		listItem.iSubItem = 1;
+		listItem.pszText = client && client->address ? client->address : L"(Missing address)";
+		SendMessageW(listView, LVM_SETITEM, 0, (LPARAM) &item);
 	}
+
+	ReleaseMutex(clientListMutex);
 }
 
 void WindowMainExit() {

@@ -19,8 +19,9 @@
 #endif
 
 typedef struct {
-	int placeholder;
-} CLIENT;
+	LPWSTR name;
+	LPWSTR address;
+} CLIENT, *PCLIENT;
 
 DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen);
 int WindowMain(const HINSTANCE instance);
