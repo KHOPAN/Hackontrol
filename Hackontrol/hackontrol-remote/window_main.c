@@ -2,6 +2,12 @@
 #include "remote.h"
 #include <CommCtrl.h>
 
+#define IDM_REMOTE_OPEN          0xE001
+#define IDM_REMOTE_DISCONNECT    0xE002
+#define IDM_REMOTE_REFRESH       0xE003
+#define IDM_REMOTE_ALWAYS_ON_TOP 0xE004
+#define IDM_REMOTE_EXIT          0xE005
+
 extern LINKEDLIST clientList;
 extern HANDLE clientListMutex;
 
@@ -11,9 +17,10 @@ static HWND listView;
 
 static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	RECT bounds;
-	POINT point;
-	int status;
 	LVHITTESTINFO information = {0};
+	PLINKEDLISTITEM item;
+	int status = 0;
+	HMENU menu;
 
 	switch(message) {
 	case WM_CLOSE:
@@ -28,32 +35,40 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 		GetClientRect(border, &bounds);
 		SetWindowPos(listView, HWND_TOP, bounds.left + 9, bounds.top + 17, bounds.right - bounds.left - 8, bounds.bottom - bounds.top - 22, 0);
 		return 0;
-	/*case WM_CONTEXTMENU:
-		GetCursorPos(&point);
-		ScreenToClient(listView, &point);
+	case WM_CONTEXTMENU:
+		GetCursorPos(&information.pt);
+		ScreenToClient(listView, &information.pt);
 		GetClientRect(window, &bounds);
 
-		if(point.x < bounds.left || point.x > bounds.right || point.y < bounds.top || point.y > bounds.bottom) {
+		if(information.pt.x < bounds.left || information.pt.x > bounds.right || information.pt.y < bounds.top || information.pt.y > bounds.bottom) {
 			return 0;
 		}
 
-		status = 0;
+		if(SendMessageW(listView, LVM_HITTEST, 0, (LPARAM) &information) != -1 && WaitForSingleObject(clientListMutex, INFINITE) != WAIT_FAILED) {
+			status = KHOPANLinkedGet(&clientList, information.iItem, &item);
+			ReleaseMutex(clientListMutex);
+		}
 
-		if(SendMessageW(listView, LVM_HITTEST, 0, (LPARAM) &information) != -1 && WaitForSingleObject(clientsLock, INFINITE) != WAIT_FAILED) {
-			status = activeItem(information.iItem, &client);
-			ReleaseMutex(clientsLock);
+		menu = CreatePopupMenu();
+
+		if(!menu) {
+			return 0;
 		}
 
 		if(status) {
-			InsertMenuW(contextMenu, 0, MF_BYPOSITION | MF_SEPARATOR, 0, NULL);
-			InsertMenuW(contextMenu, 0, MF_BYPOSITION, IDM_REMOTE_DISCONNECT, L"Disconnect");
-			InsertMenuW(contextMenu, 0, MF_BYPOSITION, IDM_REMOTE_OPEN, L"Open");
+			AppendMenuW(menu, MF_STRING, IDM_REMOTE_OPEN, L"Open");
+			AppendMenuW(menu, MF_STRING, IDM_REMOTE_DISCONNECT, L"Disconnect");
+			AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
 		}
 
+		AppendMenuW(menu, MF_STRING, IDM_REMOTE_REFRESH, L"Refresh");
+		AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
+		AppendMenuW(menu, MF_STRING | MF_CHECKED, IDM_REMOTE_ALWAYS_ON_TOP, L"Always On Top");
+		AppendMenuW(menu, MF_STRING, IDM_REMOTE_EXIT, L"Exit");
 		SetForegroundWindow(window);
-		status = TrackPopupMenuEx(contextMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
-
-		return 0;*/
+		status = TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
+		DestroyMenu(menu);
+		return 0;
 	}
 
 	return DefWindowProcW(inputWindow, message, wparam, lparam);
