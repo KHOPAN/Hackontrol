@@ -77,6 +77,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 		case IDM_REMOTE_DISCONNECT:
 			return 1;
 		case IDM_REMOTE_REFRESH:
+			WindowMainRefresh();
 			return 1;
 		case IDM_REMOTE_ALWAYS_ON_TOP:
 			SetWindowPos(window, topMost ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
