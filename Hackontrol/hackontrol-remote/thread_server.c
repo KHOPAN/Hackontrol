@@ -56,10 +56,10 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 			continue;
 		}
 
-		PCLIENT client = (PCLIENT) KHOPAN_ALLOCATE(sizeof(CLIENT));
+		PCLIENT client = KHOPAN_ALLOCATE(sizeof(CLIENT));
 
-		if(KHOPAN_ALLOCATE_ERROR(client)) {
-			KHOPANERRORMESSAGE_WIN32(KHOPAN_ALLOCATE_WIN32_CODE, KHOPAN_ALLOCATE_FUNCTION);
+		if(KHOPAN_ALLOCATE_FAILED(client)) {
+			KHOPANERRORMESSAGE_WIN32(KHOPAN_ALLOCATE_ERROR, KHOPAN_ALLOCATE_FUNCTION);
 			goto closeSocket;
 		}
 
@@ -70,7 +70,7 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 
 		LOG("[Server]: Client: %ws\n", client->address);
 	freeClient:
-		KHOPAN_FREE(client);
+		KHOPAN_DEALLOCATE(client);
 	closeSocket:
 		closesocket(socket);
 	}

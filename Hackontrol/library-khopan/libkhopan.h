@@ -25,9 +25,21 @@
 #define KHOPANLASTERRORCONSOLE_WIN32(function) KHOPANERRORCONSOLE_WIN32(GetLastError(),function)
 #define KHOPANLASTERRORCONSOLE_WSA(function)   KHOPANERRORCONSOLE_WIN32(WSAGetLastError(),function)
 
-#define KHOPAN_USE_HEAP
+#define KHOPAN_ALLOCATION_HEAP
 
-#ifdef KHOPAN_USE_HEAP
+#ifdef KHOPAN_ALLOCATION_HEAP
+#define KHOPAN_ALLOCATE_INTERNAL(size)     (HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,(size_t)(size)))
+#define KHOPAN_ALLOCATE_FAILED(buffer)     (((LPVOID)(buffer))==NULL)
+#define KHOPAN_ALLOCATE_ERROR              (ERROR_FUNCTION_FAILED)
+#define KHOPAN_ALLOCATE_FUNCTION           (L"HeapAlloc")
+#define KHOPAN_DEALLOCATE_INTERNAL(buffer) (HeapFree(GetProcessHeap(),0,(LPVOID)(buffer)))
+#define KHOPAN_DEALLOCATE_FAILED(status)   (((BOOL)(status))==FALSE)
+#define KHOPAN_DEALLOCATE_ERROR            (GetLastError())
+#define KHOPAN_DEALLOCATE_FUNCTION         (L"HeapFree")
+#else
+#endif
+
+/*#ifdef KHOPAN_USE_HEAP
 #define KHOPAN_ALLOCATE(size)         ((PBYTE)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,(size_t)(size)))
 #define KHOPAN_ALLOCATE_ERROR(buffer) (((PBYTE)(buffer))==NULL)
 #define KHOPAN_ALLOCATE_WIN32_CODE    (ERROR_FUNCTION_FAILED)
@@ -39,7 +51,10 @@
 #define KHOPAN_ALLOCATE_WIN32_CODE    (GetLastError())
 #define KHOPAN_ALLOCATE_FUNCTION      L"LocalAlloc"
 #define KHOPAN_FREE(buffer)           (LocalFree((PBYTE)(buffer)))
-#endif
+#endif*/
+
+#define KHOPAN_ALLOCATE   KHOPAN_ALLOCATE_INTERNAL
+#define KHOPAN_DEALLOCATE KHOPAN_DEALLOCATE_INTERNAL
 
 #ifdef __cplusplus
 extern "C" {

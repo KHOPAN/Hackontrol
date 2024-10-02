@@ -18,8 +18,8 @@ BOOL KHOPANStreamInitialize(_Out_ const PDATASTREAM stream, _In_opt_ const size_
 	if(size) {
 		stream->data = KHOPAN_ALLOCATE(size);
 
-		if(KHOPAN_ALLOCATE_ERROR(stream->data)) {
-			SetLastError(KHOPAN_ALLOCATE_WIN32_CODE);
+		if(KHOPAN_ALLOCATE_FAILED(stream->data)) {
+			SetLastError(KHOPAN_ALLOCATE_ERROR);
 			return FALSE;
 		}
 	} else {
@@ -43,14 +43,14 @@ BOOL KHOPANStreamAdd(_Inout_ const PDATASTREAM stream, _In_ const PBYTE data, _I
 	if(length > stream->capacity) {
 		PBYTE buffer = KHOPAN_ALLOCATE(length);
 
-		if(KHOPAN_ALLOCATE_ERROR(buffer)) {
-			SetLastError(KHOPAN_ALLOCATE_WIN32_CODE);
+		if(KHOPAN_ALLOCATE_FAILED(buffer)) {
+			SetLastError(KHOPAN_ALLOCATE_ERROR);
 			return FALSE;
 		}
 
 		if(stream->data) {
 			for(index = 0; index < stream->size; index++) buffer[index] = stream->data[index];
-			KHOPAN_FREE(stream->data);
+			KHOPAN_DEALLOCATE(stream->data);
 		}
 
 		stream->capacity = length;
@@ -76,7 +76,7 @@ BOOL KHOPANStreamFree(_Inout_ const PDATASTREAM stream) {
 	stream->capacity = 0;
 
 	if(stream->data) {
-		KHOPAN_FREE(stream->data);
+		KHOPAN_DEALLOCATE(stream->data);
 		stream->data = NULL;
 	}
 
@@ -98,8 +98,8 @@ BOOL KHOPANArrayInitialize(_Out_ const PARRAYLIST list, _In_ const size_t size) 
 
 	PBYTE buffer = KHOPAN_ALLOCATE(size * KHOPAN_ARRAY_INITIAL_CAPACITY);
 
-	if(KHOPAN_ALLOCATE_ERROR(buffer)) {
-		SetLastError(KHOPAN_ALLOCATE_WIN32_CODE);
+	if(KHOPAN_ALLOCATE_FAILED(buffer)) {
+		SetLastError(KHOPAN_ALLOCATE_ERROR);
 		return FALSE;
 	}
 
@@ -123,8 +123,8 @@ BOOL KHOPANArrayAdd(_Inout_ const PARRAYLIST list, _In_ const PBYTE data) {
 		size_t size = list->size * list->capacity;
 		buffer = KHOPAN_ALLOCATE(size * KHOPAN_ARRAY_SCALE_FACTOR);
 
-		if(KHOPAN_ALLOCATE_ERROR(buffer)) {
-			SetLastError(KHOPAN_ALLOCATE_WIN32_CODE);
+		if(KHOPAN_ALLOCATE_FAILED(buffer)) {
+			SetLastError(KHOPAN_ALLOCATE_ERROR);
 			return FALSE;
 		}
 
@@ -132,7 +132,7 @@ BOOL KHOPANArrayAdd(_Inout_ const PARRAYLIST list, _In_ const PBYTE data) {
 			buffer[index] = list->data[index];
 		}
 
-		KHOPAN_FREE(list->data);
+		KHOPAN_DEALLOCATE(list->data);
 		list->capacity *= KHOPAN_ARRAY_SCALE_FACTOR;
 		list->data = buffer;
 	}
@@ -207,7 +207,7 @@ BOOL KHOPANArrayFree(_Inout_ const PARRAYLIST list) {
 	list->capacity = 0;
 
 	if(list->data) {
-		KHOPAN_FREE(list->data);
+		KHOPAN_DEALLOCATE(list->data);
 		list->data = NULL;
 	}
 
@@ -242,19 +242,19 @@ BOOL KHOPANLinkedAdd(_Inout_ const PLINKEDLIST list, _In_ const PBYTE data, _Out
 		return FALSE;
 	}
 
-	PLINKEDLISTITEM buffer = (PLINKEDLISTITEM) KHOPAN_ALLOCATE(sizeof(LINKEDLISTITEM));
+	PLINKEDLISTITEM buffer = KHOPAN_ALLOCATE(sizeof(LINKEDLISTITEM));
 
-	if(KHOPAN_ALLOCATE_ERROR(buffer)) {
-		SetLastError(KHOPAN_ALLOCATE_WIN32_CODE);
+	if(KHOPAN_ALLOCATE_FAILED(buffer)) {
+		SetLastError(KHOPAN_ALLOCATE_ERROR);
 		return FALSE;
 	}
 
 	buffer->data = KHOPAN_ALLOCATE(list->size);
 	size_t index;
 
-	if(KHOPAN_ALLOCATE_ERROR(buffer->data)) {
-		index = KHOPAN_ALLOCATE_WIN32_CODE;
-		KHOPAN_FREE(buffer);
+	if(KHOPAN_ALLOCATE_FAILED(buffer->data)) {
+		index = KHOPAN_ALLOCATE_ERROR;
+		KHOPAN_DEALLOCATE(buffer);
 		SetLastError((DWORD) index);
 		return FALSE;
 	}
@@ -307,10 +307,10 @@ BOOL KHOPANLinkedRemove(_In_ const PLINKEDLISTITEM item) {
 	}
 
 	if(item->data) {
-		KHOPAN_FREE(item->data);
+		KHOPAN_DEALLOCATE(item->data);
 	}
 
-	KHOPAN_FREE(item);
+	KHOPAN_DEALLOCATE(item);
 	list->count--;
 	SetLastError(ERROR_SUCCESS);
 	return TRUE;
@@ -361,10 +361,10 @@ BOOL KHOPANLinkedFree(_Inout_ const PLINKEDLIST list) {
 		PLINKEDLISTITEM buffer = item->previous;
 
 		if(item->data) {
-			KHOPAN_FREE(item->data);
+			KHOPAN_DEALLOCATE(item->data);
 		}
 
-		KHOPAN_FREE(item);
+		KHOPAN_DEALLOCATE(item);
 		item = buffer;
 	}
 
