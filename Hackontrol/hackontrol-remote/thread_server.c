@@ -56,14 +56,23 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 			continue;
 		}
 
-		CLIENT client = {0};
+		PCLIENT client = (PCLIENT) KHOPAN_ALLOCATE(sizeof(CLIENT));
 
-		if(!InetNtopW(AF_INET, &address.sin_addr, client.address, 16)) {
-			KHOPANLASTERRORMESSAGE_WSA(L"InetNtopW");
-			continue;
+		if(KHOPAN_ALLOCATE_ERROR(client)) {
+			KHOPANERRORMESSAGE_WIN32(KHOPAN_ALLOCATE_WIN32_CODE, KHOPAN_ALLOCATE_FUNCTION);
+			goto closeSocket;
 		}
 
-		LOG("[Server]: Client: %ws\n", client.address);
+		if(!InetNtopW(AF_INET, &address.sin_addr, client->address, 16)) {
+			KHOPANLASTERRORMESSAGE_WSA(L"InetNtopW");
+			goto freeClient;
+		}
+
+		LOG("[Server]: Client: %ws\n", client->address);
+	freeClient:
+		KHOPAN_FREE(client);
+	closeSocket:
+		closesocket(socket);
 	}
 
 	codeExit = 0;

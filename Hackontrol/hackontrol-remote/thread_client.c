@@ -1,10 +1,16 @@
 #include "remote.h"
 
-DWORD WINAPI ThreadClient(_In_ LPVOID parameter) {
+DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	DWORD codeExit = 1;
-	LOG("[Client]: Initializing\n");
+
+	if(!client) {
+		LOG("[Client]: Empty thread parameter\n");
+		goto functionExit;
+	}
+
+	LOG("[Client %ws]: Initializing\n", client->address);
 	codeExit = 0;
 functionExit:
-	LOG("[Client]: Exit with code: %d\n", codeExit);
+	LOG("[Client %ws]: Exit with code: %d\n", client->address, codeExit);
 	return codeExit;
 }
