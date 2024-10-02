@@ -20,7 +20,7 @@
 
 typedef struct {
 	LPWSTR name;
-	LPWSTR address;
+	WCHAR address[16];
 } CLIENT, *PCLIENT;
 
 DWORD WINAPI ThreadClient(_In_ LPVOID parameter);

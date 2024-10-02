@@ -44,6 +44,28 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 	}
 
 	LOG("[Server]: Listening socket started\n");
+
+	while(TRUE) {
+		SOCKADDR_IN address;
+		status = sizeof(SOCKADDR_IN);
+		SOCKET socket = accept(*socketListen, (struct sockaddr*) &address, &status);
+
+		if(socket == INVALID_SOCKET) {
+			if(WSAGetLastError() == WSAEINTR) break;
+			KHOPANLASTERRORMESSAGE_WSA(L"accept");
+			continue;
+		}
+
+		CLIENT client = {0};
+
+		if(!InetNtopW(AF_INET, &address.sin_addr, client.address, 16)) {
+			KHOPANLASTERRORMESSAGE_WSA(L"InetNtopW");
+			continue;
+		}
+
+		LOG("[Server]: Client: %ws\n", client.address);
+	}
+
 	codeExit = 0;
 functionExit:
 	LOG("[Server]: Exit with code: %d\n", codeExit);
