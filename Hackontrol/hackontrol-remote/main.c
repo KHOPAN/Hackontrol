@@ -53,16 +53,16 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 
 	codeExit = WindowMain(instance);
 
+	if(socketListen) {
+		closesocket(socketListen);
+	}
+
 	if(WaitForSingleObject(thread, INFINITE) == WAIT_FAILED) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"WaitForSingleObject");
 		codeExit = 1;
 	}
 
 	CloseHandle(thread);
-
-	if(socketListen) {
-		closesocket(socketListen);
-	}
 closeClientListMutex:
 	if(!WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"WaitForSingleObject");

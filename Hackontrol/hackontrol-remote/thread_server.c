@@ -2,13 +2,12 @@
 #include "remote.h"
 
 DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
-	DWORD codeExit = 1;
-
 	if(!socketListen) {
 		LOG("[Server]: Empty thread parameter\n");
-		goto functionExit;
+		return 1;
 	}
 
+	DWORD codeExit = 1;
 	LOG("[Server]: Initializing\n");
 	ADDRINFOW hints = {0};
 	hints.ai_family = AF_INET;
@@ -68,7 +67,14 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 			goto freeClient;
 		}
 
-		LOG("[Server]: Client: %ws\n", client->address);
+		client->thread = CreateThread(NULL, 0, ThreadClient, client, 0, NULL);
+
+		if(!client->thread) {
+			KHOPANLASTERRORMESSAGE_WIN32(L"CreateThread");
+			goto freeClient;
+		}
+
+		continue;
 	freeClient:
 		KHOPAN_DEALLOCATE(client);
 	closeSocket:
