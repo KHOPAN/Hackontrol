@@ -23,6 +23,7 @@ typedef struct {
 	LPWSTR address;
 } CLIENT, *PCLIENT;
 
+DWORD WINAPI ThreadClient(_In_ LPVOID parameter);
 DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen);
 int WindowMain(const HINSTANCE instance);
 void WindowMainRefresh();
