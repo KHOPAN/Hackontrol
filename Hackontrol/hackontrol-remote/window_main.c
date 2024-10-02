@@ -21,6 +21,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 	PLINKEDLISTITEM item;
 	int status = 0;
 	HMENU menu;
+	BOOL topMost;
 
 	switch(message) {
 	case WM_CLOSE:
@@ -61,9 +62,10 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 			AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
 		}
 
+		topMost = GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST;
 		AppendMenuW(menu, MF_STRING, IDM_REMOTE_REFRESH, L"Refresh");
 		AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
-		AppendMenuW(menu, MF_STRING | MF_CHECKED, IDM_REMOTE_ALWAYS_ON_TOP, L"Always On Top");
+		AppendMenuW(menu, MF_STRING | (topMost ? MF_CHECKED : MF_UNCHECKED), IDM_REMOTE_ALWAYS_ON_TOP, L"Always On Top");
 		AppendMenuW(menu, MF_STRING, IDM_REMOTE_EXIT, L"Exit");
 		SetForegroundWindow(window);
 		status = TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
@@ -77,6 +79,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 		case IDM_REMOTE_REFRESH:
 			return 1;
 		case IDM_REMOTE_ALWAYS_ON_TOP:
+			SetWindowPos(window, topMost ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
 			return 1;
 		case IDM_REMOTE_EXIT:
 			WindowMainExit();
