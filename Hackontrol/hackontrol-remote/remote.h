@@ -1,6 +1,7 @@
 #pragma once
 
 #include <libkhopan.h>
+#include "hrsp.h"
 
 #define LOGGER_ENABLE
 //#define NO_CONSOLE
@@ -21,7 +22,9 @@
 typedef struct {
 	LPWSTR name;
 	WCHAR address[16];
+	SOCKET socket;
 	HANDLE thread;
+	HRSPDATA hrsp;
 } CLIENT, *PCLIENT;
 
 DWORD WINAPI ThreadClient(_In_ PCLIENT client);

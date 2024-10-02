@@ -67,6 +67,7 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 			goto freeClient;
 		}
 
+		client->socket = socket;
 		client->thread = CreateThread(NULL, 0, ThreadClient, client, 0, NULL);
 
 		if(!client->thread) {
