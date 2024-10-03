@@ -298,6 +298,14 @@ BOOL KHOPANLinkedRemove(_In_ const PLINKEDLISTITEM item) {
 		return FALSE;
 	}
 
+	if(list->first == item) {
+		list->first = item->next;
+	}
+
+	if(list->last == item) {
+		list->last = item->previous;
+	}
+
 	if(item->previous) {
 		item->previous->next = item->next;
 	}

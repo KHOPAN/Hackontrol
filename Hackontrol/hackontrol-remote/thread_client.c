@@ -19,6 +19,7 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	LOG("[Client %ws]: Initializing\n", client->address);
 	HRSPERROR protocolError;
 	LPWSTR message;
+	PLINKEDLISTITEM item = NULL;
 
 	if(!HRSPServerHandshake(client->socket, &client->hrsp, &protocolError)) {
 		ERROR_HRSP(L"HRSPServerHandshake");
@@ -47,8 +48,6 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 		goto freeName;
 	}
 
-	PLINKEDLISTITEM item;
-
 	if(!KHOPANLinkedAdd(&clientList, (PBYTE) client, &item)) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"KHOPANLinkedAdd");
 		ReleaseMutex(clientListMutex);
@@ -59,7 +58,26 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	client = (PCLIENT) item->data;
 	ReleaseMutex(clientListMutex);
 	WindowMainRefresh();
-	codeExit = 0;
+
+	while(HRSPReceivePacket(client->socket, &client->hrsp, &packet, &protocolError)) {
+		switch(packet.type) {
+		//case HRSP_REMOTE_CLIENT_STREAM_FRAME_PACKET:
+		//	DecodeHRSPFrame(packet.data, packet.size, client->window);
+		//	break;
+		default:
+			LOG("[Client %ws]: Unknown packet type: %u\n", client->address, packet.type);
+			break;
+		}
+
+		HRSPFreePacket(&packet, NULL);
+	}
+
+	if(!protocolError.code || (!protocolError.win32 && protocolError.code == HRSP_ERROR_CONNECTION_CLOSED) || (protocolError.win32 && (protocolError.code == WSAEINTR || protocolError.code == WSAECONNABORTED || protocolError.code == WSAECONNRESET))) {
+		codeExit = 0;
+		goto freeName;
+	}
+
+	ERROR_HRSP(L"HRSPReceivePacket");
 freeName:
 	if(client->name) {
 		LocalFree(client->name);
@@ -67,5 +85,15 @@ freeName:
 functionExit:
 	LOG("[Client %ws]: Exit with code: %d\n", client->address, codeExit);
 	CloseHandle(client->thread);
+
+	if(item) {
+		if(!KHOPANLinkedRemove(item)) {
+			KHOPANLASTERRORMESSAGE_WIN32(L"KHOPANLinkedRemove");
+			codeExit = 1;
+		}
+
+		WindowMainRefresh();
+	}
+
 	return codeExit;
 }
