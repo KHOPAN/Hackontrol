@@ -44,12 +44,12 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	LOG("[Client %ws]: Username: '%ws'\n", client->address, client->name);
 
 	if(WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
-		KHOPANLASTERRORMESSAGE_WIN32(L"WaitForSingleObject");
+		KHOPANLASTERRORCONSOLE_WIN32(L"WaitForSingleObject");
 		goto freeName;
 	}
 
 	if(!KHOPANLinkedAdd(&clientList, (PBYTE) client, &item)) {
-		KHOPANLASTERRORMESSAGE_WIN32(L"KHOPANLinkedAdd");
+		KHOPANLASTERRORCONSOLE_WIN32(L"KHOPANLinkedAdd");
 		ReleaseMutex(clientListMutex);
 		goto freeName;
 	}
@@ -84,12 +84,12 @@ functionExit:
 	CloseHandle(client->thread);
 
 	if(item) {
-		if(!KHOPANLinkedRemove(item)) {
-			KHOPANLASTERRORMESSAGE_WIN32(L"KHOPANLinkedRemove");
+		if(KHOPANLinkedRemove(item)) {
+			WindowMainRefresh();
+		} else {
+			KHOPANLASTERRORCONSOLE_WIN32(L"KHOPANLinkedRemove");
 			codeExit = 1;
 		}
-
-		WindowMainRefresh();
 	}
 
 	return codeExit;
