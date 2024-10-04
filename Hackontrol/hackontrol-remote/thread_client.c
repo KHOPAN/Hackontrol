@@ -97,11 +97,19 @@ functionExit:
 }
 
 void ThreadClientOpen(const PCLIENT client) {
-	client->session.thread = CreateThread(NULL, 0, WindowSession, NULL, 0, NULL);
+	if(client->session.thread) {
+		WindowSessionClose(client->session.thread);
+
+		if(WaitForSingleObject(client->session.thread, INFINITE) == WAIT_FAILED) {
+			KHOPANLASTERRORCONSOLE_WIN32(L"WaitForSingleObject");
+			return;
+		}
+	}
+
+	client->session.thread = CreateThread(NULL, 0, WindowSession, client, 0, NULL);
 
 	if(!client->session.thread) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateThread");
-		return;
 	}
 }
 

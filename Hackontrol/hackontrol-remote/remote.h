@@ -39,4 +39,5 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen);
 int WindowMain(const HINSTANCE instance);
 void WindowMainRefresh();
 void WindowMainExit();
-DWORD WINAPI WindowSession(_In_ LPVOID parameter);
+DWORD WINAPI WindowSession(_In_ PCLIENT client);
+void WindowSessionClose(const PCLIENT client);
