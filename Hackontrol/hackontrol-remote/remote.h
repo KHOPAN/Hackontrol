@@ -28,6 +28,7 @@ typedef struct {
 } CLIENT, *PCLIENT;
 
 DWORD WINAPI ThreadClient(_In_ PCLIENT client);
+void ThreadClientDisconnect(const PCLIENT client);
 DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen);
 int WindowMain(const HINSTANCE instance);
 void WindowMainRefresh();

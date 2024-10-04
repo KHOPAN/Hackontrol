@@ -18,7 +18,7 @@ static HWND listView;
 static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	RECT bounds;
 	LVHITTESTINFO information = {0};
-	PLINKEDLISTITEM item;
+	PLINKEDLISTITEM item = NULL;
 	int status = 0;
 	HMENU menu;
 	BOOL topMost;
@@ -73,18 +73,23 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 
 		switch(status) {
 		case IDM_REMOTE_OPEN:
-			return 1;
+			break;
 		case IDM_REMOTE_DISCONNECT:
-			return 1;
+			if(item && WaitForSingleObject(clientListMutex, INFINITE) != WAIT_FAILED) {
+				ThreadClientDisconnect((PCLIENT) item->data);
+				ReleaseMutex(clientListMutex);
+			}
+
+			break;
 		case IDM_REMOTE_REFRESH:
 			WindowMainRefresh();
-			return 1;
+			break;
 		case IDM_REMOTE_ALWAYS_ON_TOP:
 			SetWindowPos(window, topMost ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
-			return 1;
+			break;
 		case IDM_REMOTE_EXIT:
 			WindowMainExit();
-			return 1;
+			break;
 		}
 
 		return 0;

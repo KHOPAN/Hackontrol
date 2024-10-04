@@ -1,3 +1,4 @@
+#include <WinSock2.h>
 #include <libkhopanlist.h>
 #include <hrsp_handshake.h>
 #include <hrsp_packet.h>
@@ -93,4 +94,15 @@ functionExit:
 	}
 
 	return codeExit;
+}
+
+void ThreadClientDisconnect(const PCLIENT client) {
+	if(shutdown(client->socket, SD_BOTH) == SOCKET_ERROR) {
+		KHOPANLASTERRORCONSOLE_WSA(L"shutdown");
+		return;
+	}
+
+	if(closesocket(client->socket) == SOCKET_ERROR) {
+		KHOPANLASTERRORCONSOLE_WSA(L"closesocket");
+	}
 }
