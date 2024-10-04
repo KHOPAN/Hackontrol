@@ -73,6 +73,11 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 
 		switch(status) {
 		case IDM_REMOTE_OPEN:
+			if(item && WaitForSingleObject(clientListMutex, INFINITE) != WAIT_FAILED) {
+				ThreadClientOpen((PCLIENT) item->data);
+				ReleaseMutex(clientListMutex);
+			}
+
 			break;
 		case IDM_REMOTE_DISCONNECT:
 			if(item && WaitForSingleObject(clientListMutex, INFINITE) != WAIT_FAILED) {

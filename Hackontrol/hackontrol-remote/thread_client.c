@@ -96,6 +96,10 @@ functionExit:
 	return codeExit;
 }
 
+void ThreadClientOpen(const PCLIENT client) {
+
+}
+
 void ThreadClientDisconnect(const PCLIENT client) {
 	if(shutdown(client->socket, SD_BOTH) == SOCKET_ERROR) {
 		KHOPANLASTERRORCONSOLE_WSA(L"shutdown");
