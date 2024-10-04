@@ -51,19 +51,19 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 
 		if(socket == INVALID_SOCKET) {
 			if(WSAGetLastError() == WSAEINTR) break;
-			KHOPANLASTERRORMESSAGE_WSA(L"accept");
+			KHOPANLASTERRORCONSOLE_WSA(L"accept");
 			continue;
 		}
 
 		PCLIENT client = KHOPAN_ALLOCATE(sizeof(CLIENT));
 
 		if(KHOPAN_ALLOCATE_FAILED(client)) {
-			KHOPANERRORMESSAGE_WIN32(KHOPAN_ALLOCATE_ERROR, KHOPAN_ALLOCATE_FUNCTION);
+			KHOPANERRORCONSOLE_WIN32(KHOPAN_ALLOCATE_ERROR, KHOPAN_ALLOCATE_FUNCTION);
 			goto closeSocket;
 		}
 
 		if(!InetNtopW(AF_INET, &address.sin_addr, client->address, 16)) {
-			KHOPANLASTERRORMESSAGE_WSA(L"InetNtopW");
+			KHOPANLASTERRORCONSOLE_WSA(L"InetNtopW");
 			goto freeClient;
 		}
 
@@ -71,7 +71,7 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 		client->thread = CreateThread(NULL, 0, ThreadClient, client, 0, NULL);
 
 		if(!client->thread) {
-			KHOPANLASTERRORMESSAGE_WIN32(L"CreateThread");
+			KHOPANLASTERRORCONSOLE_WIN32(L"CreateThread");
 			goto freeClient;
 		}
 
