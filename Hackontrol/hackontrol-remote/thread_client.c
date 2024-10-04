@@ -72,10 +72,19 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 
 	if(!protocolError.code || (!protocolError.win32 && protocolError.code == HRSP_ERROR_CONNECTION_CLOSED) || (protocolError.win32 && (protocolError.code == WSAEINTR || protocolError.code == WSAECONNABORTED || protocolError.code == WSAECONNRESET))) {
 		codeExit = 0;
-		goto freeName;
+		goto closeSession;
 	}
 
 	ERROR_HRSP(L"HRSPReceivePacket");
+closeSession:
+	if(client->session.thread) {
+		WindowSessionClose(client->session.thread);
+
+		if(WaitForSingleObject(client->session.thread, INFINITE) == WAIT_FAILED && GetLastError() != ERROR_INVALID_HANDLE) {
+			KHOPANLASTERRORCONSOLE_WIN32(L"WaitForSingleObject");
+			codeExit = 1;
+		}
+	}
 freeName:
 	if(client->name) {
 		LocalFree(client->name);
@@ -100,7 +109,7 @@ void ThreadClientOpen(const PCLIENT client) {
 	if(client->session.thread) {
 		WindowSessionClose(client->session.thread);
 
-		if(WaitForSingleObject(client->session.thread, INFINITE) == WAIT_FAILED) {
+		if(WaitForSingleObject(client->session.thread, INFINITE) == WAIT_FAILED && GetLastError() != ERROR_INVALID_HANDLE) {
 			KHOPANLASTERRORCONSOLE_WIN32(L"WaitForSingleObject");
 			return;
 		}
