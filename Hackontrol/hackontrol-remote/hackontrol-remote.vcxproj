@@ -151,6 +151,7 @@
     <ClCompile Include="thread_client.c" />
     <ClCompile Include="thread_server.c" />
     <ClCompile Include="window_main.c" />
+    <ClCompile Include="window_session.c" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="hackontrol-remote.exe.manifest" />
