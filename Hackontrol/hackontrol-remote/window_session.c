@@ -1,5 +1,10 @@
 #include "remote.h"
 
 DWORD WINAPI WindowSession(_In_ LPVOID parameter) {
-	return 0;
+	LOG("[Session]: Initializing\n");
+	DWORD codeExit = 1;
+	codeExit = 0;
+functionExit:
+	LOG("[Session]: Exit with code: %d\n", codeExit);
+	return codeExit;
 }

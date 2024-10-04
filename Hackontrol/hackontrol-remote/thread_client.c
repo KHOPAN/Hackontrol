@@ -97,7 +97,12 @@ functionExit:
 }
 
 void ThreadClientOpen(const PCLIENT client) {
+	client->session.thread = CreateThread(NULL, 0, WindowSession, NULL, 0, NULL);
 
+	if(!client->session.thread) {
+		KHOPANLASTERRORCONSOLE_WIN32(L"CreateThread");
+		return;
+	}
 }
 
 void ThreadClientDisconnect(const PCLIENT client) {

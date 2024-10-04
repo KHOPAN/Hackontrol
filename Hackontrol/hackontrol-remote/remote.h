@@ -20,11 +20,16 @@
 #endif
 
 typedef struct {
+	HANDLE thread;
+} SESSION;
+
+typedef struct {
 	LPWSTR name;
 	WCHAR address[16];
 	SOCKET socket;
 	HANDLE thread;
 	HRSPDATA hrsp;
+	SESSION session;
 } CLIENT, *PCLIENT;
 
 DWORD WINAPI ThreadClient(_In_ PCLIENT client);
