@@ -7,7 +7,6 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 		return 1;
 	}
 
-	DWORD codeExit = 1;
 	LOG("[Server]: Initializing\n");
 	ADDRINFOW hints = {0};
 	hints.ai_family = AF_INET;
@@ -15,6 +14,7 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 	hints.ai_protocol = IPPROTO_TCP;
 	hints.ai_flags = AI_PASSIVE;
 	int status = GetAddrInfoW(NULL, REMOTE_PORT, &hints, &hints.ai_next);
+	DWORD codeExit = 1;
 
 	if(status) {
 		KHOPANERRORMESSAGE_WIN32(status, L"GetAddrInfoW");

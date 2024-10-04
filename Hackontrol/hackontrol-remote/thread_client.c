@@ -15,11 +15,11 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 		return 1;
 	}
 
-	DWORD codeExit = 1;
 	LOG("[Client %ws]: Initializing\n", client->address);
 	HRSPERROR protocolError;
 	LPWSTR message;
 	PLINKEDLISTITEM item = NULL;
+	DWORD codeExit = 1;
 
 	if(!HRSPServerHandshake(client->socket, &client->hrsp, &protocolError)) {
 		ERROR_HRSP(L"HRSPServerHandshake");

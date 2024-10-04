@@ -94,7 +94,6 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 }
 
 int WindowMain(const HINSTANCE instance) {
-	int codeExit = 1;
 	LOG("[Main Window]: Initializing\n");
 	WNDCLASSEXW windowClass = {0};
 	windowClass.cbSize = sizeof(WNDCLASSEXW);
@@ -112,6 +111,7 @@ int WindowMain(const HINSTANCE instance) {
 	INITCOMMONCONTROLSEX controls;
 	controls.dwSize = sizeof(INITCOMMONCONTROLSEX);
 	controls.dwICC = ICC_LISTVIEW_CLASSES;
+	int codeExit = 1;
 
 	if(!InitCommonControlsEx(&controls)) {
 		KHOPANERRORMESSAGE_WIN32(ERROR_FUNCTION_FAILED, L"InitCommonControlsEx");
