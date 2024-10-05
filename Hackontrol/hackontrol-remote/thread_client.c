@@ -93,13 +93,15 @@ functionExit:
 	LOG("[Client %ws]: Exit with code: %d\n", client->address, codeExit);
 	CloseHandle(client->thread);
 
-	if(item) {
+	if(item && WaitForSingleObject(clientListMutex, INFINITE) != WAIT_FAILED) {
 		if(KHOPANLinkedRemove(item)) {
 			WindowMainRefresh();
 		} else {
 			KHOPANLASTERRORCONSOLE_WIN32(L"KHOPANLinkedRemove");
 			codeExit = 1;
 		}
+
+		ReleaseMutex(clientListMutex);
 	}
 
 	return codeExit;

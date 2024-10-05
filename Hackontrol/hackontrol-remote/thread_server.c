@@ -1,5 +1,9 @@
 #include <WS2tcpip.h>
+#include <libkhopanlist.h>
 #include "remote.h"
+
+extern LINKEDLIST clientList;
+extern HANDLE clientListMutex;
 
 DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 	if(!socketListen) {
@@ -43,6 +47,7 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 	}
 
 	LOG("[Server]: Listening socket started\n");
+	PCLIENT client;
 
 	while(TRUE) {
 		SOCKADDR_IN address;
@@ -55,7 +60,7 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 			continue;
 		}
 
-		PCLIENT client = KHOPAN_ALLOCATE(sizeof(CLIENT));
+		client = KHOPAN_ALLOCATE(sizeof(CLIENT));
 
 		if(KHOPAN_ALLOCATE_FAILED(client)) {
 			KHOPANERRORCONSOLE_WIN32(KHOPAN_ALLOCATE_ERROR, KHOPAN_ALLOCATE_FUNCTION);
@@ -82,6 +87,28 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 		closesocket(socket);
 	}
 
+	ARRAYLIST list;
+
+	if(!KHOPANArrayInitialize(&list, sizeof(HANDLE))) {
+		KHOPANERRORMESSAGE_WIN32(status, L"KHOPANArrayInitialize");
+		goto functionExit;
+	}
+
+	if(WaitForSingleObject(clientListMutex, INFINITE) != WAIT_FAILED) {
+		PLINKEDLISTITEM item;
+
+		KHOPAN_LINKED_LIST_ITERATE(item, &clientList) {
+			client = (PCLIENT) item->data;
+			if(!client) continue;
+			ThreadClientDisconnect(client);
+			KHOPANArrayAdd(&list, (PBYTE) &client->thread);
+		}
+
+		ReleaseMutex(clientListMutex);
+	}
+
+	WaitForMultipleObjects((DWORD) list.count, (PHANDLE) list.data, TRUE, INFINITE);
+	KHOPANArrayFree(&list);
 	codeExit = 0;
 functionExit:
 	LOG("[Server]: Exit with code: %d\n", codeExit);
