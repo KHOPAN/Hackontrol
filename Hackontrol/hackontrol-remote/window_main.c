@@ -8,6 +8,8 @@
 #define IDM_REMOTE_ALWAYS_ON_TOP 0xE004
 #define IDM_REMOTE_EXIT          0xE005
 
+#pragma warning(disable: 26454)
+
 extern LINKEDLIST clientList;
 extern HANDLE clientListMutex;
 
@@ -36,6 +38,17 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 		GetClientRect(border, &bounds);
 		SetWindowPos(listView, HWND_TOP, bounds.left + 9, bounds.top + 17, bounds.right - bounds.left - 8, bounds.bottom - bounds.top - 22, 0);
 		return 0;
+	case WM_NOTIFY:
+		if(((LPNMHDR) lparam)->code != NM_DBLCLK || WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
+			return 0;
+		}
+
+		if(KHOPANLinkedGet(&clientList, ((LPNMITEMACTIVATE) lparam)->iItem, &item)) {
+			ThreadClientOpen((PCLIENT) item->data);
+		}
+
+		ReleaseMutex(clientListMutex);
+		break;
 	case WM_CONTEXTMENU:
 		GetCursorPos(&information.pt);
 		ScreenToClient(listView, &information.pt);
