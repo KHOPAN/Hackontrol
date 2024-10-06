@@ -21,6 +21,7 @@
 #endif
 
 typedef struct {
+	HANDLE mutex;
 	HANDLE thread;
 	HWND window;
 } SESSION;

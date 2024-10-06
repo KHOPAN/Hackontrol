@@ -79,11 +79,9 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 closeSession:
 	if(client->session.thread) {
 		WindowSessionClose(client);
-
-		if(WaitForSingleObject(client->session.thread, INFINITE) == WAIT_FAILED && GetLastError() != ERROR_INVALID_HANDLE) {
-			KHOPANLASTERRORCONSOLE_WIN32(L"WaitForSingleObject");
-			codeExit = 1;
-		}
+		WaitForSingleObject(client->session.mutex, INFINITE);
+		CloseHandle(client->session.mutex);
+		WaitForSingleObject(client->session.thread, INFINITE);
 	}
 freeName:
 	if(client->name) {
@@ -115,18 +113,23 @@ void ThreadClientOpen(const PCLIENT client) {
 
 	if(client->session.thread) {
 		WindowSessionClose(client);
+		WaitForSingleObject(client->session.mutex, INFINITE);
+		CloseHandle(client->session.mutex);
+		WaitForSingleObject(client->session.thread, INFINITE);
+	}
 
-		if(WaitForSingleObject(client->session.thread, INFINITE) == WAIT_FAILED && GetLastError() != ERROR_INVALID_HANDLE) {
-			KHOPANLASTERRORCONSOLE_WIN32(L"WaitForSingleObject");
-			client->session.thread = NULL;
-			return;
-		}
+	client->session.mutex = CreateMutexExW(NULL, NULL, 0, SYNCHRONIZE | DELETE);
+
+	if(!client->session.mutex) {
+		KHOPANLASTERRORCONSOLE_WIN32(L"CreateMutexExW");
+		return;
 	}
 
 	client->session.thread = CreateThread(NULL, 0, WindowSession, client, 0, NULL);
 
 	if(!client->session.thread) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateThread");
+		CloseHandle(client->session.mutex);
 	}
 }
 
