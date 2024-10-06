@@ -37,12 +37,13 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 	}
 
 	LOG("[Session %ws]: Initializing\n", client->address);
-	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
-	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
-	int width = (int) (((double) screenWidth) * 0.146412884);
-	int height = (int) (((double) screenHeight) * 0.130208333);
+	RECT bounds;
+	bounds.right = GetSystemMetrics(SM_CXSCREEN);
+	bounds.bottom = GetSystemMetrics(SM_CYSCREEN);
+	bounds.left = (long) (((double) bounds.right) * 0.146412884);
+	bounds.top = (long) (((double) bounds.bottom) * 0.130208333);
 	LPWSTR title = KHOPANFormatMessage(L"%ws [%ws]", client->name, client->address);
-	client->session.window = CreateWindowExW(0L, CLASS_REMOTE_SESSION, title ? title : L"Session", WS_OVERLAPPED | WS_MINIMIZEBOX | WS_SYSMENU | WS_VISIBLE, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, NULL, client);
+	client->session.window = CreateWindowExW(0L, CLASS_REMOTE_SESSION, title ? title : L"Session", WS_OVERLAPPED | WS_MINIMIZEBOX | WS_SYSMENU | WS_VISIBLE, (bounds.right - bounds.left) / 2, (bounds.bottom - bounds.top) / 2, bounds.left, bounds.top, NULL, NULL, NULL, client);
 
 	if(title) {
 		LocalFree(title);
@@ -55,6 +56,17 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 		goto functionExit;
 	}
 
+	int buttonWidth = bounds.top;
+	int buttonHeight = buttonWidth / 4;
+	GetClientRect(client->session.window, &bounds);
+	bounds.right -= bounds.left;
+	bounds.bottom -= bounds.top;
+
+	if(!CreateWindowExW(0L, L"Button", L"Stream", WS_CHILD | WS_VISIBLE, (bounds.right - buttonWidth) / 2, (bounds.bottom - buttonHeight) / 2, buttonWidth, buttonHeight, client->session.window, NULL, NULL, NULL)) {
+		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
+		goto destroyWindow;
+	}
+
 	MSG message;
 
 	while(GetMessageW(&message, NULL, 0, 0)) {
@@ -62,9 +74,10 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 		DispatchMessageW(&message);
 	}
 
+	codeExit = 0;
+destroyWindow:
 	DestroyWindow(client->session.window);
 	client->session.window = NULL;
-	codeExit = 0;
 functionExit:
 	LOG("[Session %ws]: Exit with code: %d\n", client->address, codeExit);
 	CloseHandle(client->session.thread);
