@@ -37,8 +37,12 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 	}
 
 	LOG("[Session %ws]: Initializing\n", client->address);
+	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+	int width = (int) (((double) screenWidth) * 0.146412884);
+	int height = (int) (((double) screenHeight) * 0.130208333);
 	LPWSTR title = KHOPANFormatMessage(L"%ws [%ws]", client->name, client->address);
-	client->session.window = CreateWindowExW(0L, CLASS_REMOTE_SESSION, title ? title : L"Session", WS_OVERLAPPEDWINDOW | WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT, 600, 400, NULL, NULL, NULL, client);
+	client->session.window = CreateWindowExW(0L, CLASS_REMOTE_SESSION, title ? title : L"Session", WS_OVERLAPPED | WS_MINIMIZEBOX | WS_SYSMENU | WS_VISIBLE, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, NULL, client);
 
 	if(title) {
 		LocalFree(title);
