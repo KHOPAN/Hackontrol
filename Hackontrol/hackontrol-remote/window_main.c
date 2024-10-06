@@ -87,7 +87,11 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 
 			break;
 		case IDM_REMOTE_REFRESH:
-			WindowMainRefresh();
+			if(WaitForSingleObject(clientListMutex, INFINITE) != WAIT_FAILED) {
+				WindowMainRefresh();
+				ReleaseMutex(clientListMutex);
+			}
+
 			break;
 		case IDM_REMOTE_ALWAYS_ON_TOP:
 			SetWindowPos(window, topMost ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
@@ -205,10 +209,6 @@ unregisterClass:
 }
 
 void WindowMainRefresh() {
-	if(WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
-		return;
-	}
-
 	SendMessageW(listView, LVM_DELETEALLITEMS, 0, 0);
 	LVITEMW listItem = {0};
 	listItem.mask = LVIF_TEXT;
@@ -223,8 +223,6 @@ void WindowMainRefresh() {
 		listItem.pszText = client && client->address ? client->address : L"(Missing address)";
 		SendMessageW(listView, LVM_SETITEM, 0, (LPARAM) &listItem);
 	}
-
-	ReleaseMutex(clientListMutex);
 }
 
 void WindowMainExit() {

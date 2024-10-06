@@ -12,17 +12,24 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 	}
 
 	LOG("[Server]: Initializing\n");
+	ARRAYLIST list;
+	DWORD codeExit = 1;
+
+	if(!KHOPANArrayInitialize(&list, sizeof(HANDLE))) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"KHOPANArrayInitialize");
+		goto functionExit;
+	}
+
 	ADDRINFOW hints = {0};
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
 	hints.ai_flags = AI_PASSIVE;
 	int status = GetAddrInfoW(NULL, REMOTE_PORT, &hints, &hints.ai_next);
-	DWORD codeExit = 1;
 
 	if(status) {
 		KHOPANERRORMESSAGE_WIN32(status, L"GetAddrInfoW");
-		goto functionExit;
+		goto freeList;
 	}
 
 	*socketListen = WSASocketW(hints.ai_next->ai_family, hints.ai_next->ai_socktype, hints.ai_next->ai_protocol, NULL, 0, WSA_FLAG_OVERLAPPED);
@@ -30,7 +37,7 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 	if(*socketListen == INVALID_SOCKET) {
 		KHOPANLASTERRORMESSAGE_WSA(L"WSASocketW");
 		FreeAddrInfoW(hints.ai_next);
-		goto functionExit;
+		goto freeList;
 	}
 
 	status = bind(*socketListen, hints.ai_next->ai_addr, (int) hints.ai_next->ai_addrlen);
@@ -38,12 +45,12 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 
 	if(status == SOCKET_ERROR) {
 		KHOPANLASTERRORMESSAGE_WSA(L"bind");
-		goto functionExit;
+		goto freeList;
 	}
 
 	if(listen(*socketListen, SOMAXCONN) == SOCKET_ERROR) {
 		KHOPANLASTERRORMESSAGE_WSA(L"listen");
-		goto functionExit;
+		goto freeList;
 	}
 
 	LOG("[Server]: Listening socket started\n");
@@ -87,13 +94,6 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 		closesocket(socket);
 	}
 
-	ARRAYLIST list;
-
-	if(!KHOPANArrayInitialize(&list, sizeof(HANDLE))) {
-		KHOPANERRORMESSAGE_WIN32(status, L"KHOPANArrayInitialize");
-		goto functionExit;
-	}
-
 	if(WaitForSingleObject(clientListMutex, INFINITE) != WAIT_FAILED) {
 		PLINKEDLISTITEM item;
 
@@ -108,8 +108,9 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 	}
 
 	WaitForMultipleObjects((DWORD) list.count, (PHANDLE) list.data, TRUE, INFINITE);
-	KHOPANArrayFree(&list);
 	codeExit = 0;
+freeList:
+	KHOPANArrayFree(&list);
 functionExit:
 	LOG("[Server]: Exit with code: %d\n", codeExit);
 	return codeExit;

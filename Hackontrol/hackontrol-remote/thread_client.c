@@ -57,8 +57,8 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 
 	KHOPAN_DEALLOCATE(client);
 	client = (PCLIENT) item->data;
-	ReleaseMutex(clientListMutex);
 	WindowMainRefresh();
+	ReleaseMutex(clientListMutex);
 
 	while(HRSPReceivePacket(client->socket, &client->hrsp, &packet, &protocolError)) {
 		switch(packet.type) {
@@ -90,6 +90,7 @@ freeName:
 		LocalFree(client->name);
 	}
 functionExit:
+	closesocket(client->socket);
 	LOG("[Client %ws]: Exit with code: %d\n", client->address, codeExit);
 	CloseHandle(client->thread);
 
@@ -108,11 +109,16 @@ functionExit:
 }
 
 void ThreadClientOpen(const PCLIENT client) {
+	if(!client) {
+		return;
+	}
+
 	if(client->session.thread) {
 		WindowSessionClose(client->session.thread);
 
 		if(WaitForSingleObject(client->session.thread, INFINITE) == WAIT_FAILED && GetLastError() != ERROR_INVALID_HANDLE) {
 			KHOPANLASTERRORCONSOLE_WIN32(L"WaitForSingleObject");
+			client->session.thread = NULL;
 			return;
 		}
 	}
@@ -125,12 +131,8 @@ void ThreadClientOpen(const PCLIENT client) {
 }
 
 void ThreadClientDisconnect(const PCLIENT client) {
-	if(shutdown(client->socket, SD_BOTH) == SOCKET_ERROR) {
-		KHOPANLASTERRORCONSOLE_WSA(L"shutdown");
-		return;
-	}
-
-	if(closesocket(client->socket) == SOCKET_ERROR) {
-		KHOPANLASTERRORCONSOLE_WSA(L"closesocket");
+	if(client && client->socket) {
+		shutdown(client->socket, SD_BOTH);
+		closesocket(client->socket);
 	}
 }
