@@ -8,6 +8,7 @@
 
 #define REMOTE_PORT             L"42485"
 #define CLASS_HACKONTROL_REMOTE L"HackontrolRemote"
+#define CLASS_REMOTE_SESSION    L"HackontrolRemoteSession"
 
 #ifdef LOGGER_ENABLE
 #ifdef NO_CONSOLE
@@ -39,5 +40,6 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen);
 int WindowMain(const HINSTANCE instance);
 void WindowMainRefresh();
 void WindowMainExit();
+BOOL WindowSessionInitialize(const HINSTANCE instance);
 DWORD WINAPI WindowSession(_In_ PCLIENT client);
 void WindowSessionClose(const PCLIENT client);
