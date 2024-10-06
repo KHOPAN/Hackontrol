@@ -37,7 +37,29 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 	}
 
 	LOG("[Session %ws]: Initializing\n", client->address);
+	LPWSTR title = KHOPANFormatMessage(L"%ws [%ws]", client->name, client->address);
+	client->session.window = CreateWindowExW(0L, CLASS_REMOTE_SESSION, title ? title : L"Session", WS_OVERLAPPEDWINDOW | WS_VISIBLE, CW_USEDEFAULT, CW_USEDEFAULT, 600, 400, NULL, NULL, NULL, client);
+
+	if(title) {
+		LocalFree(title);
+	}
+
 	DWORD codeExit = 1;
+
+	if(!client->session.window) {
+		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
+		goto functionExit;
+	}
+
+	MSG message;
+
+	while(GetMessageW(&message, NULL, 0, 0)) {
+		TranslateMessage(&message);
+		DispatchMessageW(&message);
+	}
+
+	DestroyWindow(client->session.window);
+	client->session.window = NULL;
 	codeExit = 0;
 functionExit:
 	LOG("[Session %ws]: Exit with code: %d\n", client->address, codeExit);
@@ -47,5 +69,7 @@ functionExit:
 }
 
 void WindowSessionClose(const PCLIENT client) {
-
+	if(client && client->session.window) {
+		PostMessageW(client->session.window, WM_CLOSE, 0, 0);
+	}
 }

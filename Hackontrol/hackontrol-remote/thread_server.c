@@ -107,7 +107,14 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 		ReleaseMutex(clientListMutex);
 	}
 
-	WaitForMultipleObjects((DWORD) list.count, (PHANDLE) list.data, TRUE, INFINITE);
+	PHANDLE handle = NULL;
+
+	for(size_t i = 0; i < list.count; i++) {
+		if(KHOPANArrayGet(&list, i, (PBYTE*) &handle)) {
+			if(handle) WaitForSingleObject(*handle, INFINITE);
+		}
+	}
+
 	codeExit = 0;
 freeList:
 	KHOPANArrayFree(&list);

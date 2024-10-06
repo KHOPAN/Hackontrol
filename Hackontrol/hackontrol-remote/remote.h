@@ -22,6 +22,7 @@
 
 typedef struct {
 	HANDLE thread;
+	HWND window;
 } SESSION;
 
 typedef struct {

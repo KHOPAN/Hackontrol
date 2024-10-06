@@ -78,7 +78,7 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	ERROR_HRSP(L"HRSPReceivePacket");
 closeSession:
 	if(client->session.thread) {
-		WindowSessionClose(client->session.thread);
+		WindowSessionClose(client);
 
 		if(WaitForSingleObject(client->session.thread, INFINITE) == WAIT_FAILED && GetLastError() != ERROR_INVALID_HANDLE) {
 			KHOPANLASTERRORCONSOLE_WIN32(L"WaitForSingleObject");
@@ -114,7 +114,7 @@ void ThreadClientOpen(const PCLIENT client) {
 	}
 
 	if(client->session.thread) {
-		WindowSessionClose(client->session.thread);
+		WindowSessionClose(client);
 
 		if(WaitForSingleObject(client->session.thread, INFINITE) == WAIT_FAILED && GetLastError() != ERROR_INVALID_HANDLE) {
 			KHOPANLASTERRORCONSOLE_WIN32(L"WaitForSingleObject");
