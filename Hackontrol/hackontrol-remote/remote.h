@@ -22,9 +22,15 @@
 #endif
 
 typedef struct {
+	HANDLE thread;
+	HWND window;
+} SESSIONSTREAM;
+
+typedef struct {
 	HANDLE mutex;
 	HANDLE thread;
 	HWND window;
+	SESSIONSTREAM stream;
 } SESSION;
 
 typedef struct {

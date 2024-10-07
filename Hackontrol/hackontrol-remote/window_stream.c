@@ -37,5 +37,7 @@ DWORD WINAPI WindowStream(_In_ PCLIENT client) {
 }
 
 void WindowStreamClose(const PCLIENT client) {
-
+	if(client && client->session.stream.window) {
+		PostMessageW(client->session.stream.window, WM_CLOSE, 0, 0);
+	}
 }
