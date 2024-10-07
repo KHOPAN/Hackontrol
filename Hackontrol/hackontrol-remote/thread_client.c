@@ -78,8 +78,8 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	ERROR_HRSP(L"HRSPReceivePacket");
 closeSession:
 	if(client->session.thread) {
-		WindowSessionClose(client);
 		WaitForSingleObject(client->session.mutex, INFINITE);
+		WindowSessionClose(client);
 		CloseHandle(client->session.mutex);
 		WaitForSingleObject(client->session.thread, INFINITE);
 	}
@@ -111,18 +111,27 @@ void ThreadClientOpen(const PCLIENT client) {
 		return;
 	}
 
-	if(client->session.thread) {
-		WindowSessionClose(client);
+	if(client->session.mutex) {
 		WaitForSingleObject(client->session.mutex, INFINITE);
-		CloseHandle(client->session.mutex);
-		WaitForSingleObject(client->session.thread, INFINITE);
+	} else {
+		client->session.mutex = CreateMutexExW(NULL, NULL, 0, SYNCHRONIZE | DELETE);
+
+		if(!client->session.mutex) {
+			KHOPANLASTERRORCONSOLE_WIN32(L"CreateMutexExW");
+			return;
+		}
+
+		WaitForSingleObject(client->session.mutex, INFINITE);
 	}
 
-	client->session.mutex = CreateMutexExW(NULL, NULL, 0, SYNCHRONIZE | DELETE);
+	if(client->session.thread) {
+		WindowSessionClose(client);
+	}
 
-	if(!client->session.mutex) {
-		KHOPANLASTERRORCONSOLE_WIN32(L"CreateMutexExW");
-		return;
+	ReleaseMutex(client->session.mutex);
+
+	if(client->session.thread) {
+		WaitForSingleObject(client->session.thread, INFINITE);
 	}
 
 	client->session.thread = CreateThread(NULL, 0, WindowSession, client, 0, NULL);

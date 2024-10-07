@@ -63,7 +63,7 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 	GetClientRect(client->session.window, &bounds);
 	bounds.right -= bounds.left;
 	bounds.bottom -= bounds.top;
-	HWND button = CreateWindowExW(0L, L"Button", L"Stream", WS_CHILD | WS_VISIBLE, (bounds.right - buttonWidth) / 2, (bounds.bottom - buttonHeight) / 2, buttonWidth, buttonHeight, client->session.window, NULL, NULL, NULL);
+	HWND button = CreateWindowExW(0L, L"Button", L"Stream", WS_TABSTOP | WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON, (bounds.right - buttonWidth) / 2, (bounds.bottom - buttonHeight) / 2, buttonWidth, buttonHeight, client->session.window, NULL, NULL, NULL);
 
 	if(!button) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
