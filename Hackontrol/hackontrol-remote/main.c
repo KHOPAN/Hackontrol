@@ -49,12 +49,16 @@ int WINAPI WinMain(_In_ HINSTANCE programInstance, _In_opt_ HINSTANCE previousIn
 		goto closeClientListMutex;
 	}
 
+	if(!WindowStreamInitialize()) {
+		goto unregisterSession;
+	}
+
 	SOCKET socketListen = 0;
 	HANDLE thread = CreateThread(NULL, 0, ThreadServer, &socketListen, 0, NULL);
 
 	if(!thread) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"CreateThread");
-		goto unregisterSession;
+		goto unregisterStream;
 	}
 
 	codeExit = WindowMain();
@@ -69,6 +73,8 @@ int WINAPI WinMain(_In_ HINSTANCE programInstance, _In_opt_ HINSTANCE previousIn
 	}
 
 	CloseHandle(thread);
+unregisterStream:
+	UnregisterClassW(CLASS_SESSION_STREAM, instance);
 unregisterSession:
 	UnregisterClassW(CLASS_REMOTE_SESSION, instance);
 closeClientListMutex:

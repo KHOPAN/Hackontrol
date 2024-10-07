@@ -26,6 +26,9 @@
     <ClCompile Include="window_session.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="window_stream.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="hackontrol-remote.exe.manifest" />

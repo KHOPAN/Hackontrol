@@ -3,6 +3,17 @@
 extern HINSTANCE instance;
 
 static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
+	PCLIENT client = (PCLIENT) GetWindowLongPtrW(window, GWLP_USERDATA);
+
+	if(!client) {
+		if(message != WM_CREATE) {
+			return DefWindowProcW(window, message, wparam, lparam);
+		}
+
+		client = (PCLIENT) (((CREATESTRUCT*) lparam)->lpCreateParams);
+		SetWindowLongPtrW(window, GWLP_USERDATA, (LONG_PTR) client);
+	}
+
 	switch(message) {
 	case WM_CLOSE:
 		DestroyWindow(window);
@@ -11,11 +22,11 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		PostQuitMessage(0);
 		return 0;
 	case WM_COMMAND:
-		if(HIWORD(wparam) != BN_CLICKED) {
+		if(HIWORD(wparam) != BN_CLICKED || WaitForSingleObject(client->session.mutex, INFINITE) == WAIT_FAILED) {
 			break;
 		}
 
-		LOG("Pressed\n");
+		ReleaseMutex(client->session.mutex);
 		break;
 	}
 

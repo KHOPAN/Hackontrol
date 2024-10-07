@@ -9,6 +9,7 @@
 #define REMOTE_PORT             L"42485"
 #define CLASS_HACKONTROL_REMOTE L"HackontrolRemote"
 #define CLASS_REMOTE_SESSION    L"HackontrolRemoteSession"
+#define CLASS_SESSION_STREAM    L"HackontrolRemoteSessionStream"
 
 #ifdef LOGGER_ENABLE
 #ifdef NO_CONSOLE
@@ -45,3 +46,6 @@ void WindowMainExit();
 BOOL WindowSessionInitialize();
 DWORD WINAPI WindowSession(_In_ PCLIENT client);
 void WindowSessionClose(const PCLIENT client);
+BOOL WindowStreamInitialize();
+DWORD WINAPI WindowStream(_In_ PCLIENT client);
+void WindowStreamClose(const PCLIENT client);
