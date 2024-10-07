@@ -3,8 +3,10 @@
 
 LINKEDLIST clientList;
 HANDLE clientListMutex;
+HINSTANCE instance;
 
-int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance, _In_ LPSTR argument, _In_ int options) {
+int WINAPI WinMain(_In_ HINSTANCE programInstance, _In_opt_ HINSTANCE previousInstance, _In_ LPSTR argument, _In_ int options) {
+	instance = programInstance;
 	int codeExit = 1;
 #if defined(LOGGER_ENABLE) && !defined(NO_CONSOLE)
 	if(!AllocConsole()) {
@@ -43,7 +45,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto freeClientList;
 	}
 
-	if(!WindowSessionInitialize(instance)) {
+	if(!WindowSessionInitialize()) {
 		goto closeClientListMutex;
 	}
 
@@ -55,7 +57,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto unregisterSession;
 	}
 
-	codeExit = WindowMain(instance);
+	codeExit = WindowMain();
 
 	if(socketListen) {
 		closesocket(socketListen);

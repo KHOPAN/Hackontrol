@@ -12,6 +12,7 @@
 
 extern LINKEDLIST clientList;
 extern HANDLE clientListMutex;
+extern HINSTANCE instance;
 
 static HWND window;
 static HWND border;
@@ -39,7 +40,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 		SetWindowPos(listView, HWND_TOP, bounds.left + 9, bounds.top + 17, bounds.right - bounds.left - 8, bounds.bottom - bounds.top - 22, 0);
 		return 0;
 	case WM_NOTIFY:
-		if(((LPNMHDR) lparam)->code != NM_DBLCLK || WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
+		if(!lparam || ((LPNMHDR) lparam)->code != NM_DBLCLK || WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
 			return 0;
 		}
 
@@ -120,7 +121,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 	return DefWindowProcW(inputWindow, message, wparam, lparam);
 }
 
-int WindowMain(const HINSTANCE instance) {
+int WindowMain() {
 	LOG("[Main Window]: Initializing\n");
 	WNDCLASSEXW windowClass = {0};
 	windowClass.cbSize = sizeof(WNDCLASSEXW);

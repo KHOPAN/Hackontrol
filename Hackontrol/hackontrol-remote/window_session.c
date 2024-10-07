@@ -1,5 +1,7 @@
 #include "remote.h"
 
+extern HINSTANCE instance;
+
 static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	switch(message) {
 	case WM_CLOSE:
@@ -13,7 +15,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 	return DefWindowProcW(window, message, wparam, lparam);
 }
 
-BOOL WindowSessionInitialize(const HINSTANCE instance) {
+BOOL WindowSessionInitialize() {
 	WNDCLASSEXW windowClass = {0};
 	windowClass.cbSize = sizeof(WNDCLASSEXW);
 	windowClass.lpfnWndProc = windowProcedure;
@@ -43,7 +45,7 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 	bounds.left = (long) (((double) bounds.right) * 0.146412884);
 	bounds.top = (long) (((double) bounds.bottom) * 0.130208333);
 	LPWSTR title = KHOPANFormatMessage(L"%ws [%ws]", client->name, client->address);
-	client->session.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_REMOTE_SESSION, title ? title : L"Session", WS_OVERLAPPED | WS_MINIMIZEBOX | WS_SYSMENU | WS_VISIBLE, (bounds.right - bounds.left) / 2, (bounds.bottom - bounds.top) / 2, bounds.left, bounds.top, NULL, NULL, NULL, client);
+	client->session.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_REMOTE_SESSION, title ? title : L"Session", WS_OVERLAPPED | WS_MINIMIZEBOX | WS_SYSMENU | WS_VISIBLE, (bounds.right - bounds.left) / 2, (bounds.bottom - bounds.top) / 2, bounds.left, bounds.top, NULL, NULL, instance, client);
 
 	if(title) {
 		LocalFree(title);
@@ -73,14 +75,14 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 
 	if(!SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, metrics.cbSize, &metrics, 0)) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"SystemParametersInfoW");
-		goto destroyWindow;
+		goto destroyButton;
 	}
 
 	HFONT font = CreateFontIndirectW(&metrics.lfCaptionFont);
 
 	if(!font) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateFontIndirectW");
-		goto destroyWindow;
+		goto destroyButton;
 	}
 
 	SendMessageW(button, WM_SETFONT, (WPARAM) font, TRUE);
@@ -93,6 +95,8 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 
 	DeleteObject(font);
 	codeExit = 0;
+destroyButton:
+	DestroyWindow(button);
 destroyWindow:
 	DestroyWindow(client->session.window);
 	client->session.window = NULL;
