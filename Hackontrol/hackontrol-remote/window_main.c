@@ -41,7 +41,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 		return 0;
 	case WM_NOTIFY:
 		if(!lparam || ((LPNMHDR) lparam)->code != NM_DBLCLK || WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
-			return 0;
+			break;
 		}
 
 		if(KHOPANLinkedGet(&clientList, ((LPNMITEMACTIVATE) lparam)->iItem, &item)) {

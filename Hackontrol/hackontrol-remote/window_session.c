@@ -10,6 +10,13 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
+	case WM_COMMAND:
+		if(HIWORD(wparam) != BN_CLICKED) {
+			break;
+		}
+
+		LOG("Pressed\n");
+		break;
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
