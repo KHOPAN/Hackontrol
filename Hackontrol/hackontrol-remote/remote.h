@@ -22,24 +22,22 @@
 #endif
 
 typedef struct {
-	HANDLE thread;
-	HWND window;
-} SESSIONSTREAM;
-
-typedef struct {
-	HANDLE mutex;
-	HANDLE thread;
-	HWND window;
-	SESSIONSTREAM stream;
-} SESSION;
-
-typedef struct {
 	LPWSTR name;
 	WCHAR address[16];
 	SOCKET socket;
 	HANDLE thread;
 	HRSPDATA hrsp;
-	SESSION session;
+
+	struct {
+		HANDLE mutex;
+		HANDLE thread;
+		HWND window;
+
+		struct {
+			HANDLE thread;
+			HWND window;
+		} stream;
+	} session;
 } CLIENT, *PCLIENT;
 
 DWORD WINAPI ThreadClient(_In_ PCLIENT client);
