@@ -26,6 +26,18 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			break;
 		}
 
+		if(client->session.stream.thread) {
+			WindowStreamClose(client);
+			WaitForSingleObject(client->session.stream.thread, INFINITE);
+			CloseHandle(client->session.stream.thread);
+		}
+
+		client->session.stream.thread = CreateThread(NULL, 0, WindowStream, client, 0, NULL);
+
+		if(!client->session.stream.thread) {
+			KHOPANLASTERRORCONSOLE_WIN32(L"CreateThread");
+		}
+
 		ReleaseMutex(client->session.mutex);
 		break;
 	}
@@ -112,6 +124,13 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 	}
 
 	DeleteObject(font);
+
+	if(client->session.stream.thread) {
+		WindowStreamClose(client);
+		WaitForSingleObject(client->session.stream.thread, INFINITE);
+		CloseHandle(client->session.stream.thread);
+	}
+
 	codeExit = 0;
 destroyButton:
 	DestroyWindow(button);

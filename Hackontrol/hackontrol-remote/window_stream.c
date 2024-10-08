@@ -33,7 +33,42 @@ BOOL WindowStreamInitialize() {
 }
 
 DWORD WINAPI WindowStream(_In_ PCLIENT client) {
-	return 0;
+	if(!client) {
+		LOG("[Stream]: Empty thread parameter\n");
+		return 1;
+	}
+
+	LOG("[Stream %ws]: Initializing\n", client->address);
+	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+	int width = (int) (((double) screenWidth) * 0.439238653);
+	int height = (int) (((double) screenHeight) * 0.520833333);
+	LPWSTR title = KHOPANFormatMessage(L"Livestream [%ws]", client->name);
+	client->session.stream.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_SESSION_STREAM, title ? title : L"Livestream", WS_OVERLAPPEDWINDOW | WS_VISIBLE, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, instance, client);
+
+	if(title) {
+		LocalFree(title);
+	}
+
+	DWORD codeExit = 1;
+
+	if(!client->session.stream.window) {
+		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
+		goto functionExit;
+	}
+
+	MSG message;
+
+	while(GetMessageW(&message, NULL, 0, 0)) {
+		TranslateMessage(&message);
+		DispatchMessageW(&message);
+	}
+
+	codeExit = 0;
+	DestroyWindow(client->session.stream.window);
+functionExit:
+	LOG("[Stream %ws]: Exit with code: %d\n", client->address, codeExit);
+	return codeExit;
 }
 
 void WindowStreamClose(const PCLIENT client) {
