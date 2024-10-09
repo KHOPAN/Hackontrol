@@ -67,33 +67,19 @@ int WINAPI WinMain(_In_ HINSTANCE programInstance, _In_opt_ HINSTANCE previousIn
 		closesocket(socketListen);
 	}
 
-	if(WaitForSingleObject(thread, INFINITE) == WAIT_FAILED) {
-		KHOPANLASTERRORMESSAGE_WIN32(L"WaitForSingleObject");
-		codeExit = 1;
-	}
-
+	WaitForSingleObject(thread, INFINITE);
 	CloseHandle(thread);
 unregisterStream:
 	UnregisterClassW(CLASS_SESSION_STREAM, instance);
 unregisterSession:
 	UnregisterClassW(CLASS_REMOTE_SESSION, instance);
 closeClientListMutex:
-	if(!WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
-		KHOPANLASTERRORMESSAGE_WIN32(L"WaitForSingleObject");
-		codeExit = 1;
-	}
-
+	WaitForSingleObject(clientListMutex, INFINITE);
 	CloseHandle(clientListMutex);
 freeClientList:
-	if(!KHOPANLinkedFree(&clientList)) {
-		KHOPANLASTERRORMESSAGE_WIN32(L"KHOPANLinkedFree");
-		codeExit = 1;
-	}
+	KHOPANLinkedFree(&clientList);
 cleanupSocket:
-	if(WSACleanup() == SOCKET_ERROR) {
-		KHOPANLASTERRORMESSAGE_WSA(L"WSACleanup");
-		codeExit = 1;
-	}
+	WSACleanup();
 functionExit:
 	LOG("[Remote]: Exit with code: %d\n", codeExit);
 #ifdef LOGGER_ENABLE
