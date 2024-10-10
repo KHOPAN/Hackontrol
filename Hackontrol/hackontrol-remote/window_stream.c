@@ -42,8 +42,8 @@ DWORD WINAPI WindowStream(_In_ PCLIENT client) {
 	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	int width = (int) (((double) screenWidth) * 0.439238653);
 	int height = (int) (((double) screenHeight) * 0.520833333);
-	LPWSTR title = KHOPANFormatMessage(L"Livestream [%ws]", client->name);
-	client->session.stream.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_SESSION_STREAM, title ? title : L"Livestream", WS_OVERLAPPEDWINDOW | WS_VISIBLE, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, instance, client);
+	LPWSTR title = KHOPANFormatMessage(L"Stream [%ws]", client->name);
+	client->session.stream.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_SESSION_STREAM, title ? title : L"Stream", WS_OVERLAPPEDWINDOW | WS_VISIBLE, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, instance, client);
 
 	if(title) {
 		LocalFree(title);
