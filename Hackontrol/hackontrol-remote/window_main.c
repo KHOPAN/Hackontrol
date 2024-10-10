@@ -20,6 +20,7 @@ static HWND listView;
 
 static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	RECT bounds;
+	PCLIENT client;
 	LVHITTESTINFO information = {0};
 	PLINKEDLISTITEM item = NULL;
 	int status = 0;
@@ -44,11 +45,18 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 			break;
 		}
 
-		if(KHOPANLinkedGet(&clientList, ((LPNMITEMACTIVATE) lparam)->iItem, &item)) {
-			ThreadClientOpen((PCLIENT) item->data);
+		if(!KHOPANLinkedGet(&clientList, ((LPNMITEMACTIVATE) lparam)->iItem, &item) || !item) {
+			break;
 		}
 
+		client = (PCLIENT) item->data;
 		ReleaseMutex(clientListMutex);
+
+		if(client && WaitForSingleObject(client->mutex, INFINITE) != WAIT_FAILED) {
+			ThreadClientOpen(client);
+			ReleaseMutex(client->mutex);
+		}
+
 		break;
 	case WM_CONTEXTMENU:
 		GetCursorPos(&information.pt);
@@ -87,25 +95,18 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 
 		switch(status) {
 		case IDM_REMOTE_OPEN:
-			if(item && WaitForSingleObject(clientListMutex, INFINITE) != WAIT_FAILED) {
-				ThreadClientOpen((PCLIENT) item->data);
-				ReleaseMutex(clientListMutex);
-			}
-
-			break;
 		case IDM_REMOTE_DISCONNECT:
-			if(item && WaitForSingleObject(clientListMutex, INFINITE) != WAIT_FAILED) {
-				ThreadClientDisconnect((PCLIENT) item->data);
-				ReleaseMutex(clientListMutex);
-			}
-
+			if(!item) break;
+			client = (PCLIENT) item->data;
+			if(!client || WaitForSingleObject(client->mutex, INFINITE) == WAIT_FAILED) break;
+			if(status == IDM_REMOTE_OPEN) ThreadClientOpen(client);
+			if(status == IDM_REMOTE_DISCONNECT) ThreadClientDisconnect(client);
+			ReleaseMutex(client->mutex);
 			break;
 		case IDM_REMOTE_REFRESH:
-			if(WaitForSingleObject(clientListMutex, INFINITE) != WAIT_FAILED) {
-				WindowMainRefresh();
-				ReleaseMutex(clientListMutex);
-			}
-
+			if(WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) break;
+			WindowMainRefresh();
+			ReleaseMutex(clientListMutex);
 			break;
 		case IDM_REMOTE_ALWAYS_ON_TOP:
 			SetWindowPos(window, topMost ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);

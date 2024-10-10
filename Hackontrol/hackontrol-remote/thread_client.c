@@ -17,27 +17,35 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	}
 
 	LOG("[Client %ws]: Initializing\n", client->address);
-	HRSPERROR protocolError;
-	LPWSTR message;
+	client->mutex = CreateMutexExW(NULL, NULL, 0, SYNCHRONIZE | DELETE);
 	PLINKEDLISTITEM item = NULL;
 	DWORD codeExit = 1;
 
+	if(!client->mutex) {
+		KHOPANLASTERRORCONSOLE_WIN32(L"CreateMutexExW");
+		goto functionExit;
+	}
+
+	WaitForSingleObject(client->mutex, INFINITE);
+	HRSPERROR protocolError;
+	LPWSTR message;
+
 	if(!HRSPServerHandshake(client->socket, &client->hrsp, &protocolError)) {
 		ERROR_HRSP(L"HRSPServerHandshake");
-		goto functionExit;
+		goto closeMutex;
 	}
 
 	HRSPPACKET packet;
 
 	if(!HRSPReceivePacket(client->socket, &client->hrsp, &packet, &protocolError)) {
 		ERROR_HRSP(L"HRSPReceivePacket");
-		goto functionExit;
+		goto closeMutex;
 	}
 
 	if(packet.type != HRSP_REMOTE_CLIENT_INFORMATION_PACKET) {
 		LOG("[Client %ws]: Invalid first packet type: %u\n", client->address, packet.type);
 		HRSPFreePacket(&packet, NULL);
-		goto functionExit;
+		goto closeMutex;
 	}
 
 	client->name = KHOPANFormatMessage(L"%S", packet.data);
@@ -59,6 +67,7 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	client = (PCLIENT) item->data;
 	WindowMainRefresh();
 	ReleaseMutex(clientListMutex);
+	ReleaseMutex(client->mutex);
 
 	while(HRSPReceivePacket(client->socket, &client->hrsp, &packet, &protocolError)) {
 		switch(packet.type) {
@@ -70,6 +79,8 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 		HRSPFreePacket(&packet, NULL);
 	}
 
+	WaitForSingleObject(client->mutex, INFINITE);
+
 	if(!protocolError.code || (!protocolError.win32 && protocolError.code == HRSP_ERROR_CONNECTION_CLOSED) || (protocolError.win32 && (protocolError.code == WSAEINTR || protocolError.code == WSAECONNABORTED || protocolError.code == WSAECONNRESET))) {
 		codeExit = 0;
 		goto closeSession;
@@ -78,15 +89,16 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	ERROR_HRSP(L"HRSPReceivePacket");
 closeSession:
 	if(client->session.thread) {
-		WaitForSingleObject(client->session.mutex, INFINITE);
 		WindowSessionClose(client);
-		CloseHandle(client->session.mutex);
 		WaitForSingleObject(client->session.thread, INFINITE);
+		CloseHandle(client->session.thread);
 	}
 freeName:
 	if(client->name) {
 		LocalFree(client->name);
 	}
+closeMutex:
+	CloseHandle(client->mutex);
 functionExit:
 	closesocket(client->socket);
 	LOG("[Client %ws]: Exit with code: %d\n", client->address, codeExit);
@@ -107,43 +119,21 @@ functionExit:
 }
 
 void ThreadClientOpen(const PCLIENT client) {
-	if(!client) {
-		return;
-	}
-
-	if(client->session.mutex) {
-		WaitForSingleObject(client->session.mutex, INFINITE);
-	} else {
-		client->session.mutex = CreateMutexExW(NULL, NULL, 0, SYNCHRONIZE | DELETE);
-
-		if(!client->session.mutex) {
-			KHOPANLASTERRORCONSOLE_WIN32(L"CreateMutexExW");
-			return;
-		}
-
-		WaitForSingleObject(client->session.mutex, INFINITE);
-	}
-
 	if(client->session.thread) {
 		WindowSessionClose(client);
-	}
-
-	ReleaseMutex(client->session.mutex);
-
-	if(client->session.thread) {
 		WaitForSingleObject(client->session.thread, INFINITE);
+		CloseHandle(client->session.thread);
 	}
 
 	client->session.thread = CreateThread(NULL, 0, WindowSession, client, 0, NULL);
 
 	if(!client->session.thread) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateThread");
-		CloseHandle(client->session.mutex);
 	}
 }
 
 void ThreadClientDisconnect(const PCLIENT client) {
-	if(client && client->socket) {
+	if(client->socket) {
 		shutdown(client->socket, SD_BOTH);
 		closesocket(client->socket);
 	}

@@ -21,7 +21,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
-	case WM_COMMAND:
+	/*case WM_COMMAND:
 		if(HIWORD(wparam) != BN_CLICKED || WaitForSingleObject(client->session.mutex, INFINITE) == WAIT_FAILED) {
 			break;
 		}
@@ -39,7 +39,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		}
 
 		ReleaseMutex(client->session.mutex);
-		break;
+		break;*/
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
@@ -139,13 +139,11 @@ destroyWindow:
 	client->session.window = NULL;
 functionExit:
 	LOG("[Session %ws]: Exit with code: %d\n", client->address, codeExit);
-	CloseHandle(client->session.thread);
-	client->session.thread = NULL;
 	return codeExit;
 }
 
 void WindowSessionClose(const PCLIENT client) {
-	if(client && client->session.window) {
+	if(client->session.window) {
 		PostMessageW(client->session.window, WM_CLOSE, 0, 0);
 	}
 }

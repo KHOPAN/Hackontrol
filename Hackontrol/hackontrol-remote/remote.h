@@ -27,9 +27,9 @@ typedef struct {
 	SOCKET socket;
 	HANDLE thread;
 	HRSPDATA hrsp;
+	HANDLE mutex;
 
 	struct {
-		HANDLE mutex;
 		HANDLE thread;
 		HWND window;
 
