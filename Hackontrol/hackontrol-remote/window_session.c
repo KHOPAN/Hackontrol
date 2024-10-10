@@ -29,7 +29,6 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		if(client->session.stream.thread) {
 			WindowStreamClose(client);
 			WaitForSingleObject(client->session.stream.thread, INFINITE);
-			CloseHandle(client->session.stream.thread);
 		}
 
 		client->session.stream.thread = CreateThread(NULL, 0, WindowStream, client, 0, NULL);
@@ -128,7 +127,6 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 	if(client->session.stream.thread) {
 		WindowStreamClose(client);
 		WaitForSingleObject(client->session.stream.thread, INFINITE);
-		CloseHandle(client->session.stream.thread);
 	}
 
 	codeExit = 0;

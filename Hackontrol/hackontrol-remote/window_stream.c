@@ -69,6 +69,8 @@ DWORD WINAPI WindowStream(_In_ PCLIENT client) {
 	client->session.stream.window = NULL;
 functionExit:
 	LOG("[Stream %ws]: Exit with code: %d\n", client->address, codeExit);
+	CloseHandle(client->session.stream.thread);
+	client->session.stream.thread = NULL;
 	return codeExit;
 }
 
