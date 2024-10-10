@@ -38,7 +38,6 @@ DWORD WINAPI WindowStream(_In_ PCLIENT client) {
 		return 1;
 	}
 
-	LOG("[Stream %ws]: Initializing\n", client->address);
 	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
 	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	int width = (int) (((double) screenWidth) * 0.439238653);

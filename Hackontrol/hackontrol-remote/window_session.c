@@ -67,7 +67,6 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 		return 1;
 	}
 
-	LOG("[Session %ws]: Initializing\n", client->address);
 	RECT bounds;
 	bounds.right = GetSystemMetrics(SM_CXSCREEN);
 	bounds.bottom = GetSystemMetrics(SM_CYSCREEN);
