@@ -91,7 +91,6 @@ closeSession:
 	if(client->session.thread) {
 		WindowSessionClose(client);
 		WaitForSingleObject(client->session.thread, INFINITE);
-		CloseHandle(client->session.thread);
 	}
 freeName:
 	if(client->name) {
@@ -122,7 +121,6 @@ void ThreadClientOpen(const PCLIENT client) {
 	if(client->session.thread) {
 		WindowSessionClose(client);
 		WaitForSingleObject(client->session.thread, INFINITE);
-		CloseHandle(client->session.thread);
 	}
 
 	client->session.thread = CreateThread(NULL, 0, WindowSession, client, 0, NULL);
