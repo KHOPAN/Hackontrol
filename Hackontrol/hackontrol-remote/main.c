@@ -18,11 +18,7 @@ int WINAPI WinMain(_In_ HINSTANCE programInstance, _In_opt_ HINSTANCE previousIn
 	freopen_s(&file, "CONOUT$", "w", stdout);
 	file = stderr;
 	freopen_s(&file, "CONOUT$", "w", stderr);
-
-	if(!SetConsoleTitleW(L"Remote Console")) {
-		KHOPANLASTERRORMESSAGE_WIN32(L"SetConsoleTitleW");
-		goto functionExit;
-	}
+	SetConsoleTitleW(L"Remote Console");
 #endif
 	LOG("[Remote]: Initializing\n");
 	WSADATA data;
