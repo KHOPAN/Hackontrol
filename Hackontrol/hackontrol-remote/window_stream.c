@@ -66,13 +66,14 @@ DWORD WINAPI WindowStream(_In_ PCLIENT client) {
 
 	codeExit = 0;
 	DestroyWindow(client->session.stream.window);
+	client->session.stream.window = NULL;
 functionExit:
 	LOG("[Stream %ws]: Exit with code: %d\n", client->address, codeExit);
 	return codeExit;
 }
 
 void WindowStreamClose(const PCLIENT client) {
-	if(client && client->session.stream.window) {
+	if(client->session.stream.window) {
 		PostMessageW(client->session.stream.window, WM_CLOSE, 0, 0);
 	}
 }
