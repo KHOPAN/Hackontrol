@@ -43,6 +43,23 @@ typedef struct {
 			int imageX;
 			int imageY;
 			PBYTE pixels;
+
+			struct {
+				BOOL stream;
+
+				enum {
+					SEND_METHOD_FULL = 0,
+					SEND_METHOD_BOUNDARY,
+					SEND_METHOD_COLOR,
+					SEND_METHOD_UNCOMPRESSED,
+				} method;
+
+				BOOL alwaysOnTop;
+				BOOL fullscreen;
+				BOOL pictureInPicture;
+				BOOL lockFrame;
+				BOOL limitToScreen;
+			} menu;
 		} stream;
 	} session;
 } CLIENT, *PCLIENT;

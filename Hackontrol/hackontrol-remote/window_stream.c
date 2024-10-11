@@ -1,5 +1,18 @@
 #include "remote.h"
 
+#define IDM_STREAM_ENABLE            0xE001
+#define IDM_SEND_METHOD_FULL         0xE002
+#define IDM_SEND_METHOD_BOUNDARY     0xE003
+#define IDM_SEND_METHOD_COLOR        0xE004
+#define IDM_SEND_METHOD_UNCOMPRESSED 0xE005
+#define IDM_ALWAYS_ON_TOP            0xE006
+#define IDM_FULLSCREEN               0xE007
+#define IDM_MATCH_ASPECT_RATIO       0xE008
+#define IDM_PICTURE_IN_PICTURE       0xE009
+#define IDM_LOCK_FRAME               0xE00A
+#define IDM_LIMIT_TO_SCREEN          0xE00B
+#define IDM_CLOSE_WINDOW             0xE00C
+
 extern HINSTANCE instance;
 
 static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
@@ -16,6 +29,15 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 
 	RECT bounds;
 	POINT location;
+	PAINTSTRUCT paintStruct = {0};
+	HDC context;
+	HDC memoryContext;
+	HBITMAP bitmap;
+	HBITMAP oldBitmap;
+	HBRUSH brush;
+	BITMAPINFO information = {0};
+	HMENU menu;
+	HMENU sendMethodMenu;
 
 	switch(message) {
 	case WM_CLOSE:
@@ -49,12 +71,11 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		break;
 	case WM_PAINT:
 		GetClientRect(window, &bounds);
-		PAINTSTRUCT paintStruct;
-		HDC context = BeginPaint(window, &paintStruct);
-		HDC memoryContext = CreateCompatibleDC(context);
-		HBITMAP bitmap = CreateCompatibleBitmap(context, bounds.right, bounds.bottom);
-		HBITMAP oldBitmap = SelectObject(memoryContext, bitmap);
-		HBRUSH brush = GetStockObject(DC_BRUSH);
+		context = BeginPaint(window, &paintStruct);
+		memoryContext = CreateCompatibleDC(context);
+		bitmap = CreateCompatibleBitmap(context, bounds.right, bounds.bottom);
+		oldBitmap = SelectObject(memoryContext, bitmap);
+		brush = GetStockObject(DC_BRUSH);
 		SetDCBrushColor(memoryContext, 0x000000);
 		FillRect(memoryContext, &bounds, brush);
 
@@ -63,7 +84,6 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		}
 
 		if(client->session.stream.pixels) {
-			BITMAPINFO information = {0};
 			information.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 			information.bmiHeader.biWidth = client->session.stream.sourceWidth;
 			information.bmiHeader.biHeight = client->session.stream.sourceHeight;
@@ -80,6 +100,47 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		DeleteObject(bitmap);
 		DeleteDC(memoryContext);
 		EndPaint(window, &paintStruct);
+		break;
+	case WM_CONTEXTMENU:
+		menu = CreatePopupMenu();
+
+		if(!menu) {
+			break;
+		}
+
+		sendMethodMenu = CreateMenu();
+
+		if(!sendMethodMenu) {
+			DestroyMenu(menu);
+			break;
+		}
+
+		if(WaitForSingleObject(client->mutex, INFINITE) == WAIT_FAILED) {
+			DestroyMenu(sendMethodMenu);
+			DestroyMenu(menu);
+			break;
+		}
+
+		AppendMenuW(menu, MF_STRING | (client->session.stream.menu.stream ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_ENABLE, L"Enable Streaming");
+		AppendMenuW(sendMethodMenu, MF_STRING | (client->session.stream.menu.method == SEND_METHOD_FULL ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_FULL, L"Full");
+		AppendMenuW(sendMethodMenu, MF_STRING | (client->session.stream.menu.method == SEND_METHOD_BOUNDARY ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_BOUNDARY, L"Boundary Differences");
+		AppendMenuW(sendMethodMenu, MF_STRING | (client->session.stream.menu.method == SEND_METHOD_COLOR ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_COLOR, L"Color Differences");
+		AppendMenuW(sendMethodMenu, MF_STRING | (client->session.stream.menu.method == SEND_METHOD_UNCOMPRESSED ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_UNCOMPRESSED, L"Uncompressed");
+		AppendMenuW(menu, MF_POPUP | (client->session.stream.menu.stream ? MF_ENABLED : MF_DISABLED), (UINT_PTR) sendMethodMenu, L"Send Method");
+		AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
+		AppendMenuW(menu, MF_STRING | (client->session.stream.menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_MATCH_ASPECT_RATIO, L"Match Aspect Ratio");
+		AppendMenuW(menu, MF_STRING | (client->session.stream.menu.alwaysOnTop ? MF_CHECKED : MF_UNCHECKED), IDM_ALWAYS_ON_TOP, L"Always On Top");
+		AppendMenuW(menu, MF_STRING | (client->session.stream.menu.fullscreen ? MF_CHECKED : MF_UNCHECKED), IDM_FULLSCREEN, L"Fullscreen");
+		AppendMenuW(menu, MF_STRING | (client->session.stream.menu.limitToScreen ? MF_CHECKED : MF_UNCHECKED) | (client->session.stream.menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_LIMIT_TO_SCREEN, L"Limit To Screen");
+		AppendMenuW(menu, MF_STRING | (client->session.stream.menu.lockFrame ? MF_CHECKED : MF_UNCHECKED) | (client->session.stream.menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_LOCK_FRAME, L"Lock Frame");
+		AppendMenuW(menu, MF_STRING | (client->session.stream.menu.pictureInPicture ? MF_CHECKED : MF_UNCHECKED) | (client->session.stream.menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_PICTURE_IN_PICTURE, L"Picture In Picture");
+		AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
+		AppendMenuW(menu, MF_STRING, IDM_CLOSE_WINDOW, L"Close Window");
+		SetForegroundWindow(window);
+		ReleaseMutex(client->mutex);
+		TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
+		DestroyMenu(sendMethodMenu);
+		DestroyMenu(menu);
 		break;
 	}
 
