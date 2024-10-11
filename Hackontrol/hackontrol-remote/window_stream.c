@@ -403,6 +403,11 @@ DWORD WINAPI WindowStream(_In_ PCLIENT client) {
 	codeExit = 0;
 	DestroyWindow(client->session.stream.window);
 	client->session.stream.window = NULL;
+
+	if(client->session.stream.pixels) {
+		KHOPAN_DEALLOCATE(client->session.stream.pixels);
+		client->session.stream.pixels = NULL;
+	}
 functionExit:
 	LOG("[Stream %ws]: Exit with code: %d\n", client->address, codeExit);
 	CloseHandle(client->session.stream.thread);
