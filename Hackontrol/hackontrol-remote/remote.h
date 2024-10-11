@@ -36,6 +36,13 @@ typedef struct {
 		struct {
 			HANDLE thread;
 			HWND window;
+			int sourceWidth;
+			int sourceHeight;
+			int imageWidth;
+			int imageHeight;
+			int imageX;
+			int imageY;
+			PBYTE pixels;
 		} stream;
 	} session;
 } CLIENT, *PCLIENT;
@@ -52,4 +59,5 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client);
 void WindowSessionClose(const PCLIENT client);
 BOOL WindowStreamInitialize();
 DWORD WINAPI WindowStream(_In_ PCLIENT client);
+void WindowStreamFrame(const PCLIENT client, const PBYTE data, const size_t size);
 void WindowStreamClose(const PCLIENT client);
