@@ -119,6 +119,8 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		DeleteDC(memoryContext);
 		EndPaint(window, &paintStruct);
 		break;
+	case WM_ERASEBKGND:
+		return 1;
 	case WM_CONTEXTMENU:
 		menu = CreatePopupMenu();
 
@@ -248,6 +250,102 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 
 		ReleaseMutex(client->mutex);
 		break;
+	case WM_MOUSEMOVE:
+		if(WaitForSingleObject(client->mutex, INFINITE) == WAIT_FAILED) {
+			break;
+		}
+
+		if(client->session.stream.menu.lockFrame || client->session.stream.menu.fullscreen) {
+			SetCursor(LoadCursorW(NULL, IDC_ARROW));
+			ReleaseMutex(client->mutex);
+			break;
+		}
+
+		if(wparam == MK_LBUTTON) {
+			goto dragging;
+		}
+
+		if(client->session.stream.menu.pictureInPicture) {
+			location.x = LOWORD(lparam);
+			location.y = HIWORD(lparam);
+			GetClientRect(window, &bounds);
+			client->session.stream.cursorNorth = location.y >= 0 && location.y <= client->session.stream.resizeActivationDistance;
+			client->session.stream.cursorEast = location.x >= bounds.right - client->session.stream.resizeActivationDistance && location.x < bounds.right;
+			client->session.stream.cursorSouth = location.y >= bounds.bottom - client->session.stream.resizeActivationDistance && location.y < bounds.bottom;
+			client->session.stream.cursorWest = location.x >= 0 && location.x <= client->session.stream.resizeActivationDistance;
+			context = (HDC) (client->session.stream.cursorNorth ? client->session.stream.cursorWest ? IDC_SIZENWSE : client->session.stream.cursorEast ? IDC_SIZENESW : IDC_SIZENS : client->session.stream.cursorSouth ? client->session.stream.cursorWest ? IDC_SIZENESW : client->session.stream.cursorEast ? IDC_SIZENWSE : IDC_SIZENS : client->session.stream.cursorWest ? IDC_SIZEWE : client->session.stream.cursorEast ? IDC_SIZEWE : IDC_ARROW);
+		} else {
+			context = (HDC) IDC_ARROW;
+		}
+
+		SetCursor(LoadCursorW(NULL, (LPCWSTR) context));
+		ReleaseMutex(client->mutex);
+		break;
+	dragging:
+		paintStruct.rcPaint.left = GetSystemMetrics(SM_CXSCREEN);
+		paintStruct.rcPaint.top = GetSystemMetrics(SM_CYSCREEN);
+		GetCursorPos(&location);
+
+		if((!client->session.stream.cursorNorth && !client->session.stream.cursorEast && !client->session.stream.cursorSouth && !client->session.stream.cursorWest) || !client->session.stream.menu.pictureInPicture) {
+			if(!client->session.stream.menu.pictureInPicture) SetCursor(LoadCursorW(NULL, IDC_ARROW));
+			location.x -= client->session.stream.position.x - client->session.stream.bounds.left;
+			location.y -= client->session.stream.position.y - client->session.stream.bounds.top;
+			SetWindowPos(window, HWND_TOP, client->session.stream.menu.limitToScreen ? location.x < 0 ? 0 : location.x + client->session.stream.bounds.right - client->session.stream.bounds.left > paintStruct.rcPaint.left ? paintStruct.rcPaint.left - client->session.stream.bounds.right + client->session.stream.bounds.left : location.x : location.x, client->session.stream.menu.limitToScreen ? location.y < 0 ? 0 : location.y + client->session.stream.bounds.bottom - client->session.stream.bounds.top > paintStruct.rcPaint.top ? paintStruct.rcPaint.top - client->session.stream.bounds.bottom + client->session.stream.bounds.top : location.y : location.y, 0, 0, SWP_NOSIZE);
+			ReleaseMutex(client->mutex);
+			break;
+		}
+
+		paintStruct.rcPaint.right = client->session.stream.resizeActivationDistance * 3;
+		GetWindowRect(window, &bounds);
+		bounds.right -= bounds.left;
+		bounds.bottom -= bounds.top;
+
+		if(client->session.stream.cursorNorth) {
+			paintStruct.rcPaint.bottom = location.y - client->session.stream.position.y;
+			if(client->session.stream.menu.limitToScreen && client->session.stream.bounds.top + paintStruct.rcPaint.bottom < 0) paintStruct.rcPaint.bottom = -client->session.stream.bounds.top;
+			if(client->session.stream.bounds.bottom - client->session.stream.bounds.top - paintStruct.rcPaint.bottom < paintStruct.rcPaint.right) paintStruct.rcPaint.bottom = client->session.stream.bounds.bottom - client->session.stream.bounds.top - paintStruct.rcPaint.right;
+			bounds.top = client->session.stream.bounds.top + paintStruct.rcPaint.bottom;
+			bounds.bottom = client->session.stream.bounds.bottom - bounds.top;
+		}
+
+		if(client->session.stream.cursorEast) {
+			paintStruct.rcPaint.bottom = location.x - client->session.stream.position.x;
+			if(client->session.stream.menu.limitToScreen && client->session.stream.bounds.right + paintStruct.rcPaint.bottom > paintStruct.rcPaint.left) paintStruct.rcPaint.bottom = paintStruct.rcPaint.left - client->session.stream.bounds.right;
+			bounds.right = client->session.stream.bounds.right - client->session.stream.bounds.left + paintStruct.rcPaint.bottom;
+			bounds.right = max(bounds.right, paintStruct.rcPaint.right);
+		}
+
+		if(client->session.stream.cursorSouth) {
+			paintStruct.rcPaint.bottom = location.y - client->session.stream.position.y;
+			if(client->session.stream.menu.limitToScreen && client->session.stream.bounds.bottom + paintStruct.rcPaint.bottom > paintStruct.rcPaint.top) paintStruct.rcPaint.bottom = paintStruct.rcPaint.top - client->session.stream.bounds.bottom;
+			bounds.bottom = client->session.stream.bounds.bottom - client->session.stream.bounds.top + paintStruct.rcPaint.bottom;
+			bounds.bottom = max(bounds.bottom, paintStruct.rcPaint.right);
+		}
+
+		if(client->session.stream.cursorWest) {
+			paintStruct.rcPaint.bottom = location.x - client->session.stream.position.x;
+			if(client->session.stream.menu.limitToScreen && client->session.stream.bounds.left + paintStruct.rcPaint.bottom < 0) paintStruct.rcPaint.bottom = -client->session.stream.bounds.left;
+			if(client->session.stream.bounds.right - client->session.stream.bounds.left - paintStruct.rcPaint.bottom < paintStruct.rcPaint.right) paintStruct.rcPaint.bottom = client->session.stream.bounds.right - client->session.stream.bounds.left - paintStruct.rcPaint.right;
+			bounds.left = client->session.stream.bounds.left + paintStruct.rcPaint.bottom;
+			bounds.right = client->session.stream.bounds.right - bounds.left;
+		}
+
+		SetWindowPos(window, HWND_TOP, bounds.left, bounds.top, bounds.right, bounds.bottom, (!client->session.stream.cursorNorth && client->session.stream.cursorEast) || (client->session.stream.cursorSouth && !client->session.stream.cursorWest) ? SWP_NOMOVE : 0);
+		ReleaseMutex(client->mutex);
+		break;
+	case WM_LBUTTONDOWN:
+		if(WaitForSingleObject(client->mutex, INFINITE) == WAIT_FAILED) {
+			break;
+		}
+
+		GetWindowRect(window, &client->session.stream.bounds);
+		GetCursorPos(&client->session.stream.position);
+		ReleaseMutex(client->mutex);
+		SetCapture(window);
+		break;
+	case WM_LBUTTONUP:
+		ReleaseCapture();
+		break;
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
@@ -281,6 +379,7 @@ DWORD WINAPI WindowStream(_In_ PCLIENT client) {
 	int width = (int) (((double) screenWidth) * 0.439238653);
 	int height = (int) (((double) screenHeight) * 0.520833333);
 	LPWSTR title = KHOPANFormatMessage(L"Stream [%ws]", client->name);
+	client->session.stream.resizeActivationDistance = (int) (((double) screenWidth) * 0.00878477306);
 	client->session.stream.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_SESSION_STREAM, title ? title : L"Stream", WS_OVERLAPPEDWINDOW | WS_VISIBLE, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, instance, client);
 
 	if(title) {

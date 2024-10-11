@@ -36,6 +36,7 @@ typedef struct {
 		struct {
 			HANDLE thread;
 			HWND window;
+			int resizeActivationDistance;
 			int sourceWidth;
 			int sourceHeight;
 			int imageWidth;
@@ -65,6 +66,13 @@ typedef struct {
 				WINDOWPLACEMENT placement;
 				LONG_PTR style;
 			} fullscreen;
+
+			BOOL cursorNorth;
+			BOOL cursorEast;
+			BOOL cursorSouth;
+			BOOL cursorWest;
+			POINT position;
+			RECT bounds;
 		} stream;
 	} session;
 } CLIENT, *PCLIENT;
