@@ -15,6 +15,13 @@
 #define IDM_LIMIT_TO_SCREEN          0xE00B
 #define IDM_CLOSE_WINDOW             0xE00C
 
+#define QOI_OP_RGB   0b11111110
+#define QOI_OP_INDEX 0b00000000
+#define QOI_OP_DIFF  0b01000000
+#define QOI_OP_LUMA  0b10000000
+#define QOI_OP_RUN   0b11000000
+#define OP_MASK      0b11000000
+
 extern HINSTANCE instance;
 
 static void sendFrameCode(const PCLIENT client) {
@@ -334,6 +341,118 @@ void WindowStreamFrame(const PCLIENT client, const PBYTE data, const size_t size
 	if(!client->session.stream.pixels) {
 		return;
 	}
+
+	int x;
+	int y;
+	int pixelIndex;
+	int dataIndex;
+
+	if(!boundaryDifference || !colorDifference) {
+		goto exitRawPixel;
+	}
+
+	if(size - 9 < width * height * 3) {
+		return;
+	}
+
+	for(y = 0; y < height; y++) {
+		for(x = 0; x < width; x++) {
+			pixelIndex = (y * width + x) * 4;
+			dataIndex = ((height - y - 1) * width + x) * 3;
+			client->session.stream.pixels[pixelIndex] = data[dataIndex + 11];
+			client->session.stream.pixels[pixelIndex + 1] = data[dataIndex + 10];
+			client->session.stream.pixels[pixelIndex + 2] = data[dataIndex + 9];
+		}
+	}
+
+	goto invalidateWindow;
+exitRawPixel:
+	if(boundaryDifference && size - 9 < 16) {
+		return;
+	}
+
+	int startX = boundaryDifference ? (data[9] << 24) | (data[10] << 16) | (data[11] << 8) | data[12] : 0;
+	int endX = boundaryDifference ? (data[17] << 24) | (data[18] << 16) | (data[19] << 8) | data[20] : width - 1;
+	int endY = boundaryDifference ? (data[21] << 24) | (data[22] << 16) | (data[23] << 8) | data[24] : height - 1;
+	BYTE seenRed[64];
+	BYTE seenGreen[64];
+	BYTE seenBlue[64];
+	memset(seenRed, 0, sizeof(seenRed));
+	memset(seenGreen, 0, sizeof(seenGreen));
+	memset(seenBlue, 0, sizeof(seenBlue));
+	size_t pointer = boundaryDifference ? 25 : 9;
+	int red = 0;
+	int green = 0;
+	int blue = 0;
+	int run = 0;
+	int temporary = 0;
+#define APPLY_COLOR if(colorDifference){client->session.stream.pixels[pixelIndex]-=blue;client->session.stream.pixels[pixelIndex+1]-=green;client->session.stream.pixels[pixelIndex+2]-=red;}else{client->session.stream.pixels[pixelIndex]=blue;client->session.stream.pixels[pixelIndex+1]=green;client->session.stream.pixels[pixelIndex+2]=red;}
+
+	for(y = boundaryDifference ? (data[13] << 24) | (data[14] << 16) | (data[15] << 8) | data[16] : 0; y <= endY; y++) {
+		for(x = startX; x <= endX; x++) {
+			pixelIndex = ((height - y - 1) * width + x) * 4;
+
+			if(run > 0) {
+				APPLY_COLOR;
+				run--;
+				continue;
+			}
+
+			if(size - pointer < 1) {
+				return;
+			}
+
+			temporary = data[pointer++];
+
+			if(temporary == QOI_OP_RGB) {
+				if(size - pointer < 3) return;
+				red = data[pointer++];
+				green = data[pointer++];
+				blue = data[pointer++];
+				dataIndex = (red * 3 + green * 5 + blue * 7 + 0xFF * 11) & 0b111111;
+				seenRed[dataIndex] = red;
+				seenGreen[dataIndex] = green;
+				seenBlue[dataIndex] = blue;
+				APPLY_COLOR;
+				continue;
+			}
+
+			switch(temporary & OP_MASK) {
+			case QOI_OP_INDEX: {
+				dataIndex = temporary & 0b111111;
+				red = seenRed[dataIndex];
+				green = seenGreen[dataIndex];
+				blue = seenBlue[dataIndex];
+				break;
+			}
+			case QOI_OP_DIFF:
+				red += ((temporary >> 4) & 0b11) - 2;
+				green += ((temporary >> 2) & 0b11) - 2;
+				blue += (temporary & 0b11) - 2;
+				break;
+			case QOI_OP_LUMA:
+				if(size - pointer < 1) return;
+				dataIndex = data[pointer++];
+				temporary = (temporary & 0b111111) - 32;
+				red += temporary - 8 + ((dataIndex >> 4) & 0b1111);
+				green += temporary;
+				blue += temporary - 8 + (dataIndex & 0b1111);
+				break;
+			case QOI_OP_RUN:
+				APPLY_COLOR;
+				run = (temporary & 0b111111);
+				continue;
+			}
+
+			dataIndex = (red * 3 + green * 5 + blue * 7 + 0xFF * 11) & 0b111111;
+			seenRed[dataIndex] = red;
+			seenGreen[dataIndex] = green;
+			seenBlue[dataIndex] = blue;
+			APPLY_COLOR;
+		}
+	}
+invalidateWindow:
+	InvalidateRect(client->session.stream.window, NULL, FALSE);
 }
 
 void WindowStreamClose(const PCLIENT client) {
