@@ -61,6 +61,7 @@ int WINAPI WinMain(_In_ HINSTANCE programInstance, _In_opt_ HINSTANCE previousIn
 
 	if(socketListen) {
 		closesocket(socketListen);
+		socketListen = 0;
 	}
 
 	WaitForSingleObject(thread, INFINITE);

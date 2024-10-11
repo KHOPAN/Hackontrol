@@ -56,7 +56,7 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 	LOG("[Server]: Listening socket started\n");
 	PCLIENT client;
 
-	while(TRUE) {
+	while(*socketListen) {
 		SOCKADDR_IN address;
 		status = sizeof(SOCKADDR_IN);
 		SOCKET socket = accept(*socketListen, (struct sockaddr*) &address, &status);
