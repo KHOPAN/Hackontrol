@@ -1,3 +1,5 @@
+#include <hrsp_packet.h>
+#include <hrsp_remote.h>
 #include "remote.h"
 
 #define IDM_STREAM_ENABLE            0xE001
@@ -14,6 +16,15 @@
 #define IDM_CLOSE_WINDOW             0xE00C
 
 extern HINSTANCE instance;
+
+static void sendFrameCode(const PCLIENT client) {
+	BYTE data = ((client->session.stream.menu.method & 0b11) << 1) | (client->session.stream.menu.stream ? 0b1001 : 0);
+	HRSPPACKET packet;
+	packet.size = 1;
+	packet.type = HRSP_REMOTE_SERVER_STREAM_CODE_PACKET;
+	packet.data = &data;
+	HRSPSendPacket(client->socket, &client->hrsp, &packet, NULL);
+}
 
 static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	PCLIENT client = (PCLIENT) GetWindowLongPtrW(window, GWLP_USERDATA);
@@ -141,6 +152,94 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
 		DestroyMenu(sendMethodMenu);
 		DestroyMenu(menu);
+		break;
+	case WM_COMMAND:
+		if(WaitForSingleObject(client->mutex, INFINITE) == WAIT_FAILED) {
+			break;
+		}
+
+		switch(LOWORD(wparam)) {
+		case IDM_STREAM_ENABLE:
+			client->session.stream.menu.stream = !client->session.stream.menu.stream;
+			sendFrameCode(client);
+			break;
+		case IDM_SEND_METHOD_FULL:
+			client->session.stream.menu.method = SEND_METHOD_FULL;
+			sendFrameCode(client);
+			break;
+		case IDM_SEND_METHOD_BOUNDARY:
+			client->session.stream.menu.method = SEND_METHOD_BOUNDARY;
+			sendFrameCode(client);
+			break;
+		case IDM_SEND_METHOD_COLOR:
+			client->session.stream.menu.method = SEND_METHOD_COLOR;
+			sendFrameCode(client);
+			break;
+		case IDM_SEND_METHOD_UNCOMPRESSED:
+			client->session.stream.menu.method = SEND_METHOD_UNCOMPRESSED;
+			sendFrameCode(client);
+			break;
+		case IDM_MATCH_ASPECT_RATIO:
+			if(client->session.stream.sourceWidth < 1 || client->session.stream.sourceHeight < 1) break;
+			GetClientRect(window, &bounds);
+			bounds.right -= bounds.left;
+			bounds.bottom -= bounds.top;
+			if(bounds.right < 1 || bounds.bottom < 1) break;
+			bounds.left = (int) (((double) client->session.stream.sourceWidth) / ((double) client->session.stream.sourceHeight) * ((double) bounds.bottom));
+			bounds.top = (int) (((double) client->session.stream.sourceHeight) / ((double) client->session.stream.sourceWidth) * ((double) bounds.right));
+			location.x = bounds.left < bounds.right;
+			bounds.right = location.x ? bounds.left : bounds.right;
+			bounds.bottom = location.x ? bounds.bottom : bounds.top;
+			bounds.left = 0;
+			bounds.top = 0;
+			AdjustWindowRect(&bounds, (DWORD) GetWindowLongPtrW(window, GWL_STYLE), FALSE);
+			SetWindowPos(window, HWND_TOP, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED);
+			PostMessageW(window, WM_SIZE, 0, 0);
+			break;
+		case IDM_ALWAYS_ON_TOP:
+			client->session.stream.menu.alwaysOnTop = !client->session.stream.menu.alwaysOnTop;
+			SetWindowPos(window, client->session.stream.menu.alwaysOnTop ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+			break;
+		case IDM_FULLSCREEN:
+			client->session.stream.menu.fullscreen = !client->session.stream.menu.fullscreen;
+			if(client->session.stream.menu.fullscreen) client->session.stream.fullscreen.style = GetWindowLongPtrW(window, GWL_STYLE);
+			client->session.stream.fullscreen.placement.length = sizeof(WINDOWPLACEMENT);
+			(client->session.stream.menu.fullscreen ? GetWindowPlacement : SetWindowPlacement)(window, &client->session.stream.fullscreen.placement);
+			SetWindowLongPtrW(window, GWL_STYLE, client->session.stream.menu.fullscreen ? WS_POPUP | WS_VISIBLE : client->session.stream.fullscreen.style);
+			if(client->session.stream.menu.fullscreen) SetWindowPos(window, HWND_TOP, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), SWP_FRAMECHANGED);
+			PostMessageW(window, WM_SIZE, 0, 0);
+			break;
+		case IDM_LIMIT_TO_SCREEN:
+			client->session.stream.menu.limitToScreen = !client->session.stream.menu.limitToScreen;
+			if(!client->session.stream.menu.limitToScreen) break;
+			GetWindowRect(window, &bounds);
+			bounds.right -= bounds.left;
+			bounds.bottom -= bounds.top;
+			location.x = GetSystemMetrics(SM_CXSCREEN);
+			location.y = GetSystemMetrics(SM_CYSCREEN);
+			bounds.left = max(bounds.left, 0);
+			bounds.top = max(bounds.top, 0);
+			bounds.right = min(bounds.right, location.x);
+			bounds.bottom = min(bounds.bottom, location.y);
+			if(bounds.left + bounds.right > location.x) bounds.left = location.x - bounds.right;
+			if(bounds.top + bounds.bottom > location.y) bounds.top = location.y - bounds.bottom;
+			SetWindowPos(window, HWND_TOP, bounds.left, bounds.top, bounds.right, bounds.bottom, 0);
+			break;
+		case IDM_LOCK_FRAME:
+			client->session.stream.menu.lockFrame = !client->session.stream.menu.lockFrame;
+			break;
+		case IDM_PICTURE_IN_PICTURE:
+			client->session.stream.menu.pictureInPicture = !client->session.stream.menu.pictureInPicture;
+			SetWindowLongPtrW(window, GWL_STYLE, (client->session.stream.menu.pictureInPicture ? WS_POPUP : WS_OVERLAPPEDWINDOW) | WS_VISIBLE);
+			SetWindowPos(window, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
+			PostMessageW(window, WM_SIZE, 0, 0);
+			break;
+		case IDM_CLOSE_WINDOW:
+			PostMessageW(window, WM_CLOSE, 0, 0);
+			break;
+		}
+
+		ReleaseMutex(client->mutex);
 		break;
 	}
 

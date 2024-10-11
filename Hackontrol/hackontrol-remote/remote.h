@@ -60,6 +60,11 @@ typedef struct {
 				BOOL lockFrame;
 				BOOL limitToScreen;
 			} menu;
+
+			struct {
+				WINDOWPLACEMENT placement;
+				LONG_PTR style;
+			} fullscreen;
 		} stream;
 	} session;
 } CLIENT, *PCLIENT;
