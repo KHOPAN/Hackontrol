@@ -55,7 +55,6 @@ typedef struct {
 					SEND_METHOD_UNCOMPRESSED,
 				} method;
 
-				BOOL alwaysOnTop;
 				BOOL fullscreen;
 				BOOL pictureInPicture;
 				BOOL lockFrame;
