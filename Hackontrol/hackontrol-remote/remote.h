@@ -79,13 +79,17 @@ typedef struct {
 DWORD WINAPI ThreadClient(_In_ PCLIENT client);
 void ThreadClientOpen(const PCLIENT client);
 void ThreadClientDisconnect(const PCLIENT client);
+
 DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen);
+
 int WindowMain();
 void WindowMainRefresh();
 void WindowMainExit();
+
 BOOL WindowSessionInitialize();
 DWORD WINAPI WindowSession(_In_ PCLIENT client);
 void WindowSessionClose(const PCLIENT client);
+
 BOOL WindowStreamInitialize();
 DWORD WINAPI WindowStream(_In_ PCLIENT client);
 void WindowStreamFrame(const PCLIENT client, const PBYTE data, const size_t size);
