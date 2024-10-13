@@ -64,15 +64,13 @@ int WINAPI WinMain(_In_ HINSTANCE programInstance, _In_opt_ HINSTANCE previousIn
 		socketListen = 0;
 	}
 
-	WaitForSingleObject(thread, INFINITE);
-	CloseHandle(thread);
+	REMOTE_CLOSE_HANDLE(thread);
 unregisterStream:
 	UnregisterClassW(CLASS_SESSION_STREAM, instance);
 unregisterSession:
 	UnregisterClassW(CLASS_REMOTE_SESSION, instance);
 closeClientListMutex:
-	WaitForSingleObject(clientListMutex, INFINITE);
-	CloseHandle(clientListMutex);
+	REMOTE_CLOSE_HANDLE(clientListMutex);
 freeClientList:
 	KHOPANLinkedFree(&clientList);
 cleanupSocket:

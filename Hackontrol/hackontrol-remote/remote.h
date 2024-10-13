@@ -21,6 +21,8 @@
 #define LOG(format, ...)
 #endif
 
+#define REMOTE_CLOSE_HANDLE(x) if(x&&x!=INVALID_HANDLE_VALUE){WaitForSingleObject(x,INFINITE);CloseHandle(x);x=NULL;}
+
 typedef struct {
 	LPWSTR name;
 	WCHAR address[16];
