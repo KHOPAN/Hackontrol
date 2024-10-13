@@ -158,14 +158,14 @@ int WindowMain() {
 		goto unregisterClass;
 	}
 
-	border = CreateWindowExW(WS_EX_NOPARENTNOTIFY, L"Button", L"Connected Devices", WS_CHILD | WS_VISIBLE | BS_GROUPBOX, 5, 0, 0, 0, window, NULL, NULL, NULL);
+	border = CreateWindowExW(WS_EX_NOPARENTNOTIFY, L"Button", L"Connected Devices", BS_GROUPBOX | WS_CHILD | WS_VISIBLE, 5, 0, 0, 0, window, NULL, NULL, NULL);
 
 	if(!border) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"CreateWindowExW");
 		goto unregisterClass;
 	}
 
-	listView = CreateWindowExW(WS_EX_CLIENTEDGE, WC_LISTVIEW, L"", WS_CHILD | WS_VISIBLE | WS_VSCROLL | LVS_REPORT | LVS_SINGLESEL, 0, 0, 0, 0, window, NULL, NULL, NULL);
+	listView = CreateWindowExW(WS_EX_CLIENTEDGE, WC_LISTVIEW, L"", LVS_REPORT | LVS_SINGLESEL | WS_CHILD | WS_VISIBLE | WS_VSCROLL, 0, 0, 0, 0, window, NULL, NULL, NULL);
 
 	if(!listView) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"CreateWindowExW");
@@ -212,8 +212,10 @@ int WindowMain() {
 	MSG message;
 
 	while(GetMessageW(&message, NULL, 0, 0)) {
-		TranslateMessage(&message);
-		DispatchMessageW(&message);
+		if(!IsDialogMessageW(window, &message)) {
+			TranslateMessage(&message);
+			DispatchMessageW(&message);
+		}
 	}
 
 	DeleteObject(font);
