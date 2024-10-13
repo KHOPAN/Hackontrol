@@ -46,6 +46,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 		}
 
 		if(!KHOPANLinkedGet(&clientList, ((LPNMITEMACTIVATE) lparam)->iItem, &item) || !item) {
+			ReleaseMutex(clientListMutex);
 			break;
 		}
 
@@ -212,6 +213,33 @@ int WindowMain() {
 	MSG message;
 
 	while(GetMessageW(&message, NULL, 0, 0)) {
+		if(message.message != WM_KEYDOWN || message.wParam != VK_RETURN) {
+			goto pass;
+		}
+
+		LONGLONG index = (LONGLONG) SendMessageW(listView, LVM_GETNEXTITEM, -1, LVNI_SELECTED);
+
+		if(index < 0 || WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
+			goto pass;
+		}
+
+		PLINKEDLISTITEM item = NULL;
+
+		if(!KHOPANLinkedGet(&clientList, (size_t) index, &item) || !item) {
+			ReleaseMutex(clientListMutex);
+			goto pass;
+		}
+
+		PCLIENT client = (PCLIENT) item->data;
+		ReleaseMutex(clientListMutex);
+
+		if(client && WaitForSingleObject(client->mutex, INFINITE) != WAIT_FAILED) {
+			ThreadClientOpen(client);
+			ReleaseMutex(client->mutex);
+		}
+
+		continue;
+	pass:
 		if(!IsDialogMessageW(window, &message)) {
 			TranslateMessage(&message);
 			DispatchMessageW(&message);
