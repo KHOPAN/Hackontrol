@@ -137,7 +137,7 @@ BOOL KHOPANArrayAdd(_Inout_ const PARRAYLIST list, _In_ const PBYTE data) {
 		list->data = buffer;
 	}
 
-	buffer = list->data + list->size * list->capacity;
+	buffer = list->data + list->size * list->count;
 
 	for(index = 0; index < list->size; index++) {
 		buffer[index] = data[index];
