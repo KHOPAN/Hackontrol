@@ -26,7 +26,6 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 		goto functionExit;
 	}
 
-	WaitForSingleObject(client->mutex, INFINITE);
 	HRSPERROR protocolError;
 	LPWSTR message;
 
@@ -52,7 +51,7 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	HRSPFreePacket(&packet, NULL);
 	LOG("[Client %ws]: Username: '%ws'\n", client->address, client->name);
 
-	if(WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
+	if(!clientListMutex || WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"WaitForSingleObject");
 		goto freeName;
 	}
@@ -67,7 +66,6 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	client = (PCLIENT) item->data;
 	WindowMainRefresh();
 	ReleaseMutex(clientListMutex);
-	ReleaseMutex(client->mutex);
 
 	while(HRSPReceivePacket(client->socket, &client->hrsp, &packet, &protocolError)) {
 		switch(packet.type) {
@@ -83,8 +81,6 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 
 		HRSPFreePacket(&packet, NULL);
 	}
-
-	WaitForSingleObject(client->mutex, INFINITE);
 
 	if(!protocolError.code || (!protocolError.win32 && protocolError.code == HRSP_ERROR_CONNECTION_CLOSED) || (protocolError.win32 && (protocolError.code == WSAEINTR || protocolError.code == WSAECONNABORTED || protocolError.code == WSAECONNRESET))) {
 		codeExit = 0;
@@ -102,13 +98,13 @@ freeName:
 		LocalFree(client->name);
 	}
 closeMutex:
-	CloseHandle(client->mutex);
+	REMOTE_CLOSE_HANDLE(client->mutex);
 functionExit:
 	closesocket(client->socket);
 	LOG("[Client %ws]: Exit with code: %d\n", client->address, codeExit);
 	CloseHandle(client->thread);
 
-	if(item && WaitForSingleObject(clientListMutex, INFINITE) != WAIT_FAILED) {
+	if(item && clientListMutex && WaitForSingleObject(clientListMutex, INFINITE) != WAIT_FAILED) {
 		if(KHOPANLinkedRemove(item)) {
 			WindowMainRefresh();
 		} else {

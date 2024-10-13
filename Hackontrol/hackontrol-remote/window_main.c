@@ -53,7 +53,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 		client = (PCLIENT) item->data;
 		ReleaseMutex(clientListMutex);
 
-		if(client && WaitForSingleObject(client->mutex, INFINITE) != WAIT_FAILED) {
+		if(client && client->mutex && WaitForSingleObject(client->mutex, INFINITE) != WAIT_FAILED) {
 			ThreadClientOpen(client);
 			ReleaseMutex(client->mutex);
 		}
@@ -99,7 +99,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 		case IDM_REMOTE_DISCONNECT:
 			if(!item) break;
 			client = (PCLIENT) item->data;
-			if(!client || WaitForSingleObject(client->mutex, INFINITE) == WAIT_FAILED) break;
+			if(!client || !client->mutex || WaitForSingleObject(client->mutex, INFINITE) == WAIT_FAILED) break;
 			if(status == IDM_REMOTE_OPEN) ThreadClientOpen(client);
 			if(status == IDM_REMOTE_DISCONNECT) ThreadClientDisconnect(client);
 			ReleaseMutex(client->mutex);
@@ -233,7 +233,7 @@ int WindowMain() {
 		PCLIENT client = (PCLIENT) item->data;
 		ReleaseMutex(clientListMutex);
 
-		if(client && WaitForSingleObject(client->mutex, INFINITE) != WAIT_FAILED) {
+		if(client && client->mutex && WaitForSingleObject(client->mutex, INFINITE) != WAIT_FAILED) {
 			ThreadClientOpen(client);
 			ReleaseMutex(client->mutex);
 		}

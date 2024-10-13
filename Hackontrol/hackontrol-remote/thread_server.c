@@ -99,7 +99,7 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 
 		KHOPAN_LINKED_LIST_ITERATE(item, &clientList) {
 			client = (PCLIENT) item->data;
-			if(!client || WaitForSingleObject(client->mutex, INFINITE) == WAIT_FAILED) continue;
+			if(!client || !client->mutex || WaitForSingleObject(client->mutex, INFINITE) == WAIT_FAILED) continue;
 			ThreadClientDisconnect(client);
 			KHOPANArrayAdd(&list, (PBYTE) &client->thread);
 			ReleaseMutex(client->mutex);
@@ -112,7 +112,8 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 
 	for(size_t i = 0; i < list.count; i++) {
 		if(KHOPANArrayGet(&list, i, (PBYTE*) &handle)) {
-			if(handle) WaitForSingleObject(*handle, INFINITE);
+			if(handle && *handle) WaitForSingleObject(*handle, INFINITE);
+			handle = NULL;
 		}
 	}
 

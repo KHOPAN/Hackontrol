@@ -22,7 +22,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		PostQuitMessage(0);
 		return 0;
 	case WM_COMMAND:
-		if(HIWORD(wparam) != BN_CLICKED || WaitForSingleObject(client->mutex, INFINITE) == WAIT_FAILED) {
+		if(HIWORD(wparam) != BN_CLICKED || !client->mutex || WaitForSingleObject(client->mutex, INFINITE) == WAIT_FAILED) {
 			break;
 		}
 
