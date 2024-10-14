@@ -391,7 +391,10 @@ closeMutex:
 	CloseHandle(client->session.stream.mutex);
 	client->session.stream.mutex = NULL;
 functionExit:
-	LOG("[Stream %ws]: Exit with code: %d\n", client->address, codeExit);
+	if(codeExit != 0) {
+		LOG("[Stream %ws]: Exit with code: %d\n", client->address, codeExit);
+	}
+
 	CloseHandle(client->session.stream.thread);
 	client->session.stream.thread = NULL;
 	return codeExit;

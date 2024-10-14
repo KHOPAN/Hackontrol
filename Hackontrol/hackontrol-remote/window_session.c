@@ -134,7 +134,10 @@ destroyWindow:
 	DestroyWindow(client->session.window);
 	client->session.window = NULL;
 functionExit:
-	LOG("[Session %ws]: Exit with code: %d\n", client->address, codeExit);
+	if(codeExit != 0) {
+		LOG("[Session %ws]: Exit with code: %d\n", client->address, codeExit);
+	}
+
 	CloseHandle(client->session.thread);
 	client->session.thread = NULL;
 	return codeExit;
