@@ -24,21 +24,15 @@ static BOOL openClient(const LONGLONG index) {
 	}
 
 	PLINKEDLISTITEM item = NULL;
-	BOOL result = !KHOPANLinkedGet(&clientList, index, &item) || !item;
+	BOOL result = KHOPANLinkedGet(&clientList, index, &item) && item;
 	ReleaseMutex(clientListMutex);
 
-	if(result) {
-		return FALSE;
+	if(result && item->data) {
+		ThreadClientOpen((PCLIENT) item->data);
+		return TRUE;
 	}
 
-	PCLIENT client = (PCLIENT) item->data;
-
-	if(client && WaitForSingleObject(client->mutex, INFINITE) != WAIT_FAILED) {
-		ThreadClientOpen(client);
-		ReleaseMutex(client->mutex);
-	}
-
-	return TRUE;
+	return FALSE;
 }
 
 static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
@@ -106,10 +100,9 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 		case IDM_REMOTE_DISCONNECT:
 			if(!item) break;
 			client = (PCLIENT) item->data;
-			if(!client || WaitForSingleObject(client->mutex, INFINITE) == WAIT_FAILED) break;
+			if(!client) break;
 			if(status == IDM_REMOTE_OPEN) ThreadClientOpen(client);
 			if(status == IDM_REMOTE_DISCONNECT) ThreadClientDisconnect(client);
-			ReleaseMutex(client->mutex);
 			break;
 		case IDM_REMOTE_REFRESH:
 			if(WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) break;

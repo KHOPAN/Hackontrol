@@ -74,15 +74,9 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 			goto closeSocket;
 		}
 
-		client->mutex = CreateMutexExW(NULL, NULL, 0, SYNCHRONIZE | DELETE);
-
-		if(!client->mutex) {
-			goto freeClient;
-		}
-
 		if(!InetNtopW(AF_INET, &address.sin_addr, client->address, 16)) {
 			KHOPANLASTERRORCONSOLE_WSA(L"InetNtopW");
-			goto closeMutex;
+			goto freeClient;
 		}
 
 		client->socket = socket;
@@ -90,12 +84,10 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 
 		if(!client->thread) {
 			KHOPANLASTERRORCONSOLE_WIN32(L"CreateThread");
-			goto closeMutex;
+			goto freeClient;
 		}
 
 		continue;
-	closeMutex:
-		CloseHandle(client->mutex);
 	freeClient:
 		KHOPAN_DEALLOCATE(client);
 	closeSocket:
@@ -107,10 +99,9 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 
 		KHOPAN_LINKED_LIST_ITERATE(item, &clientList) {
 			client = (PCLIENT) item->data;
-			if(!client || WaitForSingleObject(client->mutex, INFINITE) == WAIT_FAILED) continue;
+			if(!client) continue;
 			ThreadClientDisconnect(client);
 			KHOPANArrayAdd(&list, (PBYTE) &client->thread);
-			ReleaseMutex(client->mutex);
 		}
 
 		ReleaseMutex(clientListMutex);

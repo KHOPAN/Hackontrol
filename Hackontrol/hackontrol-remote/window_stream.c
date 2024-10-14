@@ -69,7 +69,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		bounds.right -= bounds.left;
 		bounds.bottom -= bounds.top;
 
-		if(client->session.stream.sourceWidth < 1 || client->session.stream.sourceHeight < 1 || bounds.right < 1 || bounds.bottom < 1 || WaitForSingleObject(client->mutex, INFINITE) == WAIT_FAILED) {
+		if(client->session.stream.sourceWidth < 1 || client->session.stream.sourceHeight < 1 || bounds.right < 1 || bounds.bottom < 1 || WaitForSingleObject(client->session.stream.mutex, INFINITE) == WAIT_FAILED) {
 			break;
 		}
 
@@ -85,7 +85,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 
 		client->session.stream.imageX = location.x ? (int) ((((double) bounds.right) - ((double) client->session.stream.imageWidth)) / 2.0) : 0;
 		client->session.stream.imageY = location.x ? 0 : (int) ((((double) bounds.bottom) - ((double) client->session.stream.imageHeight)) / 2.0);
-		ReleaseMutex(client->mutex);
+		ReleaseMutex(client->session.stream.mutex);
 		break;
 	case WM_PAINT:
 		GetClientRect(window, &bounds);
@@ -97,7 +97,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		SetDCBrushColor(memoryContext, 0x000000);
 		FillRect(memoryContext, &bounds, brush);
 
-		if(client->session.stream.pixels && WaitForSingleObject(client->mutex, INFINITE) != WAIT_FAILED) {
+		if(client->session.stream.pixels && WaitForSingleObject(client->session.stream.mutex, INFINITE) != WAIT_FAILED) {
 			information.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 			information.bmiHeader.biWidth = client->session.stream.sourceWidth;
 			information.bmiHeader.biHeight = client->session.stream.sourceHeight;
@@ -105,7 +105,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			information.bmiHeader.biBitCount = 32;
 			SetStretchBltMode(memoryContext, HALFTONE);
 			StretchDIBits(memoryContext, client->session.stream.imageX, client->session.stream.imageY, client->session.stream.imageWidth, client->session.stream.imageHeight, 0, 0, client->session.stream.sourceWidth, client->session.stream.sourceHeight, client->session.stream.pixels, &information, DIB_RGB_COLORS, SRCCOPY);
-			ReleaseMutex(client->mutex);
+			ReleaseMutex(client->session.stream.mutex);
 		}
 
 		BitBlt(context, 0, 0, bounds.right, bounds.bottom, memoryContext, 0, 0, SRCCOPY);
@@ -130,12 +130,6 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			break;
 		}
 
-		if(WaitForSingleObject(client->mutex, INFINITE) == WAIT_FAILED) {
-			DestroyMenu(sendMethodMenu);
-			DestroyMenu(menu);
-			break;
-		}
-
 		AppendMenuW(menu, MF_STRING | (client->session.stream.menu.stream ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_ENABLE, L"Enable Streaming");
 		AppendMenuW(sendMethodMenu, MF_STRING | (client->session.stream.menu.method == SEND_METHOD_FULL ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_FULL, L"Full");
 		AppendMenuW(sendMethodMenu, MF_STRING | (client->session.stream.menu.method == SEND_METHOD_BOUNDARY ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_BOUNDARY, L"Boundary Differences");
@@ -152,16 +146,11 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
 		AppendMenuW(menu, MF_STRING, IDM_CLOSE_WINDOW, L"Close Window");
 		SetForegroundWindow(window);
-		ReleaseMutex(client->mutex);
 		TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
 		DestroyMenu(sendMethodMenu);
 		DestroyMenu(menu);
 		break;
 	case WM_COMMAND:
-		if(WaitForSingleObject(client->mutex, INFINITE) == WAIT_FAILED) {
-			break;
-		}
-
 		switch(LOWORD(wparam)) {
 		case IDM_STREAM_ENABLE:
 			client->session.stream.menu.stream = !client->session.stream.menu.stream;
@@ -242,16 +231,10 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			break;
 		}
 
-		ReleaseMutex(client->mutex);
 		break;
 	case WM_MOUSEMOVE:
-		if(WaitForSingleObject(client->mutex, INFINITE) == WAIT_FAILED) {
-			break;
-		}
-
 		if(client->session.stream.menu.lockFrame || client->session.stream.menu.fullscreen) {
 			SetCursor(LoadCursorW(NULL, IDC_ARROW));
-			ReleaseMutex(client->mutex);
 			break;
 		}
 
@@ -273,7 +256,6 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		}
 
 		SetCursor(LoadCursorW(NULL, (LPCWSTR) context));
-		ReleaseMutex(client->mutex);
 		break;
 	dragging:
 		paintStruct.rcPaint.left = GetSystemMetrics(SM_CXSCREEN);
@@ -285,7 +267,6 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			location.x -= client->session.stream.position.x - client->session.stream.bounds.left;
 			location.y -= client->session.stream.position.y - client->session.stream.bounds.top;
 			SetWindowPos(window, HWND_TOP, client->session.stream.menu.limitToScreen ? location.x < 0 ? 0 : location.x + client->session.stream.bounds.right - client->session.stream.bounds.left > paintStruct.rcPaint.left ? paintStruct.rcPaint.left - client->session.stream.bounds.right + client->session.stream.bounds.left : location.x : location.x, client->session.stream.menu.limitToScreen ? location.y < 0 ? 0 : location.y + client->session.stream.bounds.bottom - client->session.stream.bounds.top > paintStruct.rcPaint.top ? paintStruct.rcPaint.top - client->session.stream.bounds.bottom + client->session.stream.bounds.top : location.y : location.y, 0, 0, SWP_NOSIZE);
-			ReleaseMutex(client->mutex);
 			break;
 		}
 
@@ -325,16 +306,10 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		}
 
 		SetWindowPos(window, HWND_TOP, bounds.left, bounds.top, bounds.right, bounds.bottom, (!client->session.stream.cursorNorth && client->session.stream.cursorEast) || (client->session.stream.cursorSouth && !client->session.stream.cursorWest) ? SWP_NOMOVE : 0);
-		ReleaseMutex(client->mutex);
 		break;
 	case WM_LBUTTONDOWN:
-		if(WaitForSingleObject(client->mutex, INFINITE) == WAIT_FAILED) {
-			break;
-		}
-
 		GetWindowRect(window, &client->session.stream.bounds);
 		GetCursorPos(&client->session.stream.position);
-		ReleaseMutex(client->mutex);
 		SetCapture(window);
 		break;
 	case WM_LBUTTONUP:
@@ -368,6 +343,14 @@ DWORD WINAPI WindowStream(_In_ PCLIENT client) {
 		return 1;
 	}
 
+	client->session.stream.mutex = CreateMutexExW(NULL, NULL, 0, SYNCHRONIZE | DELETE);
+	DWORD codeExit = 1;
+
+	if(!client->session.stream.mutex) {
+		KHOPANLASTERRORCONSOLE_WIN32(L"CreateMutexExW");
+		goto functionExit;
+	}
+
 	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
 	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	int width = (int) (((double) screenWidth) * 0.439238653);
@@ -380,11 +363,10 @@ DWORD WINAPI WindowStream(_In_ PCLIENT client) {
 		LocalFree(title);
 	}
 
-	DWORD codeExit = 1;
-
 	if(!client->session.stream.window) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
-		goto functionExit;
+		WaitForSingleObject(client->session.stream.mutex, INFINITE);
+		goto closeMutex;
 	}
 
 	MSG message;
@@ -396,13 +378,18 @@ DWORD WINAPI WindowStream(_In_ PCLIENT client) {
 
 	codeExit = 0;
 	DestroyWindow(client->session.stream.window);
-	client->session.stream.window = NULL;
+	WaitForSingleObject(client->session.stream.mutex, INFINITE);
 
-	if(client->session.stream.pixels && WaitForSingleObject(client->mutex, INFINITE) != WAIT_FAILED) {
+	if(client->session.stream.pixels) {
 		KHOPAN_DEALLOCATE(client->session.stream.pixels);
-		client->session.stream.pixels = NULL;
-		ReleaseMutex(client->mutex);
 	}
+
+	for(size_t i = offsetof(STREAM, window); i < sizeof(STREAM); i++) {
+		((PBYTE) &client->session.stream)[i] = 0;
+	}
+closeMutex:
+	CloseHandle(client->session.stream.mutex);
+	client->session.stream.mutex = NULL;
 functionExit:
 	LOG("[Stream %ws]: Exit with code: %d\n", client->address, codeExit);
 	CloseHandle(client->session.stream.thread);

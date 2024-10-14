@@ -22,6 +22,7 @@
 #endif
 
 typedef struct {
+	HANDLE mutex;
 	HANDLE thread;
 	HWND window;
 	int resizeActivationDistance;
@@ -69,7 +70,6 @@ typedef struct {
 } SESSION;
 
 typedef struct {
-	HANDLE mutex;
 	WCHAR address[16];
 	SOCKET socket;
 	HANDLE thread;

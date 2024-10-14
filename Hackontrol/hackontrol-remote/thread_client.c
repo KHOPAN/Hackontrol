@@ -63,9 +63,9 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	while(HRSPReceivePacket(client->socket, &client->hrsp, &packet, &protocolError)) {
 		switch(packet.type) {
 		case HRSP_REMOTE_CLIENT_STREAM_FRAME_PACKET:
-			if(WaitForSingleObject(client->mutex, INFINITE) == WAIT_FAILED) break;
+			if(!client->session.stream.mutex || WaitForSingleObject(client->session.stream.mutex, INFINITE) == WAIT_FAILED) break;
 			WindowStreamFrame(client, packet.data, packet.size);
-			ReleaseMutex(client->mutex);
+			ReleaseMutex(client->session.stream.mutex);
 			break;
 		default:
 			LOG("[Client %ws]: Unknown packet type: %u\n", client->address, packet.type);
@@ -94,8 +94,6 @@ functionExit:
 	closesocket(client->socket);
 	LOG("[Client %ws]: Exit with code: %d\n", client->address, codeExit);
 	CloseHandle(client->thread);
-	WaitForSingleObject(client->mutex, INFINITE);
-	CloseHandle(client->mutex);
 
 	if(item && WaitForSingleObject(clientListMutex, INFINITE) != WAIT_FAILED) {
 		if(KHOPANLinkedRemove(item)) {
