@@ -17,34 +17,27 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	}
 
 	LOG("[Client %ws]: Initializing\n", client->address);
-	client->mutex = CreateMutexExW(NULL, NULL, 0, SYNCHRONIZE | DELETE);
+	HRSPERROR protocolError;
+	LPWSTR message;
 	PLINKEDLISTITEM item = NULL;
 	DWORD codeExit = 1;
 
-	if(!client->mutex) {
-		KHOPANLASTERRORCONSOLE_WIN32(L"CreateMutexExW");
-		goto functionExit;
-	}
-
-	HRSPERROR protocolError;
-	LPWSTR message;
-
 	if(!HRSPServerHandshake(client->socket, &client->hrsp, &protocolError)) {
 		ERROR_HRSP(L"HRSPServerHandshake");
-		goto closeMutex;
+		goto functionExit;
 	}
 
 	HRSPPACKET packet;
 
 	if(!HRSPReceivePacket(client->socket, &client->hrsp, &packet, &protocolError)) {
 		ERROR_HRSP(L"HRSPReceivePacket");
-		goto closeMutex;
+		goto functionExit;
 	}
 
 	if(packet.type != HRSP_REMOTE_CLIENT_INFORMATION_PACKET) {
 		LOG("[Client %ws]: Invalid first packet type: %u\n", client->address, packet.type);
 		HRSPFreePacket(&packet, NULL);
-		goto closeMutex;
+		goto functionExit;
 	}
 
 	client->name = KHOPANFormatMessage(L"%S", packet.data);
@@ -97,14 +90,14 @@ freeName:
 	if(client->name) {
 		LocalFree(client->name);
 	}
-closeMutex:
-	REMOTE_CLOSE_HANDLE(client->mutex);
 functionExit:
 	closesocket(client->socket);
 	LOG("[Client %ws]: Exit with code: %d\n", client->address, codeExit);
 	CloseHandle(client->thread);
+	WaitForSingleObject(client->mutex, INFINITE);
+	CloseHandle(client->mutex);
 
-	if(item && clientListMutex && WaitForSingleObject(clientListMutex, INFINITE) != WAIT_FAILED) {
+	if(item && WaitForSingleObject(clientListMutex, INFINITE) != WAIT_FAILED) {
 		if(KHOPANLinkedRemove(item)) {
 			WindowMainRefresh();
 		} else {

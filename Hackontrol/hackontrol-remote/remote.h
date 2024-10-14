@@ -21,61 +21,61 @@
 #define LOG(format, ...)
 #endif
 
-#define REMOTE_CLOSE_HANDLE(x) if(x&&x!=INVALID_HANDLE_VALUE){WaitForSingleObject(x,INFINITE);CloseHandle(x);x=NULL;}
+typedef struct {
+	HANDLE thread;
+	HWND window;
+	int resizeActivationDistance;
+	int sourceWidth;
+	int sourceHeight;
+	int imageWidth;
+	int imageHeight;
+	int imageX;
+	int imageY;
+	PBYTE pixels;
+
+	struct {
+		BOOL stream;
+
+		enum {
+			SEND_METHOD_FULL = 0,
+			SEND_METHOD_BOUNDARY,
+			SEND_METHOD_COLOR,
+			SEND_METHOD_UNCOMPRESSED,
+		} method;
+
+		BOOL fullscreen;
+		BOOL pictureInPicture;
+		BOOL lockFrame;
+		BOOL limitToScreen;
+	} menu;
+
+	struct {
+		WINDOWPLACEMENT placement;
+		LONG_PTR style;
+	} fullscreen;
+
+	BOOL cursorNorth;
+	BOOL cursorEast;
+	BOOL cursorSouth;
+	BOOL cursorWest;
+	POINT position;
+	RECT bounds;
+} STREAM;
 
 typedef struct {
-	LPWSTR name;
+	HANDLE thread;
+	HWND window;
+	STREAM stream;
+} SESSION;
+
+typedef struct {
+	HANDLE mutex;
 	WCHAR address[16];
 	SOCKET socket;
 	HANDLE thread;
 	HRSPDATA hrsp;
-	HANDLE mutex;
-
-	struct {
-		HANDLE thread;
-		HWND window;
-
-		struct {
-			HANDLE thread;
-			HWND window;
-			int resizeActivationDistance;
-			int sourceWidth;
-			int sourceHeight;
-			int imageWidth;
-			int imageHeight;
-			int imageX;
-			int imageY;
-			PBYTE pixels;
-
-			struct {
-				BOOL stream;
-
-				enum {
-					SEND_METHOD_FULL = 0,
-					SEND_METHOD_BOUNDARY,
-					SEND_METHOD_COLOR,
-					SEND_METHOD_UNCOMPRESSED,
-				} method;
-
-				BOOL fullscreen;
-				BOOL pictureInPicture;
-				BOOL lockFrame;
-				BOOL limitToScreen;
-			} menu;
-
-			struct {
-				WINDOWPLACEMENT placement;
-				LONG_PTR style;
-			} fullscreen;
-
-			BOOL cursorNorth;
-			BOOL cursorEast;
-			BOOL cursorSouth;
-			BOOL cursorWest;
-			POINT position;
-			RECT bounds;
-		} stream;
-	} session;
+	LPWSTR name;
+	SESSION session;
 } CLIENT, *PCLIENT;
 
 DWORD WINAPI ThreadClient(_In_ PCLIENT client);

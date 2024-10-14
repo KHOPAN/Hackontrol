@@ -69,7 +69,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		bounds.right -= bounds.left;
 		bounds.bottom -= bounds.top;
 
-		if(client->session.stream.sourceWidth < 1 || client->session.stream.sourceHeight < 1 || bounds.right < 1 || bounds.bottom < 1 || !client->mutex || WaitForSingleObject(client->mutex, INFINITE) == WAIT_FAILED) {
+		if(client->session.stream.sourceWidth < 1 || client->session.stream.sourceHeight < 1 || bounds.right < 1 || bounds.bottom < 1 || WaitForSingleObject(client->mutex, INFINITE) == WAIT_FAILED) {
 			break;
 		}
 
@@ -97,7 +97,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		SetDCBrushColor(memoryContext, 0x000000);
 		FillRect(memoryContext, &bounds, brush);
 
-		if(client->mutex && client->session.stream.pixels && WaitForSingleObject(client->mutex, INFINITE) != WAIT_FAILED) {
+		if(client->session.stream.pixels && WaitForSingleObject(client->mutex, INFINITE) != WAIT_FAILED) {
 			information.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 			information.bmiHeader.biWidth = client->session.stream.sourceWidth;
 			information.bmiHeader.biHeight = client->session.stream.sourceHeight;
@@ -130,7 +130,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			break;
 		}
 
-		if(!client->mutex || WaitForSingleObject(client->mutex, INFINITE) == WAIT_FAILED) {
+		if(WaitForSingleObject(client->mutex, INFINITE) == WAIT_FAILED) {
 			DestroyMenu(sendMethodMenu);
 			DestroyMenu(menu);
 			break;
@@ -158,7 +158,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		DestroyMenu(menu);
 		break;
 	case WM_COMMAND:
-		if(!client->mutex || WaitForSingleObject(client->mutex, INFINITE) == WAIT_FAILED) {
+		if(WaitForSingleObject(client->mutex, INFINITE) == WAIT_FAILED) {
 			break;
 		}
 
@@ -245,7 +245,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		ReleaseMutex(client->mutex);
 		break;
 	case WM_MOUSEMOVE:
-		if(!client->mutex || WaitForSingleObject(client->mutex, INFINITE) == WAIT_FAILED) {
+		if(WaitForSingleObject(client->mutex, INFINITE) == WAIT_FAILED) {
 			break;
 		}
 
@@ -328,7 +328,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		ReleaseMutex(client->mutex);
 		break;
 	case WM_LBUTTONDOWN:
-		if(!client->mutex || WaitForSingleObject(client->mutex, INFINITE) == WAIT_FAILED) {
+		if(WaitForSingleObject(client->mutex, INFINITE) == WAIT_FAILED) {
 			break;
 		}
 
@@ -398,7 +398,7 @@ DWORD WINAPI WindowStream(_In_ PCLIENT client) {
 	DestroyWindow(client->session.stream.window);
 	client->session.stream.window = NULL;
 
-	if(client->mutex && client->session.stream.pixels && WaitForSingleObject(client->mutex, INFINITE) != WAIT_FAILED) {
+	if(client->session.stream.pixels && WaitForSingleObject(client->mutex, INFINITE) != WAIT_FAILED) {
 		KHOPAN_DEALLOCATE(client->session.stream.pixels);
 		client->session.stream.pixels = NULL;
 		ReleaseMutex(client->mutex);

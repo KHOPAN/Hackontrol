@@ -18,6 +18,29 @@ static HWND window;
 static HWND border;
 static HWND listView;
 
+static BOOL openClient(const LONGLONG index) {
+	if(index < 0 && WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
+		return FALSE;
+	}
+
+	PLINKEDLISTITEM item = NULL;
+	BOOL result = !KHOPANLinkedGet(&clientList, index, &item) || !item;
+	ReleaseMutex(clientListMutex);
+
+	if(result) {
+		return FALSE;
+	}
+
+	PCLIENT client = (PCLIENT) item->data;
+
+	if(client && WaitForSingleObject(client->mutex, INFINITE) != WAIT_FAILED) {
+		ThreadClientOpen(client);
+		ReleaseMutex(client->mutex);
+	}
+
+	return TRUE;
+}
+
 static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	RECT bounds;
 	PCLIENT client;
@@ -41,23 +64,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 		SetWindowPos(listView, HWND_TOP, bounds.left + 9, bounds.top + 17, bounds.right - bounds.left - 8, bounds.bottom - bounds.top - 22, 0);
 		return 0;
 	case WM_NOTIFY:
-		if(!lparam || ((LPNMHDR) lparam)->code != NM_DBLCLK || WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
-			break;
-		}
-
-		if(!KHOPANLinkedGet(&clientList, ((LPNMITEMACTIVATE) lparam)->iItem, &item) || !item) {
-			ReleaseMutex(clientListMutex);
-			break;
-		}
-
-		client = (PCLIENT) item->data;
-		ReleaseMutex(clientListMutex);
-
-		if(client && client->mutex && WaitForSingleObject(client->mutex, INFINITE) != WAIT_FAILED) {
-			ThreadClientOpen(client);
-			ReleaseMutex(client->mutex);
-		}
-
+		if(lparam && ((LPNMHDR) lparam)->code == NM_DBLCLK) openClient(((LPNMITEMACTIVATE) lparam)->iItem);
 		break;
 	case WM_CONTEXTMENU:
 		GetCursorPos(&information.pt);
@@ -99,7 +106,7 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 		case IDM_REMOTE_DISCONNECT:
 			if(!item) break;
 			client = (PCLIENT) item->data;
-			if(!client || !client->mutex || WaitForSingleObject(client->mutex, INFINITE) == WAIT_FAILED) break;
+			if(!client || WaitForSingleObject(client->mutex, INFINITE) == WAIT_FAILED) break;
 			if(status == IDM_REMOTE_OPEN) ThreadClientOpen(client);
 			if(status == IDM_REMOTE_DISCONNECT) ThreadClientDisconnect(client);
 			ReleaseMutex(client->mutex);
@@ -213,33 +220,8 @@ int WindowMain() {
 	MSG message;
 
 	while(GetMessageW(&message, NULL, 0, 0)) {
-		if(message.message != WM_KEYDOWN || message.wParam != VK_RETURN) {
-			goto pass;
-		}
+		if(message.message == WM_KEYDOWN && message.wParam == VK_RETURN && openClient((LONGLONG) SendMessageW(listView, LVM_GETNEXTITEM, -1, LVNI_SELECTED))) continue;
 
-		LONGLONG index = (LONGLONG) SendMessageW(listView, LVM_GETNEXTITEM, -1, LVNI_SELECTED);
-
-		if(index < 0 || WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
-			goto pass;
-		}
-
-		PLINKEDLISTITEM item = NULL;
-
-		if(!KHOPANLinkedGet(&clientList, (size_t) index, &item) || !item) {
-			ReleaseMutex(clientListMutex);
-			goto pass;
-		}
-
-		PCLIENT client = (PCLIENT) item->data;
-		ReleaseMutex(clientListMutex);
-
-		if(client && client->mutex && WaitForSingleObject(client->mutex, INFINITE) != WAIT_FAILED) {
-			ThreadClientOpen(client);
-			ReleaseMutex(client->mutex);
-		}
-
-		continue;
-	pass:
 		if(!IsDialogMessageW(window, &message)) {
 			TranslateMessage(&message);
 			DispatchMessageW(&message);
