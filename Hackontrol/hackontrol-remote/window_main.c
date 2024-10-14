@@ -234,7 +234,7 @@ void WindowMainRefresh() {
 	listItem.mask = LVIF_TEXT;
 	PLINKEDLISTITEM item;
 
-	KHOPAN_LINKED_LIST_ITERATE(item, &clientList) {
+	KHOPAN_LINKED_LIST_ITERATE_REVERSE(item, &clientList) {
 		PCLIENT client = (PCLIENT) item->data;
 		listItem.iSubItem = 0;
 		listItem.pszText = client && client->name ? client->name : L"(Missing name)";

@@ -75,7 +75,7 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 		HRSPFreePacket(&packet, NULL);
 	}
 
-	if(!protocolError.code || (!protocolError.win32 && protocolError.code == HRSP_ERROR_CONNECTION_CLOSED) || (protocolError.win32 && (protocolError.code == WSAEINTR || protocolError.code == WSAECONNABORTED || protocolError.code == WSAECONNRESET))) {
+	if(!protocolError.code || (!protocolError.win32 && protocolError.code == HRSP_ERROR_CONNECTION_CLOSED) || (protocolError.win32 && (protocolError.code == WSAEINTR || protocolError.code == WSAECONNABORTED || protocolError.code == WSAECONNRESET || protocolError.code == WSAENOTSOCK))) {
 		codeExit = 0;
 		goto closeSession;
 	}
