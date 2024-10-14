@@ -26,6 +26,11 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 			break;
 		}
 
+		if(client->session.stream.mutex) {
+			WaitForSingleObject(client->session.stream.mutex, INFINITE);
+			ReleaseMutex(client->session.stream.mutex);
+		}
+
 		if(client->session.stream.thread) {
 			WindowStreamClose(client);
 			WaitForSingleObject(client->session.stream.thread, INFINITE);

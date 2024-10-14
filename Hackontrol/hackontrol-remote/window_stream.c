@@ -343,6 +343,11 @@ DWORD WINAPI WindowStream(_In_ PCLIENT client) {
 		return 1;
 	}
 
+	for(size_t i = offsetof(STREAM, window); i < sizeof(STREAM); i++) {
+		((PBYTE) &client->session.stream)[i] = 0;
+	}
+
+	sendFrameCode(client);
 	client->session.stream.mutex = CreateMutexExW(NULL, NULL, 0, SYNCHRONIZE | DELETE);
 	DWORD codeExit = 1;
 
@@ -382,11 +387,11 @@ DWORD WINAPI WindowStream(_In_ PCLIENT client) {
 
 	if(client->session.stream.pixels) {
 		KHOPAN_DEALLOCATE(client->session.stream.pixels);
+		client->session.stream.pixels = NULL;
 	}
 
-	for(size_t i = offsetof(STREAM, window); i < sizeof(STREAM); i++) {
-		((PBYTE) &client->session.stream)[i] = 0;
-	}
+	client->session.stream.menu.stream = FALSE;
+	sendFrameCode(client);
 closeMutex:
 	CloseHandle(client->session.stream.mutex);
 	client->session.stream.mutex = NULL;
