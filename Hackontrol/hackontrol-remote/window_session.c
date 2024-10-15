@@ -99,6 +99,7 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 
 	if(!button) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
+		DestroyWindow(client->session.window);
 		goto destroyWindow;
 	}
 
@@ -107,14 +108,14 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 
 	if(!SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, metrics.cbSize, &metrics, 0)) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"SystemParametersInfoW");
-		goto destroyButton;
+		goto destroyWindow;
 	}
 
 	HFONT font = CreateFontIndirectW(&metrics.lfCaptionFont);
 
 	if(!font) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateFontIndirectW");
-		goto destroyButton;
+		goto destroyWindow;
 	}
 
 	SendMessageW(button, WM_SETFONT, (WPARAM) font, TRUE);
@@ -133,17 +134,16 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 	}
 
 	codeExit = 0;
-destroyButton:
-	DestroyWindow(button);
+	goto functionExit;
 destroyWindow:
 	DestroyWindow(client->session.window);
-	client->session.window = NULL;
 functionExit:
 	if(codeExit != 0) {
 		LOG("[Session %ws]: Exit with code: %d\n", client->address, codeExit);
 	}
 
 	CloseHandle(client->session.thread);
+	client->session.window = NULL;
 	client->session.thread = NULL;
 	return codeExit;
 }
