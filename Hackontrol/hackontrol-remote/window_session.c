@@ -1,4 +1,5 @@
 #include "remote.h"
+#include <CommCtrl.h>
 
 extern HINSTANCE instance;
 
@@ -77,7 +78,7 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 	bounds.left = (long) (((double) bounds.right) * 0.146412884);
 	bounds.top = (long) (((double) bounds.bottom) * 0.130208333);
 	LPWSTR title = KHOPANFormatMessage(L"%ws [%ws]", client->name, client->address);
-	client->session.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_REMOTE_SESSION, title ? title : L"Session", WS_OVERLAPPED | WS_MINIMIZEBOX | WS_SYSMENU | WS_VISIBLE, (bounds.right - bounds.left) / 2, (bounds.bottom - bounds.top) / 2, bounds.left, bounds.top, NULL, NULL, instance, client);
+	client->session.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_REMOTE_SESSION, title ? title : L"Session", WS_OVERLAPPEDWINDOW | WS_VISIBLE, (bounds.right - bounds.left) / 2, (bounds.bottom - bounds.top) / 2, bounds.left, bounds.top, NULL, NULL, instance, client);
 
 	if(title) {
 		LocalFree(title);
@@ -90,7 +91,7 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 		goto functionExit;
 	}
 
-	int buttonWidth = bounds.top;
+	/*int buttonWidth = bounds.top;
 	int buttonHeight = buttonWidth / 4;
 	GetClientRect(client->session.window, &bounds);
 	bounds.right -= bounds.left;
@@ -118,7 +119,28 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 		goto destroyWindow;
 	}
 
-	SendMessageW(button, WM_SETFONT, (WPARAM) font, TRUE);
+	SendMessageW(button, WM_SETFONT, (WPARAM) font, TRUE);*/
+
+	INITCOMMONCONTROLSEX controls;
+	controls.dwSize = sizeof(INITCOMMONCONTROLSEX);
+	controls.dwICC = ICC_TAB_CLASSES;
+
+	if(!InitCommonControlsEx(&controls)) {
+		KHOPANERRORCONSOLE_WIN32(ERROR_FUNCTION_FAILED, L"InitCommonControlsEx");
+		goto destroyWindow;
+	}
+
+	HWND tab = CreateWindowExW(0L, WC_TABCONTROL, L"", WS_CHILD | WS_VISIBLE, 10, 10, 200, 200, client->session.window, NULL, NULL, NULL);
+
+	if(!tab) {
+		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
+		goto destroyWindow;
+	}
+
+	TCITEMW item = {0};
+	item.mask = TCIF_TEXT;
+	item.pszText = L"Audio";
+	SendMessageW(tab, TCM_INSERTITEM, 0, (LPARAM) &item);
 	MSG message;
 
 	while(GetMessageW(&message, NULL, 0, 0)) {
@@ -126,7 +148,7 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 		DispatchMessageW(&message);
 	}
 
-	DeleteObject(font);
+	//DeleteObject(font);
 
 	if(client->session.stream.thread) {
 		WindowStreamClose(client);
