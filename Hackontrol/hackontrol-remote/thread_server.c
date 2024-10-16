@@ -2,8 +2,8 @@
 #include <libkhopanlist.h>
 #include "remote.h"
 
-extern LINKEDLIST clientList;
 extern HANDLE clientListMutex;
+extern LINKEDLIST clientList;
 
 DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 	if(!socketListen) {

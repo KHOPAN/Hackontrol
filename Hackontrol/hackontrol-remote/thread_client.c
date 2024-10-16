@@ -7,8 +7,8 @@
 
 #define ERROR_HRSP(function) message=HRSPGetErrorMessage(function,&protocolError);if(message){LOG("[Client %ws]: %ws",client->address,message);LocalFree(message);}
 
-extern LINKEDLIST clientList;
 extern HANDLE clientListMutex;
+extern LINKEDLIST clientList;
 
 DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	if(!client) {

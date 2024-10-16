@@ -7,6 +7,7 @@ static SESSIONTAB sessionTabs[] = {
 };
 
 extern HINSTANCE instance;
+extern HFONT font;
 
 static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	PCLIENT client = (PCLIENT) GetWindowLongPtrW(window, GWLP_USERDATA);
@@ -96,15 +97,6 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 		goto functionExit;
 	}
 
-	INITCOMMONCONTROLSEX controls;
-	controls.dwSize = sizeof(INITCOMMONCONTROLSEX);
-	controls.dwICC = ICC_TAB_CLASSES;
-
-	if(!InitCommonControlsEx(&controls)) {
-		KHOPANERRORCONSOLE_WIN32(ERROR_FUNCTION_FAILED, L"InitCommonControlsEx");
-		goto destroyWindow;
-	}
-
 	HWND tab = CreateWindowExW(0L, WC_TABCONTROL, L"", WS_CHILD | WS_VISIBLE, 10, 10, 200, 200, client->session.window, NULL, NULL, NULL);
 
 	if(!tab) {
@@ -120,21 +112,6 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 		SendMessageW(tab, TCM_INSERTITEM, i, (LPARAM) &item);
 	}
 
-	NONCLIENTMETRICS metrics;
-	metrics.cbSize = sizeof(NONCLIENTMETRICS);
-
-	if(!SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, metrics.cbSize, &metrics, 0)) {
-		KHOPANLASTERRORCONSOLE_WIN32(L"SystemParametersInfoW");
-		goto destroyWindow;
-	}
-
-	HFONT font = CreateFontIndirectW(&metrics.lfCaptionFont);
-
-	if(!font) {
-		KHOPANLASTERRORCONSOLE_WIN32(L"CreateFontIndirectW");
-		goto destroyWindow;
-	}
-
 	SendMessageW(tab, WM_SETFONT, (WPARAM) font, TRUE);
 	MSG message;
 
@@ -142,8 +119,6 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 		TranslateMessage(&message);
 		DispatchMessageW(&message);
 	}
-
-	DeleteObject(font);
 
 	if(client->session.stream.thread) {
 		WindowStreamClose(client);

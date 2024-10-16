@@ -10,9 +10,10 @@
 
 #pragma warning(disable: 26454)
 
-extern LINKEDLIST clientList;
-extern HANDLE clientListMutex;
 extern HINSTANCE instance;
+extern HANDLE clientListMutex;
+extern LINKEDLIST clientList;
+extern HFONT font;
 
 static HWND window;
 static HWND border;
@@ -138,21 +139,12 @@ int WindowMain() {
 		return 1;
 	}
 
-	INITCOMMONCONTROLSEX controls;
-	controls.dwSize = sizeof(INITCOMMONCONTROLSEX);
-	controls.dwICC = ICC_LISTVIEW_CLASSES;
-	int codeExit = 1;
-
-	if(!InitCommonControlsEx(&controls)) {
-		KHOPANERRORMESSAGE_WIN32(ERROR_FUNCTION_FAILED, L"InitCommonControlsEx");
-		goto unregisterClass;
-	}
-
 	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
 	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	int width = (int) (screenWidth * 0.292825769);
 	int height = (int) (screenHeight * 0.78125);
 	window = CreateWindowExW(WS_EX_TOPMOST, CLASS_HACKONTROL_REMOTE, L"Remote", WS_OVERLAPPEDWINDOW, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, instance, NULL);
+	int codeExit = 1;
 
 	if(!window) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"CreateWindowExW");
@@ -192,21 +184,6 @@ int WindowMain() {
 		goto unregisterClass;
 	}
 
-	NONCLIENTMETRICS metrics;
-	metrics.cbSize = sizeof(NONCLIENTMETRICS);
-
-	if(!SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, metrics.cbSize, &metrics, 0)) {
-		KHOPANLASTERRORMESSAGE_WIN32(L"SystemParametersInfoW");
-		goto unregisterClass;
-	}
-
-	HFONT font = CreateFontIndirectW(&metrics.lfCaptionFont);
-
-	if(!font) {
-		KHOPANLASTERRORMESSAGE_WIN32(L"CreateFontIndirectW");
-		goto unregisterClass;
-	}
-
 	SendMessageW(border, WM_SETFONT, (WPARAM) font, TRUE);
 	ShowWindow(window, SW_NORMAL);
 	LOG("[Main Window]: Finished\n");
@@ -221,7 +198,6 @@ int WindowMain() {
 		}
 	}
 
-	DeleteObject(font);
 	codeExit = 0;
 unregisterClass:
 	UnregisterClassW(CLASS_HACKONTROL_REMOTE, instance);

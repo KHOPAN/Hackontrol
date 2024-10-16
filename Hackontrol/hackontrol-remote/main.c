@@ -1,9 +1,11 @@
 #include <libkhopanlist.h>
 #include "remote.h"
+#include <CommCtrl.h>
 
-LINKEDLIST clientList;
-HANDLE clientListMutex;
 HINSTANCE instance;
+HANDLE clientListMutex;
+LINKEDLIST clientList;
+HFONT font;
 
 int WINAPI WinMain(_In_ HINSTANCE programInstance, _In_opt_ HINSTANCE previousInstance, _In_ LPSTR argument, _In_ int options) {
 	instance = programInstance;
@@ -21,32 +23,63 @@ int WINAPI WinMain(_In_ HINSTANCE programInstance, _In_opt_ HINSTANCE previousIn
 	SetConsoleTitleW(L"Remote Console");
 #endif
 	LOG("[Remote]: Initializing\n");
-	WSADATA data;
-	int status = WSAStartup(MAKEWORD(2, 2), &data);
+	clientListMutex = CreateMutexExW(NULL, NULL, 0, SYNCHRONIZE | DELETE);
 
-	if(status) {
-		KHOPANERRORMESSAGE_WIN32(status, L"WSAStartup");
+	if(!clientListMutex) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"CreateMutexExW");
 		goto functionExit;
 	}
 
 	if(!KHOPANLinkedInitialize(&clientList, sizeof(CLIENT))) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"KHOPANLinkedInitialize");
-		goto cleanupSocket;
+		goto closeClientListMutex;
 	}
 
-	clientListMutex = CreateMutexExW(NULL, NULL, 0, SYNCHRONIZE | DELETE);
+	NONCLIENTMETRICS metrics;
+	metrics.cbSize = sizeof(NONCLIENTMETRICS);
 
-	if(!clientListMutex) {
-		KHOPANLASTERRORMESSAGE_WIN32(L"CreateMutexExW");
+	if(!SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, metrics.cbSize, &metrics, 0)) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"SystemParametersInfoW");
 		goto freeClientList;
 	}
 
+	font = CreateFontIndirectW(&metrics.lfCaptionFont);
+
+	if(!font) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"CreateFontIndirectW");
+		goto freeClientList;
+	}
+
+	INITCOMMONCONTROLSEX controls;
+	controls.dwSize = sizeof(INITCOMMONCONTROLSEX);
+	controls.dwICC = ICC_LISTVIEW_CLASSES;
+
+	if(!InitCommonControlsEx(&controls)) {
+		KHOPANERRORMESSAGE_WIN32(ERROR_FUNCTION_FAILED, L"InitCommonControlsEx");
+		goto deleteFont;
+	}
+
+	controls.dwICC = ICC_TAB_CLASSES;
+
+	if(!InitCommonControlsEx(&controls)) {
+		KHOPANERRORMESSAGE_WIN32(ERROR_FUNCTION_FAILED, L"InitCommonControlsEx");
+		goto deleteFont;
+	}
+
 	if(!WindowSessionInitialize()) {
-		goto closeClientListMutex;
+		goto deleteFont;
 	}
 
 	if(!WindowStreamInitialize()) {
 		goto unregisterSession;
+	}
+
+	WSADATA data;
+	int status = WSAStartup(MAKEWORD(2, 2), &data);
+
+	if(status) {
+		KHOPANERRORMESSAGE_WIN32(status, L"WSAStartup");
+		goto unregisterStream;
 	}
 
 	SOCKET socketListen = 0;
@@ -54,7 +87,7 @@ int WINAPI WinMain(_In_ HINSTANCE programInstance, _In_opt_ HINSTANCE previousIn
 
 	if(!thread) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"CreateThread");
-		goto unregisterStream;
+		goto cleanupSocket;
 	}
 
 	codeExit = WindowMain();
@@ -66,17 +99,19 @@ int WINAPI WinMain(_In_ HINSTANCE programInstance, _In_opt_ HINSTANCE previousIn
 
 	WaitForSingleObject(thread, INFINITE);
 	CloseHandle(thread);
+cleanupSocket:
+	WSACleanup();
 unregisterStream:
 	UnregisterClassW(CLASS_SESSION_STREAM, instance);
 unregisterSession:
 	UnregisterClassW(CLASS_REMOTE_SESSION, instance);
+deleteFont:
+	DeleteObject(font);
+freeClientList:
+	KHOPANLinkedFree(&clientList);
 closeClientListMutex:
 	WaitForSingleObject(clientListMutex, INFINITE);
 	CloseHandle(clientListMutex);
-freeClientList:
-	KHOPANLinkedFree(&clientList);
-cleanupSocket:
-	WSACleanup();
 functionExit:
 	LOG("[Remote]: Exit with code: %d\n", codeExit);
 #ifdef LOGGER_ENABLE
