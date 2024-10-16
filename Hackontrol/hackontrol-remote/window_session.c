@@ -1,6 +1,11 @@
 #include "remote.h"
 #include <CommCtrl.h>
 
+static SESSIONTAB sessionTabs[] = {
+	{L"Stream"},
+	{L"Audio"}
+};
+
 extern HINSTANCE instance;
 
 static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
@@ -91,36 +96,6 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 		goto functionExit;
 	}
 
-	/*int buttonWidth = bounds.top;
-	int buttonHeight = buttonWidth / 4;
-	GetClientRect(client->session.window, &bounds);
-	bounds.right -= bounds.left;
-	bounds.bottom -= bounds.top;
-	HWND button = CreateWindowExW(0L, L"Button", L"Stream", WS_TABSTOP | WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON, (bounds.right - buttonWidth) / 2, (bounds.bottom - buttonHeight) / 2, buttonWidth, buttonHeight, client->session.window, NULL, NULL, NULL);
-
-	if(!button) {
-		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
-		DestroyWindow(client->session.window);
-		goto destroyWindow;
-	}
-
-	NONCLIENTMETRICS metrics;
-	metrics.cbSize = sizeof(NONCLIENTMETRICS);
-
-	if(!SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, metrics.cbSize, &metrics, 0)) {
-		KHOPANLASTERRORCONSOLE_WIN32(L"SystemParametersInfoW");
-		goto destroyWindow;
-	}
-
-	HFONT font = CreateFontIndirectW(&metrics.lfCaptionFont);
-
-	if(!font) {
-		KHOPANLASTERRORCONSOLE_WIN32(L"CreateFontIndirectW");
-		goto destroyWindow;
-	}
-
-	SendMessageW(button, WM_SETFONT, (WPARAM) font, TRUE);*/
-
 	INITCOMMONCONTROLSEX controls;
 	controls.dwSize = sizeof(INITCOMMONCONTROLSEX);
 	controls.dwICC = ICC_TAB_CLASSES;
@@ -139,8 +114,28 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 
 	TCITEMW item = {0};
 	item.mask = TCIF_TEXT;
-	item.pszText = L"Audio";
-	SendMessageW(tab, TCM_INSERTITEM, 0, (LPARAM) &item);
+
+	for(size_t i = 0; i < sizeof(sessionTabs) / sizeof(sessionTabs[0]); i++) {
+		item.pszText = sessionTabs[i].name;
+		SendMessageW(tab, TCM_INSERTITEM, i, (LPARAM) &item);
+	}
+
+	NONCLIENTMETRICS metrics;
+	metrics.cbSize = sizeof(NONCLIENTMETRICS);
+
+	if(!SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, metrics.cbSize, &metrics, 0)) {
+		KHOPANLASTERRORCONSOLE_WIN32(L"SystemParametersInfoW");
+		goto destroyWindow;
+	}
+
+	HFONT font = CreateFontIndirectW(&metrics.lfCaptionFont);
+
+	if(!font) {
+		KHOPANLASTERRORCONSOLE_WIN32(L"CreateFontIndirectW");
+		goto destroyWindow;
+	}
+
+	SendMessageW(tab, WM_SETFONT, (WPARAM) font, TRUE);
 	MSG message;
 
 	while(GetMessageW(&message, NULL, 0, 0)) {
@@ -148,7 +143,7 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 		DispatchMessageW(&message);
 	}
 
-	//DeleteObject(font);
+	DeleteObject(font);
 
 	if(client->session.stream.thread) {
 		WindowStreamClose(client);

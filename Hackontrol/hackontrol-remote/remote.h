@@ -78,6 +78,10 @@ typedef struct {
 	SESSION session;
 } CLIENT, *PCLIENT;
 
+typedef struct {
+	LPWSTR name;
+} SESSIONTAB;
+
 DWORD WINAPI ThreadClient(_In_ PCLIENT client);
 void ThreadClientOpen(const PCLIENT client);
 void ThreadClientDisconnect(const PCLIENT client);
