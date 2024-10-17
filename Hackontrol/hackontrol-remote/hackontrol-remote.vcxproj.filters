@@ -29,12 +29,18 @@
     <ClCompile Include="window_stream.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="window_session_tab_stream.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="hackontrol-remote.exe.manifest" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="remote.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="window_session_tabs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

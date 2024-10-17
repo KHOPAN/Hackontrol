@@ -21,6 +21,8 @@
 #define LOG(format, ...)
 #endif
 
+#define SIZEOFARRAY(x) (sizeof(x)/sizeof((x)[0]))
+
 typedef struct {
 	HANDLE mutex;
 	HANDLE thread;
@@ -65,6 +67,7 @@ typedef struct {
 
 typedef struct {
 	HANDLE thread;
+	HWND* tabs;
 	HWND window;
 	HWND tab;
 	STREAM stream;
@@ -81,6 +84,7 @@ typedef struct {
 
 typedef struct {
 	LPWSTR name;
+	HWND(__stdcall* function)();
 } SESSIONTAB;
 
 DWORD WINAPI ThreadClient(_In_ PCLIENT client);

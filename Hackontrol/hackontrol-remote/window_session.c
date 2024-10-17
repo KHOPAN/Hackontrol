@@ -1,9 +1,9 @@
-#include "remote.h"
+#include "window_session_tabs.h"
 #include <CommCtrl.h>
 
 static SESSIONTAB sessionTabs[] = {
-	{L"Stream"},
-	{L"Audio"}
+	{L"Stream", WindowSessionTabStream},
+	{L"Audio",  NULL}
 };
 
 extern HINSTANCE instance;
@@ -62,6 +62,24 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 		return 1;
 	}
 
+	client->session.tabs = KHOPAN_ALLOCATE(SIZEOFARRAY(sessionTabs) * sizeof(HWND));
+	DWORD codeExit = 1;
+
+	if(KHOPAN_ALLOCATE_FAILED(client->session.tabs)) {
+		KHOPANERRORCONSOLE_WIN32(KHOPAN_ALLOCATE_ERROR, KHOPAN_ALLOCATE_FUNCTION);
+		goto functionExit;
+	}
+
+	size_t index;
+	HWND temporary;
+
+	for(index = 0; index < SIZEOFARRAY(sessionTabs); index++) {
+		if(sessionTabs[index].function) {
+			temporary = sessionTabs[index].function();
+			client->session.tabs[index] = temporary ? temporary : NULL;
+		}
+	}
+
 	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
 	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	int width = (int) (screenWidth * 0.219619327);
@@ -73,12 +91,9 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 		LocalFree(title);
 	}
 
-	DWORD codeExit = 1;
-	size_t index;
-
 	if(!client->session.window) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
-		goto functionExit;
+		goto freeTabs;
 	}
 
 	client->session.tab = CreateWindowExW(0L, WC_TABCONTROL, L"", WS_CHILD | WS_VISIBLE, 5, 5, 0, 0, client->session.window, NULL, NULL, NULL);
@@ -91,7 +106,7 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 	TCITEMW item = {0};
 	item.mask = TCIF_TEXT;
 
-	for(index = 0; index < sizeof(sessionTabs) / sizeof(sessionTabs[0]); index++) {
+	for(index = 0; index < SIZEOFARRAY(sessionTabs); index++) {
 		item.pszText = sessionTabs[index].name;
 		SendMessageW(client->session.tab, TCM_INSERTITEM, index, (LPARAM) &item);
 	}
@@ -113,9 +128,17 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 	}
 
 	codeExit = 0;
-	goto functionExit;
+	goto freeTabs;
 destroyWindow:
 	DestroyWindow(client->session.window);
+freeTabs:
+	for(index = 0; index < SIZEOFARRAY(sessionTabs); index++) {
+		if(client->session.tabs[index]) {
+			DestroyWindow(client->session.tabs[index]);
+		}
+	}
+
+	KHOPAN_DEALLOCATE(client->session.tabs);
 functionExit:
 	if(codeExit != 0) {
 		LOG("[Session %ws]: Exit with code: %d\n", client->address, codeExit);
