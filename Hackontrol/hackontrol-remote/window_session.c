@@ -4,8 +4,8 @@
 #define TAB_OFFSET 5
 
 static SESSIONTAB sessionTabs[] = {
-	{L"Stream", NULL, WindowSessionTabStream, NULL},
-	{L"Audio",  NULL, NULL,                   NULL}
+	{L"Stream", REMOTE_CLASS_TAB_STREAM, WindowSessionTabStream, WindowSessionTabStreamProcedure},
+	{L"Audio",  NULL,                    NULL,                   NULL}
 };
 
 extern HINSTANCE instance;
@@ -90,8 +90,8 @@ BOOL WindowSessionInitialize() {
 	}
 
 	for(size_t i = 0; i < SIZEOFARRAY(sessionTabs); i++) {
-		if(sessionTabs[i].procedure && sessionTabs[i].className) {
-			windowClass.lpfnWndProc = sessionTabs[i].procedure;
+		if(sessionTabs[i].className) {
+			windowClass.lpfnWndProc = sessionTabs[i].procedure ? sessionTabs[i].procedure : DefWindowProcW;
 			windowClass.lpszClassName = sessionTabs[i].className;
 			if(RegisterClassExW(&windowClass)) continue;
 			KHOPANLASTERRORMESSAGE_WIN32(L"RegisterClassExW");
@@ -135,7 +135,7 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 
 	for(index = 0; index < SIZEOFARRAY(sessionTabs); index++) {
 		if(sessionTabs[index].function) {
-			HWND window = sessionTabs[index].function(client->session.window);
+			HWND window = sessionTabs[index].function(client->session.window, client);
 			client->session.tabs[index] = window ? window : NULL;
 		}
 	}
@@ -200,7 +200,7 @@ void WindowSessionClose(const PCLIENT client) {
 
 void WindowSessionCleanup() {
 	for(size_t i = 0; i < SIZEOFARRAY(sessionTabs); i++) {
-		if(sessionTabs[i].procedure && sessionTabs[i].className) {
+		if(sessionTabs[i].className) {
 			UnregisterClassW(sessionTabs[i].className, instance);
 		}
 	}

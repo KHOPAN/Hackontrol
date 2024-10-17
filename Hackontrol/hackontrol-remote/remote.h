@@ -23,8 +23,6 @@
 
 #define SIZEOFARRAY(x) (sizeof(x)/sizeof((x)[0]))
 
-typedef HWND(__stdcall* TABFUNCTION) (const HWND parent);
-
 typedef struct {
 	HANDLE mutex;
 	HANDLE thread;
@@ -84,13 +82,6 @@ typedef struct {
 	LPWSTR name;
 	SESSION session;
 } CLIENT, *PCLIENT;
-
-typedef struct {
-	LPWSTR name;
-	LPWSTR className;
-	TABFUNCTION function;
-	WNDPROC procedure;
-} SESSIONTAB;
 
 DWORD WINAPI ThreadClient(_In_ PCLIENT client);
 void ThreadClientOpen(const PCLIENT client);
