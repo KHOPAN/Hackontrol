@@ -21,6 +21,8 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		SetWindowLongPtrW(window, GWLP_USERDATA, (LONG_PTR) client);
 	}
 
+	RECT bounds;
+
 	switch(message) {
 	case WM_CLOSE:
 		DestroyWindow(window);
@@ -28,28 +30,10 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
-	case WM_COMMAND:
-		if(HIWORD(wparam) != BN_CLICKED) {
-			break;
-		}
-
-		if(client->session.stream.mutex) {
-			WaitForSingleObject(client->session.stream.mutex, INFINITE);
-			ReleaseMutex(client->session.stream.mutex);
-		}
-
-		if(client->session.stream.thread) {
-			WindowStreamClose(client);
-			WaitForSingleObject(client->session.stream.thread, INFINITE);
-		}
-
-		client->session.stream.thread = CreateThread(NULL, 0, WindowStream, client, 0, NULL);
-
-		if(!client->session.stream.thread) {
-			KHOPANLASTERRORCONSOLE_WIN32(L"CreateThread");
-		}
-
-		break;
+	case WM_SIZE:
+		GetClientRect(window, &bounds);
+		SetWindowPos(client->session.tab, HWND_TOP, 0, 0, bounds.right - bounds.left - 10, bounds.bottom - bounds.top - 10, SWP_NOMOVE);
+		return 0;
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
@@ -78,28 +62,28 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 		return 1;
 	}
 
-	RECT bounds;
-	bounds.right = GetSystemMetrics(SM_CXSCREEN);
-	bounds.bottom = GetSystemMetrics(SM_CYSCREEN);
-	bounds.left = (long) (((double) bounds.right) * 0.146412884);
-	bounds.top = (long) (((double) bounds.bottom) * 0.130208333);
+	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+	int width = (int) (screenWidth * 0.219619327);
+	int height = (int) (screenHeight * 0.5859375);
 	LPWSTR title = KHOPANFormatMessage(L"%ws [%ws]", client->name, client->address);
-	client->session.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_REMOTE_SESSION, title ? title : L"Session", WS_OVERLAPPEDWINDOW | WS_VISIBLE, (bounds.right - bounds.left) / 2, (bounds.bottom - bounds.top) / 2, bounds.left, bounds.top, NULL, NULL, instance, client);
+	client->session.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_REMOTE_SESSION, title ? title : L"Session", WS_OVERLAPPEDWINDOW, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, instance, client);
 
 	if(title) {
 		LocalFree(title);
 	}
 
 	DWORD codeExit = 1;
+	size_t index;
 
 	if(!client->session.window) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
 		goto functionExit;
 	}
 
-	HWND tab = CreateWindowExW(0L, WC_TABCONTROL, L"", WS_CHILD | WS_VISIBLE, 10, 10, 200, 200, client->session.window, NULL, NULL, NULL);
+	client->session.tab = CreateWindowExW(0L, WC_TABCONTROL, L"", WS_CHILD | WS_VISIBLE, 5, 5, 0, 0, client->session.window, NULL, NULL, NULL);
 
-	if(!tab) {
+	if(!client->session.tab) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
 		goto destroyWindow;
 	}
@@ -107,17 +91,20 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 	TCITEMW item = {0};
 	item.mask = TCIF_TEXT;
 
-	for(size_t i = 0; i < sizeof(sessionTabs) / sizeof(sessionTabs[0]); i++) {
-		item.pszText = sessionTabs[i].name;
-		SendMessageW(tab, TCM_INSERTITEM, i, (LPARAM) &item);
+	for(index = 0; index < sizeof(sessionTabs) / sizeof(sessionTabs[0]); index++) {
+		item.pszText = sessionTabs[index].name;
+		SendMessageW(client->session.tab, TCM_INSERTITEM, index, (LPARAM) &item);
 	}
 
-	SendMessageW(tab, WM_SETFONT, (WPARAM) font, TRUE);
+	SendMessageW(client->session.tab, WM_SETFONT, (WPARAM) font, TRUE);
+	ShowWindow(client->session.window, SW_NORMAL);
 	MSG message;
 
 	while(GetMessageW(&message, NULL, 0, 0)) {
-		TranslateMessage(&message);
-		DispatchMessageW(&message);
+		if(!IsDialogMessageW(client->session.window, &message)) {
+			TranslateMessage(&message);
+			DispatchMessageW(&message);
+		}
 	}
 
 	if(client->session.stream.thread) {
@@ -135,8 +122,11 @@ functionExit:
 	}
 
 	CloseHandle(client->session.thread);
-	client->session.window = NULL;
-	client->session.thread = NULL;
+
+	for(index = 0; index < sizeof(SESSION); index++) {
+		((PBYTE) &client->session)[index] = 0;
+	}
+
 	return codeExit;
 }
 

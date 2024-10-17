@@ -66,6 +66,7 @@ typedef struct {
 typedef struct {
 	HANDLE thread;
 	HWND window;
+	HWND tab;
 	STREAM stream;
 } SESSION;
 
