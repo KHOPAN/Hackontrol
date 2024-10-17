@@ -84,7 +84,7 @@ typedef struct {
 
 typedef struct {
 	LPWSTR name;
-	HWND(__stdcall* function)();
+	HWND(__stdcall* function) (const HWND parent);
 } SESSIONTAB;
 
 DWORD WINAPI ThreadClient(_In_ PCLIENT client);

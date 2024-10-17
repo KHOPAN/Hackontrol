@@ -32,7 +32,13 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		return 0;
 	case WM_SIZE:
 		GetClientRect(window, &bounds);
-		SetWindowPos(client->session.tab, HWND_TOP, 0, 0, bounds.right - bounds.left - 10, bounds.bottom - bounds.top - 10, SWP_NOMOVE);
+		bounds.left += 5;
+		bounds.top += 5;
+		bounds.right -= 5;
+		bounds.bottom -= 5;
+		SetWindowPos(client->session.tab, HWND_TOP, bounds.left, bounds.top, bounds.right - bounds.left, bounds.bottom - bounds.top, 0);
+		SendMessageW(client->session.tab, TCM_ADJUSTRECT, FALSE, (LPARAM) &bounds);
+		SetWindowPos(client->session.tabs[0], HWND_TOP, bounds.left, bounds.top, bounds.right - bounds.left, bounds.bottom - bounds.top, 0);
 		return 0;
 	}
 
@@ -64,20 +70,11 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 
 	client->session.tabs = KHOPAN_ALLOCATE(SIZEOFARRAY(sessionTabs) * sizeof(HWND));
 	DWORD codeExit = 1;
+	size_t index;
 
 	if(KHOPAN_ALLOCATE_FAILED(client->session.tabs)) {
 		KHOPANERRORCONSOLE_WIN32(KHOPAN_ALLOCATE_ERROR, KHOPAN_ALLOCATE_FUNCTION);
 		goto functionExit;
-	}
-
-	size_t index;
-	HWND temporary;
-
-	for(index = 0; index < SIZEOFARRAY(sessionTabs); index++) {
-		if(sessionTabs[index].function) {
-			temporary = sessionTabs[index].function();
-			client->session.tabs[index] = temporary ? temporary : NULL;
-		}
 	}
 
 	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
@@ -96,7 +93,16 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 		goto freeTabs;
 	}
 
-	client->session.tab = CreateWindowExW(0L, WC_TABCONTROL, L"", WS_CHILD | WS_VISIBLE, 5, 5, 0, 0, client->session.window, NULL, NULL, NULL);
+	HWND temporary;
+
+	for(index = 0; index < SIZEOFARRAY(sessionTabs); index++) {
+		if(sessionTabs[index].function) {
+			temporary = sessionTabs[index].function(client->session.window);
+			client->session.tabs[index] = temporary ? temporary : NULL;
+		}
+	}
+
+	client->session.tab = CreateWindowExW(0L, WC_TABCONTROL, L"", WS_CHILD | WS_VISIBLE, 0, 0, 0, 0, client->session.window, NULL, NULL, NULL);
 
 	if(!client->session.tab) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
