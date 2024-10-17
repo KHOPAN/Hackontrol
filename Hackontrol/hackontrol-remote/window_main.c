@@ -131,7 +131,7 @@ int WindowMain() {
 	windowClass.lpfnWndProc = windowProcedure;
 	windowClass.hInstance = instance;
 	windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
-	windowClass.hbrBackground = (HBRUSH) COLOR_WINDOW;
+	windowClass.hbrBackground = (HBRUSH) (COLOR_MENU + 1);
 	windowClass.lpszClassName = CLASS_HACKONTROL_REMOTE;
 
 	if(!RegisterClassExW(&windowClass)) {

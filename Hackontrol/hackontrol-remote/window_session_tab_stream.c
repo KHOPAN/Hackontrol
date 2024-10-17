@@ -3,8 +3,10 @@
 extern HFONT font;
 
 typedef struct {
-	HWND button;
 	PCLIENT client;
+	int buttonWidth;
+	int buttonHeight;
+	HWND button;
 } TABSTREAMDATA, *PTABSTREAMDATA;
 
 HWND __stdcall WindowSessionTabStream(const HWND parent, const PCLIENT client) {
@@ -24,7 +26,9 @@ HWND __stdcall WindowSessionTabStream(const HWND parent, const PCLIENT client) {
 		return NULL;
 	}
 
-	data->button = CreateWindowExW(0L, L"Button", L"Open Stream", WS_CHILD, 0, 0, 0, 0, window, NULL, NULL, NULL);
+	data->buttonWidth = (int) (GetSystemMetrics(SM_CXSCREEN) * 0.0732064422);
+	data->buttonHeight = (int) (GetSystemMetrics(SM_CYSCREEN) * 0.0325520833);
+	data->button = CreateWindowExW(0L, L"Button", L"Open Stream", WS_CHILD | WS_VISIBLE, 0, 0, data->buttonWidth, data->buttonHeight, window, NULL, NULL, NULL);
 
 	if(!data->button) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
@@ -46,7 +50,7 @@ LRESULT CALLBACK WindowSessionTabStreamProcedure(_In_ HWND window, _In_ UINT mes
 		return 0;
 	case WM_SIZE:
 		GetClientRect(window, &bounds);
-		LOG("Width: %d Height: %d\n", bounds.right - bounds.left, bounds.bottom - bounds.top);
+		SetWindowPos(data->button, NULL, (bounds.right - bounds.left - data->buttonWidth) / 2, (bounds.bottom - bounds.top - data->buttonHeight) / 2, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
 		return 0;
 	}
 

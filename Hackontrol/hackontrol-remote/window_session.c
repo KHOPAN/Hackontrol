@@ -71,13 +71,15 @@ BOOL WindowSessionInitialize() {
 	windowClass.lpfnWndProc = windowProcedure;
 	windowClass.hInstance = instance;
 	windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
-	windowClass.hbrBackground = (HBRUSH) COLOR_WINDOW;
+	windowClass.hbrBackground = (HBRUSH) (COLOR_MENU + 1);
 	windowClass.lpszClassName = CLASS_REMOTE_SESSION;
 
 	if(!RegisterClassExW(&windowClass)) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"RegisterClassExW");
 		return FALSE;
 	}
+
+	windowClass.hbrBackground = CreateSolidBrush(0xF9F9F9);
 
 	for(size_t i = 0; i < SIZEOFARRAY(sessionTabs); i++) {
 		if(sessionTabs[i].className) {
