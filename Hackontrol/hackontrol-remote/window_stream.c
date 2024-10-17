@@ -34,17 +34,7 @@ static void sendFrameCode(const PCLIENT client) {
 }
 
 static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
-	PCLIENT client = (PCLIENT) GetWindowLongPtrW(window, GWLP_USERDATA);
-
-	if(!client) {
-		if(message != WM_CREATE) {
-			return DefWindowProcW(window, message, wparam, lparam);
-		}
-
-		client = (PCLIENT) (((CREATESTRUCT*) lparam)->lpCreateParams);
-		SetWindowLongPtrW(window, GWLP_USERDATA, (LONG_PTR) client);
-	}
-
+	USERDATA(PCLIENT, client, window, message, wparam, lparam);
 	RECT bounds;
 	POINT location;
 	PAINTSTRUCT paintStruct = {0};
