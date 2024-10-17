@@ -1,6 +1,8 @@
 #include "window_session_tabs.h"
 #include <CommCtrl.h>
 
+#define TAB_OFFSET 5
+
 static SESSIONTAB sessionTabs[] = {
 	{L"Stream", NULL, WindowSessionTabStream, NULL},
 	{L"Audio",  NULL, NULL,                   NULL}
@@ -9,13 +11,27 @@ static SESSIONTAB sessionTabs[] = {
 extern HINSTANCE instance;
 extern HFONT font;
 
+static void resizeTab(const PCLIENT client) {
+	RECT bounds;
+	GetClientRect(client->session.tab, &bounds);
+	SendMessageW(client->session.tab, TCM_ADJUSTRECT, FALSE, (LPARAM) &bounds);
+	SetWindowPos(client->session.selectedTab, HWND_TOP, bounds.left + TAB_OFFSET, bounds.top + TAB_OFFSET, bounds.right - bounds.left, bounds.bottom - bounds.top, 0);
+}
+
 static void selectTab(const PCLIENT client) {
 	size_t index = SendMessageW(client->session.tab, TCM_GETCURSEL, 0, 0);
-	LOG("Index: %llu\n", index);
 
-	//for(size_t i = 0; i < SIZEOFARRAY(sessionTabs); i++) {
-	//	ShowWindow(client->session.tabs[i], SW_HIDE);
-	//}
+	if(((LONGLONG) index) == -1) {
+		return;
+	}
+
+	client->session.selectedTab = client->session.tabs[index];
+
+	for(size_t i = 0; i < SIZEOFARRAY(sessionTabs); i++) {
+		ShowWindow(client->session.tabs[i], index == i ? SW_SHOW : SW_HIDE);
+	}
+
+	resizeTab(client);
 }
 
 static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
@@ -41,13 +57,8 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		return 0;
 	case WM_SIZE:
 		GetClientRect(window, &bounds);
-		bounds.left += 5;
-		bounds.top += 5;
-		bounds.right -= 5;
-		bounds.bottom -= 5;
-		SetWindowPos(client->session.tab, HWND_TOP, bounds.left, bounds.top, bounds.right - bounds.left, bounds.bottom - bounds.top, 0);
-		SendMessageW(client->session.tab, TCM_ADJUSTRECT, FALSE, (LPARAM) &bounds);
-		SetWindowPos(client->session.tabs[0], HWND_TOP, bounds.left, bounds.top, bounds.right - bounds.left, bounds.bottom - bounds.top, 0);
+		SetWindowPos(client->session.tab, HWND_TOP, 0, 0, bounds.right - bounds.left - TAB_OFFSET * 2, bounds.bottom - bounds.top - TAB_OFFSET * 2, SWP_NOMOVE);
+		resizeTab(client);
 		return 0;
 	case WM_NOTIFY:
 		switch(((LPNMHDR) lparam)->code) {
@@ -129,7 +140,7 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 		}
 	}
 
-	client->session.tab = CreateWindowExW(0L, WC_TABCONTROL, L"", WS_CHILD | WS_VISIBLE, 0, 0, 0, 0, client->session.window, NULL, NULL, NULL);
+	client->session.tab = CreateWindowExW(0L, WC_TABCONTROL, L"", WS_CHILD | WS_VISIBLE, TAB_OFFSET, TAB_OFFSET, 0, 0, client->session.window, NULL, NULL, NULL);
 
 	if(!client->session.tab) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");

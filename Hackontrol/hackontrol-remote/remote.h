@@ -72,6 +72,7 @@ typedef struct {
 	HWND* tabs;
 	HWND window;
 	HWND tab;
+	HWND selectedTab;
 	STREAM stream;
 } SESSION;
 
