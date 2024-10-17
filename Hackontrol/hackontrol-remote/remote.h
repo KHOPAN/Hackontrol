@@ -86,7 +86,9 @@ typedef struct {
 
 typedef struct {
 	LPWSTR name;
+	LPWSTR className;
 	TABFUNCTION function;
+	WNDPROC procedure;
 } SESSIONTAB;
 
 DWORD WINAPI ThreadClient(_In_ PCLIENT client);
@@ -102,6 +104,7 @@ void WindowMainExit();
 BOOL WindowSessionInitialize();
 DWORD WINAPI WindowSession(_In_ PCLIENT client);
 void WindowSessionClose(const PCLIENT client);
+void WindowSessionCleanup();
 
 BOOL WindowStreamInitialize();
 DWORD WINAPI WindowStream(_In_ PCLIENT client);

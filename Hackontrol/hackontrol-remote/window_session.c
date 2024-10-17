@@ -2,12 +2,21 @@
 #include <CommCtrl.h>
 
 static SESSIONTAB sessionTabs[] = {
-	{L"Stream", WindowSessionTabStream},
-	{L"Audio",  NULL}
+	{L"Stream", NULL, WindowSessionTabStream, NULL},
+	{L"Audio",  NULL, NULL,                   NULL}
 };
 
 extern HINSTANCE instance;
 extern HFONT font;
+
+static void selectTab(const PCLIENT client) {
+	size_t index = SendMessageW(client->session.tab, TCM_GETCURSEL, 0, 0);
+	LOG("Index: %llu\n", index);
+
+	//for(size_t i = 0; i < SIZEOFARRAY(sessionTabs); i++) {
+	//	ShowWindow(client->session.tabs[i], SW_HIDE);
+	//}
+}
 
 static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	PCLIENT client = (PCLIENT) GetWindowLongPtrW(window, GWLP_USERDATA);
@@ -40,6 +49,16 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		SendMessageW(client->session.tab, TCM_ADJUSTRECT, FALSE, (LPARAM) &bounds);
 		SetWindowPos(client->session.tabs[0], HWND_TOP, bounds.left, bounds.top, bounds.right - bounds.left, bounds.bottom - bounds.top, 0);
 		return 0;
+	case WM_NOTIFY:
+		switch(((LPNMHDR) lparam)->code) {
+		case TCN_SELCHANGING:
+			return FALSE;
+		case TCN_SELCHANGE:
+			selectTab(client);
+			return FALSE;
+		}
+
+		break;
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
@@ -57,6 +76,16 @@ BOOL WindowSessionInitialize() {
 	if(!RegisterClassExW(&windowClass)) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"RegisterClassExW");
 		return FALSE;
+	}
+
+	for(size_t i = 0; i < SIZEOFARRAY(sessionTabs); i++) {
+		if(sessionTabs[i].procedure && sessionTabs[i].className) {
+			windowClass.lpfnWndProc = sessionTabs[i].procedure;
+			windowClass.lpszClassName = sessionTabs[i].className;
+			if(RegisterClassExW(&windowClass)) continue;
+			KHOPANLASTERRORMESSAGE_WIN32(L"RegisterClassExW");
+			return FALSE;
+		}
 	}
 
 	return TRUE;
@@ -93,12 +122,10 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 		goto freeTabs;
 	}
 
-	HWND temporary;
-
 	for(index = 0; index < SIZEOFARRAY(sessionTabs); index++) {
 		if(sessionTabs[index].function) {
-			temporary = sessionTabs[index].function(client->session.window);
-			client->session.tabs[index] = temporary ? temporary : NULL;
+			HWND window = sessionTabs[index].function(client->session.window);
+			client->session.tabs[index] = window ? window : NULL;
 		}
 	}
 
@@ -118,6 +145,7 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 	}
 
 	SendMessageW(client->session.tab, WM_SETFONT, (WPARAM) font, TRUE);
+	selectTab(client);
 	ShowWindow(client->session.window, SW_NORMAL);
 	MSG message;
 
@@ -138,12 +166,6 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 destroyWindow:
 	DestroyWindow(client->session.window);
 freeTabs:
-	for(index = 0; index < SIZEOFARRAY(sessionTabs); index++) {
-		if(client->session.tabs[index]) {
-			DestroyWindow(client->session.tabs[index]);
-		}
-	}
-
 	KHOPAN_DEALLOCATE(client->session.tabs);
 functionExit:
 	if(codeExit != 0) {
@@ -163,4 +185,14 @@ void WindowSessionClose(const PCLIENT client) {
 	if(client->session.window) {
 		PostMessageW(client->session.window, WM_CLOSE, 0, 0);
 	}
+}
+
+void WindowSessionCleanup() {
+	for(size_t i = 0; i < SIZEOFARRAY(sessionTabs); i++) {
+		if(sessionTabs[i].procedure && sessionTabs[i].className) {
+			UnregisterClassW(sessionTabs[i].className, instance);
+		}
+	}
+
+	UnregisterClassW(CLASS_REMOTE_SESSION, instance);
 }

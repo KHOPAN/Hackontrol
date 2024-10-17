@@ -71,7 +71,7 @@ int WINAPI WinMain(_In_ HINSTANCE programInstance, _In_opt_ HINSTANCE previousIn
 	}
 
 	if(!WindowStreamInitialize()) {
-		goto unregisterSession;
+		goto cleanupSession;
 	}
 
 	WSADATA data;
@@ -103,8 +103,8 @@ cleanupSocket:
 	WSACleanup();
 unregisterStream:
 	UnregisterClassW(CLASS_SESSION_STREAM, instance);
-unregisterSession:
-	UnregisterClassW(CLASS_REMOTE_SESSION, instance);
+cleanupSession:
+	WindowSessionCleanup();
 deleteFont:
 	DeleteObject(font);
 freeClientList:
