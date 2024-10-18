@@ -152,6 +152,7 @@
     <ClCompile Include="thread_server.c" />
     <ClCompile Include="window_main.c" />
     <ClCompile Include="window_session.c" />
+    <ClCompile Include="window_session_tab_audio.c" />
     <ClCompile Include="window_session_tab_stream.c" />
     <ClCompile Include="window_stream.c" />
   </ItemGroup>

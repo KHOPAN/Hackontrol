@@ -4,7 +4,8 @@
 #define TAB_OFFSET 5
 
 static SESSIONTAB sessionTabs[] = {
-	WindowSessionTabStream
+	WindowSessionTabStream,
+	WindowSessionTabAudio
 };
 
 extern HINSTANCE instance;

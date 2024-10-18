@@ -32,6 +32,9 @@
     <ClCompile Include="window_session_tab_stream.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="window_session_tab_audio.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="hackontrol-remote.exe.manifest" />

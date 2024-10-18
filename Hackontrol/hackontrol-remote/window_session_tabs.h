@@ -19,3 +19,4 @@ typedef struct {
 typedef void(__stdcall* SESSIONTAB) (const PTABINITIALIZER tab);
 
 void __stdcall WindowSessionTabStream(const PTABINITIALIZER tab);
+void __stdcall WindowSessionTabAudio(const PTABINITIALIZER tab);
