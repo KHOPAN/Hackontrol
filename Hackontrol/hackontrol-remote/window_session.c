@@ -22,6 +22,10 @@ typedef struct {
 static PTABDATA tabData;
 
 static void resizeTab(const PCLIENT client) {
+	if(!client->session.selectedTab) {
+		return;
+	}
+
 	RECT bounds;
 	GetClientRect(client->session.tab, &bounds);
 	SendMessageW(client->session.tab, TCM_ADJUSTRECT, FALSE, (LPARAM) &bounds);
@@ -38,7 +42,9 @@ static void selectTab(const PCLIENT client) {
 	client->session.selectedTab = client->session.tabs[index];
 
 	for(size_t i = 0; i < SIZEOFARRAY(sessionTabs); i++) {
-		ShowWindow(client->session.tabs[i], index == i ? SW_SHOW : SW_HIDE);
+		if(client->session.tabs[i]) {
+			ShowWindow(client->session.tabs[i], index == i ? SW_SHOW : SW_HIDE);
+		}
 	}
 
 	resizeTab(client);
