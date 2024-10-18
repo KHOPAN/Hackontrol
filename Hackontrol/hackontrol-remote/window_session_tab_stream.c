@@ -51,6 +51,9 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 		GetClientRect(window, &bounds);
 		SetWindowPos(data->button, NULL, (bounds.right - bounds.left - data->buttonWidth) / 2, (bounds.bottom - bounds.top - data->buttonHeight) / 2, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
 		return 0;
+	case WM_CTLCOLORBTN:
+		SetDCBrushColor((HDC) wparam, 0xF9F9F9);
+		return (LRESULT) GetStockObject(DC_BRUSH);
 	case WM_DESTROY:
 		KHOPAN_DEALLOCATE(data);
 		return 0;
