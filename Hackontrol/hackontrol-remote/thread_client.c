@@ -62,11 +62,6 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 
 	while(HRSPReceivePacket(client->socket, &client->hrsp, &packet, &protocolError)) {
 		switch(packet.type) {
-		case HRSP_REMOTE_CLIENT_STREAM_FRAME_PACKET:
-			if(!client->session.stream.menu.stream || !client->session.stream.mutex || WaitForSingleObject(client->session.stream.mutex, INFINITE) == WAIT_FAILED) break;
-			WindowStreamFrame(client, packet.data, packet.size);
-			ReleaseMutex(client->session.stream.mutex);
-			break;
 		default:
 			LOG("[Client %ws]: Unknown packet type: %u\n", client->address, packet.type);
 			break;

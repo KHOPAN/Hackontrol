@@ -20,7 +20,7 @@ static HWND __stdcall clientInitialize(const HWND parent, const PCLIENT client) 
 	}
 
 	data->client = client;
-	HWND window = CreateWindowExW(0L, CLASS_NAME, L"", WS_CHILD, 0, 0, 0, 0, parent, NULL, NULL, data);
+	HWND window = CreateWindowExW(WS_EX_CONTROLPARENT, CLASS_NAME, L"", WS_CHILD, 0, 0, 0, 0, parent, NULL, NULL, data);
 
 	if(!window) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
@@ -30,7 +30,7 @@ static HWND __stdcall clientInitialize(const HWND parent, const PCLIENT client) 
 
 	data->buttonWidth = (int) (GetSystemMetrics(SM_CXSCREEN) * 0.0732064422);
 	data->buttonHeight = (int) (GetSystemMetrics(SM_CYSCREEN) * 0.0325520833);
-	data->button = CreateWindowExW(0L, L"Button", L"Open Stream", WS_CHILD | WS_VISIBLE, 0, 0, data->buttonWidth, data->buttonHeight, window, NULL, NULL, NULL);
+	data->button = CreateWindowExW(0L, L"Button", L"Open Stream", WS_TABSTOP | WS_CHILD | WS_VISIBLE, 0, 0, data->buttonWidth, data->buttonHeight, window, NULL, NULL, NULL);
 
 	if(!data->button) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");

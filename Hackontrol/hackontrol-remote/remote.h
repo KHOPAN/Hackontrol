@@ -98,8 +98,3 @@ BOOL WindowSessionInitialize();
 DWORD WINAPI WindowSession(_In_ PCLIENT client);
 void WindowSessionClose(const PCLIENT client);
 void WindowSessionCleanup();
-
-BOOL WindowStreamInitialize();
-DWORD WINAPI WindowStream(_In_ PCLIENT client);
-void WindowStreamFrame(const PCLIENT client, const PBYTE data, const size_t size);
-void WindowStreamClose(const PCLIENT client);

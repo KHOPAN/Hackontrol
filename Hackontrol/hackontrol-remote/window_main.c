@@ -158,7 +158,7 @@ int WindowMain() {
 		goto unregisterClass;
 	}
 
-	listView = CreateWindowExW(WS_EX_CLIENTEDGE, WC_LISTVIEW, L"", LVS_REPORT | LVS_SINGLESEL | WS_CHILD | WS_VISIBLE | WS_VSCROLL, 0, 0, 0, 0, window, NULL, NULL, NULL);
+	listView = CreateWindowExW(WS_EX_CLIENTEDGE, WC_LISTVIEW, L"", LVS_REPORT | LVS_SINGLESEL | WS_TABSTOP | WS_CHILD | WS_VISIBLE | WS_VSCROLL, 0, 0, 0, 0, window, NULL, NULL, NULL);
 
 	if(!listView) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"CreateWindowExW");

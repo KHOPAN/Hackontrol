@@ -70,16 +70,12 @@ int WINAPI WinMain(_In_ HINSTANCE programInstance, _In_opt_ HINSTANCE previousIn
 		goto deleteFont;
 	}
 
-	if(!WindowStreamInitialize()) {
-		goto cleanupSession;
-	}
-
 	WSADATA data;
 	int status = WSAStartup(MAKEWORD(2, 2), &data);
 
 	if(status) {
 		KHOPANERRORMESSAGE_WIN32(status, L"WSAStartup");
-		goto unregisterStream;
+		goto cleanupSession;
 	}
 
 	SOCKET socketListen = 0;
@@ -101,8 +97,6 @@ int WINAPI WinMain(_In_ HINSTANCE programInstance, _In_opt_ HINSTANCE previousIn
 	CloseHandle(thread);
 cleanupSocket:
 	WSACleanup();
-unregisterStream:
-	UnregisterClassW(CLASS_SESSION_STREAM, instance);
 cleanupSession:
 	WindowSessionCleanup();
 deleteFont:
