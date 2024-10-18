@@ -142,6 +142,8 @@ static LRESULT CALLBACK tabProcedure(_In_ HWND window, _In_ UINT message, _In_ W
 }
 
 static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
+	USERDATA(PTABSTREAMDATA, data, window, message, wparam, lparam);
+
 	switch(message) {
 	case WM_CLOSE:
 		DestroyWindow(window);
