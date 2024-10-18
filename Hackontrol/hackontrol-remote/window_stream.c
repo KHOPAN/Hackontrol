@@ -317,7 +317,7 @@ BOOL WindowStreamInitialize() {
 	windowClass.hInstance = instance;
 	windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
 	windowClass.hbrBackground = (HBRUSH) (COLOR_MENU + 1);
-	windowClass.lpszClassName = CLASS_SESSION_STREAM;
+	windowClass.lpszClassName = NULL;
 
 	if(!RegisterClassExW(&windowClass)) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"RegisterClassExW");
@@ -352,7 +352,7 @@ DWORD WINAPI WindowStream(_In_ PCLIENT client) {
 	int height = (int) (((double) screenHeight) * 0.520833333);
 	LPWSTR title = KHOPANFormatMessage(L"Stream [%ws]", client->name);
 	client->session.stream.resizeActivationDistance = (int) (((double) screenWidth) * 0.00878477306);
-	client->session.stream.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_SESSION_STREAM, title ? title : L"Stream", WS_OVERLAPPEDWINDOW | WS_VISIBLE, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, instance, client);
+	client->session.stream.window = CreateWindowExW(WS_EX_TOPMOST, NULL, title ? title : L"Stream", WS_OVERLAPPEDWINDOW | WS_VISIBLE, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, instance, client);
 
 	if(title) {
 		LocalFree(title);
