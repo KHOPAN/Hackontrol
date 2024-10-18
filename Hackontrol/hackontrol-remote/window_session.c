@@ -4,12 +4,21 @@
 #define TAB_OFFSET 5
 
 static SESSIONTAB sessionTabs[] = {
-	{L"Stream", REMOTE_CLASS_TAB_STREAM, WindowSessionTabStream, WindowSessionTabStreamProcedure},
-	{L"Audio",  NULL,                    NULL,                   NULL}
+	WindowSessionTabStream
 };
 
 extern HINSTANCE instance;
 extern HFONT font;
+
+typedef struct {
+	LPCWSTR name;
+	TABCLIENTINITIALIZE clientInitialize;
+	TABCLIENTUNINITIALIZE clientUninitialize;
+	LPCWSTR className;
+	TABUNINITIALIZE uninitialize;
+} TABDATA, *PTABDATA;
+
+static PTABDATA tabData;
 
 static void resizeTab(const PCLIENT client) {
 	RECT bounds;
@@ -66,29 +75,66 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In
 }
 
 BOOL WindowSessionInitialize() {
-	WNDCLASSEXW windowClass = {0};
-	windowClass.cbSize = sizeof(WNDCLASSEXW);
-	windowClass.lpfnWndProc = windowProcedure;
-	windowClass.hInstance = instance;
-	windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
-	windowClass.hbrBackground = (HBRUSH) (COLOR_MENU + 1);
-	windowClass.lpszClassName = CLASS_REMOTE_SESSION;
+	tabData = KHOPAN_ALLOCATE(sizeof(TABDATA) * SIZEOFARRAY(sessionTabs));
 
-	if(!RegisterClassExW(&windowClass)) {
-		KHOPANLASTERRORMESSAGE_WIN32(L"RegisterClassExW");
+	if(KHOPAN_ALLOCATE_FAILED(tabData)) {
+		KHOPANERRORMESSAGE_WIN32(KHOPAN_ALLOCATE_ERROR, KHOPAN_ALLOCATE_FUNCTION);
 		return FALSE;
 	}
 
-	windowClass.hbrBackground = CreateSolidBrush(0xF9F9F9);
+	size_t index;
 
-	for(size_t i = 0; i < SIZEOFARRAY(sessionTabs); i++) {
-		if(sessionTabs[i].className) {
-			windowClass.lpfnWndProc = sessionTabs[i].procedure ? sessionTabs[i].procedure : DefWindowProcW;
-			windowClass.lpszClassName = sessionTabs[i].className;
-			if(RegisterClassExW(&windowClass)) continue;
-			KHOPANLASTERRORMESSAGE_WIN32(L"RegisterClassExW");
-			return FALSE;
+	for(index = 0; index < sizeof(TABDATA) * SIZEOFARRAY(sessionTabs); index++) {
+		((PBYTE) tabData)[index] = 0;
+	}
+
+	TABINITIALIZER initializer = {0};
+	initializer.windowClass.cbSize = sizeof(WNDCLASSEXW);
+	initializer.windowClass.lpfnWndProc = windowProcedure;
+	initializer.windowClass.hInstance = instance;
+	initializer.windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
+	initializer.windowClass.hbrBackground = (HBRUSH) (COLOR_MENU + 1);
+	initializer.windowClass.lpszClassName = CLASS_REMOTE_SESSION;
+
+	if(!RegisterClassExW(&initializer.windowClass)) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"RegisterClassExW");
+		KHOPAN_DEALLOCATE(tabData);
+		return FALSE;
+	}
+
+	size_t counter;
+
+	for(index = 0; index < SIZEOFARRAY(sessionTabs); index++) {
+		if(!sessionTabs[index]) {
+			continue;
 		}
+
+		for(counter = 0; counter < sizeof(TABINITIALIZER); counter++) {
+			((PBYTE) &initializer)[counter] = 0;
+		}
+
+		HBRUSH brush = CreateSolidBrush(0xF9F9F9);
+		initializer.windowClass.cbSize = sizeof(WNDCLASSEXW);
+		initializer.windowClass.hInstance = instance;
+		initializer.windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
+		initializer.windowClass.hbrBackground = brush;
+		sessionTabs[index](&initializer);
+		tabData[index].name = initializer.name;
+		tabData[index].clientInitialize = initializer.clientInitialize;
+		tabData[index].clientUninitialize = initializer.clientUninitialize;
+
+		if(initializer.windowClass.lpszClassName) {
+			if(!initializer.windowClass.lpfnWndProc) initializer.windowClass.lpfnWndProc = DefWindowProcW;
+			counter = RegisterClassExW(&initializer.windowClass);
+			if(counter) tabData[index].className = initializer.windowClass.lpszClassName;
+			if(!counter) DeleteObject(brush);
+		}
+
+		if(initializer.initialize) {
+			initializer.initialize();
+		}
+
+		tabData[index].uninitialize = initializer.uninitialize;
 	}
 
 	return TRUE;
@@ -100,7 +146,7 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 		return 1;
 	}
 
-	client->session.tabs = KHOPAN_ALLOCATE(SIZEOFARRAY(sessionTabs) * sizeof(HWND));
+	client->session.tabs = KHOPAN_ALLOCATE(sizeof(HWND) * SIZEOFARRAY(sessionTabs));
 	DWORD codeExit = 1;
 	size_t index;
 
@@ -126,8 +172,8 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 	}
 
 	for(index = 0; index < SIZEOFARRAY(sessionTabs); index++) {
-		if(sessionTabs[index].function) {
-			HWND window = sessionTabs[index].function(client->session.window, client);
+		if(tabData[index].clientInitialize) {
+			HWND window = tabData[index].clientInitialize(client->session.window, client);
 			client->session.tabs[index] = window ? window : NULL;
 		}
 	}
@@ -136,6 +182,11 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 
 	if(!client->session.tab) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
+
+		for(index = 0; index < SIZEOFARRAY(sessionTabs); index++) {
+			if(tabData[index].clientUninitialize) tabData[index].clientUninitialize(client);
+		}
+
 		goto destroyWindow;
 	}
 
@@ -143,7 +194,7 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 	item.mask = TCIF_TEXT;
 
 	for(index = 0; index < SIZEOFARRAY(sessionTabs); index++) {
-		item.pszText = sessionTabs[index].name;
+		item.pszText = (LPWSTR) tabData[index].name;
 		SendMessageW(client->session.tab, TCM_INSERTITEM, index, (LPARAM) &item);
 	}
 
@@ -162,6 +213,12 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 	if(client->session.stream.thread) {
 		WindowStreamClose(client);
 		WaitForSingleObject(client->session.stream.thread, INFINITE);
+	}
+
+	for(index = 0; index < SIZEOFARRAY(sessionTabs); index++) {
+		if(tabData[index].clientUninitialize) {
+			tabData[index].clientUninitialize(client);
+		}
 	}
 
 	codeExit = 0;
@@ -192,10 +249,15 @@ void WindowSessionClose(const PCLIENT client) {
 
 void WindowSessionCleanup() {
 	for(size_t i = 0; i < SIZEOFARRAY(sessionTabs); i++) {
-		if(sessionTabs[i].className) {
-			UnregisterClassW(sessionTabs[i].className, instance);
+		if(tabData[i].className) {
+			UnregisterClassW(tabData[i].className, instance);
+		}
+
+		if(tabData[i].uninitialize) {
+			tabData[i].uninitialize();
 		}
 	}
 
 	UnregisterClassW(CLASS_REMOTE_SESSION, instance);
+	KHOPAN_DEALLOCATE(tabData);
 }

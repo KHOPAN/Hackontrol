@@ -1,6 +1,11 @@
 #include "window_session_tabs.h"
 
-extern HFONT font;
+void __stdcall WindowSessionTabStream(const PTABINITIALIZER tab) {
+	tab->name = L"Stream";
+	tab->windowClass.lpszClassName = L"HackontrolRemoteSessionTabStream";
+}
+
+/*extern HFONT font;
 
 typedef struct {
 	PCLIENT client;
@@ -55,4 +60,4 @@ LRESULT CALLBACK WindowSessionTabStreamProcedure(_In_ HWND window, _In_ UINT mes
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
-}
+}*/

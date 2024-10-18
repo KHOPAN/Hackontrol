@@ -2,17 +2,20 @@
 
 #include "remote.h"
 
-#define REMOTE_CLASS_TAB_STREAM L"HackontrolRemoteSessionTabStream"
-
-typedef HWND(__stdcall* TABFUNCTION) (const HWND parent, const PCLIENT client);
+typedef void(__stdcall* TABINITIALIZE)         ();
+typedef void(__stdcall* TABUNINITIALIZE)       ();
+typedef HWND(__stdcall* TABCLIENTINITIALIZE)   (const HWND parent, const PCLIENT client);
+typedef void(__stdcall* TABCLIENTUNINITIALIZE) (const PCLIENT client);
 
 typedef struct {
-	LPWSTR name;
-	LPWSTR className;
-	TABFUNCTION function;
-	WNDPROC procedure;
-} SESSIONTAB;
+	LPCWSTR name;
+	TABINITIALIZE initialize;
+	TABUNINITIALIZE uninitialize;
+	TABCLIENTINITIALIZE clientInitialize;
+	TABCLIENTUNINITIALIZE clientUninitialize;
+	WNDCLASSEXW windowClass;
+} TABINITIALIZER, *PTABINITIALIZER;
 
-HWND __stdcall WindowSessionTabStream(const HWND parent, const PCLIENT client);
-LRESULT CALLBACK WindowSessionTabStreamProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam);
-HWND __stdcall WindowSessionTabAudio();
+typedef void(__stdcall* SESSIONTAB) (const PTABINITIALIZER tab);
+
+void __stdcall WindowSessionTabStream(const PTABINITIALIZER tab);
