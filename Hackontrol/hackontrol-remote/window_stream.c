@@ -1,4 +1,4 @@
-#include <hrsp_packet.h>
+/*#include <hrsp_packet.h>
 #include <hrsp_remote.h>
 #include "remote.h"
 
@@ -543,4 +543,4 @@ void WindowStreamClose(const PCLIENT client) {
 	if(client->session.stream.window) {
 		PostMessageW(client->session.stream.window, WM_CLOSE, 0, 0);
 	}
-}
+}*/

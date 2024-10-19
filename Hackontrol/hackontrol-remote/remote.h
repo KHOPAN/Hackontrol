@@ -25,54 +25,11 @@
 #define SIZEOFARRAY(x) (sizeof(x)/sizeof((x)[0]))
 
 typedef struct {
-	HANDLE mutex;
-	HANDLE thread;
-	HWND window;
-	int resizeActivationDistance;
-	int sourceWidth;
-	int sourceHeight;
-	int imageWidth;
-	int imageHeight;
-	int imageX;
-	int imageY;
-	PBYTE pixels;
-
-	struct {
-		BOOL stream;
-
-		enum {
-			SEND_METHOD_FULL = 0,
-			SEND_METHOD_BOUNDARY,
-			SEND_METHOD_COLOR,
-			SEND_METHOD_UNCOMPRESSED,
-		} method;
-
-		BOOL fullscreen;
-		BOOL pictureInPicture;
-		BOOL lockFrame;
-		BOOL limitToScreen;
-	} menu;
-
-	struct {
-		WINDOWPLACEMENT placement;
-		LONG_PTR style;
-	} fullscreen;
-
-	BOOL cursorNorth;
-	BOOL cursorEast;
-	BOOL cursorSouth;
-	BOOL cursorWest;
-	POINT position;
-	RECT bounds;
-} STREAM;
-
-typedef struct {
 	HANDLE thread;
 	HWND* tabs;
 	HWND window;
 	HWND tab;
 	HWND selectedTab;
-	STREAM stream;
 } SESSION;
 
 typedef struct {
