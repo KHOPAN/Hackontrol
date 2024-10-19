@@ -204,7 +204,7 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 		/*AppendMenuW(menu, MF_STRING | (client->session.stream.menu.stream ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_ENABLE, L"Enable Streaming");
 		AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
 		AppendMenuW(menu, MF_STRING | (client->session.stream.menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_MATCH_ASPECT_RATIO, L"Match Aspect Ratio");*/
-		AppendMenuW(menu, MF_STRING | (GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST), IDM_ALWAYS_ON_TOP, L"Always On Top");
+		AppendMenuW(menu, MF_STRING | ((GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST) ? MF_CHECKED : MF_UNCHECKED), IDM_ALWAYS_ON_TOP, L"Always On Top");
 		/*AppendMenuW(menu, MF_STRING | (client->session.stream.menu.fullscreen ? MF_CHECKED : MF_UNCHECKED), IDM_FULLSCREEN, L"Fullscreen");
 		AppendMenuW(menu, MF_STRING | (client->session.stream.menu.limitToScreen ? MF_CHECKED : MF_UNCHECKED) | (client->session.stream.menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_LIMIT_TO_SCREEN, L"Limit To Screen");
 		AppendMenuW(menu, MF_STRING | (client->session.stream.menu.lockFrame ? MF_CHECKED : MF_UNCHECKED) | (client->session.stream.menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_LOCK_FRAME, L"Lock Frame");
