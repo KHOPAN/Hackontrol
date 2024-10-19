@@ -83,7 +83,13 @@ static DWORD WINAPI threadStream(_In_ PTABSTREAMDATA data) {
 	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	int width = (int) (((double) screenWidth) * 0.439238653);
 	int height = (int) (((double) screenHeight) * 0.520833333);
-	data->window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME_STREAM, L"Stream", WS_OVERLAPPEDWINDOW | WS_VISIBLE, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, instance, data);
+	LPWSTR title = KHOPANFormatMessage(L"Stream [%ws]", data->client->name);
+	data->window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME_STREAM, title ? title : L"Stream", WS_OVERLAPPEDWINDOW | WS_VISIBLE, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, instance, data);
+
+	if(title) {
+		LocalFree(title);
+	}
+
 	DWORD codeExit = 1;
 
 	if(!data->window) {

@@ -170,7 +170,7 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	int width = (int) (screenWidth * 0.219619327);
 	int height = (int) (screenHeight * 0.5859375);
-	LPWSTR title = KHOPANFormatMessage(L"%ws [%ws]", client->name, client->address);
+	LPWSTR title = KHOPANFormatMessage(L"%ws [%ws]", client->address, client->name);
 	client->session.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_REMOTE_SESSION, title ? title : L"Session", WS_OVERLAPPEDWINDOW, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, instance, client);
 
 	if(title) {
