@@ -117,6 +117,16 @@ static LRESULT CALLBACK tabProcedure(_In_ HWND window, _In_ UINT message, _In_ W
 	RECT bounds;
 
 	switch(message) {
+	case WM_DESTROY:
+		if(data->thread) {
+			PostMessageW(data->window, WM_CLOSE, 0, 0);
+			WaitForSingleObject(data->thread, INFINITE);
+		}
+
+		WaitForSingleObject(data->mutex, INFINITE);
+		CloseHandle(data->mutex);
+		KHOPAN_DEALLOCATE(data);
+		return 0;
 	case WM_SIZE:
 		GetClientRect(window, &bounds);
 		SetWindowPos(data->button, NULL, (bounds.right - bounds.left - data->buttonWidth) / 2, (bounds.bottom - bounds.top - data->buttonHeight) / 2, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
@@ -144,16 +154,6 @@ static LRESULT CALLBACK tabProcedure(_In_ HWND window, _In_ UINT message, _In_ W
 		}
 
 		return 0;
-	case WM_DESTROY:
-		if(data->thread) {
-			PostMessageW(data->window, WM_CLOSE, 0, 0);
-			WaitForSingleObject(data->thread, INFINITE);
-		}
-
-		WaitForSingleObject(data->mutex, INFINITE);
-		CloseHandle(data->mutex);
-		KHOPAN_DEALLOCATE(data);
-		return 0;
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
@@ -161,6 +161,13 @@ static LRESULT CALLBACK tabProcedure(_In_ HWND window, _In_ UINT message, _In_ W
 
 static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	USERDATA(PTABSTREAMDATA, data, window, message, wparam, lparam);
+	RECT bounds;
+	PAINTSTRUCT paintStruct = {0};
+	HDC context;
+	HDC memoryContext;
+	HBITMAP bitmap;
+	HBITMAP oldBitmap;
+	HBRUSH brush;
 
 	switch(message) {
 	case WM_CLOSE:
@@ -169,6 +176,21 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
+	case WM_PAINT:
+		context = BeginPaint(window, &paintStruct);
+		memoryContext = CreateCompatibleDC(context);
+		GetClientRect(window, &bounds);
+		bitmap = CreateCompatibleBitmap(context, bounds.right, bounds.bottom);
+		oldBitmap = SelectObject(memoryContext, bitmap);
+		brush = GetStockObject(DC_BRUSH);
+		SetDCBrushColor(memoryContext, 0x000000);
+		FillRect(memoryContext, &bounds, brush);
+		BitBlt(context, 0, 0, bounds.right, bounds.bottom, memoryContext, 0, 0, SRCCOPY);
+		SelectObject(memoryContext, oldBitmap);
+		DeleteObject(bitmap);
+		DeleteDC(memoryContext);
+		EndPaint(window, &paintStruct);
+		break;
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
