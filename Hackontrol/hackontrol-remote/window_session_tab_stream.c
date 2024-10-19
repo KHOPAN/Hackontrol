@@ -4,6 +4,8 @@
 #define CLASS_NAME        L"HackontrolRemoteSessionTabStream"
 #define CLASS_NAME_STREAM L"HackontrolRemoteSessionStream"
 
+#define IDM_ALWAYS_ON_TOP 0xE001
+
 extern HINSTANCE instance;
 extern HFONT font;
 
@@ -168,6 +170,7 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 	HBITMAP bitmap;
 	HBITMAP oldBitmap;
 	HBRUSH brush;
+	HMENU menu;
 
 	switch(message) {
 	case WM_CLOSE:
@@ -190,6 +193,35 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 		DeleteObject(bitmap);
 		DeleteDC(memoryContext);
 		EndPaint(window, &paintStruct);
+		return 0;
+	case WM_CONTEXTMENU:
+		menu = CreatePopupMenu();
+
+		if(!menu) {
+			return 0;
+		}
+
+		/*AppendMenuW(menu, MF_STRING | (client->session.stream.menu.stream ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_ENABLE, L"Enable Streaming");
+		AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
+		AppendMenuW(menu, MF_STRING | (client->session.stream.menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_MATCH_ASPECT_RATIO, L"Match Aspect Ratio");*/
+		AppendMenuW(menu, MF_STRING | (GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST), IDM_ALWAYS_ON_TOP, L"Always On Top");
+		/*AppendMenuW(menu, MF_STRING | (client->session.stream.menu.fullscreen ? MF_CHECKED : MF_UNCHECKED), IDM_FULLSCREEN, L"Fullscreen");
+		AppendMenuW(menu, MF_STRING | (client->session.stream.menu.limitToScreen ? MF_CHECKED : MF_UNCHECKED) | (client->session.stream.menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_LIMIT_TO_SCREEN, L"Limit To Screen");
+		AppendMenuW(menu, MF_STRING | (client->session.stream.menu.lockFrame ? MF_CHECKED : MF_UNCHECKED) | (client->session.stream.menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_LOCK_FRAME, L"Lock Frame");
+		AppendMenuW(menu, MF_STRING | (client->session.stream.menu.pictureInPicture ? MF_CHECKED : MF_UNCHECKED) | (client->session.stream.menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_PICTURE_IN_PICTURE, L"Picture In Picture");
+		AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
+		AppendMenuW(menu, MF_STRING, IDM_CLOSE_WINDOW, L"Close Window");*/
+		SetForegroundWindow(window);
+		TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
+		DestroyMenu(menu);
+		return 0;
+	case WM_COMMAND:
+		switch(LOWORD(wparam)) {
+		case IDM_ALWAYS_ON_TOP:
+			SetWindowPos(window, (GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST) ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+			return 0;
+		}
+
 		return 0;
 	}
 
