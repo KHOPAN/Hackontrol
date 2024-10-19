@@ -1,4 +1,5 @@
 #include "window_session_tabs.h"
+#include <hrsp_remote.h>
 
 #define CLASS_NAME        L"HackontrolRemoteSessionTabStream"
 #define CLASS_NAME_STREAM L"HackontrolRemoteSessionStream"
@@ -66,11 +67,10 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 }
 
 static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG data, const PHRSPPACKET packet) {
-	if(!data) {
+	if(!data || packet->type != HRSP_REMOTE_CLIENT_STREAM_FRAME_PACKET) {
 		return FALSE;
 	}
 
-	LOG("Packet: %u\n", packet->type);
 	return FALSE;
 }
 
@@ -190,7 +190,7 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 		DeleteObject(bitmap);
 		DeleteDC(memoryContext);
 		EndPaint(window, &paintStruct);
-		break;
+		return 0;
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
