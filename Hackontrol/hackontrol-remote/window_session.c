@@ -15,6 +15,7 @@ typedef struct {
 	LPCWSTR name;
 	TABCLIENTINITIALIZE clientInitialize;
 	TABCLIENTUNINITIALIZE clientUninitialize;
+	TABPACKETHANDLER packetHandler;
 	LPCWSTR className;
 	TABUNINITIALIZE uninitialize;
 } TABDATA, *PTABDATA;
@@ -129,6 +130,7 @@ BOOL WindowSessionInitialize() {
 		tabData[index].name = initializer.name;
 		tabData[index].clientInitialize = initializer.clientInitialize;
 		tabData[index].clientUninitialize = initializer.clientUninitialize;
+		tabData[index].packetHandler = initializer.packetHandler;
 
 		if(initializer.windowClass.lpszClassName) {
 			if(!initializer.windowClass.lpfnWndProc) initializer.windowClass.lpfnWndProc = DefWindowProcW;
@@ -180,7 +182,7 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 
 	for(index = 0; index < SIZEOFARRAY(sessionTabs); index++) {
 		if(tabData[index].clientInitialize) {
-			HWND window = tabData[index].clientInitialize(client->session.window, client);
+			HWND window = tabData[index].clientInitialize(client, client->session.window);
 			client->session.tabs[index] = window ? window : NULL;
 		}
 	}
@@ -241,6 +243,16 @@ functionExit:
 	}
 
 	return codeExit;
+}
+
+BOOL WindowSessionHandlePacket(const PCLIENT client, const PHRSPPACKET packet) {
+	for(size_t i = 0; i < SIZEOFARRAY(sessionTabs); i++) {
+		if(tabData[i].packetHandler && tabData[i].packetHandler(client, packet)) {
+			return TRUE;
+		}
+	}
+
+	return FALSE;
 }
 
 void WindowSessionClose(const PCLIENT client) {

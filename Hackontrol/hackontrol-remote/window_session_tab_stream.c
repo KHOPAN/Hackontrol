@@ -20,7 +20,7 @@ static void __stdcall uninitialize() {
 	UnregisterClassW(CLASS_NAME_STREAM, instance);
 }
 
-static HWND __stdcall clientInitialize(const HWND parent, const PCLIENT client) {
+static HWND __stdcall clientInitialize(const PCLIENT client, const HWND parent) {
 	PTABSTREAMDATA data = KHOPAN_ALLOCATE(sizeof(TABSTREAMDATA));
 
 	if(KHOPAN_ALLOCATE_FAILED(data)) {
@@ -60,6 +60,11 @@ static HWND __stdcall clientInitialize(const HWND parent, const PCLIENT client) 
 
 	SendMessageW(data->button, WM_SETFONT, (WPARAM) font, TRUE);
 	return window;
+}
+
+static BOOL __stdcall packetHandler(const PCLIENT client, const PHRSPPACKET packet) {
+	LOG("Packet: %u\n", packet->type);
+	return FALSE;
 }
 
 static DWORD WINAPI threadStream(_In_ PTABSTREAMDATA data) {
@@ -160,6 +165,7 @@ void __stdcall WindowSessionTabStream(const PTABINITIALIZER tab) {
 	tab->name = L"Stream";
 	tab->uninitialize = uninitialize;
 	tab->clientInitialize = clientInitialize;
+	tab->packetHandler = packetHandler;
 	tab->windowClass.lpfnWndProc = tabProcedure;
 	tab->windowClass.lpszClassName = CLASS_NAME;
 	WNDCLASSEXW windowClass = {0};

@@ -1,7 +1,8 @@
 #pragma once
 
 #include <libkhopan.h>
-#include "hrsp.h"
+#include <hrsp.h>
+#include <hrsp_packet.h>
 
 #define LOGGER_ENABLE
 //#define NO_CONSOLE
@@ -95,5 +96,6 @@ void WindowMainExit();
 
 BOOL WindowSessionInitialize();
 DWORD WINAPI WindowSession(_In_ PCLIENT client);
+BOOL WindowSessionHandlePacket(const PCLIENT client, const PHRSPPACKET packet);
 void WindowSessionClose(const PCLIENT client);
 void WindowSessionCleanup();

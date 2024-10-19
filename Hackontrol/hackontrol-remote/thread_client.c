@@ -1,7 +1,6 @@
 #include <WinSock2.h>
 #include <libkhopanlist.h>
 #include <hrsp_handshake.h>
-#include <hrsp_packet.h>
 #include <hrsp_remote.h>
 #include "remote.h"
 
@@ -61,10 +60,8 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	ReleaseMutex(clientListMutex);
 
 	while(HRSPReceivePacket(client->socket, &client->hrsp, &packet, &protocolError)) {
-		switch(packet.type) {
-		default:
+		if(!WindowSessionHandlePacket(client, &packet)) {
 			LOG("[Client %ws]: Unknown packet type: %u\n", client->address, packet.type);
-			break;
 		}
 
 		HRSPFreePacket(&packet, NULL);

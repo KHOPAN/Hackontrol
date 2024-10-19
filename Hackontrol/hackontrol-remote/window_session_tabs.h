@@ -4,8 +4,9 @@
 
 typedef void(__stdcall* TABINITIALIZE)         ();
 typedef void(__stdcall* TABUNINITIALIZE)       ();
-typedef HWND(__stdcall* TABCLIENTINITIALIZE)   (const HWND parent, const PCLIENT client);
+typedef HWND(__stdcall* TABCLIENTINITIALIZE)   (const PCLIENT client, const HWND parent);
 typedef void(__stdcall* TABCLIENTUNINITIALIZE) (const PCLIENT client);
+typedef BOOL(__stdcall* TABPACKETHANDLER)      (const PCLIENT client, const PHRSPPACKET packet);
 
 typedef struct {
 	LPCWSTR name;
@@ -13,6 +14,7 @@ typedef struct {
 	TABUNINITIALIZE uninitialize;
 	TABCLIENTINITIALIZE clientInitialize;
 	TABCLIENTUNINITIALIZE clientUninitialize;
+	TABPACKETHANDLER packetHandler;
 	WNDCLASSEXW windowClass;
 } TABINITIALIZER, *PTABINITIALIZER;
 
