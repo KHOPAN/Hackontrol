@@ -49,13 +49,10 @@ typedef struct {
 DWORD WINAPI ThreadClient(_In_ PCLIENT client);
 void ThreadClientOpen(const PCLIENT client);
 void ThreadClientDisconnect(const PCLIENT client);
-
 DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen);
-
 int WindowMain();
 void WindowMainRefresh();
 void WindowMainExit();
-
 BOOL WindowSessionInitialize();
 DWORD WINAPI WindowSession(_In_ PCLIENT client);
 BOOL WindowSessionHandlePacket(const PCLIENT client, const PHRSPPACKET packet);
