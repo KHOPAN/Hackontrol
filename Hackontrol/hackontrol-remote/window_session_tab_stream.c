@@ -16,11 +16,13 @@ typedef struct {
 	HANDLE thread;
 } TABSTREAMDATA, *PTABSTREAMDATA;
 
-static void __stdcall uninitialize() {
-	UnregisterClassW(CLASS_NAME_STREAM, instance);
+static void __stdcall uninitialize(const PULONGLONG data) {
+	if(*data) {
+		UnregisterClassW(CLASS_NAME_STREAM, instance);
+	}
 }
 
-static HWND __stdcall clientInitialize(const PCLIENT client, const HWND parent) {
+static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG customData, const HWND parent) {
 	PTABSTREAMDATA data = KHOPAN_ALLOCATE(sizeof(TABSTREAMDATA));
 
 	if(KHOPAN_ALLOCATE_FAILED(data)) {
@@ -62,7 +64,7 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const HWND parent) 
 	return window;
 }
 
-static BOOL __stdcall packetHandler(const PCLIENT client, const PHRSPPACKET packet) {
+static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG data, const PHRSPPACKET packet) {
 	LOG("Packet: %u\n", packet->type);
 	return FALSE;
 }
@@ -175,5 +177,5 @@ void __stdcall WindowSessionTabStream(const PTABINITIALIZER tab) {
 	windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
 	windowClass.hbrBackground = (HBRUSH) (COLOR_MENU + 1);
 	windowClass.lpszClassName = CLASS_NAME_STREAM;
-	RegisterClassExW(&windowClass);
+	tab->data = RegisterClassExW(&windowClass);
 }

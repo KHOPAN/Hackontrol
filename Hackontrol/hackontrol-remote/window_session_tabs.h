@@ -2,11 +2,11 @@
 
 #include "remote.h"
 
-typedef void(__stdcall* TABINITIALIZE)         ();
-typedef void(__stdcall* TABUNINITIALIZE)       ();
-typedef HWND(__stdcall* TABCLIENTINITIALIZE)   (const PCLIENT client, const HWND parent);
-typedef void(__stdcall* TABCLIENTUNINITIALIZE) (const PCLIENT client);
-typedef BOOL(__stdcall* TABPACKETHANDLER)      (const PCLIENT client, const PHRSPPACKET packet);
+typedef void(__stdcall* TABINITIALIZE)         (const PULONGLONG data);
+typedef void(__stdcall* TABUNINITIALIZE)       (const PULONGLONG data);
+typedef HWND(__stdcall* TABCLIENTINITIALIZE)   (const PCLIENT client, const PULONGLONG data, const HWND parent);
+typedef void(__stdcall* TABCLIENTUNINITIALIZE) (const PCLIENT client, const PULONGLONG data);
+typedef BOOL(__stdcall* TABPACKETHANDLER)      (const PCLIENT client, const PULONGLONG data, const PHRSPPACKET packet);
 
 typedef struct {
 	LPCWSTR name;
@@ -16,6 +16,7 @@ typedef struct {
 	TABCLIENTUNINITIALIZE clientUninitialize;
 	TABPACKETHANDLER packetHandler;
 	WNDCLASSEXW windowClass;
+	ULONGLONG data;
 } TABINITIALIZER, *PTABINITIALIZER;
 
 typedef void(__stdcall* SESSIONTAB) (const PTABINITIALIZER tab);

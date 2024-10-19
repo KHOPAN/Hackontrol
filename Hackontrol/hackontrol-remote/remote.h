@@ -25,8 +25,13 @@
 #define SIZEOFARRAY(x) (sizeof(x)/sizeof((x)[0]))
 
 typedef struct {
+	HWND tab;
+	ULONGLONG data;
+} TABSTORE, *PTABSTORE;
+
+typedef struct {
 	HANDLE thread;
-	HWND* tabs;
+	PTABSTORE tabs;
 	HWND window;
 	HWND tab;
 	HWND selectedTab;

@@ -16,6 +16,7 @@ typedef struct {
 	TABCLIENTINITIALIZE clientInitialize;
 	TABCLIENTUNINITIALIZE clientUninitialize;
 	TABPACKETHANDLER packetHandler;
+	ULONGLONG data;
 	LPCWSTR className;
 	TABUNINITIALIZE uninitialize;
 } TABDATA, *PTABDATA;
@@ -40,11 +41,11 @@ static void selectTab(const PCLIENT client) {
 		return;
 	}
 
-	client->session.selectedTab = client->session.tabs[index];
+	client->session.selectedTab = client->session.tabs[index].tab;
 
 	for(size_t i = 0; i < SIZEOFARRAY(sessionTabs); i++) {
-		if(client->session.tabs[i]) {
-			ShowWindow(client->session.tabs[i], index == i ? SW_SHOW : SW_HIDE);
+		if(client->session.tabs[i].tab) {
+			ShowWindow(client->session.tabs[i].tab, index == i ? SW_SHOW : SW_HIDE);
 		}
 	}
 
@@ -131,6 +132,7 @@ BOOL WindowSessionInitialize() {
 		tabData[index].clientInitialize = initializer.clientInitialize;
 		tabData[index].clientUninitialize = initializer.clientUninitialize;
 		tabData[index].packetHandler = initializer.packetHandler;
+		tabData[index].data = initializer.data;
 
 		if(initializer.windowClass.lpszClassName) {
 			if(!initializer.windowClass.lpfnWndProc) initializer.windowClass.lpfnWndProc = DefWindowProcW;
@@ -140,7 +142,7 @@ BOOL WindowSessionInitialize() {
 		}
 
 		if(initializer.initialize) {
-			initializer.initialize();
+			initializer.initialize(&tabData[index].data);
 		}
 
 		tabData[index].uninitialize = initializer.uninitialize;
@@ -155,7 +157,7 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 		return 1;
 	}
 
-	client->session.tabs = KHOPAN_ALLOCATE(sizeof(HWND) * SIZEOFARRAY(sessionTabs));
+	client->session.tabs = KHOPAN_ALLOCATE(sizeof(TABSTORE) * SIZEOFARRAY(sessionTabs));
 	DWORD codeExit = 1;
 	size_t index;
 
@@ -182,8 +184,9 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 
 	for(index = 0; index < SIZEOFARRAY(sessionTabs); index++) {
 		if(tabData[index].clientInitialize) {
-			HWND window = tabData[index].clientInitialize(client, client->session.window);
-			client->session.tabs[index] = window ? window : NULL;
+			client->session.tabs[index].data = 0;
+			HWND window = tabData[index].clientInitialize(client, &client->session.tabs[index].data, client->session.window);
+			client->session.tabs[index].tab = window ? window : NULL;
 		}
 	}
 
@@ -193,7 +196,7 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
 
 		for(index = 0; index < SIZEOFARRAY(sessionTabs); index++) {
-			if(tabData[index].clientUninitialize) tabData[index].clientUninitialize(client);
+			if(tabData[index].clientUninitialize) tabData[index].clientUninitialize(client, &client->session.tabs[index].data);
 		}
 
 		goto destroyWindow;
@@ -221,7 +224,7 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 
 	for(index = 0; index < SIZEOFARRAY(sessionTabs); index++) {
 		if(tabData[index].clientUninitialize) {
-			tabData[index].clientUninitialize(client);
+			tabData[index].clientUninitialize(client, &client->session.tabs[index].data);
 		}
 	}
 
@@ -247,7 +250,7 @@ functionExit:
 
 BOOL WindowSessionHandlePacket(const PCLIENT client, const PHRSPPACKET packet) {
 	for(size_t i = 0; i < SIZEOFARRAY(sessionTabs); i++) {
-		if(tabData[i].packetHandler && tabData[i].packetHandler(client, packet)) {
+		if(tabData[i].packetHandler && tabData[i].packetHandler(client, &client->session.tabs[i].data, packet)) {
 			return TRUE;
 		}
 	}
@@ -268,7 +271,7 @@ void WindowSessionCleanup() {
 		}
 
 		if(tabData[i].uninitialize) {
-			tabData[i].uninitialize();
+			tabData[i].uninitialize(&tabData[i].data);
 		}
 	}
 
