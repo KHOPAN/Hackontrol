@@ -196,7 +196,7 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
 
 		for(index = 0; index < SIZEOFARRAY(sessionTabs); index++) {
-			if(tabData[index].clientUninitialize) tabData[index].clientUninitialize(client, &client->session.tabs[index].data);
+			if(tabData[index].clientUninitialize && client->session.tabs[index].tab) tabData[index].clientUninitialize(client, &client->session.tabs[index].data);
 		}
 
 		goto destroyWindow;
@@ -223,7 +223,7 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 	}
 
 	for(index = 0; index < SIZEOFARRAY(sessionTabs); index++) {
-		if(tabData[index].clientUninitialize) {
+		if(tabData[index].clientUninitialize && client->session.tabs[index].tab) {
 			tabData[index].clientUninitialize(client, &client->session.tabs[index].data);
 		}
 	}

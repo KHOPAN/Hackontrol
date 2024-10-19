@@ -61,10 +61,15 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 	}
 
 	SendMessageW(data->button, WM_SETFONT, (WPARAM) font, TRUE);
+	*customData = (ULONGLONG) data;
 	return window;
 }
 
 static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG data, const PHRSPPACKET packet) {
+	if(!data) {
+		return FALSE;
+	}
+
 	LOG("Packet: %u\n", packet->type);
 	return FALSE;
 }
