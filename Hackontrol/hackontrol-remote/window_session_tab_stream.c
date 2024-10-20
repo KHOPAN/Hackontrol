@@ -14,25 +14,26 @@
 extern HINSTANCE instance;
 extern HFONT font;
 
-typedef struct {
-	HWND window;
-	HANDLE thread;
-	BOOL streamEnable;
+typedef enum {
+	SEND_METHOD_FULL = 0,
+	SEND_METHOD_BOUNDARY,
+	SEND_METHOD_COLOR,
+	SEND_METHOD_UNCOMPRESSED,
+} SENDMETHOD;
 
-	enum {
-		SEND_METHOD_FULL = 0,
-		SEND_METHOD_BOUNDARY,
-		SEND_METHOD_COLOR,
-		SEND_METHOD_UNCOMPRESSED,
-	} method;
+typedef struct {
+	SENDMETHOD method;
+	BOOL stream;
+	HANDLE thread;
+	HWND window;
 } STREAMTHREADDATA, *PSTREAMTHREADDATA;
 
 typedef struct {
-	PCLIENT client;
-	HANDLE mutex;
+	HWND button;
 	int buttonWidth;
 	int buttonHeight;
-	HWND button;
+	PCLIENT client;
+	HANDLE mutex;
 	STREAMTHREADDATA stream;
 } TABSTREAMDATA, *PTABSTREAMDATA;
 
@@ -183,7 +184,7 @@ static LRESULT CALLBACK tabProcedure(_In_ HWND window, _In_ UINT message, _In_ W
 }
 
 static void sendFrameCode(const PTABSTREAMDATA data) {
-	BYTE byte = ((data->stream.method & 0b11) << 1) | (data->stream.streamEnable ? 0b1001 : 0);
+	BYTE byte = ((data->stream.method & 0b11) << 1) | (data->stream.stream ? 0b1001 : 0);
 	HRSPPACKET packet;
 	packet.size = 1;
 	packet.type = HRSP_REMOTE_SERVER_STREAM_CODE_PACKET;
@@ -232,7 +233,7 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 			return 0;
 		}
 
-		AppendMenuW(menu, MF_STRING | (data->stream.streamEnable ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_ENABLE, L"Enable Stream");
+		AppendMenuW(menu, MF_STRING | (data->stream.stream ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_ENABLE, L"Enable Stream");
 
 		if(sendMethodMenu = CreateMenu()) {
 			AppendMenuW(sendMethodMenu, MF_STRING | (data->stream.method == SEND_METHOD_FULL         ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_FULL,         L"Full");
@@ -241,7 +242,7 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 			AppendMenuW(sendMethodMenu, MF_STRING | (data->stream.method == SEND_METHOD_UNCOMPRESSED ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_UNCOMPRESSED, L"Uncompressed");
 		}
 
-		AppendMenuW(menu, MF_POPUP | (data->stream.streamEnable ? MF_ENABLED : MF_DISABLED), (UINT_PTR) sendMethodMenu, L"Send Method");
+		AppendMenuW(menu, MF_POPUP | (data->stream.stream ? MF_ENABLED : MF_DISABLED), (UINT_PTR) sendMethodMenu, L"Send Method");
 		AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
 		//AppendMenuW(menu, MF_STRING | (client->session.stream.menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_MATCH_ASPECT_RATIO, L"Match Aspect Ratio");
 		AppendMenuW(menu, MF_STRING | ((GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST) ? MF_CHECKED : MF_UNCHECKED), IDM_ALWAYS_ON_TOP, L"Always On Top");
@@ -258,7 +259,7 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 	case WM_COMMAND:
 		switch(LOWORD(wparam)) {
 		case IDM_STREAM_ENABLE:
-			data->stream.streamEnable = !data->stream.streamEnable;
+			data->stream.stream = !data->stream.stream;
 			sendFrameCode(data);
 			return 0;
 		case IDM_SEND_METHOD_FULL:
