@@ -26,10 +26,13 @@ typedef struct {
 	HWND window;
 	BOOL stream;
 	SENDMETHOD method;
-
 	UINT targetWidth;
 	UINT targetHeight;
 	PBYTE pixels;
+	UINT renderWidth;
+	UINT renderHeight;
+	UINT renderX;
+	UINT renderY;
 } STREAMTHREADDATA, *PSTREAMTHREADDATA;
 
 typedef struct {
@@ -215,7 +218,7 @@ static LRESULT CALLBACK tabProcedure(_In_ HWND window, _In_ UINT message, _In_ W
 		return 0;
 	case WM_SIZE:
 		GetClientRect(window, &bounds);
-		SetWindowPos(data->button, NULL, (bounds.right - bounds.left - data->buttonWidth) / 2, (bounds.bottom - bounds.top - data->buttonHeight) / 2, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+		SetWindowPos(data->button, NULL, (int) ((((double) bounds.right) - ((double) bounds.left) - ((double) data->buttonWidth)) * 0.5), (int) ((((double) bounds.bottom) - ((double) bounds.top) - ((double) data->buttonHeight)) * 0.5), 0, 0, SWP_NOSIZE | SWP_NOZORDER);
 		return 0;
 	case WM_CTLCOLORBTN:
 		SetDCBrushColor((HDC) wparam, 0xF9F9F9);
@@ -272,6 +275,29 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 		return 0;
 	case WM_DESTROY:
 		PostQuitMessage(0);
+		return 0;
+	case WM_SIZE:
+		GetClientRect(window, &bounds);
+		bounds.right -= bounds.left;
+		bounds.bottom -= bounds.top;
+
+		if(bounds.right < 1 || bounds.bottom < 1 || !data->stream.targetWidth || !data->stream.targetHeight || WaitForSingleObject(data->mutex, INFINITE) == WAIT_FAILED) {
+			return 0;
+		}
+
+		data->stream.renderWidth = (UINT) (((double) data->stream.targetWidth) / ((double) data->stream.targetHeight) * ((double) bounds.bottom));
+		data->stream.renderHeight = (UINT) (((double) data->stream.targetHeight) / ((double) data->stream.targetWidth) * ((double) bounds.right));
+		bounds.left = data->stream.renderWidth < ((UINT) bounds.right);
+
+		if(bounds.left) {
+			data->stream.renderHeight = bounds.bottom;
+		} else {
+			data->stream.renderWidth = bounds.right;
+		}
+
+		data->stream.renderX = bounds.left ? (UINT) ((((double) bounds.right) - ((double) data->stream.renderWidth)) * 0.5) : 0;
+		data->stream.renderY = bounds.left ? 0 : (UINT) ((((double) bounds.bottom) - ((double) data->stream.renderHeight)) * 0.5);
+		ReleaseMutex(data->mutex);
 		return 0;
 	case WM_PAINT:
 		context = BeginPaint(window, &paintStruct);
