@@ -136,7 +136,7 @@ static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG custo
 		goto rawPixelExit;
 	}
 
-	if(packet->size - 9 < ((int) (width * height * 3))) {
+	if(((UINT) packet->size) < width * height * 3 + 9) {
 		goto releaseMutex;
 	}
 
