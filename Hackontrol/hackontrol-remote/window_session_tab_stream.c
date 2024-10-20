@@ -29,6 +29,7 @@ typedef struct {
 
 	UINT targetWidth;
 	UINT targetHeight;
+	PBYTE pixels;
 } STREAMTHREADDATA, *PSTREAMTHREADDATA;
 
 typedef struct {
@@ -94,9 +95,9 @@ static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG custo
 		return FALSE;
 	}
 
-	PTABSTREAMDATA data = (PTABSTREAMDATA) customData;
+	PTABSTREAMDATA data = (PTABSTREAMDATA) *customData;
 
-	if(!data->stream.stream) {
+	if(!data->stream.stream || WaitForSingleObject(data->mutex, INFINITE) == WAIT_FAILED) {
 		return FALSE;
 	}
 
@@ -106,9 +107,51 @@ static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG custo
 	if(data->stream.targetWidth != width || data->stream.targetHeight != height) {
 		data->stream.targetWidth = width;
 		data->stream.targetHeight = height;
+
+		if(data->stream.pixels) {
+			KHOPAN_DEALLOCATE(data->stream.pixels);
+		}
+
+		data->stream.pixels = KHOPAN_ALLOCATE(width * height * 4);
+
+		if(KHOPAN_ALLOCATE_FAILED(data->stream.pixels)) {
+			goto releaseMutex;
+		}
+
+		PostMessageW(data->stream.window, WM_SIZE, 0, 0);
 	}
 
-	LOG("Frame: %ux%u\n", data->stream.targetWidth, data->stream.targetHeight);
+	if(!data->stream.pixels) {
+		goto releaseMutex;
+	}
+
+	BOOL boundaryDifference = packet->data[0] & 1;
+	BOOL colorDifference = (packet->data[0] >> 1) & 1;
+	UINT x;
+	UINT y;
+	UINT pixelIndex;
+	UINT dataIndex;
+
+	if(!boundaryDifference || !colorDifference) {
+		goto rawPixelExit;
+	}
+
+	if(packet->size - 9 < ((int) (width * height * 3))) {
+		goto releaseMutex;
+	}
+
+	for(y = 0; y < height; y++) {
+		for(x = 0; x < width; x++) {
+			pixelIndex = (y * width + x) * 4;
+			dataIndex = ((height - y - 1) * width + x) * 3;
+			data->stream.pixels[pixelIndex] = packet->data[dataIndex + 11];
+			data->stream.pixels[pixelIndex + 1] = packet->data[dataIndex + 10];
+			data->stream.pixels[pixelIndex + 2] = packet->data[dataIndex + 9];
+		}
+	}
+rawPixelExit:
+releaseMutex:
+	ReleaseMutex(data->mutex);
 	return TRUE;
 }
 
