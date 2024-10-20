@@ -250,7 +250,7 @@ functionExit:
 
 BOOL WindowSessionHandlePacket(const PCLIENT client, const PHRSPPACKET packet) {
 	for(size_t i = 0; i < SIZEOFARRAY(sessionTabs); i++) {
-		if(tabData[i].packetHandler && tabData[i].packetHandler(client, &client->session.tabs[i].data, packet)) {
+		if(tabData[i].packetHandler && client->session.tabs[i].tab && tabData[i].packetHandler(client, &client->session.tabs[i].data, packet)) {
 			return TRUE;
 		}
 	}

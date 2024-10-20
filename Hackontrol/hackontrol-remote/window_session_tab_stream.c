@@ -22,18 +22,21 @@ typedef enum {
 } SENDMETHOD;
 
 typedef struct {
-	SENDMETHOD method;
-	BOOL stream;
 	HANDLE thread;
 	HWND window;
+	BOOL stream;
+	SENDMETHOD method;
+
+	UINT targetWidth;
+	UINT targetHeight;
 } STREAMTHREADDATA, *PSTREAMTHREADDATA;
 
 typedef struct {
-	HWND button;
-	int buttonWidth;
-	int buttonHeight;
 	PCLIENT client;
 	HANDLE mutex;
+	UINT buttonWidth;
+	UINT buttonHeight;
+	HWND button;
 	STREAMTHREADDATA stream;
 } TABSTREAMDATA, *PTABSTREAMDATA;
 
@@ -69,8 +72,8 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 		return NULL;
 	}
 
-	data->buttonWidth = (int) (((double) GetSystemMetrics(SM_CXSCREEN)) * 0.0732064422);
-	data->buttonHeight = (int) (((double) GetSystemMetrics(SM_CYSCREEN)) * 0.0325520833);
+	data->buttonWidth = (UINT) (((double) GetSystemMetrics(SM_CXSCREEN)) * 0.0732064422);
+	data->buttonHeight = (UINT) (((double) GetSystemMetrics(SM_CYSCREEN)) * 0.0325520833);
 	data->button = CreateWindowExW(0L, L"Button", L"Open Stream", WS_TABSTOP | WS_CHILD | WS_VISIBLE, 0, 0, data->buttonWidth, data->buttonHeight, window, NULL, NULL, NULL);
 
 	if(!data->button) {
@@ -97,9 +100,15 @@ static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG custo
 		return FALSE;
 	}
 
-	int width = (packet->data[1] << 24) | (packet->data[2] << 16) | (packet->data[3] << 8) | packet->data[4];
-	int height = (packet->data[5] << 24) | (packet->data[6] << 16) | (packet->data[7] << 8) | packet->data[8];
-	LOG("Frame: %dx%d\n", width, height);
+	UINT width = (packet->data[1] << 24) | (packet->data[2] << 16) | (packet->data[3] << 8) | packet->data[4];
+	UINT height = (packet->data[5] << 24) | (packet->data[6] << 16) | (packet->data[7] << 8) | packet->data[8];
+
+	if(data->stream.targetWidth != width || data->stream.targetHeight != height) {
+		data->stream.targetWidth = width;
+		data->stream.targetHeight = height;
+	}
+
+	LOG("Frame: %ux%u\n", data->stream.targetWidth, data->stream.targetHeight);
 	return TRUE;
 }
 
@@ -108,10 +117,10 @@ static DWORD WINAPI threadStream(_In_ PTABSTREAMDATA data) {
 		return 1;
 	}
 
-	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
-	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
-	int width = (int) (((double) screenWidth) * 0.439238653);
-	int height = (int) (((double) screenHeight) * 0.520833333);
+	UINT screenWidth = GetSystemMetrics(SM_CXSCREEN);
+	UINT screenHeight = GetSystemMetrics(SM_CYSCREEN);
+	UINT width = (UINT) (((double) screenWidth) * 0.439238653);
+	UINT height = (UINT) (((double) screenHeight) * 0.520833333);
 	LPWSTR title = KHOPANFormatMessage(L"Stream [%ws]", data->client->name);
 	data->stream.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME_STREAM, title ? title : L"Stream", WS_OVERLAPPEDWINDOW | WS_VISIBLE, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, instance, data);
 
@@ -135,6 +144,8 @@ static DWORD WINAPI threadStream(_In_ PTABSTREAMDATA data) {
 
 	codeExit = 0;
 functionExit:
+	WaitForSingleObject(data->mutex, INFINITE);
+	ReleaseMutex(data->mutex);
 	CloseHandle(data->stream.thread);
 
 	for(size_t i = 0; i < sizeof(STREAMTHREADDATA); i++) {
