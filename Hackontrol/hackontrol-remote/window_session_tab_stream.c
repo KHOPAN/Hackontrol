@@ -4,10 +4,28 @@
 #define CLASS_NAME        L"HackontrolRemoteSessionTabStream"
 #define CLASS_NAME_STREAM L"HackontrolRemoteSessionStream"
 
-#define IDM_ALWAYS_ON_TOP 0xE001
+#define IDM_STREAM_ENABLE            0xE001
+#define IDM_SEND_METHOD_FULL         0xE002
+#define IDM_SEND_METHOD_BOUNDARY     0xE003
+#define IDM_SEND_METHOD_COLOR        0xE004
+#define IDM_SEND_METHOD_UNCOMPRESSED 0xE005
+#define IDM_ALWAYS_ON_TOP            0xE006
 
 extern HINSTANCE instance;
 extern HFONT font;
+
+typedef struct {
+	HWND window;
+	HANDLE thread;
+	BOOL streamEnable;
+
+	enum {
+		SEND_METHOD_FULL = 0,
+		SEND_METHOD_BOUNDARY,
+		SEND_METHOD_COLOR,
+		SEND_METHOD_UNCOMPRESSED,
+	} method;
+} STREAMTHREADDATA, *PSTREAMTHREADDATA;
 
 typedef struct {
 	PCLIENT client;
@@ -15,8 +33,7 @@ typedef struct {
 	int buttonWidth;
 	int buttonHeight;
 	HWND button;
-	HWND window;
-	HANDLE thread;
+	STREAMTHREADDATA stream;
 } TABSTREAMDATA, *PTABSTREAMDATA;
 
 static void __stdcall uninitialize(const PULONGLONG data) {
@@ -73,7 +90,8 @@ static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG data,
 		return FALSE;
 	}
 
-	return FALSE;
+	LOG("Frame received\n");
+	return TRUE;
 }
 
 static DWORD WINAPI threadStream(_In_ PTABSTREAMDATA data) {
@@ -86,7 +104,7 @@ static DWORD WINAPI threadStream(_In_ PTABSTREAMDATA data) {
 	int width = (int) (((double) screenWidth) * 0.439238653);
 	int height = (int) (((double) screenHeight) * 0.520833333);
 	LPWSTR title = KHOPANFormatMessage(L"Stream [%ws]", data->client->name);
-	data->window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME_STREAM, title ? title : L"Stream", WS_OVERLAPPEDWINDOW | WS_VISIBLE, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, instance, data);
+	data->stream.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME_STREAM, title ? title : L"Stream", WS_OVERLAPPEDWINDOW | WS_VISIBLE, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, instance, data);
 
 	if(title) {
 		LocalFree(title);
@@ -94,7 +112,7 @@ static DWORD WINAPI threadStream(_In_ PTABSTREAMDATA data) {
 
 	DWORD codeExit = 1;
 
-	if(!data->window) {
+	if(!data->stream.window) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
 		goto functionExit;
 	}
@@ -108,9 +126,12 @@ static DWORD WINAPI threadStream(_In_ PTABSTREAMDATA data) {
 
 	codeExit = 0;
 functionExit:
-	CloseHandle(data->thread);
-	data->window = NULL;
-	data->thread = NULL;
+	CloseHandle(data->stream.thread);
+
+	for(size_t i = 0; i < sizeof(STREAMTHREADDATA); i++) {
+		((PBYTE) &data->stream)[i] = 0;
+	}
+
 	return codeExit;
 }
 
@@ -120,9 +141,9 @@ static LRESULT CALLBACK tabProcedure(_In_ HWND window, _In_ UINT message, _In_ W
 
 	switch(message) {
 	case WM_DESTROY:
-		if(data->thread) {
-			PostMessageW(data->window, WM_CLOSE, 0, 0);
-			WaitForSingleObject(data->thread, INFINITE);
+		if(data->stream.thread) {
+			PostMessageW(data->stream.window, WM_CLOSE, 0, 0);
+			WaitForSingleObject(data->stream.thread, INFINITE);
 		}
 
 		WaitForSingleObject(data->mutex, INFINITE);
@@ -141,16 +162,16 @@ static LRESULT CALLBACK tabProcedure(_In_ HWND window, _In_ UINT message, _In_ W
 			break;
 		}
 
-		if(data->thread) {
-			PostMessageW(data->window, WM_CLOSE, 0, 0);
-			WaitForSingleObject(data->thread, INFINITE);
+		if(data->stream.thread) {
+			PostMessageW(data->stream.window, WM_CLOSE, 0, 0);
+			WaitForSingleObject(data->stream.thread, INFINITE);
 		}
 
 		WaitForSingleObject(data->mutex, INFINITE);
 		ReleaseMutex(data->mutex);
-		data->thread = CreateThread(NULL, 0, threadStream, data, 0, NULL);
+		data->stream.thread = CreateThread(NULL, 0, threadStream, data, 0, NULL);
 
-		if(!data->thread) {
+		if(!data->stream.thread) {
 			KHOPANLASTERRORCONSOLE_WIN32(L"CreateMutexExW");
 			break;
 		}
@@ -159,6 +180,15 @@ static LRESULT CALLBACK tabProcedure(_In_ HWND window, _In_ UINT message, _In_ W
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
+}
+
+static void sendFrameCode(const PTABSTREAMDATA data) {
+	BYTE byte = ((data->stream.method & 0b11) << 1) | (data->stream.streamEnable ? 0b1001 : 0);
+	HRSPPACKET packet;
+	packet.size = 1;
+	packet.type = HRSP_REMOTE_SERVER_STREAM_CODE_PACKET;
+	packet.data = &byte;
+	HRSPSendPacket(data->client->socket, &data->client->hrsp, &packet, NULL);
 }
 
 static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
@@ -171,6 +201,7 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 	HBITMAP oldBitmap;
 	HBRUSH brush;
 	HMENU menu;
+	HMENU sendMethodMenu = NULL;
 
 	switch(message) {
 	case WM_CLOSE:
@@ -201,9 +232,18 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 			return 0;
 		}
 
-		/*AppendMenuW(menu, MF_STRING | (client->session.stream.menu.stream ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_ENABLE, L"Enable Streaming");
+		AppendMenuW(menu, MF_STRING | (data->stream.streamEnable ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_ENABLE, L"Enable Stream");
+
+		if(sendMethodMenu = CreateMenu()) {
+			AppendMenuW(sendMethodMenu, MF_STRING | (data->stream.method == SEND_METHOD_FULL         ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_FULL,         L"Full");
+			AppendMenuW(sendMethodMenu, MF_STRING | (data->stream.method == SEND_METHOD_BOUNDARY     ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_BOUNDARY,     L"Boundary Differences");
+			AppendMenuW(sendMethodMenu, MF_STRING | (data->stream.method == SEND_METHOD_COLOR        ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_COLOR,        L"Color Differences");
+			AppendMenuW(sendMethodMenu, MF_STRING | (data->stream.method == SEND_METHOD_UNCOMPRESSED ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_UNCOMPRESSED, L"Uncompressed");
+		}
+
+		AppendMenuW(menu, MF_POPUP | (data->stream.streamEnable ? MF_ENABLED : MF_DISABLED), (UINT_PTR) sendMethodMenu, L"Send Method");
 		AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
-		AppendMenuW(menu, MF_STRING | (client->session.stream.menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_MATCH_ASPECT_RATIO, L"Match Aspect Ratio");*/
+		//AppendMenuW(menu, MF_STRING | (client->session.stream.menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_MATCH_ASPECT_RATIO, L"Match Aspect Ratio");
 		AppendMenuW(menu, MF_STRING | ((GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST) ? MF_CHECKED : MF_UNCHECKED), IDM_ALWAYS_ON_TOP, L"Always On Top");
 		/*AppendMenuW(menu, MF_STRING | (client->session.stream.menu.fullscreen ? MF_CHECKED : MF_UNCHECKED), IDM_FULLSCREEN, L"Fullscreen");
 		AppendMenuW(menu, MF_STRING | (client->session.stream.menu.limitToScreen ? MF_CHECKED : MF_UNCHECKED) | (client->session.stream.menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_LIMIT_TO_SCREEN, L"Limit To Screen");
@@ -217,6 +257,17 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 		return 0;
 	case WM_COMMAND:
 		switch(LOWORD(wparam)) {
+		case IDM_STREAM_ENABLE:
+			data->stream.streamEnable = !data->stream.streamEnable;
+			sendFrameCode(data);
+			return 0;
+		case IDM_SEND_METHOD_FULL:
+		case IDM_SEND_METHOD_BOUNDARY:
+		case IDM_SEND_METHOD_COLOR:
+		case IDM_SEND_METHOD_UNCOMPRESSED:
+			data->stream.method = LOWORD(wparam) - IDM_SEND_METHOD_FULL + SEND_METHOD_FULL;
+			sendFrameCode(data);
+			return 0;
 		case IDM_ALWAYS_ON_TOP:
 			SetWindowPos(window, (GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST) ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
 			return 0;
