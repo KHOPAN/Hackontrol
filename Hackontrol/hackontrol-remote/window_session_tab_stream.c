@@ -86,12 +86,20 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 	return window;
 }
 
-static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG data, const PHRSPPACKET packet) {
-	if(!data || packet->type != HRSP_REMOTE_CLIENT_STREAM_FRAME_PACKET) {
+static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG customData, const PHRSPPACKET packet) {
+	if(!customData || packet->type != HRSP_REMOTE_CLIENT_STREAM_FRAME_PACKET) {
 		return FALSE;
 	}
 
-	LOG("Frame received\n");
+	PTABSTREAMDATA data = (PTABSTREAMDATA) customData;
+
+	if(!data->stream.stream) {
+		return FALSE;
+	}
+
+	int width = (packet->data[1] << 24) | (packet->data[2] << 16) | (packet->data[3] << 8) | packet->data[4];
+	int height = (packet->data[5] << 24) | (packet->data[6] << 16) | (packet->data[7] << 8) | packet->data[8];
+	LOG("Frame: %dx%d\n", width, height);
 	return TRUE;
 }
 
