@@ -24,6 +24,10 @@ typedef enum {
 typedef struct {
 	HANDLE thread;
 	HWND window;
+	LONGLONG lastTime;
+	LONGLONG lastUpdate;
+	ULONGLONG totalTime;
+	ULONGLONG totalTimes;
 	BOOL stream;
 	SENDMETHOD method;
 	UINT targetWidth;
@@ -43,6 +47,8 @@ typedef struct {
 	HWND button;
 	STREAMTHREADDATA stream;
 } TABSTREAMDATA, *PTABSTREAMDATA;
+
+static LONGLONG performanceFrequency;
 
 static void __stdcall uninitialize(const PULONGLONG data) {
 	if(*data) {
@@ -93,6 +99,15 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 	return window;
 }
 
+static void updateTitle(const PTABSTREAMDATA data) {
+	LPWSTR title = !data->stream.stream || !data->stream.lastTime ? KHOPANFormatMessage(L"Stream [%ws]", data->client->name) : KHOPANFormatMessage(L"Stream [%ws] [%.2lf FPS]", data->client->name, ((long double) data->stream.totalTimes) * ((long double) performanceFrequency) / ((long double) data->stream.totalTime));
+	SetWindowTextW(data->stream.window, title ? title : L"Stream");
+
+	if(title) {
+		LocalFree(title);
+	}
+}
+
 static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG customData, const PHRSPPACKET packet) {
 	if(packet->type != HRSP_REMOTE_CLIENT_STREAM_FRAME_PACKET) {
 		return FALSE;
@@ -103,8 +118,6 @@ static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG custo
 	}
 
 	PTABSTREAMDATA data = (PTABSTREAMDATA) *customData;
-	LARGE_INTEGER startTime = {0};
-	QueryPerformanceCounter(&startTime);
 
 	if(!data->stream.stream || WaitForSingleObject(data->mutex, INFINITE) == WAIT_FAILED) {
 		return TRUE;
@@ -163,13 +176,27 @@ static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG custo
 rawPixelExit:
 updateFrame:
 	InvalidateRect(data->stream.window, NULL, FALSE);
-	ReleaseMutex(data->mutex);
-	LARGE_INTEGER endTime = {0};
-	QueryPerformanceCounter(&endTime);
-	startTime.QuadPart = endTime.QuadPart - startTime.QuadPart;
-	QueryPerformanceFrequency(&endTime);
-	LOG("Framerate: %.4lf FPS\n", ((long double) endTime.QuadPart) / ((long double) startTime.QuadPart));
-	return TRUE;
+	LONGLONG time = 0;
+	QueryPerformanceCounter((PLARGE_INTEGER) &time);
+
+	if(!data->stream.lastTime) {
+		data->stream.lastTime = time;
+		data->stream.lastUpdate = time;
+		goto releaseMutex;
+	}
+
+	data->stream.totalTime += time - data->stream.lastTime;
+	data->stream.totalTimes++;
+	data->stream.lastTime = time;
+
+	if((((long double) time) - ((long double) data->stream.lastUpdate)) / ((long double) performanceFrequency) >= 0.25) {
+		data->stream.lastUpdate = time;
+		ReleaseMutex(data->mutex);
+		updateTitle(data);
+		data->stream.totalTime = 0;
+		data->stream.totalTimes = 0;
+		return TRUE;
+	}
 releaseMutex:
 	ReleaseMutex(data->mutex);
 	return TRUE;
@@ -193,13 +220,7 @@ static DWORD WINAPI threadStream(_In_ PTABSTREAMDATA data) {
 	UINT screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	UINT width = (UINT) (((double) screenWidth) * 0.439238653);
 	UINT height = (UINT) (((double) screenHeight) * 0.520833333);
-	LPWSTR title = KHOPANFormatMessage(L"Stream [%ws]", data->client->name);
-	data->stream.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME_STREAM, title ? title : L"Stream", WS_OVERLAPPEDWINDOW | WS_VISIBLE, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, instance, data);
-
-	if(title) {
-		LocalFree(title);
-	}
-
+	data->stream.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME_STREAM, NULL, WS_OVERLAPPEDWINDOW | WS_VISIBLE, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, instance, data);
 	DWORD codeExit = 1;
 
 	if(!data->stream.window) {
@@ -207,6 +228,7 @@ static DWORD WINAPI threadStream(_In_ PTABSTREAMDATA data) {
 		goto functionExit;
 	}
 
+	updateTitle(data);
 	MSG message;
 
 	while(GetMessageW(&message, NULL, 0, 0)) {
@@ -382,6 +404,7 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 		switch(LOWORD(wparam)) {
 		case IDM_STREAM_ENABLE:
 			data->stream.stream = !data->stream.stream;
+			if(!data->stream.stream) updateTitle(data);
 			sendFrameCode(data);
 			return 0;
 		case IDM_SEND_METHOD_FULL:
@@ -410,6 +433,7 @@ void __stdcall WindowSessionTabStream(const PTABINITIALIZER tab) {
 	tab->alwaysProcessPacket = TRUE;
 	tab->windowClass.lpfnWndProc = tabProcedure;
 	tab->windowClass.lpszClassName = CLASS_NAME;
+	QueryPerformanceFrequency((PLARGE_INTEGER) &performanceFrequency);
 	WNDCLASSEXW windowClass = {0};
 	windowClass.cbSize = sizeof(WNDCLASSEXW);
 	windowClass.lpfnWndProc = streamProcedure;
