@@ -152,7 +152,11 @@ static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG custo
 			data->stream.pixels[pixelIndex + 2] = packet->data[dataIndex + 9];
 		}
 	}
+
+	goto updateFrame;
 rawPixelExit:
+updateFrame:
+	InvalidateRect(data->stream.window, NULL, FALSE);
 releaseMutex:
 	ReleaseMutex(data->mutex);
 	return TRUE;
@@ -266,6 +270,7 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 	HBITMAP bitmap;
 	HBITMAP oldBitmap;
 	HBRUSH brush;
+	BITMAPINFO information = {0};
 	HMENU menu;
 	HMENU sendMethodMenu = NULL;
 
@@ -308,6 +313,18 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 		brush = GetStockObject(DC_BRUSH);
 		SetDCBrushColor(memoryContext, 0x000000);
 		FillRect(memoryContext, &bounds, brush);
+
+		if(data->stream.pixels && WaitForSingleObject(data->mutex, INFINITE) != WAIT_FAILED) {
+			information.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+			information.bmiHeader.biWidth = data->stream.targetWidth;
+			information.bmiHeader.biHeight = data->stream.targetHeight;
+			information.bmiHeader.biPlanes = 1;
+			information.bmiHeader.biBitCount = 32;
+			SetStretchBltMode(memoryContext, HALFTONE);
+			StretchDIBits(memoryContext, data->stream.renderX, data->stream.renderY, data->stream.renderWidth, data->stream.renderHeight, 0, 0, data->stream.targetWidth, data->stream.targetHeight, data->stream.pixels, &information, DIB_RGB_COLORS, SRCCOPY);
+			ReleaseMutex(data->mutex);
+		}
+
 		BitBlt(context, 0, 0, bounds.right, bounds.bottom, memoryContext, 0, 0, SRCCOPY);
 		SelectObject(memoryContext, oldBitmap);
 		DeleteObject(bitmap);
