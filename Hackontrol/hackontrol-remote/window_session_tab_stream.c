@@ -163,11 +163,13 @@ static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG custo
 rawPixelExit:
 updateFrame:
 	InvalidateRect(data->stream.window, NULL, FALSE);
+	ReleaseMutex(data->mutex);
 	LARGE_INTEGER endTime = {0};
 	QueryPerformanceCounter(&endTime);
 	startTime.QuadPart = endTime.QuadPart - startTime.QuadPart;
 	QueryPerformanceFrequency(&endTime);
 	LOG("Framerate: %.4lf FPS\n", ((long double) endTime.QuadPart) / ((long double) startTime.QuadPart));
+	return TRUE;
 releaseMutex:
 	ReleaseMutex(data->mutex);
 	return TRUE;
