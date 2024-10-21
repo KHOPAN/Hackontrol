@@ -11,6 +11,13 @@
 #define IDM_SEND_METHOD_UNCOMPRESSED 0xE005
 #define IDM_ALWAYS_ON_TOP            0xE006
 
+#define QOI_OP_RGB   0b11111110
+#define QOI_OP_INDEX 0b00000000
+#define QOI_OP_DIFF  0b01000000
+#define QOI_OP_LUMA  0b10000000
+#define QOI_OP_RUN   0b11000000
+#define OP_MASK      0b11000000
+
 extern HINSTANCE instance;
 extern HFONT font;
 
@@ -108,6 +115,76 @@ static void updateTitle(const PTABSTREAMDATA data) {
 	}
 }
 
+BOOL decodePixel(const UINT x, const UINT y, const UINT width, const UINT height, const PHRSPPACKET packet, const PTABSTREAMDATA data, const BOOL colorDifference, size_t* const pointer, const PUINT red, const PUINT green, const PUINT blue, const PBYTE seenRed, const PBYTE seenGreen, const PBYTE seenBlue, const PUINT run) {
+#define APPLY_COLOR if(colorDifference){data->stream.pixels[pixelIndex]-=*blue;data->stream.pixels[pixelIndex+1]-=*green;data->stream.pixels[pixelIndex+2]-=*red;}else{data->stream.pixels[pixelIndex]=*blue;data->stream.pixels[pixelIndex+1]=*green;data->stream.pixels[pixelIndex+2]=*red;}
+	UINT pixelIndex = ((height - y - 1) * width + x) * 4;
+
+	if(*run > 0) {
+		APPLY_COLOR;
+		(*run)--;
+		return TRUE;
+	}
+
+	if(packet->size - *pointer < 1) {
+		return FALSE;
+	}
+
+	BYTE byte = packet->data[(*pointer)++];
+	UINT dataIndex;
+
+	if(byte == QOI_OP_RGB) {
+		if(packet->size - *pointer < 3) {
+			return FALSE;
+		}
+
+		*red = packet->data[(*pointer)++];
+		*green = packet->data[(*pointer)++];
+		*blue = packet->data[(*pointer)++];
+		dataIndex = (*red * 3 + *green * 5 + *blue * 7 + 0xFF * 11) & 0b111111;
+		seenRed[dataIndex] = *red;
+		seenGreen[dataIndex] = *green;
+		seenBlue[dataIndex] = *blue;
+		APPLY_COLOR;
+		return TRUE;
+	}
+
+	switch(byte & OP_MASK) {
+	case QOI_OP_INDEX:
+		dataIndex = byte & 0b111111;
+		*red = seenRed[dataIndex];
+		*green = seenGreen[dataIndex];
+		*blue = seenBlue[dataIndex];
+		break;
+	case QOI_OP_DIFF:
+		*red += ((byte >> 4) & 0b11) - 2;
+		*green += ((byte >> 2) & 0b11) - 2;
+		*blue += (byte & 0b11) - 2;
+		break;
+	case QOI_OP_LUMA:
+		if(packet->size - *pointer < 1) {
+			return TRUE;
+		}
+
+		dataIndex = packet->data[(*pointer)++];
+		int temporary = (byte & 0b111111) - 32;
+		*red += temporary - 8 + ((dataIndex >> 4) & 0b1111);
+		*green += temporary;
+		*blue += temporary - 8 + (dataIndex & 0b1111);
+		break;
+	case QOI_OP_RUN:
+		APPLY_COLOR;
+		*run = (byte & 0b111111);
+		return TRUE;
+	}
+
+	dataIndex = (*red * 3 + *green * 5 + *blue * 7 + 0xFF * 11) & 0b111111;
+	seenRed[dataIndex] = *red;
+	seenGreen[dataIndex] = *green;
+	seenBlue[dataIndex] = *blue;
+	APPLY_COLOR;
+	return TRUE;
+}
+
 static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG customData, const PHRSPPACKET packet) {
 	if(packet->type != HRSP_REMOTE_CLIENT_STREAM_FRAME_PACKET) {
 		return FALSE;
@@ -174,6 +251,35 @@ static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG custo
 
 	goto updateFrame;
 rawPixelExit:
+	if(boundaryDifference && packet->size < 25) {
+		goto releaseMutex;
+	}
+
+	UINT startX = boundaryDifference ? (packet->data[9] << 24) | (packet->data[10] << 16) | (packet->data[11] << 8) | packet->data[12] : 0;
+	UINT endX = boundaryDifference ? (packet->data[17] << 24) | (packet->data[18] << 16) | (packet->data[19] << 8) | packet->data[20] : width - 1;
+	UINT endY = boundaryDifference ? (packet->data[21] << 24) | (packet->data[22] << 16) | (packet->data[23] << 8) | packet->data[24] : height - 1;
+	BYTE seenRed[64];
+	BYTE seenGreen[64];
+	BYTE seenBlue[64];
+	size_t pointer;
+
+	for(pointer = 0; pointer < 64; pointer++) {
+		seenRed[pointer] = 0;
+		seenGreen[pointer] = 0;
+		seenBlue[pointer] = 0;
+	}
+
+	pointer = boundaryDifference ? 25 : 9;
+	UINT red = 0;
+	UINT green = 0;
+	UINT blue = 0;
+	UINT run = 0;
+
+	for(y = boundaryDifference ? (packet->data[13] << 24) | (packet->data[14] << 16) | (packet->data[15] << 8) | packet->data[16] : 0; y <= endY; y++) {
+		for(x = startX; x <= endX; x++) {
+			if(!decodePixel(x, y, width, height, packet, data, colorDifference, &pointer, &red, &green, &blue, seenRed, seenGreen, seenBlue, &run)) goto releaseMutex;
+		}
+	}
 updateFrame:
 	InvalidateRect(data->stream.window, NULL, FALSE);
 	LONGLONG time = 0;
