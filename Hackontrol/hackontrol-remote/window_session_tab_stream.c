@@ -287,6 +287,8 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
+	case WM_ERASEBKGND:
+		return 1;
 	case WM_SIZE:
 		GetClientRect(window, &bounds);
 		bounds.right -= bounds.left;
