@@ -115,76 +115,6 @@ static void updateTitle(const PTABSTREAMDATA data) {
 	}
 }
 
-BOOL decodePixel(const UINT x, const UINT y, const UINT width, const UINT height, const PHRSPPACKET packet, const PTABSTREAMDATA data, const BOOL colorDifference, size_t* const pointer, const PUINT red, const PUINT green, const PUINT blue, const PBYTE seenRed, const PBYTE seenGreen, const PBYTE seenBlue, const PUINT run) {
-#define APPLY_COLOR if(colorDifference){data->stream.pixels[pixelIndex]-=*blue;data->stream.pixels[pixelIndex+1]-=*green;data->stream.pixels[pixelIndex+2]-=*red;}else{data->stream.pixels[pixelIndex]=*blue;data->stream.pixels[pixelIndex+1]=*green;data->stream.pixels[pixelIndex+2]=*red;}
-	UINT pixelIndex = ((height - y - 1) * width + x) * 4;
-
-	if(*run > 0) {
-		APPLY_COLOR;
-		(*run)--;
-		return TRUE;
-	}
-
-	if(packet->size - *pointer < 1) {
-		return FALSE;
-	}
-
-	BYTE byte = packet->data[(*pointer)++];
-	UINT dataIndex;
-
-	if(byte == QOI_OP_RGB) {
-		if(packet->size - *pointer < 3) {
-			return FALSE;
-		}
-
-		*red = packet->data[(*pointer)++];
-		*green = packet->data[(*pointer)++];
-		*blue = packet->data[(*pointer)++];
-		dataIndex = (*red * 3 + *green * 5 + *blue * 7 + 0xFF * 11) & 0b111111;
-		seenRed[dataIndex] = *red;
-		seenGreen[dataIndex] = *green;
-		seenBlue[dataIndex] = *blue;
-		APPLY_COLOR;
-		return TRUE;
-	}
-
-	switch(byte & OP_MASK) {
-	case QOI_OP_INDEX:
-		dataIndex = byte & 0b111111;
-		*red = seenRed[dataIndex];
-		*green = seenGreen[dataIndex];
-		*blue = seenBlue[dataIndex];
-		break;
-	case QOI_OP_DIFF:
-		*red += ((byte >> 4) & 0b11) - 2;
-		*green += ((byte >> 2) & 0b11) - 2;
-		*blue += (byte & 0b11) - 2;
-		break;
-	case QOI_OP_LUMA:
-		if(packet->size - *pointer < 1) {
-			return TRUE;
-		}
-
-		dataIndex = packet->data[(*pointer)++];
-		int temporary = (byte & 0b111111) - 32;
-		*red += temporary - 8 + ((dataIndex >> 4) & 0b1111);
-		*green += temporary;
-		*blue += temporary - 8 + (dataIndex & 0b1111);
-		break;
-	case QOI_OP_RUN:
-		APPLY_COLOR;
-		*run = (byte & 0b111111);
-		return TRUE;
-	}
-
-	dataIndex = (*red * 3 + *green * 5 + *blue * 7 + 0xFF * 11) & 0b111111;
-	seenRed[dataIndex] = *red;
-	seenGreen[dataIndex] = *green;
-	seenBlue[dataIndex] = *blue;
-	APPLY_COLOR;
-	return TRUE;
-}
-
 static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG customData, const PHRSPPACKET packet) {
 	if(packet->type != HRSP_REMOTE_CLIENT_STREAM_FRAME_PACKET) {
 		return FALSE;
@@ -251,7 +181,7 @@ static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG custo
 
 	goto updateFrame;
 rawPixelExit:
-	if(boundaryDifference && packet->size < 25) {
+	if(boundaryDifference && packet->size - 9 < 16) {
 		goto releaseMutex;
 	}
 
@@ -274,10 +204,66 @@ rawPixelExit:
 	UINT green = 0;
 	UINT blue = 0;
 	UINT run = 0;
+	int temporary = 0;
+#define APPLY_COLOR if(colorDifference){data->stream.pixels[pixelIndex]-=blue;data->stream.pixels[pixelIndex+1]-=green;data->stream.pixels[pixelIndex+2]-=red;}else{data->stream.pixels[pixelIndex]=blue;data->stream.pixels[pixelIndex+1]=green;data->stream.pixels[pixelIndex+2]=red;}
 
 	for(y = boundaryDifference ? (packet->data[13] << 24) | (packet->data[14] << 16) | (packet->data[15] << 8) | packet->data[16] : 0; y <= endY; y++) {
 		for(x = startX; x <= endX; x++) {
-			if(!decodePixel(x, y, width, height, packet, data, colorDifference, &pointer, &red, &green, &blue, seenRed, seenGreen, seenBlue, &run)) goto releaseMutex;
+			pixelIndex = ((height - y - 1) * width + x) * 4;
+
+			if(run > 0) {
+				APPLY_COLOR;
+				run--;
+				continue;
+			}
+
+			if(packet->size - pointer < 1) goto releaseMutex;
+			temporary = packet->data[pointer++];
+
+			if(temporary == QOI_OP_RGB) {
+				if(packet->size - pointer < 3) goto releaseMutex;
+				red = packet->data[pointer++];
+				green = packet->data[pointer++];
+				blue = packet->data[pointer++];
+				dataIndex = (red * 3 + green * 5 + blue * 7 + 0xFF * 11) & 0b111111;
+				seenRed[dataIndex] = red;
+				seenGreen[dataIndex] = green;
+				seenBlue[dataIndex] = blue;
+				APPLY_COLOR;
+				continue;
+			}
+
+			switch(temporary & OP_MASK) {
+			case QOI_OP_INDEX:
+				dataIndex = temporary & 0b111111;
+				red = seenRed[dataIndex];
+				green = seenGreen[dataIndex];
+				blue = seenBlue[dataIndex];
+				break;
+			case QOI_OP_DIFF:
+				red += ((temporary >> 4) & 0b11) - 2;
+				green += ((temporary >> 2) & 0b11) - 2;
+				blue += (temporary & 0b11) - 2;
+				break;
+			case QOI_OP_LUMA:
+				if(packet->size - pointer < 1) goto releaseMutex;
+				dataIndex = packet->data[pointer++];
+				temporary = (temporary & 0b111111) - 32;
+				red += temporary - 8 + ((dataIndex >> 4) & 0b1111);
+				green += temporary;
+				blue += temporary - 8 + (dataIndex & 0b1111);
+				break;
+			case QOI_OP_RUN:
+				APPLY_COLOR;
+				run = (temporary & 0b111111);
+				continue;
+			}
+
+			dataIndex = (red * 3 + green * 5 + blue * 7 + 0xFF * 11) & 0b111111;
+			seenRed[dataIndex] = red;
+			seenGreen[dataIndex] = green;
+			seenBlue[dataIndex] = blue;
+			APPLY_COLOR;
 		}
 	}
 updateFrame:
