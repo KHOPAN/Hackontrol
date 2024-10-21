@@ -94,14 +94,18 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 }
 
 static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG customData, const PHRSPPACKET packet) {
-	if(!customData || packet->type != HRSP_REMOTE_CLIENT_STREAM_FRAME_PACKET) {
+	if(packet->type != HRSP_REMOTE_CLIENT_STREAM_FRAME_PACKET) {
 		return FALSE;
+	}
+
+	if(!customData || !client->session.tabs) {
+		return TRUE;
 	}
 
 	PTABSTREAMDATA data = (PTABSTREAMDATA) *customData;
 
 	if(!data->stream.stream || WaitForSingleObject(data->mutex, INFINITE) == WAIT_FAILED) {
-		return FALSE;
+		return TRUE;
 	}
 
 	UINT width = (packet->data[1] << 24) | (packet->data[2] << 16) | (packet->data[3] << 8) | packet->data[4];
@@ -162,6 +166,15 @@ releaseMutex:
 	return TRUE;
 }
 
+static void sendFrameCode(const PTABSTREAMDATA data) {
+	BYTE byte = ((data->stream.method & 0b11) << 1) | (data->stream.stream ? 0b1001 : 0);
+	HRSPPACKET packet;
+	packet.size = 1;
+	packet.type = HRSP_REMOTE_SERVER_STREAM_CODE_PACKET;
+	packet.data = &byte;
+	HRSPSendPacket(data->client->socket, &data->client->hrsp, &packet, NULL);
+}
+
 static DWORD WINAPI threadStream(_In_ PTABSTREAMDATA data) {
 	if(!data) {
 		return 1;
@@ -192,6 +205,8 @@ static DWORD WINAPI threadStream(_In_ PTABSTREAMDATA data) {
 		DispatchMessageW(&message);
 	}
 
+	data->stream.stream = FALSE;
+	sendFrameCode(data);
 	codeExit = 0;
 functionExit:
 	WaitForSingleObject(data->mutex, INFINITE);
@@ -250,15 +265,6 @@ static LRESULT CALLBACK tabProcedure(_In_ HWND window, _In_ UINT message, _In_ W
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
-}
-
-static void sendFrameCode(const PTABSTREAMDATA data) {
-	BYTE byte = ((data->stream.method & 0b11) << 1) | (data->stream.stream ? 0b1001 : 0);
-	HRSPPACKET packet;
-	packet.size = 1;
-	packet.type = HRSP_REMOTE_SERVER_STREAM_CODE_PACKET;
-	packet.data = &byte;
-	HRSPSendPacket(data->client->socket, &data->client->hrsp, &packet, NULL);
 }
 
 static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
@@ -390,6 +396,7 @@ void __stdcall WindowSessionTabStream(const PTABINITIALIZER tab) {
 	tab->uninitialize = uninitialize;
 	tab->clientInitialize = clientInitialize;
 	tab->packetHandler = packetHandler;
+	tab->alwaysProcessPacket = TRUE;
 	tab->windowClass.lpfnWndProc = tabProcedure;
 	tab->windowClass.lpszClassName = CLASS_NAME;
 	WNDCLASSEXW windowClass = {0};

@@ -16,6 +16,7 @@ typedef struct {
 	TABCLIENTINITIALIZE clientInitialize;
 	TABCLIENTUNINITIALIZE clientUninitialize;
 	TABPACKETHANDLER packetHandler;
+	BOOL alwaysProcessPacket;
 	ULONGLONG data;
 	LPCWSTR className;
 	TABUNINITIALIZE uninitialize;
@@ -132,6 +133,7 @@ BOOL WindowSessionInitialize() {
 		tabData[index].clientInitialize = initializer.clientInitialize;
 		tabData[index].clientUninitialize = initializer.clientUninitialize;
 		tabData[index].packetHandler = initializer.packetHandler;
+		tabData[index].alwaysProcessPacket = initializer.alwaysProcessPacket;
 		tabData[index].data = initializer.data;
 
 		if(initializer.windowClass.lpszClassName) {
@@ -250,7 +252,18 @@ functionExit:
 
 BOOL WindowSessionHandlePacket(const PCLIENT client, const PHRSPPACKET packet) {
 	for(size_t i = 0; i < SIZEOFARRAY(sessionTabs); i++) {
-		if(tabData[i].packetHandler && client->session.tabs[i].tab && tabData[i].packetHandler(client, &client->session.tabs[i].data, packet)) {
+		if(!tabData[i].packetHandler) {
+			continue;
+		}
+
+		PULONGLONG data = client->session.tabs ? &client->session.tabs[i].data : NULL;
+
+		if(tabData[i].alwaysProcessPacket) {
+			if(tabData[i].packetHandler(client, data, packet)) return TRUE;
+			continue;
+		}
+
+		if(client->session.tabs && client->session.tabs[i].tab && tabData[i].packetHandler(client, data, packet)) {
 			return TRUE;
 		}
 	}
