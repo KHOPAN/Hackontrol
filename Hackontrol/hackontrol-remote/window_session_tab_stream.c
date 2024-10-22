@@ -35,8 +35,8 @@ typedef enum {
 
 typedef struct {
 	HANDLE thread;
-	UINT activationDistance;
-	UINT minimumSize;
+	int activationDistance;
+	int minimumSize;
 	HWND window;
 	LONGLONG lastTime;
 	LONGLONG lastUpdate;
@@ -421,8 +421,8 @@ static void limitToScreen(const PTABSTREAMDATA data, const int screenWidth, cons
 	bottom -= top;
 
 	if(data->stream.pictureInPicture) {
-		right = max(right, (int) data->stream.minimumSize);
-		bottom = max(bottom, (int) data->stream.minimumSize);
+		right = max(right, data->stream.minimumSize);
+		bottom = max(bottom, data->stream.minimumSize);
 	}
 
 	if(!data->stream.limitToScreen) {
@@ -600,10 +600,10 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 			location.x = GET_X_LPARAM(lparam);
 			location.y = GET_Y_LPARAM(lparam);
 			GetClientRect(window, &bounds);
-			data->stream.cursorNorth = data->stream.pictureInPicture ? location.y >= 0 && location.y <= ((int) data->stream.activationDistance) : FALSE;
-			data->stream.cursorEast = data->stream.pictureInPicture ? location.x >= bounds.right - ((int) data->stream.activationDistance) && location.x < bounds.right : FALSE;
-			data->stream.cursorSouth = data->stream.pictureInPicture ? location.y >= bounds.bottom - ((int) data->stream.activationDistance) && location.y < bounds.bottom : FALSE;
-			data->stream.cursorWest = data->stream.pictureInPicture ? location.x >= 0 && location.x <= ((int) data->stream.activationDistance) : FALSE;
+			data->stream.cursorNorth = data->stream.pictureInPicture ? location.y >= 0 && location.y <= data->stream.activationDistance : FALSE;
+			data->stream.cursorEast = data->stream.pictureInPicture ? location.x >= bounds.right - data->stream.activationDistance && location.x < bounds.right : FALSE;
+			data->stream.cursorSouth = data->stream.pictureInPicture ? location.y >= bounds.bottom - data->stream.activationDistance && location.y < bounds.bottom : FALSE;
+			data->stream.cursorWest = data->stream.pictureInPicture ? location.x >= 0 && location.x <= data->stream.activationDistance : FALSE;
 			SetCursor(LoadCursorW(NULL, data->stream.cursorNorth ? data->stream.cursorWest ? IDC_SIZENWSE : data->stream.cursorEast ? IDC_SIZENESW : IDC_SIZENS : data->stream.cursorSouth ? data->stream.cursorWest ? IDC_SIZENESW : data->stream.cursorEast ? IDC_SIZENWSE : IDC_SIZENS : data->stream.cursorWest ? IDC_SIZEWE : data->stream.cursorEast ? IDC_SIZEWE : IDC_ARROW));
 			return 0;
 		}
