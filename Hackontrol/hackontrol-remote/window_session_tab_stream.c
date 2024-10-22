@@ -10,6 +10,7 @@
 #define IDM_SEND_METHOD_COLOR        0xE004
 #define IDM_SEND_METHOD_UNCOMPRESSED 0xE005
 #define IDM_ALWAYS_ON_TOP            0xE006
+#define IDM_FULLSCREEN               0xE007
 
 #define QOI_OP_RGB   0b11111110
 #define QOI_OP_INDEX 0b00000000
@@ -37,6 +38,9 @@ typedef struct {
 	ULONGLONG totalTimes;
 	BOOL stream;
 	SENDMETHOD method;
+	BOOL fullscreen;
+	LONG_PTR windowStyle;
+	WINDOWPLACEMENT windowPlacement;
 	UINT targetWidth;
 	UINT targetHeight;
 	PBYTE pixels;
@@ -482,8 +486,8 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 		AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
 		//AppendMenuW(menu, MF_STRING | (client->session.stream.menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_MATCH_ASPECT_RATIO, L"Match Aspect Ratio");
 		AppendMenuW(menu, MF_STRING | ((GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST) ? MF_CHECKED : MF_UNCHECKED), IDM_ALWAYS_ON_TOP, L"Always On Top");
-		/*AppendMenuW(menu, MF_STRING | (client->session.stream.menu.fullscreen ? MF_CHECKED : MF_UNCHECKED), IDM_FULLSCREEN, L"Fullscreen");
-		AppendMenuW(menu, MF_STRING | (client->session.stream.menu.limitToScreen ? MF_CHECKED : MF_UNCHECKED) | (client->session.stream.menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_LIMIT_TO_SCREEN, L"Limit To Screen");
+		AppendMenuW(menu, MF_STRING | (data->stream.fullscreen ? MF_CHECKED : MF_UNCHECKED), IDM_FULLSCREEN, L"Fullscreen");
+		/*AppendMenuW(menu, MF_STRING | (client->session.stream.menu.limitToScreen ? MF_CHECKED : MF_UNCHECKED) | (client->session.stream.menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_LIMIT_TO_SCREEN, L"Limit To Screen");
 		AppendMenuW(menu, MF_STRING | (client->session.stream.menu.lockFrame ? MF_CHECKED : MF_UNCHECKED) | (client->session.stream.menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_LOCK_FRAME, L"Lock Frame");
 		AppendMenuW(menu, MF_STRING | (client->session.stream.menu.pictureInPicture ? MF_CHECKED : MF_UNCHECKED) | (client->session.stream.menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_PICTURE_IN_PICTURE, L"Picture In Picture");
 		AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
@@ -508,6 +512,15 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 			return 0;
 		case IDM_ALWAYS_ON_TOP:
 			SetWindowPos(window, (GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST) ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+			return 0;
+		case IDM_FULLSCREEN:
+			data->stream.fullscreen = !data->stream.fullscreen;
+			if(data->stream.fullscreen) data->stream.windowStyle = GetWindowLongPtrW(window, GWL_STYLE);
+			data->stream.windowPlacement.length = sizeof(WINDOWPLACEMENT);
+			(data->stream.fullscreen ? GetWindowPlacement : SetWindowPlacement)(window, &data->stream.windowPlacement);
+			SetWindowLongPtrW(window, GWL_STYLE, data->stream.fullscreen ? WS_POPUP | WS_VISIBLE : data->stream.windowStyle);
+			if(data->stream.fullscreen) SetWindowPos(window, HWND_TOP, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), SWP_FRAMECHANGED);
+			PostMessageW(window, WM_SIZE, 0, 0);
 			return 0;
 		}
 
