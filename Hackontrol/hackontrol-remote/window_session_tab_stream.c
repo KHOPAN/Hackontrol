@@ -1,4 +1,5 @@
 #include "window_session_tabs.h"
+#include <windowsx.h>
 #include <hrsp_remote.h>
 
 #define CLASS_NAME        L"HackontrolRemoteSessionTabStream"
@@ -33,18 +34,22 @@ typedef enum {
 
 typedef struct {
 	HANDLE thread;
+	UINT activationDistance;
 	HWND window;
 	LONGLONG lastTime;
 	LONGLONG lastUpdate;
 	ULONGLONG totalTime;
 	ULONGLONG totalTimes;
+
 	BOOL stream;
 	SENDMETHOD method;
 	BOOL fullscreen;
 	BOOL matchAspectRatio;
 	BOOL pictureInPicture;
+
 	LONG_PTR windowStyle;
 	WINDOWPLACEMENT windowPlacement;
+
 	UINT targetWidth;
 	UINT targetHeight;
 	PBYTE pixels;
@@ -52,6 +57,11 @@ typedef struct {
 	UINT renderHeight;
 	UINT renderX;
 	UINT renderY;
+
+	BOOL cursorNorth;
+	BOOL cursorEast;
+	BOOL cursorSouth;
+	BOOL cursorWest;
 } STREAMTHREADDATA, *PSTREAMTHREADDATA;
 
 typedef struct {
@@ -321,6 +331,7 @@ static DWORD WINAPI threadStream(_In_ PTABSTREAMDATA data) {
 	UINT screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	UINT width = (UINT) (((double) screenWidth) * 0.439238653);
 	UINT height = (UINT) (((double) screenHeight) * 0.520833333);
+	data->stream.activationDistance = (int) (((double) screenWidth) * 0.00878477306);
 	data->stream.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME_STREAM, NULL, WS_OVERLAPPEDWINDOW | WS_VISIBLE, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, instance, data);
 	DWORD codeExit = 1;
 
@@ -411,6 +422,7 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 	BITMAPINFO information = {0};
 	HMENU menu;
 	HMENU sendMethodMenu = NULL;
+	POINT location;
 
 	switch(message) {
 	case WM_CLOSE:
@@ -539,6 +551,16 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 		}
 
 		return 0;
+	case WM_MOUSEMOVE:
+		location.x = GET_X_LPARAM(lparam);
+		location.y = GET_Y_LPARAM(lparam);
+		GetClientRect(window, &bounds);
+		data->stream.cursorNorth = location.y >= 0 && location.y <= ((int) data->stream.activationDistance);
+		data->stream.cursorEast = location.x >= bounds.right - ((int) data->stream.activationDistance) && location.x < bounds.right;
+		data->stream.cursorSouth = location.y >= bounds.bottom - ((int) data->stream.activationDistance) && location.y < bounds.bottom;
+		data->stream.cursorWest = location.x >= 0 && location.x <= ((int) data->stream.activationDistance);
+		SetCursor(LoadCursorW(NULL, data->stream.cursorNorth ? data->stream.cursorWest ? IDC_SIZENWSE : data->stream.cursorEast ? IDC_SIZENESW : IDC_SIZENS : data->stream.cursorSouth ? data->stream.cursorWest ? IDC_SIZENESW : data->stream.cursorEast ? IDC_SIZENWSE : IDC_SIZENS : data->stream.cursorWest ? IDC_SIZEWE : data->stream.cursorEast ? IDC_SIZEWE : IDC_ARROW));
+		return 0;
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
@@ -555,6 +577,7 @@ void __stdcall WindowSessionTabStream(const PTABINITIALIZER tab) {
 	QueryPerformanceFrequency((PLARGE_INTEGER) &performanceFrequency);
 	WNDCLASSEXW windowClass = {0};
 	windowClass.cbSize = sizeof(WNDCLASSEXW);
+	windowClass.style = CS_HREDRAW | CS_VREDRAW;
 	windowClass.lpfnWndProc = streamProcedure;
 	windowClass.hInstance = instance;
 	windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
