@@ -626,19 +626,12 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 			bounds.right = min(bounds.right, screenWidth);
 		}
 
-		limitToScreen(data, screenWidth, screenHeight, bounds.left, bounds.top, bounds.right, bounds.bottom);
-		/*bounds.right -= bounds.left;
-		bounds.bottom -= bounds.top;
-		LONG difference;
-
-		if(data->stream.cursorEast) {
-			difference = location.x - data->stream.pressedLocation.x;
-			if(data->stream.limitToScreen && data->stream.pressedBounds.right + difference > ((int) screenWidth)) difference = screenWidth - data->stream.pressedBounds.right;
-			bounds.right = data->stream.pressedBounds.right - data->stream.pressedBounds.left + difference;
-			bounds.right = max(bounds.right, ((int) data->stream.activationDistance * 3));
+		if(data->stream.cursorSouth) {
+			bounds.bottom = location.y - data->stream.pressedLocation.y + data->stream.pressedBounds.bottom;
+			bounds.bottom = min(bounds.bottom, screenHeight);
 		}
 
-		SetWindowPos(window, HWND_TOP, bounds.left, bounds.top, bounds.right, bounds.bottom, (!data->stream.cursorNorth && data->stream.cursorEast) || (data->stream.cursorSouth && !data->stream.cursorWest) ? SWP_NOMOVE : 0);*/
+		limitToScreen(data, screenWidth, screenHeight, bounds.left, bounds.top, bounds.right, bounds.bottom);
 		return 0;
 	case WM_LBUTTONDOWN:
 		GetWindowRect(window, &data->stream.pressedBounds);
