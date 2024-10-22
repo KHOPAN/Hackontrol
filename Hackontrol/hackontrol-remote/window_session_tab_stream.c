@@ -35,32 +35,28 @@ typedef enum {
 
 typedef struct {
 	HANDLE thread;
-	int activationDistance;
-	int minimumSize;
 	HWND window;
 	LONGLONG lastTime;
 	LONGLONG lastUpdate;
 	ULONGLONG totalTime;
 	ULONGLONG totalTimes;
-
 	BOOL stream;
 	SENDMETHOD method;
 	BOOL fullscreen;
 	BOOL limitToScreen;
 	BOOL matchAspectRatio;
 	BOOL pictureInPicture;
-
 	LONG_PTR windowStyle;
 	WINDOWPLACEMENT windowPlacement;
-
 	UINT targetWidth;
 	UINT targetHeight;
 	PBYTE pixels;
+	UINT minimumWidth;
+	UINT minimumHeight;
 	UINT renderWidth;
 	UINT renderHeight;
 	UINT renderX;
 	UINT renderY;
-
 	BOOL cursorNorth;
 	BOOL cursorEast;
 	BOOL cursorSouth;
@@ -74,6 +70,8 @@ typedef struct {
 	HANDLE mutex;
 	UINT buttonWidth;
 	UINT buttonHeight;
+	int activationDistance;
+	int minimumSize;
 	HWND button;
 	STREAMTHREADDATA stream;
 } TABSTREAMDATA, *PTABSTREAMDATA;
@@ -112,8 +110,11 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 		return NULL;
 	}
 
-	data->buttonWidth = (UINT) (((double) GetSystemMetrics(SM_CXSCREEN)) * 0.0732064422);
+	double width = GetSystemMetrics(SM_CXSCREEN);
+	data->buttonWidth = (UINT) (width * 0.0732064422);
 	data->buttonHeight = (UINT) (((double) GetSystemMetrics(SM_CYSCREEN)) * 0.0325520833);
+	data->activationDistance = (UINT) (width * 0.00878477306);
+	data->minimumSize = (UINT) (width * 0.0263543192);
 	data->button = CreateWindowExW(0L, L"Button", L"Open Stream", WS_TABSTOP | WS_CHILD | WS_VISIBLE, 0, 0, data->buttonWidth, data->buttonHeight, window, NULL, NULL, NULL);
 
 	if(!data->button) {
@@ -170,6 +171,9 @@ static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG custo
 			goto releaseMutex;
 		}
 
+		double minimum = min(data->stream.targetWidth, data->stream.targetHeight);
+		data->stream.minimumWidth = (UINT) (((double) data->stream.targetWidth) / minimum * ((double) data->minimumSize));
+		data->stream.minimumHeight = (UINT) (((double) data->stream.targetHeight) / minimum * ((double) data->minimumSize));
 		PostMessageW(data->stream.window, WM_SIZE, 0, 0);
 	}
 
@@ -336,8 +340,6 @@ static DWORD WINAPI threadStream(_In_ PTABSTREAMDATA data) {
 	UINT screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	UINT width = (UINT) (((double) screenWidth) * 0.439238653);
 	UINT height = (UINT) (((double) screenHeight) * 0.520833333);
-	data->stream.activationDistance = (int) (((double) screenWidth) * 0.00878477306);
-	data->stream.minimumSize = (int) (((double) screenWidth) * 0.0263543192);
 	data->stream.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME_STREAM, NULL, WS_OVERLAPPEDWINDOW | WS_VISIBLE, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, instance, data);
 	DWORD codeExit = 1;
 
@@ -421,8 +423,8 @@ static void limitToScreen(const PTABSTREAMDATA data, const int screenWidth, cons
 	bottom -= top;
 
 	if(data->stream.pictureInPicture) {
-		right = max(right, data->stream.minimumSize);
-		bottom = max(bottom, data->stream.minimumSize);
+		right = max(right, data->stream.matchAspectRatio ? (int) data->stream.minimumWidth : data->minimumSize);
+		bottom = max(bottom, data->stream.matchAspectRatio ? (int) data->stream.minimumHeight : data->minimumSize);
 	}
 
 	if(!data->stream.limitToScreen) {
@@ -600,10 +602,10 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 			location.x = GET_X_LPARAM(lparam);
 			location.y = GET_Y_LPARAM(lparam);
 			GetClientRect(window, &bounds);
-			data->stream.cursorNorth = data->stream.pictureInPicture ? location.y >= 0 && location.y <= data->stream.activationDistance : FALSE;
-			data->stream.cursorEast = data->stream.pictureInPicture ? location.x >= bounds.right - data->stream.activationDistance && location.x < bounds.right : FALSE;
-			data->stream.cursorSouth = data->stream.pictureInPicture ? location.y >= bounds.bottom - data->stream.activationDistance && location.y < bounds.bottom : FALSE;
-			data->stream.cursorWest = data->stream.pictureInPicture ? location.x >= 0 && location.x <= data->stream.activationDistance : FALSE;
+			data->stream.cursorNorth = data->stream.pictureInPicture ? location.y >= 0 && location.y <= data->activationDistance : FALSE;
+			data->stream.cursorEast = data->stream.pictureInPicture ? location.x >= bounds.right - data->activationDistance && location.x < bounds.right : FALSE;
+			data->stream.cursorSouth = data->stream.pictureInPicture ? location.y >= bounds.bottom - data->activationDistance && location.y < bounds.bottom : FALSE;
+			data->stream.cursorWest = data->stream.pictureInPicture ? location.x >= 0 && location.x <= data->activationDistance : FALSE;
 			SetCursor(LoadCursorW(NULL, data->stream.cursorNorth ? data->stream.cursorWest ? IDC_SIZENWSE : data->stream.cursorEast ? IDC_SIZENESW : IDC_SIZENS : data->stream.cursorSouth ? data->stream.cursorWest ? IDC_SIZENESW : data->stream.cursorEast ? IDC_SIZENWSE : IDC_SIZENS : data->stream.cursorWest ? IDC_SIZEWE : data->stream.cursorEast ? IDC_SIZEWE : IDC_ARROW));
 			return 0;
 		}
@@ -625,7 +627,7 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 		if(data->stream.cursorNorth) {
 			bounds.top = location.y - data->stream.pressedLocation.y + data->stream.pressedBounds.top;
 			bounds.top = max(bounds.top, 0);
-			temporary = data->stream.pressedBounds.bottom - data->stream.minimumSize;
+			temporary = data->stream.pressedBounds.bottom - data->stream.minimumHeight;
 			bounds.top = min(bounds.top, temporary);
 
 			if(data->stream.matchAspectRatio) {
@@ -637,6 +639,8 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 		if(data->stream.cursorEast && !(data->stream.matchAspectRatio && (data->stream.cursorNorth || data->stream.cursorSouth))) {
 			bounds.right = location.x - data->stream.pressedLocation.x + data->stream.pressedBounds.right;
 			bounds.right = min(bounds.right, screenWidth);
+			temporary = data->stream.pressedBounds.left + data->stream.minimumWidth;
+			bounds.right = max(bounds.right, temporary);
 
 			if(data->stream.matchAspectRatio) {
 				bounds.top = data->stream.pressedBounds.top;
@@ -647,6 +651,8 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 		if(data->stream.cursorSouth) {
 			bounds.bottom = location.y - data->stream.pressedLocation.y + data->stream.pressedBounds.bottom;
 			bounds.bottom = min(bounds.bottom, screenHeight);
+			temporary = data->stream.pressedBounds.top + data->stream.minimumHeight;
+			bounds.bottom = max(bounds.bottom, temporary);
 
 			if(data->stream.matchAspectRatio) {
 				bounds.left = data->stream.pressedBounds.left;
@@ -657,7 +663,7 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 		if(data->stream.cursorWest && !(data->stream.matchAspectRatio && (data->stream.cursorNorth || data->stream.cursorSouth))) {
 			bounds.left = location.x - data->stream.pressedLocation.x + data->stream.pressedBounds.left;
 			bounds.left = max(bounds.left, 0);
-			temporary = data->stream.pressedBounds.right - data->stream.minimumSize;
+			temporary = data->stream.pressedBounds.right - data->stream.minimumWidth;
 			bounds.left = min(bounds.left, temporary);
 
 			if(data->stream.matchAspectRatio) {
