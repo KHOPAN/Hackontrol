@@ -271,6 +271,7 @@ rawPixelExit:
 		}
 	}
 updateFrame:
+	ReleaseMutex(data->mutex);
 	InvalidateRect(data->stream.window, NULL, FALSE);
 	LONGLONG time = 0;
 	QueryPerformanceCounter((PLARGE_INTEGER) &time);
@@ -278,7 +279,7 @@ updateFrame:
 	if(!data->stream.lastTime) {
 		data->stream.lastTime = time;
 		data->stream.lastUpdate = time;
-		goto releaseMutex;
+		return TRUE;
 	}
 
 	data->stream.totalTime += time - data->stream.lastTime;
@@ -287,12 +288,12 @@ updateFrame:
 
 	if((((long double) time) - ((long double) data->stream.lastUpdate)) / ((long double) performanceFrequency) >= 0.25) {
 		data->stream.lastUpdate = time;
-		ReleaseMutex(data->mutex);
 		updateTitle(data);
 		data->stream.totalTime = 0;
 		data->stream.totalTimes = 0;
-		return TRUE;
 	}
+
+	return TRUE;
 releaseMutex:
 	ReleaseMutex(data->mutex);
 	return TRUE;
