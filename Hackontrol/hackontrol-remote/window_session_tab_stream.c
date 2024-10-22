@@ -547,6 +547,19 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 			return 0;
 		case IDM_LIMIT_TO_SCREEN:
 			data->stream.limitToScreen = !data->stream.limitToScreen;
+			if(!data->stream.limitToScreen) return 0;
+			GetWindowRect(window, &bounds);
+			bounds.right -= bounds.left;
+			bounds.bottom -= bounds.top;
+			location.x = GetSystemMetrics(SM_CXSCREEN);
+			location.y = GetSystemMetrics(SM_CYSCREEN);
+			bounds.left = max(bounds.left, 0);
+			bounds.top = max(bounds.top, 0);
+			bounds.right = min(bounds.right, location.x);
+			bounds.bottom = min(bounds.bottom, location.y);
+			if(bounds.left + bounds.right > location.x) bounds.left = location.x - bounds.right;
+			if(bounds.top + bounds.bottom > location.y) bounds.top = location.y - bounds.bottom;
+			SetWindowPos(window, HWND_TOP, bounds.left, bounds.top, bounds.right, bounds.bottom, 0);
 			return 0;
 		case IDM_MATCH_ASPECT_RATIO:
 			data->stream.matchAspectRatio = !data->stream.matchAspectRatio;
