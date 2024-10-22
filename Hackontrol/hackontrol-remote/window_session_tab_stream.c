@@ -11,6 +11,7 @@
 #define IDM_SEND_METHOD_UNCOMPRESSED 0xE005
 #define IDM_ALWAYS_ON_TOP            0xE006
 #define IDM_FULLSCREEN               0xE007
+#define IDM_PICTURE_IN_PICTURE       0xE008
 
 #define QOI_OP_RGB   0b11111110
 #define QOI_OP_INDEX 0b00000000
@@ -39,6 +40,7 @@ typedef struct {
 	BOOL stream;
 	SENDMETHOD method;
 	BOOL fullscreen;
+	BOOL pictureInPicture;
 	LONG_PTR windowStyle;
 	WINDOWPLACEMENT windowPlacement;
 	UINT targetWidth;
@@ -489,9 +491,9 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 		AppendMenuW(menu, MF_STRING | ((GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST) ? MF_CHECKED : MF_UNCHECKED), IDM_ALWAYS_ON_TOP, L"Always On Top");
 		AppendMenuW(menu, MF_STRING | (data->stream.fullscreen ? MF_CHECKED : MF_UNCHECKED), IDM_FULLSCREEN, L"Fullscreen");
 		/*AppendMenuW(menu, MF_STRING | (client->session.stream.menu.limitToScreen ? MF_CHECKED : MF_UNCHECKED) | (client->session.stream.menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_LIMIT_TO_SCREEN, L"Limit To Screen");
-		AppendMenuW(menu, MF_STRING | (client->session.stream.menu.lockFrame ? MF_CHECKED : MF_UNCHECKED) | (client->session.stream.menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_LOCK_FRAME, L"Lock Frame");
-		AppendMenuW(menu, MF_STRING | (client->session.stream.menu.pictureInPicture ? MF_CHECKED : MF_UNCHECKED) | (client->session.stream.menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_PICTURE_IN_PICTURE, L"Picture In Picture");
-		AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
+		AppendMenuW(menu, MF_STRING | (client->session.stream.menu.lockFrame ? MF_CHECKED : MF_UNCHECKED) | (client->session.stream.menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_LOCK_FRAME, L"Lock Frame");*/
+		AppendMenuW(menu, MF_STRING | (data->stream.pictureInPicture ? MF_CHECKED : MF_UNCHECKED) | (data->stream.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_PICTURE_IN_PICTURE, L"Picture In Picture");
+		/*AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
 		AppendMenuW(menu, MF_STRING, IDM_CLOSE_WINDOW, L"Close Window");*/
 		SetForegroundWindow(window);
 		TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
@@ -521,6 +523,12 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 			(data->stream.fullscreen ? GetWindowPlacement : SetWindowPlacement)(window, &data->stream.windowPlacement);
 			SetWindowLongPtrW(window, GWL_STYLE, data->stream.fullscreen ? WS_POPUP | WS_VISIBLE : data->stream.windowStyle);
 			if(data->stream.fullscreen) SetWindowPos(window, HWND_TOP, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), SWP_FRAMECHANGED);
+			PostMessageW(window, WM_SIZE, 0, 0);
+			return 0;
+		case IDM_PICTURE_IN_PICTURE:
+			data->stream.pictureInPicture = !data->stream.pictureInPicture;
+			SetWindowLongPtrW(window, GWL_STYLE, (data->stream.pictureInPicture ? WS_POPUP : WS_OVERLAPPEDWINDOW) | WS_VISIBLE);
+			SetWindowPos(window, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
 			PostMessageW(window, WM_SIZE, 0, 0);
 			return 0;
 		}
