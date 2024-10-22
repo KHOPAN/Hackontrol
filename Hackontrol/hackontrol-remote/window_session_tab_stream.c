@@ -36,6 +36,7 @@ typedef enum {
 typedef struct {
 	HANDLE thread;
 	UINT activationDistance;
+	UINT minimumSize;
 	HWND window;
 	LONGLONG lastTime;
 	LONGLONG lastUpdate;
@@ -336,6 +337,7 @@ static DWORD WINAPI threadStream(_In_ PTABSTREAMDATA data) {
 	UINT width = (UINT) (((double) screenWidth) * 0.439238653);
 	UINT height = (UINT) (((double) screenHeight) * 0.520833333);
 	data->stream.activationDistance = (int) (((double) screenWidth) * 0.00878477306);
+	data->stream.minimumSize = (int) (((double) screenWidth) * 0.0263543192);
 	data->stream.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME_STREAM, NULL, WS_OVERLAPPEDWINDOW | WS_VISIBLE, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, instance, data);
 	DWORD codeExit = 1;
 
@@ -414,30 +416,33 @@ static LRESULT CALLBACK tabProcedure(_In_ HWND window, _In_ UINT message, _In_ W
 	return DefWindowProcW(window, message, wparam, lparam);
 }
 
-static void limitToScreen(const PTABSTREAMDATA data, const PRECT bounds) {
+static void limitToScreen(const PTABSTREAMDATA data, const int screenWidth, const int screenHeight, int left, int top, int right, int bottom) {
+	right -= left;
+	bottom -= top;
+
+	if(data->stream.pictureInPicture) {
+		right = max(right, (int) data->stream.minimumSize);
+		bottom = max(bottom, (int) data->stream.minimumSize);
+	}
+
 	if(!data->stream.limitToScreen) {
-		SetWindowPos(data->stream.window, HWND_TOP, bounds->left, bounds->top, bounds->right - bounds->left, bounds->bottom - bounds->top, SWP_NOSIZE);
-		return;
+		goto functionExit;
 	}
 
-	bounds->right -= bounds->left;
-	bounds->bottom -= bounds->top;
-	bounds->left = max(bounds->left, 0);
-	bounds->top = max(bounds->top, 0);
-	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
-	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
-	bounds->right = min(bounds->right, screenWidth);
-	bounds->bottom = min(bounds->bottom, screenHeight);
+	left = max(left, 0);
+	top = max(top, 0);
+	right = min(right, screenWidth);
+	bottom = min(bottom, screenHeight);
 
-	if(bounds->left + bounds->right > screenWidth) {
-		bounds->left = screenWidth - bounds->right;
+	if(left + right > screenWidth) {
+		left = screenWidth - right;
 	}
 
-	if(bounds->top + bounds->bottom > screenHeight) {
-		bounds->top = screenHeight - bounds->bottom;
+	if(top + bottom > screenHeight) {
+		top = screenHeight - bottom;
 	}
-
-	SetWindowPos(data->stream.window, HWND_TOP, bounds->left, bounds->top, bounds->right, bounds->bottom, SWP_NOSIZE);
+functionExit:
+	SetWindowPos(data->stream.window, HWND_TOP, left, top, right, bottom, 0);
 }
 
 static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
@@ -453,6 +458,8 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 	HMENU menu;
 	HMENU sendMethodMenu = NULL;
 	POINT location;
+	int screenWidth;
+	int screenHeight;
 
 	switch(message) {
 	case WM_CLOSE:
@@ -573,7 +580,7 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 			data->stream.limitToScreen = !data->stream.limitToScreen;
 			if(!data->stream.limitToScreen) return 0;
 			GetWindowRect(window, &bounds);
-			limitToScreen(data, &bounds);
+			limitToScreen(data, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), bounds.left, bounds.top, bounds.right, bounds.bottom);
 			return 0;
 		case IDM_MATCH_ASPECT_RATIO:
 			data->stream.matchAspectRatio = !data->stream.matchAspectRatio;
@@ -601,19 +608,25 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 		}
 
 		GetCursorPos(&location);
+		screenWidth = GetSystemMetrics(SM_CXSCREEN);
+		screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
 		if((!data->stream.cursorNorth && !data->stream.cursorEast && !data->stream.cursorSouth && !data->stream.cursorWest) || !data->stream.pictureInPicture) {
 			if(!data->stream.pictureInPicture) SetCursor(LoadCursorW(NULL, IDC_ARROW));
 			bounds.left = location.x - data->stream.pressedLocation.x + data->stream.pressedBounds.left;
 			bounds.top = location.y - data->stream.pressedLocation.y + data->stream.pressedBounds.top;
-			bounds.right = bounds.left + data->stream.pressedBounds.right - data->stream.pressedBounds.left;
-			bounds.bottom = bounds.top + data->stream.pressedBounds.bottom - data->stream.pressedBounds.top;
-			limitToScreen(data, &bounds);
+			limitToScreen(data, screenWidth, screenHeight, bounds.left, bounds.top, bounds.left + data->stream.pressedBounds.right - data->stream.pressedBounds.left, bounds.top + data->stream.pressedBounds.bottom - data->stream.pressedBounds.top);
 			return 0;
 		}
 
 		GetWindowRect(window, &bounds);
-		limitToScreen(data, &bounds);
+
+		if(data->stream.cursorEast) {
+			bounds.right = location.x - data->stream.pressedLocation.x + data->stream.pressedBounds.right;
+			bounds.right = min(bounds.right, screenWidth);
+		}
+
+		limitToScreen(data, screenWidth, screenHeight, bounds.left, bounds.top, bounds.right, bounds.bottom);
 		/*bounds.right -= bounds.left;
 		bounds.bottom -= bounds.top;
 		LONG difference;
