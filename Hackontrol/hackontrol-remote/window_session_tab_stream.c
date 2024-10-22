@@ -624,11 +624,21 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 		if(data->stream.cursorEast) {
 			bounds.right = location.x - data->stream.pressedLocation.x + data->stream.pressedBounds.right;
 			bounds.right = min(bounds.right, screenWidth);
+
+			if(data->stream.matchAspectRatio) {
+				bounds.top = data->stream.pressedBounds.top;
+				bounds.bottom = (int) (((double) data->stream.targetHeight) / ((double) data->stream.targetWidth) * (((double) bounds.right) - ((double) data->stream.pressedBounds.left)) + ((double) data->stream.pressedBounds.top));
+			}
 		}
 
 		if(data->stream.cursorSouth) {
 			bounds.bottom = location.y - data->stream.pressedLocation.y + data->stream.pressedBounds.bottom;
 			bounds.bottom = min(bounds.bottom, screenHeight);
+
+			if(data->stream.matchAspectRatio) {
+				bounds.left = data->stream.pressedBounds.left;
+				bounds.right = (int) (((double) data->stream.targetWidth) / ((double) data->stream.targetHeight) * (((double) bounds.bottom) - ((double) data->stream.pressedBounds.top)) + ((double) data->stream.pressedBounds.left));
+			}
 		}
 
 		limitToScreen(data, screenWidth, screenHeight, bounds.left, bounds.top, bounds.right, bounds.bottom);
