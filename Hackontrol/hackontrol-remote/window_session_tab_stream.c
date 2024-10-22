@@ -598,6 +598,19 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 			return 0;
 		}
 
+		GetWindowRect(window, &bounds);
+		bounds.right -= bounds.left;
+		bounds.bottom -= bounds.top;
+		LONG difference;
+
+		if(data->stream.cursorEast) {
+			difference = location.x - data->stream.pressedLocation.x;
+			if(data->stream.limitToScreen && data->stream.pressedBounds.right + difference > ((int) screenWidth)) difference = screenWidth - data->stream.pressedBounds.right;
+			bounds.right = data->stream.pressedBounds.right - data->stream.pressedBounds.left + difference;
+			bounds.right = max(bounds.right, ((int) data->stream.activationDistance * 3));
+		}
+
+		SetWindowPos(window, HWND_TOP, bounds.left, bounds.top, bounds.right, bounds.bottom, (!data->stream.cursorNorth && data->stream.cursorEast) || (data->stream.cursorSouth && !data->stream.cursorWest) ? SWP_NOMOVE : 0);
 		return 0;
 	case WM_LBUTTONDOWN:
 		GetWindowRect(window, &data->stream.pressedBounds);
@@ -626,7 +639,7 @@ void __stdcall WindowSessionTabStream(const PTABINITIALIZER tab) {
 	windowClass.style = CS_HREDRAW | CS_VREDRAW;
 	windowClass.lpfnWndProc = streamProcedure;
 	windowClass.hInstance = instance;
-	windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
+	windowClass.hCursor = NULL;
 	windowClass.hbrBackground = (HBRUSH) (COLOR_MENU + 1);
 	windowClass.lpszClassName = CLASS_NAME_STREAM;
 	tab->data = RegisterClassExW(&windowClass);
