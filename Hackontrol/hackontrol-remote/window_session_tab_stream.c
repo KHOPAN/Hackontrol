@@ -460,6 +460,7 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 	POINT location;
 	int screenWidth;
 	int screenHeight;
+	int temporary;
 
 	switch(message) {
 	case WM_CLOSE:
@@ -628,6 +629,30 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 			if(data->stream.matchAspectRatio) {
 				bounds.top = data->stream.pressedBounds.top;
 				bounds.bottom = (int) (((double) data->stream.targetHeight) / ((double) data->stream.targetWidth) * (((double) bounds.right) - ((double) data->stream.pressedBounds.left)) + ((double) data->stream.pressedBounds.top));
+			}
+		}
+
+		if(data->stream.cursorWest) {
+			bounds.left = location.x - data->stream.pressedLocation.x + data->stream.pressedBounds.left;
+			bounds.left = max(bounds.left, 0);
+			temporary = data->stream.pressedBounds.right - data->stream.minimumSize;
+			bounds.left = min(bounds.left, temporary);
+
+			if(data->stream.matchAspectRatio) {
+				bounds.bottom = data->stream.pressedBounds.bottom;
+				bounds.top = (int) (((double) data->stream.pressedBounds.bottom) - ((double) data->stream.targetHeight) / ((double) data->stream.targetWidth) * (((double) data->stream.pressedBounds.right) - ((double) bounds.left)));
+			}
+		}
+
+		if(data->stream.cursorNorth) {
+			bounds.top = location.y - data->stream.pressedLocation.y + data->stream.pressedBounds.top;
+			bounds.top = max(bounds.top, 0);
+			temporary = data->stream.pressedBounds.bottom - data->stream.minimumSize;
+			bounds.top = min(bounds.top, temporary);
+
+			if(data->stream.matchAspectRatio) {
+				bounds.right = data->stream.pressedBounds.right;
+				bounds.left = (int) (((double) data->stream.pressedBounds.right) - ((double) data->stream.targetWidth) / ((double) data->stream.targetHeight) * (((double) data->stream.pressedBounds.bottom) - ((double) bounds.top)));
 			}
 		}
 
