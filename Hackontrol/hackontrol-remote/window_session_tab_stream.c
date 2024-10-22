@@ -587,6 +587,22 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 			return 0;
 		case IDM_MATCH_ASPECT_RATIO:
 			data->stream.matchAspectRatio = !data->stream.matchAspectRatio;
+			if(!data->stream.matchAspectRatio) return 0;
+			if(!data->stream.targetWidth || !data->stream.targetHeight) return 0;
+			GetClientRect(window, &bounds);
+			bounds.right -= bounds.left;
+			bounds.bottom -= bounds.top;
+			if(bounds.right < 1 || bounds.bottom < 1) return 0;
+			bounds.left = (int) (((double) data->stream.targetWidth) / ((double) data->stream.targetHeight) * ((double) bounds.bottom));
+			bounds.top = (int) (((double) data->stream.targetHeight) / ((double) data->stream.targetWidth) * ((double) bounds.right));
+			location.x = bounds.left < bounds.right;
+			bounds.right = location.x ? bounds.left : bounds.right;
+			bounds.bottom = location.x ? bounds.bottom : bounds.top;
+			bounds.left = 0;
+			bounds.top = 0;
+			AdjustWindowRect(&bounds, (DWORD) GetWindowLongPtrW(window, GWL_STYLE), FALSE);
+			SetWindowPos(window, HWND_TOP, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED);
+			PostMessageW(window, WM_SIZE, 0, 0);
 			return 0;
 		case IDM_PICTURE_IN_PICTURE:
 			data->stream.pictureInPicture = !data->stream.pictureInPicture;
