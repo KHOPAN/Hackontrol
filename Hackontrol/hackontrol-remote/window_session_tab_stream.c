@@ -552,14 +552,18 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 
 		return 0;
 	case WM_MOUSEMOVE:
-		location.x = GET_X_LPARAM(lparam);
-		location.y = GET_Y_LPARAM(lparam);
-		GetClientRect(window, &bounds);
-		data->stream.cursorNorth = location.y >= 0 && location.y <= ((int) data->stream.activationDistance);
-		data->stream.cursorEast = location.x >= bounds.right - ((int) data->stream.activationDistance) && location.x < bounds.right;
-		data->stream.cursorSouth = location.y >= bounds.bottom - ((int) data->stream.activationDistance) && location.y < bounds.bottom;
-		data->stream.cursorWest = location.x >= 0 && location.x <= ((int) data->stream.activationDistance);
-		SetCursor(LoadCursorW(NULL, data->stream.cursorNorth ? data->stream.cursorWest ? IDC_SIZENWSE : data->stream.cursorEast ? IDC_SIZENESW : IDC_SIZENS : data->stream.cursorSouth ? data->stream.cursorWest ? IDC_SIZENESW : data->stream.cursorEast ? IDC_SIZENWSE : IDC_SIZENS : data->stream.cursorWest ? IDC_SIZEWE : data->stream.cursorEast ? IDC_SIZEWE : IDC_ARROW));
+		if(!(wparam & MK_LBUTTON)) {
+			location.x = GET_X_LPARAM(lparam);
+			location.y = GET_Y_LPARAM(lparam);
+			GetClientRect(window, &bounds);
+			data->stream.cursorNorth = data->stream.pictureInPicture ? location.y >= 0 && location.y <= ((int) data->stream.activationDistance) : FALSE;
+			data->stream.cursorEast = data->stream.pictureInPicture ? location.x >= bounds.right - ((int) data->stream.activationDistance) && location.x < bounds.right : FALSE;
+			data->stream.cursorSouth = data->stream.pictureInPicture ? location.y >= bounds.bottom - ((int) data->stream.activationDistance) && location.y < bounds.bottom : FALSE;
+			data->stream.cursorWest = data->stream.pictureInPicture ? location.x >= 0 && location.x <= ((int) data->stream.activationDistance) : FALSE;
+			SetCursor(LoadCursorW(NULL, data->stream.cursorNorth ? data->stream.cursorWest ? IDC_SIZENWSE : data->stream.cursorEast ? IDC_SIZENESW : IDC_SIZENS : data->stream.cursorSouth ? data->stream.cursorWest ? IDC_SIZENESW : data->stream.cursorEast ? IDC_SIZENWSE : IDC_SIZENS : data->stream.cursorWest ? IDC_SIZEWE : data->stream.cursorEast ? IDC_SIZEWE : IDC_ARROW));
+			return 0;
+		}
+
 		return 0;
 	}
 
