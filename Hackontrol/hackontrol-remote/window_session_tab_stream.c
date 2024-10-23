@@ -14,7 +14,6 @@
 #define IDM_FULLSCREEN               0xE007
 #define IDM_LIMIT_TO_SCREEN          0xE008
 #define IDM_MATCH_ASPECT_RATIO       0xE009
-#define IDM_PICTURE_IN_PICTURE       0xE00A
 
 #define QOI_OP_RGB   0b11111110
 #define QOI_OP_INDEX 0b00000000
@@ -35,8 +34,8 @@ typedef enum {
 
 typedef struct {
 	HANDLE thread;
-	UINT minimumWidth;
-	UINT minimumHeight;
+	int minimumWidth;
+	int minimumHeight;
 	HWND window;
 	LONGLONG lastTime;
 	LONGLONG lastUpdate;
@@ -47,7 +46,6 @@ typedef struct {
 	BOOL fullscreen;
 	BOOL limitToScreen;
 	BOOL matchAspectRatio;
-	BOOL pictureInPicture;
 	LONG_PTR windowStyle;
 	WINDOWPLACEMENT windowPlacement;
 	UINT targetWidth;
@@ -378,7 +376,7 @@ static DWORD WINAPI threadStream(_In_ PTABSTREAMDATA data) {
 	UINT height = (UINT) (((double) screenHeight) * 0.520833333);
 	data->stream.minimumWidth = data->minimumSize;
 	data->stream.minimumHeight = data->minimumSize;
-	data->stream.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME_STREAM, NULL, WS_OVERLAPPEDWINDOW | WS_VISIBLE, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, instance, data);
+	data->stream.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME_STREAM, NULL, WS_POPUP | WS_VISIBLE, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, instance, data);
 	DWORD codeExit = 1;
 
 	if(!data->stream.window) {
@@ -459,11 +457,8 @@ static LRESULT CALLBACK tabProcedure(_In_ HWND window, _In_ UINT message, _In_ W
 static void limitToScreen(const PTABSTREAMDATA data, const int screenWidth, const int screenHeight, int left, int top, int right, int bottom) {
 	right -= left;
 	bottom -= top;
-
-	if(data->stream.pictureInPicture) {
-		right = max(right, data->stream.matchAspectRatio ? (int) data->stream.minimumWidth : data->minimumSize);
-		bottom = max(bottom, data->stream.matchAspectRatio ? (int) data->stream.minimumHeight : data->minimumSize);
-	}
+	right = max(right, data->stream.matchAspectRatio ? data->stream.minimumWidth : data->minimumSize);
+	bottom = max(bottom, data->stream.matchAspectRatio ? data->stream.minimumHeight : data->minimumSize);
 
 	if(!data->stream.limitToScreen) {
 		goto functionExit;
@@ -583,9 +578,8 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 		AppendMenuW(menu, MF_STRING | (data->stream.fullscreen ? MF_CHECKED : MF_UNCHECKED), IDM_FULLSCREEN, L"Fullscreen");
 		AppendMenuW(menu, MF_STRING | (data->stream.limitToScreen ? MF_CHECKED : MF_UNCHECKED) | (data->stream.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_LIMIT_TO_SCREEN, L"Limit To Screen");
 		AppendMenuW(menu, MF_STRING | (data->stream.matchAspectRatio ? MF_CHECKED : MF_UNCHECKED) | (data->stream.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_MATCH_ASPECT_RATIO, L"Match Aspect Ratio");
-		//AppendMenuW(menu, MF_STRING | (client->session.stream.menu.lockFrame ? MF_CHECKED : MF_UNCHECKED) | (client->session.stream.menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_LOCK_FRAME, L"Lock Frame");
-		AppendMenuW(menu, MF_STRING | (data->stream.pictureInPicture ? MF_CHECKED : MF_UNCHECKED) | (data->stream.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_PICTURE_IN_PICTURE, L"Picture In Picture");
-		/*AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
+		/*AppendMenuW(menu, MF_STRING | (client->session.stream.menu.lockFrame ? MF_CHECKED : MF_UNCHECKED) | (client->session.stream.menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_LOCK_FRAME, L"Lock Frame");
+		AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
 		AppendMenuW(menu, MF_STRING, IDM_CLOSE_WINDOW, L"Close Window");*/
 		SetForegroundWindow(window);
 		TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
@@ -628,18 +622,6 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 			if(!data->stream.matchAspectRatio) return 0;
 			matchAspectRatio(data);
 			return 0;
-		case IDM_PICTURE_IN_PICTURE:
-			data->stream.pictureInPicture = !data->stream.pictureInPicture;
-			SetWindowLongPtrW(window, GWL_STYLE, (data->stream.pictureInPicture ? WS_POPUP : WS_OVERLAPPEDWINDOW) | WS_VISIBLE);
-
-			if(data->stream.matchAspectRatio) {
-				matchAspectRatio(data);
-				return 0;
-			}
-
-			SetWindowPos(window, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
-			PostMessageW(window, WM_SIZE, 0, 0);
-			return 0;
 		}
 
 		return 0;
@@ -648,10 +630,10 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 			location.x = GET_X_LPARAM(lparam);
 			location.y = GET_Y_LPARAM(lparam);
 			GetClientRect(window, &bounds);
-			data->stream.cursorNorth = data->stream.pictureInPicture ? location.y >= 0 && location.y <= data->activationDistance : FALSE;
-			data->stream.cursorEast = data->stream.pictureInPicture ? location.x >= bounds.right - data->activationDistance && location.x < bounds.right : FALSE;
-			data->stream.cursorSouth = data->stream.pictureInPicture ? location.y >= bounds.bottom - data->activationDistance && location.y < bounds.bottom : FALSE;
-			data->stream.cursorWest = data->stream.pictureInPicture ? location.x >= 0 && location.x <= data->activationDistance : FALSE;
+			data->stream.cursorNorth = location.y >= 0 && location.y <= data->activationDistance;
+			data->stream.cursorEast = location.x >= bounds.right - data->activationDistance && location.x < bounds.right;
+			data->stream.cursorSouth =  location.y >= bounds.bottom - data->activationDistance && location.y < bounds.bottom;
+			data->stream.cursorWest = location.x >= 0 && location.x <= data->activationDistance;
 			SetCursor(LoadCursorW(NULL, data->stream.cursorNorth ? data->stream.cursorWest ? IDC_SIZENWSE : data->stream.cursorEast ? IDC_SIZENESW : IDC_SIZENS : data->stream.cursorSouth ? data->stream.cursorWest ? IDC_SIZENESW : data->stream.cursorEast ? IDC_SIZENWSE : IDC_SIZENS : data->stream.cursorWest ? IDC_SIZEWE : data->stream.cursorEast ? IDC_SIZEWE : IDC_ARROW));
 			return 0;
 		}
@@ -660,8 +642,7 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 		screenWidth = GetSystemMetrics(SM_CXSCREEN);
 		screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
-		if((!data->stream.cursorNorth && !data->stream.cursorEast && !data->stream.cursorSouth && !data->stream.cursorWest) || !data->stream.pictureInPicture) {
-			if(!data->stream.pictureInPicture) SetCursor(LoadCursorW(NULL, IDC_ARROW));
+		if(!data->stream.cursorNorth && !data->stream.cursorEast && !data->stream.cursorSouth && !data->stream.cursorWest) {
 			bounds.left = location.x - data->stream.pressedLocation.x + data->stream.pressedBounds.left;
 			bounds.top = location.y - data->stream.pressedLocation.y + data->stream.pressedBounds.top;
 			limitToScreen(data, screenWidth, screenHeight, bounds.left, bounds.top, bounds.left + data->stream.pressedBounds.right - data->stream.pressedBounds.left, bounds.top + data->stream.pressedBounds.bottom - data->stream.pressedBounds.top);
