@@ -157,12 +157,7 @@ static void matchAspectRatio(const PTABSTREAMDATA data) {
 
 	bounds.left = (int) (((double) data->stream.targetWidth) / ((double) data->stream.targetHeight) * ((double) bounds.bottom));
 	bounds.top = (int) (((double) data->stream.targetHeight) / ((double) data->stream.targetWidth) * ((double) bounds.right));
-	bounds.right = bounds.left < bounds.right ? bounds.left : bounds.right;
-	bounds.bottom = bounds.left < bounds.right ? bounds.bottom : bounds.top;
-	bounds.left = 0;
-	bounds.top = 0;
-	AdjustWindowRect(&bounds, (DWORD) GetWindowLongPtrW(data->stream.window, GWL_STYLE), FALSE);
-	SetWindowPos(data->stream.window, HWND_TOP, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, SWP_NOMOVE | SWP_FRAMECHANGED);
+	SetWindowPos(data->stream.window, HWND_TOP, 0, 0, bounds.left < bounds.right ? bounds.left : bounds.right, bounds.left < bounds.right ? bounds.bottom : bounds.top, SWP_NOMOVE | SWP_FRAMECHANGED);
 	PostMessageW(data->stream.window, WM_SIZE, 0, 0);
 }
 
@@ -548,7 +543,7 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 			information.bmiHeader.biPlanes = 1;
 			information.bmiHeader.biBitCount = 32;
 			SetStretchBltMode(memoryContext, HALFTONE);
-			StretchDIBits(memoryContext, data->stream.renderX, data->stream.renderY, data->stream.renderWidth, data->stream.renderHeight, 0, 0, data->stream.targetWidth, data->stream.targetHeight, data->stream.pixels, &information, DIB_RGB_COLORS, SRCCOPY);
+			StretchDIBits(memoryContext, data->stream.matchAspectRatio ? bounds.left : data->stream.renderX, data->stream.matchAspectRatio ? bounds.top : data->stream.renderY, data->stream.matchAspectRatio ? bounds.right - bounds.left : data->stream.renderWidth, data->stream.matchAspectRatio ? bounds.bottom - bounds.top : data->stream.renderHeight, 0, 0, data->stream.targetWidth, data->stream.targetHeight, data->stream.pixels, &information, DIB_RGB_COLORS, SRCCOPY);
 			ReleaseMutex(data->mutex);
 		}
 
@@ -625,6 +620,7 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 			return 0;
 		case IDM_MATCH_ASPECT_RATIO:
 			data->stream.matchAspectRatio = !data->stream.matchAspectRatio;
+			if(!data->stream.matchAspectRatio) InvalidateRect(window, NULL, FALSE);
 			if(!data->stream.matchAspectRatio) return 0;
 			matchAspectRatio(data);
 			return 0;
