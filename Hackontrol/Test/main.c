@@ -50,6 +50,17 @@ int main(int argc, char** argv) {
 			goto releaseCollection;
 		}
 
+		LPWSTR identifier;
+		result = device->lpVtbl->GetId(device, &identifier);
+
+		if(FAILED(result)) {
+			KHOPANERRORMESSAGE_WIN32(result, L"IMMDevice::GetId");
+			device->lpVtbl->Release(device);
+			goto releaseCollection;
+		}
+
+		printf("Identifier: %ws\n", identifier);
+		CoTaskMemFree(identifier);
 		IPropertyStore* store;
 		result = device->lpVtbl->OpenPropertyStore(device, STGM_READ, &store);
 		device->lpVtbl->Release(device);
@@ -68,7 +79,7 @@ int main(int argc, char** argv) {
 			goto releaseCollection;
 		}
 
-		printf("%ws\n", variant.pwszVal);
+		printf("Name: %ws\n", variant.pwszVal);
 	}
 
 	codeExit = 0;
