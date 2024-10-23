@@ -154,7 +154,6 @@
     <ClCompile Include="window_session.c" />
     <ClCompile Include="window_session_tab_audio.c" />
     <ClCompile Include="window_session_tab_stream.c" />
-    <ClCompile Include="window_stream.c" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="hackontrol-remote.exe.manifest" />

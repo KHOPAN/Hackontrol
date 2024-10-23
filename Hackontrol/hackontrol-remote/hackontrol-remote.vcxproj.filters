@@ -26,9 +26,6 @@
     <ClCompile Include="window_session.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="window_stream.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="window_session_tab_stream.c">
       <Filter>Source Files</Filter>
     </ClCompile>
