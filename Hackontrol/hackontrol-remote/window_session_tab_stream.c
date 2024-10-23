@@ -15,6 +15,8 @@
 #define IDM_LIMIT_TO_SCREEN          0xE008
 #define IDM_LOCK_FRAME               0xE009
 #define IDM_MATCH_ASPECT_RATIO       0xE00A
+#define IDM_MINIMIZE                 0xE00B
+#define IDM_CLOSE                    0xE00C
 
 #define QOI_OP_RGB   0b11111110
 #define QOI_OP_INDEX 0b00000000
@@ -579,8 +581,9 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 		AppendMenuW(menu, MF_STRING | (data->stream.limitToScreen ? MF_CHECKED : MF_UNCHECKED) | (data->stream.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_LIMIT_TO_SCREEN, L"Limit To Screen");
 		AppendMenuW(menu, MF_STRING | (data->stream.lockFrame ? MF_CHECKED : MF_UNCHECKED) | (data->stream.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_LOCK_FRAME, L"Lock Frame");
 		AppendMenuW(menu, MF_STRING | (data->stream.matchAspectRatio ? MF_CHECKED : MF_UNCHECKED) | (data->stream.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_MATCH_ASPECT_RATIO, L"Match Aspect Ratio");
-		/*AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
-		AppendMenuW(menu, MF_STRING, IDM_CLOSE_WINDOW, L"Close Window");*/
+		AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
+		AppendMenuW(menu, MF_STRING, IDM_MINIMIZE, L"Minimize");
+		AppendMenuW(menu, MF_STRING, IDM_CLOSE, L"Close");
 		SetForegroundWindow(window);
 		TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
 		DestroyMenu(menu);
@@ -624,6 +627,12 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 			data->stream.matchAspectRatio = !data->stream.matchAspectRatio;
 			if(!data->stream.matchAspectRatio) return 0;
 			matchAspectRatio(data);
+			return 0;
+		case IDM_MINIMIZE:
+			ShowWindow(window, SW_MINIMIZE);
+			return 0;
+		case IDM_CLOSE:
+			PostMessageW(window, WM_CLOSE, 0, 0);
 			return 0;
 		}
 
