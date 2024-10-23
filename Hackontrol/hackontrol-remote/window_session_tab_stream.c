@@ -35,6 +35,8 @@ typedef enum {
 
 typedef struct {
 	HANDLE thread;
+	UINT minimumWidth;
+	UINT minimumHeight;
 	HWND window;
 	LONGLONG lastTime;
 	LONGLONG lastUpdate;
@@ -51,8 +53,6 @@ typedef struct {
 	UINT targetWidth;
 	UINT targetHeight;
 	PBYTE pixels;
-	UINT minimumWidth;
-	UINT minimumHeight;
 	UINT renderWidth;
 	UINT renderHeight;
 	UINT renderX;
@@ -139,6 +139,31 @@ static void updateTitle(const PTABSTREAMDATA data) {
 	}
 }
 
+static void matchAspectRatio(const PTABSTREAMDATA data) {
+	if(!data->stream.targetWidth || !data->stream.targetHeight) {
+		return;
+	}
+
+	RECT bounds;
+	GetClientRect(data->stream.window, &bounds);
+	bounds.right -= bounds.left;
+	bounds.bottom -= bounds.top;
+
+	if(bounds.right < 1 || bounds.bottom < 1) {
+		return;
+	}
+
+	bounds.left = (int) (((double) data->stream.targetWidth) / ((double) data->stream.targetHeight) * ((double) bounds.bottom));
+	bounds.top = (int) (((double) data->stream.targetHeight) / ((double) data->stream.targetWidth) * ((double) bounds.right));
+	bounds.right = bounds.left < bounds.right ? bounds.left : bounds.right;
+	bounds.bottom = bounds.left < bounds.right ? bounds.bottom : bounds.top;
+	bounds.left = 0;
+	bounds.top = 0;
+	AdjustWindowRect(&bounds, (DWORD) GetWindowLongPtrW(data->stream.window, GWL_STYLE), FALSE);
+	SetWindowPos(data->stream.window, HWND_TOP, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, SWP_NOMOVE | SWP_FRAMECHANGED);
+	PostMessageW(data->stream.window, WM_SIZE, 0, 0);
+}
+
 static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG customData, const PHRSPPACKET packet) {
 	if(packet->type != HRSP_REMOTE_CLIENT_STREAM_FRAME_PACKET) {
 		return FALSE;
@@ -157,6 +182,10 @@ static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG custo
 	UINT width = (packet->data[1] << 24) | (packet->data[2] << 16) | (packet->data[3] << 8) | packet->data[4];
 	UINT height = (packet->data[5] << 24) | (packet->data[6] << 16) | (packet->data[7] << 8) | packet->data[8];
 
+	if(!width || !height) {
+		goto releaseMutex;
+	}
+
 	if(data->stream.targetWidth != width || data->stream.targetHeight != height) {
 		data->stream.targetWidth = width;
 		data->stream.targetHeight = height;
@@ -174,7 +203,14 @@ static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG custo
 		double minimum = min(data->stream.targetWidth, data->stream.targetHeight);
 		data->stream.minimumWidth = (UINT) (((double) data->stream.targetWidth) / minimum * ((double) data->minimumSize));
 		data->stream.minimumHeight = (UINT) (((double) data->stream.targetHeight) / minimum * ((double) data->minimumSize));
-		PostMessageW(data->stream.window, WM_SIZE, 0, 0);
+
+		if(data->stream.matchAspectRatio) {
+			ReleaseMutex(data->mutex);
+			matchAspectRatio(data);
+			if(WaitForSingleObject(data->mutex, INFINITE) == WAIT_FAILED) return TRUE;
+		} else {
+			PostMessageW(data->stream.window, WM_SIZE, 0, 0);
+		}
 	}
 
 	if(!data->stream.pixels) {
@@ -340,6 +376,8 @@ static DWORD WINAPI threadStream(_In_ PTABSTREAMDATA data) {
 	UINT screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	UINT width = (UINT) (((double) screenWidth) * 0.439238653);
 	UINT height = (UINT) (((double) screenHeight) * 0.520833333);
+	data->stream.minimumWidth = data->minimumSize;
+	data->stream.minimumHeight = data->minimumSize;
 	data->stream.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME_STREAM, NULL, WS_OVERLAPPEDWINDOW | WS_VISIBLE, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, instance, data);
 	DWORD codeExit = 1;
 
@@ -484,16 +522,16 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 
 		data->stream.renderWidth = (UINT) (((double) data->stream.targetWidth) / ((double) data->stream.targetHeight) * ((double) bounds.bottom));
 		data->stream.renderHeight = (UINT) (((double) data->stream.targetHeight) / ((double) data->stream.targetWidth) * ((double) bounds.right));
-		bounds.left = data->stream.renderWidth < ((UINT) bounds.right);
+		temporary = data->stream.renderWidth < ((UINT) bounds.right);
 
-		if(bounds.left) {
+		if(temporary) {
 			data->stream.renderHeight = bounds.bottom;
 		} else {
 			data->stream.renderWidth = bounds.right;
 		}
 
-		data->stream.renderX = bounds.left ? (UINT) ((((double) bounds.right) - ((double) data->stream.renderWidth)) * 0.5) : 0;
-		data->stream.renderY = bounds.left ? 0 : (UINT) ((((double) bounds.bottom) - ((double) data->stream.renderHeight)) * 0.5);
+		data->stream.renderX = temporary ? (UINT) ((((double) bounds.right) - ((double) data->stream.renderWidth)) * 0.5) : 0;
+		data->stream.renderY = temporary ? 0 : (UINT) ((((double) bounds.bottom) - ((double) data->stream.renderHeight)) * 0.5);
 		ReleaseMutex(data->mutex);
 		return 0;
 	case WM_PAINT:
@@ -588,25 +626,17 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 		case IDM_MATCH_ASPECT_RATIO:
 			data->stream.matchAspectRatio = !data->stream.matchAspectRatio;
 			if(!data->stream.matchAspectRatio) return 0;
-			if(!data->stream.targetWidth || !data->stream.targetHeight) return 0;
-			GetClientRect(window, &bounds);
-			bounds.right -= bounds.left;
-			bounds.bottom -= bounds.top;
-			if(bounds.right < 1 || bounds.bottom < 1) return 0;
-			bounds.left = (int) (((double) data->stream.targetWidth) / ((double) data->stream.targetHeight) * ((double) bounds.bottom));
-			bounds.top = (int) (((double) data->stream.targetHeight) / ((double) data->stream.targetWidth) * ((double) bounds.right));
-			location.x = bounds.left < bounds.right;
-			bounds.right = location.x ? bounds.left : bounds.right;
-			bounds.bottom = location.x ? bounds.bottom : bounds.top;
-			bounds.left = 0;
-			bounds.top = 0;
-			AdjustWindowRect(&bounds, (DWORD) GetWindowLongPtrW(window, GWL_STYLE), FALSE);
-			SetWindowPos(window, HWND_TOP, 0, 0, bounds.right - bounds.left, bounds.bottom - bounds.top, SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED);
-			PostMessageW(window, WM_SIZE, 0, 0);
+			matchAspectRatio(data);
 			return 0;
 		case IDM_PICTURE_IN_PICTURE:
 			data->stream.pictureInPicture = !data->stream.pictureInPicture;
 			SetWindowLongPtrW(window, GWL_STYLE, (data->stream.pictureInPicture ? WS_POPUP : WS_OVERLAPPEDWINDOW) | WS_VISIBLE);
+
+			if(data->stream.matchAspectRatio) {
+				matchAspectRatio(data);
+				return 0;
+			}
+
 			SetWindowPos(window, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
 			PostMessageW(window, WM_SIZE, 0, 0);
 			return 0;
@@ -646,7 +676,7 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 			temporary = data->stream.pressedBounds.bottom - data->stream.minimumHeight;
 			bounds.top = min(bounds.top, temporary);
 
-			if(data->stream.matchAspectRatio) {
+			if(data->stream.matchAspectRatio && data->stream.targetWidth && data->stream.targetHeight) {
 				bounds.right = data->stream.pressedBounds.right;
 				bounds.left = (int) (((double) data->stream.pressedBounds.right) - ((double) data->stream.targetWidth) / ((double) data->stream.targetHeight) * (((double) data->stream.pressedBounds.bottom) - ((double) bounds.top)));
 			}
@@ -658,7 +688,7 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 			temporary = data->stream.pressedBounds.left + data->stream.minimumWidth;
 			bounds.right = max(bounds.right, temporary);
 
-			if(data->stream.matchAspectRatio) {
+			if(data->stream.matchAspectRatio && data->stream.targetWidth && data->stream.targetHeight) {
 				bounds.top = data->stream.pressedBounds.top;
 				bounds.bottom = (int) (((double) data->stream.targetHeight) / ((double) data->stream.targetWidth) * (((double) bounds.right) - ((double) data->stream.pressedBounds.left)) + ((double) data->stream.pressedBounds.top));
 			}
@@ -670,7 +700,7 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 			temporary = data->stream.pressedBounds.top + data->stream.minimumHeight;
 			bounds.bottom = max(bounds.bottom, temporary);
 
-			if(data->stream.matchAspectRatio) {
+			if(data->stream.matchAspectRatio && data->stream.targetWidth && data->stream.targetHeight) {
 				bounds.left = data->stream.pressedBounds.left;
 				bounds.right = (int) (((double) data->stream.targetWidth) / ((double) data->stream.targetHeight) * (((double) bounds.bottom) - ((double) data->stream.pressedBounds.top)) + ((double) data->stream.pressedBounds.left));
 			}
@@ -682,7 +712,7 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 			temporary = data->stream.pressedBounds.right - data->stream.minimumWidth;
 			bounds.left = min(bounds.left, temporary);
 
-			if(data->stream.matchAspectRatio) {
+			if(data->stream.matchAspectRatio && data->stream.targetWidth && data->stream.targetHeight) {
 				bounds.bottom = data->stream.pressedBounds.bottom;
 				bounds.top = (int) (((double) data->stream.pressedBounds.bottom) - ((double) data->stream.targetHeight) / ((double) data->stream.targetWidth) * (((double) data->stream.pressedBounds.right) - ((double) bounds.left)));
 			}
