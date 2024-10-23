@@ -543,7 +543,7 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 			information.bmiHeader.biPlanes = 1;
 			information.bmiHeader.biBitCount = 32;
 			SetStretchBltMode(memoryContext, HALFTONE);
-			StretchDIBits(memoryContext, data->stream.matchAspectRatio ? bounds.left : data->stream.renderX, data->stream.matchAspectRatio ? bounds.top : data->stream.renderY, data->stream.matchAspectRatio ? bounds.right - bounds.left : data->stream.renderWidth, data->stream.matchAspectRatio ? bounds.bottom - bounds.top : data->stream.renderHeight, 0, 0, data->stream.targetWidth, data->stream.targetHeight, data->stream.pixels, &information, DIB_RGB_COLORS, SRCCOPY);
+			StretchDIBits(memoryContext, data->stream.matchAspectRatio && !data->stream.fullscreen ? bounds.left : data->stream.renderX, data->stream.matchAspectRatio && !data->stream.fullscreen ? bounds.top : data->stream.renderY, data->stream.matchAspectRatio && !data->stream.fullscreen ? bounds.right - bounds.left : data->stream.renderWidth, data->stream.matchAspectRatio && !data->stream.fullscreen ? bounds.bottom - bounds.top : data->stream.renderHeight, 0, 0, data->stream.targetWidth, data->stream.targetHeight, data->stream.pixels, &information, DIB_RGB_COLORS, SRCCOPY);
 			ReleaseMutex(data->mutex);
 		}
 
