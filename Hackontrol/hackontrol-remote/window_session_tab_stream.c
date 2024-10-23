@@ -13,7 +13,8 @@
 #define IDM_ALWAYS_ON_TOP            0xE006
 #define IDM_FULLSCREEN               0xE007
 #define IDM_LIMIT_TO_SCREEN          0xE008
-#define IDM_MATCH_ASPECT_RATIO       0xE009
+#define IDM_LOCK_FRAME               0xE009
+#define IDM_MATCH_ASPECT_RATIO       0xE00A
 
 #define QOI_OP_RGB   0b11111110
 #define QOI_OP_INDEX 0b00000000
@@ -45,6 +46,7 @@ typedef struct {
 	SENDMETHOD method;
 	BOOL fullscreen;
 	BOOL limitToScreen;
+	BOOL lockFrame;
 	BOOL matchAspectRatio;
 	LONG_PTR windowStyle;
 	WINDOWPLACEMENT windowPlacement;
@@ -370,13 +372,11 @@ static DWORD WINAPI threadStream(_In_ PTABSTREAMDATA data) {
 		return 1;
 	}
 
-	UINT screenWidth = GetSystemMetrics(SM_CXSCREEN);
-	UINT screenHeight = GetSystemMetrics(SM_CYSCREEN);
-	UINT width = (UINT) (((double) screenWidth) * 0.439238653);
-	UINT height = (UINT) (((double) screenHeight) * 0.520833333);
 	data->stream.minimumWidth = data->minimumSize;
 	data->stream.minimumHeight = data->minimumSize;
-	data->stream.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME_STREAM, NULL, WS_POPUP | WS_VISIBLE, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, instance, data);
+	data->stream.limitToScreen = TRUE;
+	data->stream.matchAspectRatio = TRUE;
+	data->stream.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME_STREAM, NULL, WS_POPUP | WS_VISIBLE, 0, 0, (int) (((double) GetSystemMetrics(SM_CXSCREEN)) * 0.32942899), (int) (((double) GetSystemMetrics(SM_CYSCREEN)) * 0.390625), NULL, NULL, instance, data);
 	DWORD codeExit = 1;
 
 	if(!data->stream.window) {
@@ -577,9 +577,9 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 		AppendMenuW(menu, MF_STRING | ((GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST) ? MF_CHECKED : MF_UNCHECKED), IDM_ALWAYS_ON_TOP, L"Always On Top");
 		AppendMenuW(menu, MF_STRING | (data->stream.fullscreen ? MF_CHECKED : MF_UNCHECKED), IDM_FULLSCREEN, L"Fullscreen");
 		AppendMenuW(menu, MF_STRING | (data->stream.limitToScreen ? MF_CHECKED : MF_UNCHECKED) | (data->stream.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_LIMIT_TO_SCREEN, L"Limit To Screen");
+		AppendMenuW(menu, MF_STRING | (data->stream.lockFrame ? MF_CHECKED : MF_UNCHECKED) | (data->stream.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_LOCK_FRAME, L"Lock Frame");
 		AppendMenuW(menu, MF_STRING | (data->stream.matchAspectRatio ? MF_CHECKED : MF_UNCHECKED) | (data->stream.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_MATCH_ASPECT_RATIO, L"Match Aspect Ratio");
-		/*AppendMenuW(menu, MF_STRING | (client->session.stream.menu.lockFrame ? MF_CHECKED : MF_UNCHECKED) | (client->session.stream.menu.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_LOCK_FRAME, L"Lock Frame");
-		AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
+		/*AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
 		AppendMenuW(menu, MF_STRING, IDM_CLOSE_WINDOW, L"Close Window");*/
 		SetForegroundWindow(window);
 		TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
@@ -617,6 +617,9 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 			GetWindowRect(window, &bounds);
 			limitToScreen(data, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), bounds.left, bounds.top, bounds.right, bounds.bottom);
 			return 0;
+		case IDM_LOCK_FRAME:
+			data->stream.lockFrame = !data->stream.lockFrame;
+			return 0;
 		case IDM_MATCH_ASPECT_RATIO:
 			data->stream.matchAspectRatio = !data->stream.matchAspectRatio;
 			if(!data->stream.matchAspectRatio) return 0;
@@ -626,6 +629,11 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 
 		return 0;
 	case WM_MOUSEMOVE:
+		if(data->stream.lockFrame || data->stream.fullscreen) {
+			SetCursor(LoadCursorW(NULL, IDC_ARROW));
+			return 0;
+		}
+
 		if(!(wparam & MK_LBUTTON)) {
 			location.x = GET_X_LPARAM(lparam);
 			location.y = GET_Y_LPARAM(lparam);
