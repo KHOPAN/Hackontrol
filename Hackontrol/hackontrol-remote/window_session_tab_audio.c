@@ -24,6 +24,15 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG da
 	}
 
 	SendMessageW(window, WM_SETFONT, (WPARAM) font, TRUE);
+	LVITEMW listItem = {0};
+	listItem.mask = LVIF_TEXT;
+	listItem.iSubItem = 0;
+	listItem.pszText = L"Third";
+	SendMessageW(window, LVM_INSERTITEM, 0, (LPARAM) &listItem);
+	listItem.pszText = L"Second";
+	SendMessageW(window, LVM_INSERTITEM, 0, (LPARAM) &listItem);
+	listItem.pszText = L"First";
+	SendMessageW(window, LVM_INSERTITEM, 0, (LPARAM) &listItem);
 	return window;
 }
 
