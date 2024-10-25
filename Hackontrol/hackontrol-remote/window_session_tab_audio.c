@@ -72,6 +72,10 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 	return window;
 }
 
+static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG data, const PHRSPPACKET packet) {
+	return FALSE;
+}
+
 static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	USERDATA(PTABAUDIODATA, data, window, message, wparam, lparam);
 	RECT bounds;
@@ -96,6 +100,7 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 void __stdcall WindowSessionTabAudio(const PTABINITIALIZER tab) {
 	tab->name = L"Audio";
 	tab->clientInitialize = clientInitialize;
+	tab->packetHandler = packetHandler;
 	tab->windowClass.lpfnWndProc = procedure;
 	tab->windowClass.lpszClassName = CLASS_NAME;
 }
