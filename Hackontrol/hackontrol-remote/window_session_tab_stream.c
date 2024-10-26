@@ -421,7 +421,7 @@ static LRESULT CALLBACK tabProcedure(_In_ HWND window, _In_ UINT message, _In_ W
 		return 0;
 	case WM_SIZE:
 		GetClientRect(window, &bounds);
-		SetWindowPos(data->button, NULL, (int) ((((double) bounds.right) - ((double) bounds.left) - ((double) data->buttonWidth)) * 0.5), (int) ((((double) bounds.bottom) - ((double) bounds.top) - ((double) data->buttonHeight)) * 0.5), 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+		SetWindowPos(data->button, NULL, (int) ((((double) bounds.right) - ((double) bounds.left) - ((double) data->buttonWidth)) / 2.0), (int) ((((double) bounds.bottom) - ((double) bounds.top) - ((double) data->buttonHeight)) / 2.0), 0, 0, SWP_NOSIZE | SWP_NOZORDER);
 		return 0;
 	case WM_CTLCOLORBTN:
 		SetDCBrushColor((HDC) wparam, 0xF9F9F9);
@@ -522,8 +522,8 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 			data->stream.renderWidth = bounds.right;
 		}
 
-		data->stream.renderX = temporary ? (UINT) ((((double) bounds.right) - ((double) data->stream.renderWidth)) * 0.5) : 0;
-		data->stream.renderY = temporary ? 0 : (UINT) ((((double) bounds.bottom) - ((double) data->stream.renderHeight)) * 0.5);
+		data->stream.renderX = temporary ? (UINT) ((((double) bounds.right) - ((double) data->stream.renderWidth)) / 2.0) : 0;
+		data->stream.renderY = temporary ? 0 : (UINT) ((((double) bounds.bottom) - ((double) data->stream.renderHeight)) / 2.0);
 		ReleaseMutex(data->mutex);
 		return 0;
 	case WM_PAINT:
