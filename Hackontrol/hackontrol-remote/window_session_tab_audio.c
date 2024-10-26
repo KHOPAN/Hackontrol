@@ -57,7 +57,7 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 	}
 
 	SendMessageW(data->list, WM_SETFONT, (WPARAM) font, TRUE);
-	SendMessageW(data->list, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT);
+	SendMessageW(data->list, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_DOUBLEBUFFER | LVS_EX_FULLROWSELECT);
 	LVCOLUMNW column = {0};
 	column.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
 	column.cx = (int) (((double) GetSystemMetrics(SM_CXSCREEN)) * 0.13250366);
