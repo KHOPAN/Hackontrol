@@ -141,6 +141,7 @@
   <ItemGroup>
     <ClCompile Include="error_message.c" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="thread_audio.c" />
     <ClCompile Include="thread_stream.c" />
   </ItemGroup>
   <ItemGroup>

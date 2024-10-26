@@ -127,7 +127,7 @@ static void qoiEncode(const UINT startX, const UINT startY, const UINT endX, con
 	}
 }
 
-DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
+DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTPARAMETER parameter) {
 	if(!parameter) {
 		return 1;
 	}
@@ -147,18 +147,18 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 			break;
 		}
 
-		if(!(parameter->flags & 1)) {
+		if(!(parameter->stream.flags & 1)) {
 			ReleaseMutex(parameter->mutex);
 			continue;
 		}
 
-		BYTE boundaryDifference = (parameter->flags >> 1) & 1;
-		BYTE colorDifference = (parameter->flags >> 2) & 1;
+		BYTE boundaryDifference = (parameter->stream.flags >> 1) & 1;
+		BYTE colorDifference = (parameter->stream.flags >> 2) & 1;
 
-		if(parameter->flags & 0b1000) {
+		if(parameter->stream.flags & 0b1000) {
 			boundaryDifference = TRUE;
 			colorDifference = TRUE;
-			parameter->flags &= 0b11110111;
+			parameter->stream.flags &= 0b11110111;
 		}
 
 		ReleaseMutex(parameter->mutex);

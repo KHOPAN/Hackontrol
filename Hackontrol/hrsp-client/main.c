@@ -10,21 +10,21 @@
 #define ERROR_WIN32(errorCode, functionName) if(error){error->type=HRSP_CLIENT_ERROR_TYPE_WIN32;error->code=errorCode;error->function=functionName;}
 
 BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const PHRSPCLIENTINPUT input, const PHRSPCLIENTERROR error) {
-	PHRSPCLIENTSTREAMPARAMETER stream = KHOPAN_ALLOCATE(sizeof(HRSPCLIENTSTREAMPARAMETER));
+	PHRSPCLIENTPARAMETER parameter = KHOPAN_ALLOCATE(sizeof(HRSPCLIENTPARAMETER));
 
-	if(KHOPAN_ALLOCATE_FAILED(stream)) {
+	if(KHOPAN_ALLOCATE_FAILED(parameter)) {
 		ERROR_WIN32(KHOPAN_ALLOCATE_ERROR, KHOPAN_ALLOCATE_FUNCTION);
 		return FALSE;
 	}
 
-	for(size_t i = 0; i < sizeof(HRSPCLIENTSTREAMPARAMETER); i++) {
-		((PBYTE) stream)[i] = 0;
+	for(size_t i = 0; i < sizeof(HRSPCLIENTPARAMETER); i++) {
+		((PBYTE) parameter)[i] = 0;
 	}
 
-	stream->mutex = CreateMutexExW(NULL, NULL, 0, SYNCHRONIZE | DELETE);
+	parameter->mutex = CreateMutexExW(NULL, NULL, 0, SYNCHRONIZE | DELETE);
 	BOOL codeExit = FALSE;
 
-	if(!stream->mutex) {
+	if(!parameter->mutex) {
 		ERROR_WIN32(GetLastError(), L"CreateMutexExW");
 		goto streamDeallocate;
 	}
@@ -49,32 +49,32 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 		goto cleanupSocket;
 	}
 
-	stream->socket = INVALID_SOCKET;
+	parameter->socket = INVALID_SOCKET;
 
 	for(PADDRINFOW pointer = result; pointer != NULL; pointer = pointer->ai_next) {
-		stream->socket = socket(pointer->ai_family, pointer->ai_socktype, pointer->ai_protocol);
+		parameter->socket = socket(pointer->ai_family, pointer->ai_socktype, pointer->ai_protocol);
 
-		if(stream->socket == INVALID_SOCKET) {
+		if(parameter->socket == INVALID_SOCKET) {
 			ERROR_WIN32(WSAGetLastError(), L"socket");
 			FreeAddrInfoW(result);
 			goto cleanupSocket;
 		}
 
-		if(connect(stream->socket, pointer->ai_addr, (int) pointer->ai_addrlen) != SOCKET_ERROR) {
+		if(connect(parameter->socket, pointer->ai_addr, (int) pointer->ai_addrlen) != SOCKET_ERROR) {
 			break;
 		}
 
-		if(closesocket(stream->socket) == SOCKET_ERROR) {
+		if(closesocket(parameter->socket) == SOCKET_ERROR) {
 			ERROR_WIN32(WSAGetLastError(), L"closesocket");
 			goto cleanupSocket;
 		}
 
-		stream->socket = INVALID_SOCKET;
+		parameter->socket = INVALID_SOCKET;
 	}
 
 	FreeAddrInfoW(result);
 
-	if(stream->socket == INVALID_SOCKET) {
+	if(parameter->socket == INVALID_SOCKET) {
 		if(error) {
 			error->type = HRSP_CLIENT_ERROR_TYPE_CLIENT;
 			error->function = L"HRSPClientConnectToServer";
@@ -86,7 +86,7 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 
 	HRSPERROR protocolError;
 
-	if(!HRSPClientHandshake(stream->socket, &stream->data, &protocolError)) {
+	if(!HRSPClientHandshake(parameter->socket, &parameter->data, &protocolError)) {
 		ERROR_HRSP;
 		goto closeSocket;
 	}
@@ -109,7 +109,7 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 	packet.size = size;
 	packet.type = HRSP_REMOTE_CLIENT_INFORMATION_PACKET;
 	packet.data = buffer;
-	status = HRSPSendPacket(stream->socket, &stream->data, &packet, &protocolError);
+	status = HRSPSendPacket(parameter->socket, &parameter->data, &packet, &protocolError);
 	KHOPAN_DEALLOCATE(buffer);
 
 	if(!status) {
@@ -121,52 +121,63 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 		input->callbackConnected(input->parameter);
 	}
 
-	stream->running = TRUE;
-	HANDLE streamThread = CreateThread(NULL, 0, HRSPClientStreamThread, stream, 0, NULL);
+	parameter->running = TRUE;
+	HANDLE streamThread = CreateThread(NULL, 0, HRSPClientStreamThread, parameter, 0, NULL);
 
 	if(!streamThread) {
 		ERROR_WIN32(GetLastError(), L"CreateThread");
 		goto closeSocket;
 	}
 
-	while(HRSPReceivePacket(stream->socket, &stream->data, &packet, &protocolError)) {
+	HANDLE audioThread = CreateThread(NULL, 0, HRSPClientAudioThread, parameter, 0, NULL);
+
+	if(!audioThread) {
+		ERROR_WIN32(GetLastError(), L"CreateThread");
+		parameter->running = FALSE;
+		goto closeStreamThread;
+	}
+
+	while(HRSPReceivePacket(parameter->socket, &parameter->data, &packet, &protocolError)) {
 		switch(packet.type) {
 		case HRSP_REMOTE_SERVER_STREAM_CODE_PACKET:
-			if(WaitForSingleObject(stream->mutex, INFINITE) == WAIT_FAILED) break;
-			stream->flags = *packet.data;
-			ReleaseMutex(stream->mutex);
+			if(WaitForSingleObject(parameter->mutex, INFINITE) == WAIT_FAILED) break;
+			parameter->stream.flags = *packet.data;
+			ReleaseMutex(parameter->mutex);
 			break;
 		}
 
 		HRSPFreePacket(&packet, &protocolError);
 	}
 
-	if(stream->hasError) {
+	if(parameter->hasError) {
 		if(error) {
-			(*error) = stream->error;
+			*error = parameter->error;
 		}
 
-		goto closeStreamThread;
+		goto closeAudioThread;
 	}
 
 	if(!protocolError.code || (!protocolError.win32 && protocolError.code == HRSP_ERROR_CONNECTION_CLOSED) || (protocolError.win32 && protocolError.code == WSAECONNRESET)) {
 		codeExit = TRUE;
-		goto closeStreamThread;
+		goto closeAudioThread;
 	}
 
 	ERROR_HRSP;
+closeAudioThread:
+	parameter->running = FALSE;
+	WaitForSingleObject(audioThread, INFINITE);
+	CloseHandle(audioThread);
 closeStreamThread:
-	stream->running = FALSE;
 	WaitForSingleObject(streamThread, INFINITE);
 	CloseHandle(streamThread);
 closeSocket:
-	closesocket(stream->socket);
+	closesocket(parameter->socket);
 cleanupSocket:
 	WSACleanup();
 closeMutex:
-	WaitForSingleObject(stream->mutex, INFINITE);
-	CloseHandle(stream->mutex);
+	WaitForSingleObject(parameter->mutex, INFINITE);
+	CloseHandle(parameter->mutex);
 streamDeallocate:
-	KHOPAN_DEALLOCATE(stream);
+	KHOPAN_DEALLOCATE(parameter);
 	return codeExit;
 }
