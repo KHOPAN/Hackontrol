@@ -1,4 +1,5 @@
 #include <WS2tcpip.h>
+#include <libkhopan.h>
 #include <lmcons.h>
 #include <hrsp_handshake.h>
 #include <hrsp_packet.h>
@@ -9,10 +10,10 @@
 #define ERROR_WIN32(errorCode, functionName) if(error){error->type=HRSP_CLIENT_ERROR_TYPE_WIN32;error->code=errorCode;error->function=functionName;}
 
 BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const PHRSPCLIENTINPUT input, const PHRSPCLIENTERROR error) {
-	PHRSPCLIENTSTREAMPARAMETER stream = LocalAlloc(LMEM_FIXED, sizeof(HRSPCLIENTSTREAMPARAMETER));
+	PHRSPCLIENTSTREAMPARAMETER stream = KHOPAN_ALLOCATE(sizeof(HRSPCLIENTSTREAMPARAMETER));
 
-	if(!stream) {
-		ERROR_WIN32(GetLastError(), L"LocalAlloc");
+	if(KHOPAN_ALLOCATE_FAILED(stream)) {
+		ERROR_WIN32(KHOPAN_ALLOCATE_ERROR, KHOPAN_ALLOCATE_FUNCTION);
 		return FALSE;
 	}
 
@@ -21,11 +22,11 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 	}
 
 	stream->mutex = CreateMutexExW(NULL, NULL, 0, SYNCHRONIZE | DELETE);
-	BOOL returnValue = FALSE;
+	BOOL codeExit = FALSE;
 
 	if(!stream->mutex) {
 		ERROR_WIN32(GetLastError(), L"CreateMutexExW");
-		goto freeStream;
+		goto streamDeallocate;
 	}
 
 	WSADATA data;
@@ -91,16 +92,16 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 	}
 
 	DWORD size = UNLEN + 1;
-	PBYTE buffer = LocalAlloc(LMEM_FIXED, size);
+	PBYTE buffer = KHOPAN_ALLOCATE(size);
 
-	if(!buffer) {
-		ERROR_WIN32(GetLastError(), L"LocalAlloc");
+	if(KHOPAN_ALLOCATE_FAILED(buffer)) {
+		ERROR_WIN32(KHOPAN_ALLOCATE_ERROR, KHOPAN_ALLOCATE_FUNCTION);
 		goto closeSocket;
 	}
 
 	if(!GetUserNameA(buffer, &size)) {
 		ERROR_WIN32(GetLastError(), L"GetUserNameA");
-		LocalFree(buffer);
+		KHOPAN_DEALLOCATE(buffer);
 		goto closeSocket;
 	}
 
@@ -109,7 +110,7 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 	packet.type = HRSP_REMOTE_CLIENT_INFORMATION_PACKET;
 	packet.data = buffer;
 	status = HRSPSendPacket(stream->socket, &stream->data, &packet, &protocolError);
-	LocalFree(buffer);
+	KHOPAN_DEALLOCATE(buffer);
 
 	if(!status) {
 		ERROR_HRSP;
@@ -129,18 +130,14 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 	}
 
 	while(HRSPReceivePacket(stream->socket, &stream->data, &packet, &protocolError)) {
-		if(packet.type != HRSP_REMOTE_SERVER_STREAM_CODE_PACKET) {
-			HRSPFreePacket(&packet, &protocolError);
-			continue;
+		switch(packet.type) {
+		case HRSP_REMOTE_SERVER_STREAM_CODE_PACKET:
+			if(WaitForSingleObject(stream->mutex, INFINITE) == WAIT_FAILED) break;
+			stream->flags = *packet.data;
+			ReleaseMutex(stream->mutex);
+			break;
 		}
 
-		if(WaitForSingleObject(stream->mutex, INFINITE) == WAIT_FAILED) {
-			ERROR_WIN32(GetLastError(), L"WaitForSingleObject");
-			goto closeStreamThread;
-		}
-
-		stream->flags = *packet.data;
-		ReleaseMutex(stream->mutex);
 		HRSPFreePacket(&packet, &protocolError);
 	}
 
@@ -153,33 +150,23 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 	}
 
 	if(!protocolError.code || (!protocolError.win32 && protocolError.code == HRSP_ERROR_CONNECTION_CLOSED) || (protocolError.win32 && protocolError.code == WSAECONNRESET)) {
-		returnValue = TRUE;
+		codeExit = TRUE;
 		goto closeStreamThread;
 	}
 
 	ERROR_HRSP;
 closeStreamThread:
 	stream->running = FALSE;
-
-	if(WaitForSingleObject(streamThread, INFINITE) == WAIT_FAILED) {
-		ERROR_WIN32(GetLastError(), L"WaitForSingleObject");
-		returnValue = FALSE;
-	}
-
+	WaitForSingleObject(streamThread, INFINITE);
 	CloseHandle(streamThread);
 closeSocket:
-	if(closesocket(stream->socket) == SOCKET_ERROR && (status = WSAGetLastError()) != WSAENOTSOCK) {
-		ERROR_WIN32(status, L"closesocket");
-		returnValue = FALSE;
-	}
+	closesocket(stream->socket);
 cleanupSocket:
-	if(WSACleanup() == SOCKET_ERROR) {
-		ERROR_WIN32(WSAGetLastError(), L"WSACleanup");
-		returnValue = FALSE;
-	}
+	WSACleanup();
 closeMutex:
+	WaitForSingleObject(stream->mutex, INFINITE);
 	CloseHandle(stream->mutex);
-freeStream:
-	LocalFree(stream);
-	return returnValue;
+streamDeallocate:
+	KHOPAN_DEALLOCATE(stream);
+	return codeExit;
 }

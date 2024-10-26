@@ -127,7 +127,7 @@ static void qoiEncode(const UINT startX, const UINT startY, const UINT endX, con
 	}
 }
 
-/*DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
+DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
 	if(!parameter) {
 		return 1;
 	}
@@ -351,73 +351,6 @@ static void qoiEncode(const UINT startX, const UINT startY, const UINT endX, con
 	if(parameter->hasError) {
 		closesocket(parameter->socket);
 		return 1;
-	}
-
-	return 0;
-}*/
-
-PBYTE pixelArray(const UINT width, const UINT height, const BYTE pixel) {
-	PBYTE buffer = LocalAlloc(LMEM_FIXED, width * height * 3 + 9);
-
-	if(!buffer) {
-		return NULL;
-	}
-
-	size_t pointer = 0;
-	buffer[pointer++] = 0x03;
-	buffer[pointer++] = (width >> 24) & 0xFF;
-	buffer[pointer++] = (width >> 16) & 0xFF;
-	buffer[pointer++] = (width >> 8) & 0xFF;
-	buffer[pointer++] = width & 0xFF;
-	buffer[pointer++] = (height >> 24) & 0xFF;
-	buffer[pointer++] = (height >> 16) & 0xFF;
-	buffer[pointer++] = (height >> 8) & 0xFF;
-	buffer[pointer++] = height & 0xFF;
-
-	for(UINT y = 0; y < height; y++) {
-		for(UINT x = 0; x < width; x++) {
-			buffer[pointer++] = pixel;
-			buffer[pointer++] = pixel;
-			buffer[pointer++] = pixel;
-		}
-	}
-
-	return buffer;
-}
-
-DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTSTREAMPARAMETER parameter) {
-	if(!parameter) {
-		return 1;
-	}
-
-	UINT width = 1366;
-	UINT height = 768;
-	PBYTE white = pixelArray(width, height, 0xFF);
-	PBYTE black = pixelArray(width, height, 0x00);
-
-	if(!white || !black) {
-		return 1;
-	}
-
-	HRSPPACKET packet;
-	packet.size = (int) (width * height * 3 + 9);
-	packet.type = HRSP_REMOTE_CLIENT_STREAM_FRAME_PACKET;
-	BOOL flip = FALSE;
-
-	while(parameter->running) {
-		if(WaitForSingleObject(parameter->mutex, INFINITE) == WAIT_FAILED) {
-			break;
-		}
-
-		if(!(parameter->flags & 1)) {
-			ReleaseMutex(parameter->mutex);
-			continue;
-		}
-
-		flip = !flip;
-		packet.data = flip ? white : black;
-		HRSPSendPacket(parameter->socket, &parameter->data, &packet, NULL);
-		ReleaseMutex(parameter->mutex);
 	}
 
 	return 0;
