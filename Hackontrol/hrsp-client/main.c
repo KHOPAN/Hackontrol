@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <WS2tcpip.h>
 #include <libkhopan.h>
 #include <lmcons.h>
@@ -139,18 +138,15 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 		goto closeStreamThread;
 	}
 
-	Sleep(100);
-	printf("Ready\n");
-	printf("Posting Message\n");
-	PostThreadMessageW(audioThreadIdentifier, WM_USER + 1, 0, 0);
-	printf("Message Posted\n");
-
 	while(HRSPReceivePacket(parameter->socket, &parameter->data, &packet, &protocolError)) {
 		switch(packet.type) {
 		case HRSP_REMOTE_SERVER_STREAM_CODE_PACKET:
 			if(WaitForSingleObject(parameter->mutex, INFINITE) == WAIT_FAILED) break;
 			parameter->stream.flags = *packet.data;
 			ReleaseMutex(parameter->mutex);
+			break;
+		case HRSP_REMOTE_SERVER_AUDIO_QUERY_DEVICE:
+			PostThreadMessageW(audioThreadIdentifier, AM_QUERY_AUDIO_DEVICE, 0, 0);
 			break;
 		}
 

@@ -6,13 +6,13 @@ DWORD WINAPI HRSPClientAudioThread(_In_ PHRSPCLIENTPARAMETER parameter) {
 		return 1;
 	}
 
-	printf("Audio Thread Finished\n");
 	MSG message;
 
 	while(GetMessageW(&message, NULL, 0, 0)) {
-		printf("Message: %u\n", message.message);
-		Sleep(1000);
-		printf("Audio Wait Done\n");
+		switch(message.message) {
+		case AM_QUERY_AUDIO_DEVICE:
+			break;
+		}
 	}
 
 	return 0;

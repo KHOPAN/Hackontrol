@@ -3,6 +3,8 @@
 #include <hrsp.h>
 #include "hrsp_client.h"
 
+#define AM_QUERY_AUDIO_DEVICE WM_USER
+
 typedef struct {
 	HANDLE mutex;
 	SOCKET socket;
