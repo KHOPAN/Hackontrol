@@ -75,7 +75,13 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 }
 
 static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG data, const PHRSPPACKET packet) {
-	return FALSE;
+	if(packet->type != HRSP_REMOTE_CLIENT_AUDIO_DEVICE_RESULT || packet->size < 4) {
+		return FALSE;
+	}
+
+	UINT count = (packet->data[0] << 24) | (packet->data[1] << 16) | (packet->data[2] << 8) | packet->data[3];
+	LOG("Count: %u\n", count);
+	return TRUE;
 }
 
 static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
