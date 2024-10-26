@@ -80,6 +80,29 @@ static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG data,
 	}
 
 	UINT count = (packet->data[0] << 24) | (packet->data[1] << 16) | (packet->data[2] << 8) | packet->data[3];
+
+	if(!count) {
+		return TRUE;
+	}
+
+	size_t pointer = 4;
+
+	for(UINT i = 0; i < count; i++) {
+		if(packet->size < pointer + 4) {
+			return TRUE;
+		}
+
+		UINT length = (packet->data[pointer] << 24) | (packet->data[pointer + 1] << 16) | (packet->data[pointer + 2] << 8) | packet->data[pointer + 3];
+		pointer += 4;
+
+		if(packet->size < pointer + length) {
+			return TRUE;
+		}
+
+		pointer += length;
+		printf("Length: %u\n", length);
+	}
+
 	LOG("Count: %u\n", count);
 	return TRUE;
 }

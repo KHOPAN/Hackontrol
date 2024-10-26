@@ -4,6 +4,7 @@
 #include <libkhopanlist.h>
 #include <hrsp_packet.h>
 #include <hrsp_remote.h>
+#include <functiondiscoverykeys_devpkey.h>
 
 EXTERN_GUID(CLSID_MMDeviceEnumerator, 0xBCDE0395, 0xE52F, 0x467C, 0x8E, 0x3D, 0xC4, 0x57, 0x92, 0x91, 0x69, 0x2E);
 EXTERN_GUID(IID_IMMDeviceEnumerator, 0xA95664D2, 0x9614, 0x4F35, 0xA7, 0x46, 0xDE, 0x8D, 0xB6, 0x36, 0x17, 0xE6);
@@ -38,17 +39,53 @@ static void queryAudioDevice(const PHRSPCLIENTPARAMETER parameter) {
 		goto releaseCollection;
 	}
 
-	printf("Count: %u\n", count);
 	BYTE buffer[4];
 	buffer[0] = (count >> 24) & 0xFF;
 	buffer[1] = (count >> 16) & 0xFF;
 	buffer[2] = (count >> 8) & 0xFF;
 	buffer[3] = count & 0xFF;
 	KHOPANStreamAdd(&stream, buffer, 4);
+
+	for(UINT i = 0; i < count; i++) {
+		IMMDevice* device;
+		result = collection->lpVtbl->Item(collection, i, &device);
+
+		if(FAILED(result)) {
+			goto releaseCollection;
+		}
+
+		IPropertyStore* store;
+		result = device->lpVtbl->OpenPropertyStore(device, STGM_READ, &store);
+
+		if(FAILED(result)) {
+			device->lpVtbl->Release(device);
+			goto releaseCollection;
+		}
+
+		PROPVARIANT variant = {0};
+		result = store->lpVtbl->GetValue(store, &PKEY_DeviceInterface_FriendlyName, &variant);
+		store->lpVtbl->Release(store);
+
+		if(FAILED(result)) {
+			device->lpVtbl->Release(device);
+			goto releaseCollection;
+		}
+
+		device->lpVtbl->Release(device);
+		UINT size = (UINT) (wcslen(variant.pwszVal) * sizeof(WCHAR));
+		buffer[0] = (size >> 24) & 0xFF;
+		buffer[1] = (size >> 16) & 0xFF;
+		buffer[2] = (size >> 8) & 0xFF;
+		buffer[3] = size & 0xFF;
+		KHOPANStreamAdd(&stream, buffer, 4);
+		KHOPANStreamAdd(&stream, (PBYTE) variant.pwszVal, size);
+	}
+
 	HRSPPACKET packet = {0};
 	packet.size = (int) stream.size;
 	packet.type = HRSP_REMOTE_CLIENT_AUDIO_DEVICE_RESULT;
 	packet.data = stream.data;
+	printf("Size: %d\n", packet.size);
 	HRSPSendPacket(parameter->socket, &parameter->data, &packet, NULL);
 releaseCollection:
 	collection->lpVtbl->Release(collection);
