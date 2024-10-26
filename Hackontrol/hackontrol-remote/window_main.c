@@ -25,25 +25,24 @@ static BOOL openClient(const LONGLONG index) {
 	}
 
 	PLINKEDLISTITEM item = NULL;
-	BOOL result = KHOPANLinkedGet(&clientList, index, &item) && item;
+	BOOL result = KHOPANLinkedGet(&clientList, index, &item) && item && item->data;
 	ReleaseMutex(clientListMutex);
 
-	if(result && item->data) {
+	if(result) {
 		ThreadClientOpen((PCLIENT) item->data);
-		return TRUE;
 	}
 
-	return FALSE;
+	return result;
 }
 
 static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	RECT bounds;
-	PCLIENT client;
 	LVHITTESTINFO information = {0};
 	PLINKEDLISTITEM item = NULL;
 	int status = 0;
 	HMENU menu;
 	BOOL topMost;
+	PCLIENT client;
 
 	switch(message) {
 	case WM_CLOSE:
@@ -54,13 +53,11 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 		return 0;
 	case WM_SIZE:
 		GetClientRect(window, &bounds);
-		SetWindowPos(border, HWND_TOP, 0, 0, bounds.right - bounds.left - 10, bounds.bottom - bounds.top - 4, SWP_NOMOVE);
-		GetClientRect(border, &bounds);
-		SetWindowPos(listView, HWND_TOP, bounds.left + 9, bounds.top + 17, bounds.right - bounds.left - 8, bounds.bottom - bounds.top - 22, 0);
+		bounds.right -= bounds.left;
+		bounds.bottom -= bounds.top;
+		SetWindowPos(border, HWND_TOP, 0, 0, bounds.right - 10, bounds.bottom - 4, SWP_NOMOVE);
+		SetWindowPos(listView, HWND_TOP, 0, 0, bounds.right - bounds.left - 18, bounds.bottom - bounds.top - 26, SWP_NOMOVE);
 		return 0;
-	case WM_NOTIFY:
-		if(lparam && ((LPNMHDR) lparam)->code == NM_DBLCLK) openClient(((LPNMITEMACTIVATE) lparam)->iItem);
-		break;
 	case WM_CONTEXTMENU:
 		GetCursorPos(&information.pt);
 		ScreenToClient(listView, &information.pt);
@@ -93,31 +90,38 @@ static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message
 		AppendMenuW(menu, MF_STRING | (topMost ? MF_CHECKED : MF_UNCHECKED), IDM_REMOTE_ALWAYS_ON_TOP, L"Always On Top");
 		AppendMenuW(menu, MF_STRING, IDM_REMOTE_EXIT, L"Exit");
 		SetForegroundWindow(window);
-		status = TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
+		status = TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_TOPALIGN, LOWORD(lparam), HIWORD(lparam), window, NULL);
 		DestroyMenu(menu);
 
 		switch(status) {
 		case IDM_REMOTE_OPEN:
 		case IDM_REMOTE_DISCONNECT:
-			if(!item) break;
+			if(!item) return 0;
 			client = (PCLIENT) item->data;
-			if(!client) break;
+			if(!client) return 0;
 			if(status == IDM_REMOTE_OPEN) ThreadClientOpen(client);
 			if(status == IDM_REMOTE_DISCONNECT) ThreadClientDisconnect(client);
-			break;
+			return 0;
 		case IDM_REMOTE_REFRESH:
-			if(WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) break;
+			if(WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) return 0;
 			WindowMainRefresh();
 			ReleaseMutex(clientListMutex);
-			break;
+			return 0;
 		case IDM_REMOTE_ALWAYS_ON_TOP:
 			SetWindowPos(window, topMost ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
-			break;
+			return 0;
 		case IDM_REMOTE_EXIT:
 			WindowMainExit();
+			return 0;
+		}
+
+		return 0;
+	case WM_NOTIFY:
+		if(!lparam || ((LPNMHDR) lparam)->code != NM_DBLCLK) {
 			break;
 		}
 
+		openClient(((LPNMITEMACTIVATE) lparam)->iItem);
 		return 0;
 	}
 
@@ -139,11 +143,11 @@ int WindowMain() {
 		return 1;
 	}
 
-	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
-	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+	double screenWidth = GetSystemMetrics(SM_CXSCREEN);
+	double screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	int width = (int) (screenWidth * 0.292825769);
 	int height = (int) (screenHeight * 0.78125);
-	window = CreateWindowExW(WS_EX_TOPMOST, CLASS_HACKONTROL_REMOTE, L"Remote", WS_OVERLAPPEDWINDOW, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, NULL, NULL, instance, NULL);
+	window = CreateWindowExW(WS_EX_TOPMOST, CLASS_HACKONTROL_REMOTE, L"Remote", WS_OVERLAPPEDWINDOW, (int) ((screenWidth - ((double) width)) / 2.0), (int) ((screenHeight - ((double) height)) / 2.0), width, height, NULL, NULL, instance, NULL);
 	int codeExit = 1;
 
 	if(!window) {
@@ -151,25 +155,26 @@ int WindowMain() {
 		goto unregisterClass;
 	}
 
-	border = CreateWindowExW(WS_EX_NOPARENTNOTIFY, L"Button", L"Connected Devices", BS_GROUPBOX | WS_CHILD | WS_VISIBLE, 5, 0, 0, 0, window, NULL, NULL, NULL);
+	border = CreateWindowExW(WS_EX_NOPARENTNOTIFY, L"Button", L"Target List", BS_GROUPBOX | WS_CHILD | WS_VISIBLE, 5, 0, 0, 0, window, NULL, NULL, NULL);
 
 	if(!border) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"CreateWindowExW");
 		goto unregisterClass;
 	}
 
-	listView = CreateWindowExW(WS_EX_CLIENTEDGE, WC_LISTVIEW, L"", LVS_REPORT | LVS_SINGLESEL | WS_TABSTOP | WS_CHILD | WS_VISIBLE | WS_VSCROLL, 0, 0, 0, 0, window, NULL, NULL, NULL);
+	SendMessageW(border, WM_SETFONT, (WPARAM) font, TRUE);
+	listView = CreateWindowExW(WS_EX_CLIENTEDGE, WC_LISTVIEW, L"", LVS_REPORT | LVS_SINGLESEL | WS_TABSTOP | WS_CHILD | WS_VISIBLE | WS_VSCROLL, 9, 17, 0, 0, window, NULL, NULL, NULL);
 
 	if(!listView) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"CreateWindowExW");
 		goto unregisterClass;
 	}
 
-	SendMessageW(listView, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT);
+	SendMessageW(listView, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_DOUBLEBUFFER | LVS_EX_FULLROWSELECT);
 	LVCOLUMNW column = {0};
-	column.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
-	column.cx = (int) (screenWidth * 0.13250366);
+	column.mask = LVCF_FMT | LVCF_TEXT | LVCF_WIDTH;
 	column.fmt = LVCFMT_LEFT;
+	column.cx = (int) (screenWidth * 0.133);
 	column.pszText = L"IP Address";
 
 	if(SendMessageW(listView, LVM_INSERTCOLUMN, 0, (LPARAM) &column) == -1) {
@@ -179,18 +184,19 @@ int WindowMain() {
 
 	column.pszText = L"Username";
 
-	if(SendMessageW(listView, LVM_INSERTCOLUMN, 0, (LPARAM) &column) == 1) {
+	if(SendMessageW(listView, LVM_INSERTCOLUMN, 0, (LPARAM) &column) == -1) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"ListView_InsertColumn");
 		goto unregisterClass;
 	}
 
-	SendMessageW(border, WM_SETFONT, (WPARAM) font, TRUE);
 	ShowWindow(window, SW_NORMAL);
 	LOG("[Main Window]: Finished\n");
 	MSG message;
 
 	while(GetMessageW(&message, NULL, 0, 0)) {
-		if(message.message == WM_KEYDOWN && message.wParam == VK_RETURN && openClient((LONGLONG) SendMessageW(listView, LVM_GETNEXTITEM, -1, LVNI_SELECTED))) continue;
+		if(message.message == WM_KEYDOWN && (message.wParam == VK_RETURN || message.wParam == VK_SPACE) && openClient((LONGLONG) SendMessageW(listView, LVM_GETNEXTITEM, -1, LVNI_SELECTED))) {
+			continue;
+		}
 
 		if(!IsDialogMessageW(window, &message)) {
 			TranslateMessage(&message);
