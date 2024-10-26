@@ -4,11 +4,21 @@
 
 #define CLASS_NAME L"HackontrolRemoteSessionTabAudio"
 
+#pragma warning(disable: 6001)
+#pragma warning(disable: 6385)
+#pragma warning(disable: 6386)
+
 extern HFONT font;
+
+typedef struct {
+	LPWSTR name;
+} AUDIODEVICE, *PAUDIODEVICE;
 
 typedef struct {
 	HWND border;
 	HWND list;
+	UINT deviceCount;
+	PAUDIODEVICE devices;
 } TABAUDIODATA, *PTABAUDIODATA;
 
 static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG customData, const HWND parent) {
@@ -61,7 +71,7 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 		return NULL;
 	}
 
-	LVITEMW listItem = {0};
+	/*LVITEMW listItem = {0};
 	listItem.mask = LVIF_TEXT;
 	listItem.iSubItem = 0;
 	listItem.pszText = L"Third";
@@ -69,14 +79,19 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 	listItem.pszText = L"Second";
 	SendMessageW(data->list, LVM_INSERTITEM, 0, (LPARAM) &listItem);
 	listItem.pszText = L"First";
-	SendMessageW(data->list, LVM_INSERTITEM, 0, (LPARAM) &listItem);
+	SendMessageW(data->list, LVM_INSERTITEM, 0, (LPARAM) &listItem);*/
 	HRSPSendTypePacket(client->socket, &client->hrsp, HRSP_REMOTE_SERVER_AUDIO_QUERY_DEVICE, NULL);
+	*customData = (ULONGLONG) data;
 	return window;
 }
 
-static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG data, const PHRSPPACKET packet) {
-	if(packet->type != HRSP_REMOTE_CLIENT_AUDIO_DEVICE_RESULT || packet->size < 4) {
+static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG customData, const PHRSPPACKET packet) {
+	if(packet->type != HRSP_REMOTE_CLIENT_AUDIO_DEVICE_RESULT) {
 		return FALSE;
+	}
+
+	if(packet->size < 4) {
+		return TRUE;
 	}
 
 	UINT count = (packet->data[0] << 24) | (packet->data[1] << 16) | (packet->data[2] << 8) | packet->data[3];
@@ -85,25 +100,69 @@ static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG data,
 		return TRUE;
 	}
 
-	size_t pointer = 4;
+	size_t size = sizeof(AUDIODEVICE) * count;
+	PAUDIODEVICE devices = KHOPAN_ALLOCATE(size);
+
+	if(KHOPAN_ALLOCATE_FAILED(devices)) {
+		return TRUE;
+	}
+
+	size_t pointer;
+
+	for(pointer = 0; pointer < size; pointer++) {
+		((PBYTE) devices)[pointer] = 0;
+	}
+
+	pointer = 4;
 
 	for(UINT i = 0; i < count; i++) {
 		if(packet->size < pointer + 4) {
-			return TRUE;
+			goto functionExit;
 		}
 
 		UINT length = (packet->data[pointer] << 24) | (packet->data[pointer + 1] << 16) | (packet->data[pointer + 2] << 8) | packet->data[pointer + 3];
 		pointer += 4;
 
-		if(packet->size < pointer + length) {
-			return TRUE;
+		if(!length || packet->size < pointer + length) {
+			goto functionExit;
+		}
+
+		devices[i].name = KHOPAN_ALLOCATE(length + sizeof(WCHAR));
+
+		if(KHOPAN_ALLOCATE_FAILED(devices[i].name)) {
+			goto functionExit;
+		}
+
+		for(size = 0; size < length; size++) {
+			((PBYTE) devices[i].name)[size] = packet->data[pointer + size];
 		}
 
 		pointer += length;
-		printf("Length: %u\n", length);
+		((PBYTE) devices[i].name)[length] = 0;
+		((PBYTE) devices[i].name)[length + 1] = 0;
 	}
 
-	LOG("Count: %u\n", count);
+	PTABAUDIODATA data = (PTABAUDIODATA) *customData;
+
+	if(data->devices) {
+		for(pointer = 0; pointer < data->deviceCount; pointer++) {
+			KHOPAN_DEALLOCATE(data->devices[pointer].name);
+		}
+
+		KHOPAN_DEALLOCATE(data->devices);
+	}
+
+	data->deviceCount = count;
+	data->devices = devices;
+	return TRUE;
+functionExit:
+	for(pointer = 0; pointer < count; pointer++) {
+		if(devices[pointer].name) {
+			KHOPAN_DEALLOCATE(devices[pointer].name);
+		}
+	}
+
+	KHOPAN_DEALLOCATE(devices);
 	return TRUE;
 }
 
@@ -113,6 +172,11 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 
 	switch(message) {
 	case WM_DESTROY:
+		if(data->devices) {
+			for(UINT i = 0; i < data->deviceCount; i++) KHOPAN_DEALLOCATE(data->devices[i].name);
+			KHOPAN_DEALLOCATE(data->devices);
+		}
+
 		KHOPAN_DEALLOCATE(data);
 		return 0;
 	case WM_SIZE:
