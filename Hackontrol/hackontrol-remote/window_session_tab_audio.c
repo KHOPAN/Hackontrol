@@ -71,15 +71,6 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 		return NULL;
 	}
 
-	/*LVITEMW listItem = {0};
-	listItem.mask = LVIF_TEXT;
-	listItem.iSubItem = 0;
-	listItem.pszText = L"Third";
-	SendMessageW(data->list, LVM_INSERTITEM, 0, (LPARAM) &listItem);
-	listItem.pszText = L"Second";
-	SendMessageW(data->list, LVM_INSERTITEM, 0, (LPARAM) &listItem);
-	listItem.pszText = L"First";
-	SendMessageW(data->list, LVM_INSERTITEM, 0, (LPARAM) &listItem);*/
 	HRSPSendTypePacket(client->socket, &client->hrsp, HRSP_REMOTE_SERVER_AUDIO_QUERY_DEVICE, NULL);
 	*customData = (ULONGLONG) data;
 	return window;
@@ -154,6 +145,16 @@ static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG custo
 
 	data->deviceCount = count;
 	data->devices = devices;
+	SendMessageW(data->list, LVM_DELETEALLITEMS, 0, 0);
+	LVITEMW item = {0};
+	item.mask = LVIF_TEXT;
+
+	for(pointer = 0; pointer < count; pointer++) {
+		item.iSubItem = 0;
+		item.pszText = data->devices[count - pointer - 1].name;
+		SendMessageW(data->list, LVM_INSERTITEM, 0, (LPARAM) &item);
+	}
+
 	return TRUE;
 functionExit:
 	for(pointer = 0; pointer < count; pointer++) {
