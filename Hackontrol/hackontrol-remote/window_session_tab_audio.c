@@ -1,5 +1,6 @@
 #include "window_session_tabs.h"
 #include <CommCtrl.h>
+#include <hrsp_remote.h>
 
 #define CLASS_NAME L"HackontrolRemoteSessionTabAudio"
 
@@ -69,6 +70,7 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 	SendMessageW(data->list, LVM_INSERTITEM, 0, (LPARAM) &listItem);
 	listItem.pszText = L"First";
 	SendMessageW(data->list, LVM_INSERTITEM, 0, (LPARAM) &listItem);
+	HRSPSendTypePacket(client->socket, &client->hrsp, HRSP_REMOTE_SERVER_AUDIO_QUERY_DEVICE, NULL);
 	return window;
 }
 

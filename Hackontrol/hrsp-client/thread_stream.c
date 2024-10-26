@@ -141,7 +141,7 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTPARAMETER parameter) {
 	HDC memoryContext = NULL;
 	HBITMAP bitmap = NULL;
 
-	while(parameter->running) {
+	while(parameter->stream.running) {
 		if(WaitForSingleObject(parameter->mutex, INFINITE) == WAIT_FAILED) {
 			ERROR_WIN32(GetLastError(), L"WaitForSingleObject");
 			break;

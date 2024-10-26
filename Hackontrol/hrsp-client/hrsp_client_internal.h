@@ -3,17 +3,18 @@
 #include <hrsp.h>
 #include "hrsp_client.h"
 
-#define AM_QUERY_AUDIO_DEVICE WM_USER
+#define AM_EXIT               WM_USER
+#define AM_QUERY_AUDIO_DEVICE (WM_USER + 1)
 
 typedef struct {
 	HANDLE mutex;
 	SOCKET socket;
 	HRSPDATA data;
-	BOOL running;
 	BOOL hasError;
 	HRSPCLIENTERROR error;
 
 	struct {
+		BOOL running;
 		BYTE flags;
 	} stream;
 } HRSPCLIENTPARAMETER, *PHRSPCLIENTPARAMETER;

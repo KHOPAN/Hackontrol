@@ -121,7 +121,7 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 		input->callbackConnected(input->parameter);
 	}
 
-	parameter->running = TRUE;
+	parameter->stream.running = TRUE;
 	HANDLE streamThread = CreateThread(NULL, 0, HRSPClientStreamThread, parameter, 0, NULL);
 
 	if(!streamThread) {
@@ -134,7 +134,6 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 
 	if(!audioThread) {
 		ERROR_WIN32(GetLastError(), L"CreateThread");
-		parameter->running = FALSE;
 		goto closeStreamThread;
 	}
 
@@ -168,10 +167,11 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 
 	ERROR_HRSP;
 closeAudioThread:
-	parameter->running = FALSE;
+	PostThreadMessageW(audioThreadIdentifier, AM_EXIT, 0, 0);
 	WaitForSingleObject(audioThread, INFINITE);
 	CloseHandle(audioThread);
 closeStreamThread:
+	parameter->stream.running = FALSE;
 	WaitForSingleObject(streamThread, INFINITE);
 	CloseHandle(streamThread);
 closeSocket:
