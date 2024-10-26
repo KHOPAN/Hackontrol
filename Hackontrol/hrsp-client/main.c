@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <WS2tcpip.h>
 #include <libkhopan.h>
 #include <lmcons.h>
@@ -129,13 +130,20 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 		goto closeSocket;
 	}
 
-	HANDLE audioThread = CreateThread(NULL, 0, HRSPClientAudioThread, parameter, 0, NULL);
+	DWORD audioThreadIdentifier;
+	HANDLE audioThread = CreateThread(NULL, 0, HRSPClientAudioThread, parameter, 0, &audioThreadIdentifier);
 
 	if(!audioThread) {
 		ERROR_WIN32(GetLastError(), L"CreateThread");
 		parameter->running = FALSE;
 		goto closeStreamThread;
 	}
+
+	Sleep(100);
+	printf("Ready\n");
+	printf("Posting Message\n");
+	PostThreadMessageW(audioThreadIdentifier, WM_USER + 1, 0, 0);
+	printf("Message Posted\n");
 
 	while(HRSPReceivePacket(parameter->socket, &parameter->data, &packet, &protocolError)) {
 		switch(packet.type) {
