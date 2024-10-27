@@ -207,6 +207,12 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 
 		listView = (LPNMLISTVIEW) lparam;
 		SendMessageW(data->list, LVM_SORTITEMS, 0, (LPARAM) compareList);
+		HWND header = (HWND) SendMessageW(data->list, LVM_GETHEADER, 0, 0);
+		HDITEMW item = {0};
+		item.mask = HDI_FORMAT;
+		SendMessageW(header, HDM_GETITEM, 0, (LPARAM) &item);
+		item.fmt |= HDF_SORTDOWN;
+		SendMessageW(header, HDM_SETITEM, 0, (LPARAM) &item);
 		return 0;
 	}
 
