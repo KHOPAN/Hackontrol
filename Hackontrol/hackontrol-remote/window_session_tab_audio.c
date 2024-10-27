@@ -326,6 +326,7 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 	LVITEMW item = {0};
 	HMENU menu;
 	BOOL option;
+	HRSPPACKET packet;
 
 	switch(message) {
 	case WM_DESTROY:
@@ -366,6 +367,7 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 
 		if(SendMessageW(data->list, LVM_HITTEST, 0, (LPARAM) &information) != -1) {
 			item.mask = LVIF_PARAM;
+			item.iItem = information.iItem;
 			SendMessageW(data->list, LVM_GETITEM, 0, (LPARAM) &item);
 		}
 
@@ -387,6 +389,11 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 
 		switch(option) {
 		case IDM_AUDIO_CAPTURE:
+			if(!item.lParam) return 0;
+			packet.size = (int) (wcslen(((PAUDIODEVICE) item.lParam)->identifier) * sizeof(WCHAR));
+			packet.type = HRSP_REMOTE_SERVER_AUDIO_CAPTURE;
+			packet.data = (PBYTE) ((PAUDIODEVICE) item.lParam)->identifier;
+			HRSPSendPacket(data->client->socket, &data->client->hrsp, &packet, NULL);
 			return 0;
 		case IDM_AUDIO_REFRESH:
 			HRSPSendTypePacket(data->client->socket, &data->client->hrsp, HRSP_REMOTE_SERVER_AUDIO_QUERY_DEVICE, NULL);

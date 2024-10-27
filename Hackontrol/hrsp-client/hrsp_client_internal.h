@@ -3,8 +3,9 @@
 #include <hrsp.h>
 #include "hrsp_client.h"
 
-#define AM_EXIT               WM_USER
-#define AM_QUERY_AUDIO_DEVICE (WM_USER + 1)
+#define AM_EXIT                WM_USER
+#define AM_QUERY_AUDIO_DEVICE  (WM_USER + 1)
+#define AM_QUERY_AUDIO_CAPTURE (WM_USER + 2)
 
 typedef struct {
 	HANDLE mutex;

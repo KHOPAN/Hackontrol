@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <libkhopan.h>
 #include <mmdeviceapi.h>
 #include "hrsp_client_internal.h"
 #include <libkhopanlist.h>
@@ -151,6 +152,10 @@ freeStream:
 	KHOPANStreamFree(&stream);
 }
 
+static void captureAudio(const LPCWSTR identifier) {
+	printf("Identifier: %ws\n", identifier);
+}
+
 DWORD WINAPI HRSPClientAudioThread(_In_ PHRSPCLIENTPARAMETER parameter) {
 	if(!parameter) {
 		return 1;
@@ -170,6 +175,10 @@ DWORD WINAPI HRSPClientAudioThread(_In_ PHRSPCLIENTPARAMETER parameter) {
 			goto uninitialize;
 		case AM_QUERY_AUDIO_DEVICE:
 			queryAudioDevice(parameter);
+			break;
+		case AM_QUERY_AUDIO_CAPTURE:
+			captureAudio((LPWSTR) message.lParam);
+			KHOPAN_DEALLOCATE(message.lParam);
 			break;
 		}
 	}

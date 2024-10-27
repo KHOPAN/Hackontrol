@@ -9,6 +9,26 @@
 #define ERROR_HRSP if(error){error->type=protocolError.win32?HRSP_CLIENT_ERROR_TYPE_WIN32:HRSP_CLIENT_ERROR_TYPE_HRSP;error->code=protocolError.code;error->function=protocolError.function;}
 #define ERROR_WIN32(errorCode, functionName) if(error){error->type=HRSP_CLIENT_ERROR_TYPE_WIN32;error->code=errorCode;error->function=functionName;}
 
+static void audioCapture(const PHRSPPACKET packet, const DWORD audioThreadIdentifier) {
+	if(!packet->size) {
+		return;
+	}
+
+	PBYTE buffer = KHOPAN_ALLOCATE(packet->size + sizeof(WCHAR));
+
+	if(KHOPAN_ALLOCATE_FAILED(buffer)) {
+		return;
+	}
+
+	for(int i = 0; i < packet->size; i++) {
+		buffer[i] = packet->data[i];
+	}
+
+	buffer[packet->size] = 0;
+	buffer[packet->size + 1] = 0;
+	PostThreadMessageW(audioThreadIdentifier, AM_QUERY_AUDIO_CAPTURE, 0, (LPARAM) buffer);
+}
+
 BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const PHRSPCLIENTINPUT input, const PHRSPCLIENTERROR error) {
 	PHRSPCLIENTPARAMETER parameter = KHOPAN_ALLOCATE(sizeof(HRSPCLIENTPARAMETER));
 
@@ -146,6 +166,9 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 			break;
 		case HRSP_REMOTE_SERVER_AUDIO_QUERY_DEVICE:
 			PostThreadMessageW(audioThreadIdentifier, AM_QUERY_AUDIO_DEVICE, 0, 0);
+			break;
+		case HRSP_REMOTE_SERVER_AUDIO_CAPTURE:
+			audioCapture(&packet, audioThreadIdentifier);
 			break;
 		}
 
