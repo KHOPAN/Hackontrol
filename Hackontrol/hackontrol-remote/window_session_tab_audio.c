@@ -4,6 +4,8 @@
 
 #define CLASS_NAME L"HackontrolRemoteSessionTabAudio"
 
+#define IDM_AUDIO_REFRESH 0xE001
+
 #pragma warning(disable: 6001)
 #pragma warning(disable: 6385)
 #pragma warning(disable: 6386)
@@ -30,6 +32,7 @@ typedef struct {
 } AUDIODEVICE, *PAUDIODEVICE;
 
 typedef struct {
+	PCLIENT client;
 	HWND border;
 	HWND list;
 	UINT sortColumn;
@@ -45,6 +48,7 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 		return NULL;
 	}
 
+	data->client = client;
 	HWND window = CreateWindowExW(WS_EX_CONTROLPARENT, CLASS_NAME, L"", WS_CHILD, 0, 0, 0, 0, parent, NULL, NULL, data);
 
 	if(!window) {
@@ -122,14 +126,15 @@ static void sortListView(const PTABAUDIODATA data, const int index) {
 	SORTPARAMETER parameter;
 
 	if(index < 0) {
-		data->sortColumn = 0;
 		item.mask = HDI_FORMAT;
 		SendMessageW(header, HDM_GETITEM, data->sortColumn, (LPARAM) &item);
 
-		if(!(item.fmt & (HDF_SORTUP | HDF_SORTDOWN))) {
+		if(!(item.fmt & HDF_SORTUP) && !(item.fmt & HDF_SORTDOWN)) {
 			item.fmt |= HDF_SORTUP;
 			parameter.ascending = TRUE;
 			SendMessageW(header, HDM_SETITEM, data->sortColumn, (LPARAM) &item);
+		} else {
+			parameter.ascending = item.fmt & HDF_SORTUP;
 		}
 
 		goto sortItem;
@@ -316,6 +321,10 @@ functionExit:
 static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	USERDATA(PTABAUDIODATA, data, window, message, wparam, lparam);
 	RECT bounds;
+	LVHITTESTINFO information = {0};
+	LVITEMW item = {0};
+	HMENU menu;
+	BOOL option;
 
 	switch(message) {
 	case WM_DESTROY:
@@ -344,6 +353,38 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 		}
 
 		sortListView(data, ((LPNMLISTVIEW) lparam)->iSubItem);
+		return 0;
+	case WM_CONTEXTMENU:
+		GetCursorPos(&information.pt);
+		ScreenToClient(data->list, &information.pt);
+		GetClientRect(window, &bounds);
+
+		if(information.pt.x < bounds.left || information.pt.x > bounds.right || information.pt.y < bounds.top || information.pt.y > bounds.bottom) {
+			return 0;
+		}
+
+		if(SendMessageW(data->list, LVM_HITTEST, 0, (LPARAM) &information) != -1) {
+			item.mask = LVIF_PARAM;
+			SendMessageW(data->list, LVM_GETITEM, 0, (LPARAM) &item);
+		}
+
+		menu = CreatePopupMenu();
+
+		if(!menu) {
+			return 0;
+		}
+
+		AppendMenuW(menu, MF_STRING, IDM_AUDIO_REFRESH, L"Refresh");
+		SetForegroundWindow(window);
+		option = TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_TOPALIGN, LOWORD(lparam), HIWORD(lparam), window, NULL);
+		DestroyMenu(menu);
+
+		switch(option) {
+		case IDM_AUDIO_REFRESH:
+			HRSPSendTypePacket(data->client->socket, &data->client->hrsp, HRSP_REMOTE_SERVER_AUDIO_QUERY_DEVICE, NULL);
+			break;
+		}
+
 		return 0;
 	}
 
