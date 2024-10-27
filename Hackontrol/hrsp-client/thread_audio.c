@@ -107,7 +107,6 @@ static void queryAudioDevice(const PHRSPCLIENTPARAMETER parameter) {
 			goto releaseCollection;
 		}
 
-		device->lpVtbl->Release(device);
 		UINT size = (UINT) (wcslen(variant.pwszVal) * sizeof(WCHAR));
 		buffer[0] = (size >> 24) & 0xFF;
 		buffer[1] = (size >> 16) & 0xFF;
@@ -115,15 +114,36 @@ static void queryAudioDevice(const PHRSPCLIENTPARAMETER parameter) {
 		buffer[3] = size & 0xFF;
 
 		if(!KHOPANStreamAdd(&stream, buffer, 4) || !KHOPANStreamAdd(&stream, (PBYTE) variant.pwszVal, size)) {
+			device->lpVtbl->Release(device);
 			goto releaseCollection;
 		}
+
+		LPWSTR identifier;
+		result = device->lpVtbl->GetId(device, &identifier);
+		device->lpVtbl->Release(device);
+
+		if(FAILED(result)) {
+			goto releaseCollection;
+		}
+
+		size = (UINT) (wcslen(identifier) * sizeof(WCHAR));
+		buffer[0] = (size >> 24) & 0xFF;
+		buffer[1] = (size >> 16) & 0xFF;
+		buffer[2] = (size >> 8) & 0xFF;
+		buffer[3] = size & 0xFF;
+
+		if(!KHOPANStreamAdd(&stream, buffer, 4) || !KHOPANStreamAdd(&stream, (PBYTE) identifier, size)) {
+			CoTaskMemFree(identifier);
+			goto releaseCollection;
+		}
+
+		CoTaskMemFree(identifier);
 	}
 
 	HRSPPACKET packet = {0};
 	packet.size = (int) stream.size;
 	packet.type = HRSP_REMOTE_CLIENT_AUDIO_DEVICE_RESULT;
 	packet.data = stream.data;
-	printf("Size: %d\n", packet.size);
 	HRSPSendPacket(parameter->socket, &parameter->data, &packet, NULL);
 releaseCollection:
 	collection->lpVtbl->Release(collection);

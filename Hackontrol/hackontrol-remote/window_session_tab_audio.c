@@ -24,6 +24,7 @@ typedef enum {
 } AUDIODEVICESTATE;
 
 typedef struct {
+	LPWSTR identifier;
 	LPWSTR name;
 	AUDIODEVICESTATE state;
 } AUDIODEVICE, *PAUDIODEVICE;
@@ -203,7 +204,7 @@ static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG custo
 			goto functionExit;
 		}
 
-		AUDIODEVICESTATE state = packet->data[pointer];
+		devices[i].state = packet->data[pointer];
 		UINT length = (packet->data[pointer + 1] << 24) | (packet->data[pointer + 2] << 16) | (packet->data[pointer + 3] << 8) | packet->data[pointer + 4];
 		pointer += 5;
 
@@ -224,13 +225,38 @@ static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG custo
 		pointer += length;
 		((PBYTE) devices[i].name)[length] = 0;
 		((PBYTE) devices[i].name)[length + 1] = 0;
-		devices[i].state = state;
+
+		if(packet->size < pointer + 4) {
+			goto functionExit;
+		}
+
+		length = (packet->data[pointer] << 24) | (packet->data[pointer + 1] << 16) | (packet->data[pointer + 2] << 8) | packet->data[pointer + 3];
+		pointer += 4;
+
+		if(!length || packet->size < pointer + length) {
+			goto functionExit;
+		}
+
+		devices[i].identifier = KHOPAN_ALLOCATE(length + sizeof(WCHAR));
+
+		if(KHOPAN_ALLOCATE_FAILED(devices[i].identifier)) {
+			goto functionExit;
+		}
+
+		for(size = 0; size < length; size++) {
+			((PBYTE) devices[i].identifier)[size] = packet->data[pointer + size];
+		}
+
+		pointer += length;
+		((PBYTE) devices[i].identifier)[length] = 0;
+		((PBYTE) devices[i].identifier)[length + 1] = 0;
 	}
 
 	PTABAUDIODATA data = (PTABAUDIODATA) *customData;
 
 	if(data->devices) {
 		for(pointer = 0; pointer < data->deviceCount; pointer++) {
+			KHOPAN_DEALLOCATE(data->devices[pointer].identifier);
 			KHOPAN_DEALLOCATE(data->devices[pointer].name);
 		}
 
@@ -274,6 +300,10 @@ static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG custo
 	return TRUE;
 functionExit:
 	for(pointer = 0; pointer < count; pointer++) {
+		if(devices[pointer].identifier) {
+			KHOPAN_DEALLOCATE(devices[pointer].identifier);
+		}
+
 		if(devices[pointer].name) {
 			KHOPAN_DEALLOCATE(devices[pointer].name);
 		}
@@ -290,7 +320,11 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 	switch(message) {
 	case WM_DESTROY:
 		if(data->devices) {
-			for(UINT i = 0; i < data->deviceCount; i++) KHOPAN_DEALLOCATE(data->devices[i].name);
+			for(UINT i = 0; i < data->deviceCount; i++) {
+				KHOPAN_DEALLOCATE(data->devices[i].identifier);
+				KHOPAN_DEALLOCATE(data->devices[i].name);
+			}
+
 			KHOPAN_DEALLOCATE(data->devices);
 		}
 
