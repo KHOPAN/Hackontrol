@@ -4,7 +4,8 @@
 
 #define CLASS_NAME L"HackontrolRemoteSessionTabAudio"
 
-#define IDM_AUDIO_REFRESH 0xE001
+#define IDM_AUDIO_CAPTURE 0xE001
+#define IDM_AUDIO_REFRESH 0xE002
 
 #pragma warning(disable: 6001)
 #pragma warning(disable: 6385)
@@ -374,15 +375,22 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 			return 0;
 		}
 
+		if(item.lParam) {
+			AppendMenuW(menu, MF_STRING, IDM_AUDIO_CAPTURE, L"Capture");
+			AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
+		}
+
 		AppendMenuW(menu, MF_STRING, IDM_AUDIO_REFRESH, L"Refresh");
 		SetForegroundWindow(window);
 		option = TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_TOPALIGN, LOWORD(lparam), HIWORD(lparam), window, NULL);
 		DestroyMenu(menu);
 
 		switch(option) {
+		case IDM_AUDIO_CAPTURE:
+			return 0;
 		case IDM_AUDIO_REFRESH:
 			HRSPSendTypePacket(data->client->socket, &data->client->hrsp, HRSP_REMOTE_SERVER_AUDIO_QUERY_DEVICE, NULL);
-			break;
+			return 0;
 		}
 
 		return 0;
