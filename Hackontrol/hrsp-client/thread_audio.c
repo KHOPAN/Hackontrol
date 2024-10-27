@@ -6,13 +6,18 @@
 #include <hrsp_remote.h>
 #include <functiondiscoverykeys_devpkey.h>
 
+#define AUDIO_DEVICE_ACTIVE     0x01
+#define AUDIO_DEVICE_DISABLED   0x02
+#define AUDIO_DEVICE_NOTPRESENT 0x03
+#define AUDIO_DEVICE_UNPLUGGED  0x04
+
 EXTERN_GUID(CLSID_MMDeviceEnumerator, 0xBCDE0395, 0xE52F, 0x467C, 0x8E, 0x3D, 0xC4, 0x57, 0x92, 0x91, 0x69, 0x2E);
 EXTERN_GUID(IID_IMMDeviceEnumerator, 0xA95664D2, 0x9614, 0x4F35, 0xA7, 0x46, 0xDE, 0x8D, 0xB6, 0x36, 0x17, 0xE6);
 
 static void queryAudioDevice(const PHRSPCLIENTPARAMETER parameter) {
 	DATASTREAM stream;
 
-	if(!KHOPANStreamInitialize(&stream, 64)) {
+	if(!KHOPANStreamInitialize(&stream, 256)) {
 		return;
 	}
 
@@ -44,13 +49,44 @@ static void queryAudioDevice(const PHRSPCLIENTPARAMETER parameter) {
 	buffer[1] = (count >> 16) & 0xFF;
 	buffer[2] = (count >> 8) & 0xFF;
 	buffer[3] = count & 0xFF;
-	KHOPANStreamAdd(&stream, buffer, 4);
+
+	if(!KHOPANStreamAdd(&stream, buffer, 4)) {
+		goto releaseCollection;
+	}
 
 	for(UINT i = 0; i < count; i++) {
 		IMMDevice* device;
 		result = collection->lpVtbl->Item(collection, i, &device);
 
 		if(FAILED(result)) {
+			goto releaseCollection;
+		}
+
+		DWORD state;
+		result = device->lpVtbl->GetState(device, &state);
+
+		if(FAILED(result)) {
+			device->lpVtbl->Release(device);
+			goto releaseCollection;
+		}
+
+		switch(state) {
+		case DEVICE_STATE_ACTIVE:
+			buffer[0] = AUDIO_DEVICE_ACTIVE;
+			break;
+		case DEVICE_STATE_DISABLED:
+			buffer[0] = AUDIO_DEVICE_DISABLED;
+			break;
+		case DEVICE_STATE_NOTPRESENT:
+			buffer[0] = AUDIO_DEVICE_NOTPRESENT;
+			break;
+		case DEVICE_STATE_UNPLUGGED:
+			buffer[0] = AUDIO_DEVICE_UNPLUGGED;
+			break;
+		}
+
+		if(!KHOPANStreamAdd(&stream, buffer, 1)) {
+			device->lpVtbl->Release(device);
 			goto releaseCollection;
 		}
 
@@ -77,8 +113,10 @@ static void queryAudioDevice(const PHRSPCLIENTPARAMETER parameter) {
 		buffer[1] = (size >> 16) & 0xFF;
 		buffer[2] = (size >> 8) & 0xFF;
 		buffer[3] = size & 0xFF;
-		KHOPANStreamAdd(&stream, buffer, 4);
-		KHOPANStreamAdd(&stream, (PBYTE) variant.pwszVal, size);
+
+		if(!KHOPANStreamAdd(&stream, buffer, 4) || !KHOPANStreamAdd(&stream, (PBYTE) variant.pwszVal, size)) {
+			goto releaseCollection;
+		}
 	}
 
 	HRSPPACKET packet = {0};

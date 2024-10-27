@@ -11,8 +11,16 @@
 
 extern HFONT font;
 
+typedef enum {
+	AUDIO_DEVICE_ACTIVE = 1,
+	AUDIO_DEVICE_DISABLED,
+	AUDIO_DEVICE_NOTPRESENT,
+	AUDIO_DEVICE_UNPLUGGED
+} AUDIODEVICESTATE;
+
 typedef struct {
 	LPWSTR name;
+	AUDIODEVICESTATE state;
 } AUDIODEVICE, *PAUDIODEVICE;
 
 typedef struct {
@@ -72,6 +80,15 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 		return NULL;
 	}
 
+	column.pszText = L"State";
+
+	if(SendMessageW(data->list, LVM_INSERTCOLUMN, 1, (LPARAM) &column) == -1) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"ListView_InsertColumn");
+		DestroyWindow(window);
+		KHOPAN_DEALLOCATE(data);
+		return NULL;
+	}
+
 	HRSPSendTypePacket(client->socket, &client->hrsp, HRSP_REMOTE_SERVER_AUDIO_QUERY_DEVICE, NULL);
 	*customData = (ULONGLONG) data;
 	return window;
@@ -108,12 +125,13 @@ static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG custo
 	pointer = 4;
 
 	for(UINT i = 0; i < count; i++) {
-		if(packet->size < pointer + 4) {
+		if(packet->size < pointer + 5) {
 			goto functionExit;
 		}
 
-		UINT length = (packet->data[pointer] << 24) | (packet->data[pointer + 1] << 16) | (packet->data[pointer + 2] << 8) | packet->data[pointer + 3];
-		pointer += 4;
+		AUDIODEVICESTATE state = packet->data[pointer];
+		UINT length = (packet->data[pointer + 1] << 24) | (packet->data[pointer + 2] << 16) | (packet->data[pointer + 3] << 8) | packet->data[pointer + 4];
+		pointer += 5;
 
 		if(!length || packet->size < pointer + length) {
 			goto functionExit;
@@ -132,6 +150,7 @@ static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG custo
 		pointer += length;
 		((PBYTE) devices[i].name)[length] = 0;
 		((PBYTE) devices[i].name)[length + 1] = 0;
+		devices[i].state = state;
 	}
 
 	PTABAUDIODATA data = (PTABAUDIODATA) *customData;
@@ -156,6 +175,25 @@ static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG custo
 		item.lParam = (LPARAM) &data->devices[count - pointer - 1];
 		item.pszText = ((PAUDIODEVICE) item.lParam)->name;
 		SendMessageW(data->list, LVM_INSERTITEM, 0, (LPARAM) &item);
+		item.mask = LVIF_TEXT;
+		item.iSubItem = 1;
+
+		switch(((PAUDIODEVICE) item.lParam)->state) {
+		case AUDIO_DEVICE_ACTIVE:
+			item.pszText = L"Active";
+			break;
+		case AUDIO_DEVICE_DISABLED:
+			item.pszText = L"Disabled";
+			break;
+		case AUDIO_DEVICE_NOTPRESENT:
+			item.pszText = L"Not Present";
+			break;
+		case AUDIO_DEVICE_UNPLUGGED:
+			item.pszText = L"Unplugged";
+			break;
+		}
+
+		SendMessageW(data->list, LVM_SETITEM, 0, (LPARAM) &item);
 	}
 
 	return TRUE;
@@ -180,13 +218,15 @@ int CALLBACK compareList(PAUDIODEVICE first, PAUDIODEVICE second, LPARAM paramet
 
 static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	USERDATA(PTABAUDIODATA, data, window, message, wparam, lparam);
+	UINT index;
 	RECT bounds;
-	LPNMLISTVIEW listView;
+	HWND header;
+	HDITEMW item = {0};
 
 	switch(message) {
 	case WM_DESTROY:
 		if(data->devices) {
-			for(UINT i = 0; i < data->deviceCount; i++) KHOPAN_DEALLOCATE(data->devices[i].name);
+			for(index = 0; index < data->deviceCount; index++) KHOPAN_DEALLOCATE(data->devices[index].name);
 			KHOPAN_DEALLOCATE(data->devices);
 		}
 
@@ -205,14 +245,27 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 			break;
 		}
 
-		listView = (LPNMLISTVIEW) lparam;
-		SendMessageW(data->list, LVM_SORTITEMS, 0, (LPARAM) compareList);
-		HWND header = (HWND) SendMessageW(data->list, LVM_GETHEADER, 0, 0);
-		HDITEMW item = {0};
+		index = (UINT) ((LPNMLISTVIEW) lparam)->iSubItem;
+		header = (HWND) SendMessageW(data->list, LVM_GETHEADER, 0, 0);
 		item.mask = HDI_FORMAT;
-		SendMessageW(header, HDM_GETITEM, 0, (LPARAM) &item);
-		item.fmt |= HDF_SORTDOWN;
-		SendMessageW(header, HDM_SETITEM, 0, (LPARAM) &item);
+
+		if(!header || !SendMessageW(header, HDM_GETITEM, index, (LPARAM) &item)) {
+			break;
+		}
+
+		if(item.fmt & HDF_SORTUP) {
+			item.fmt = (item.fmt & ~HDF_SORTUP) | HDF_SORTDOWN;
+		} else if(item.fmt & HDF_SORTDOWN) {
+			item.fmt = (item.fmt & ~HDF_SORTDOWN) | HDF_SORTUP;
+		} else {
+			item.fmt |= HDF_SORTUP;
+		}
+
+		if(!SendMessageW(header, HDM_SETITEM, index, (LPARAM) &item)) {
+			break;
+		}
+
+		//SendMessageW(data->list, LVM_SORTITEMS, 0, (LPARAM) compareList);
 		return 0;
 	}
 
