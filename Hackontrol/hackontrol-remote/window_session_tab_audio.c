@@ -11,6 +11,11 @@
 
 extern HFONT font;
 
+typedef struct {
+	BOOL sortName;
+	BOOL ascending;
+} SORTPARAMETER, *PSORTPARAMETER;
+
 typedef enum {
 	AUDIO_DEVICE_ACTIVE = 1,
 	AUDIO_DEVICE_DISABLED,
@@ -26,6 +31,7 @@ typedef struct {
 typedef struct {
 	HWND border;
 	HWND list;
+	UINT sortColumn;
 	UINT deviceCount;
 	PAUDIODEVICE devices;
 } TABAUDIODATA, *PTABAUDIODATA;
@@ -92,6 +98,76 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 	HRSPSendTypePacket(client->socket, &client->hrsp, HRSP_REMOTE_SERVER_AUDIO_QUERY_DEVICE, NULL);
 	*customData = (ULONGLONG) data;
 	return window;
+}
+
+static int CALLBACK compareList(PAUDIODEVICE first, PAUDIODEVICE second, PSORTPARAMETER parameter) {
+	if(!first || !second || !parameter) {
+		return 0;
+	}
+
+	if(parameter->sortName) {
+		return wcscmp(first->name, second->name) * (parameter->ascending ? 1 : -1);
+	}
+
+	return (first->state == second->state ? 0 : first->state > second->state ? 1 : -1) * (parameter->ascending ? 1 : -1);
+}
+
+static void sortListView(const PTABAUDIODATA data, const int index) {
+	HWND header = (HWND) SendMessageW(data->list, LVM_GETHEADER, 0, 0);
+
+	if(!header) {
+		return;
+	}
+
+	HDITEMW item = {0};
+	SORTPARAMETER parameter;
+
+	if(index < 0) {
+		data->sortColumn = 0;
+		item.mask = HDI_FORMAT;
+		SendMessageW(header, HDM_GETITEM, data->sortColumn, (LPARAM) &item);
+
+		if(!(item.fmt & (HDF_SORTUP | HDF_SORTDOWN))) {
+			item.fmt |= HDF_SORTUP;
+			parameter.ascending = TRUE;
+			SendMessageW(header, HDM_SETITEM, data->sortColumn, (LPARAM) &item);
+		}
+
+		goto sortItem;
+	}
+
+	int count = (int) SendMessageW(header, HDM_GETITEMCOUNT, 0, 0);
+
+	if(count < 1) {
+		return;
+	}
+
+	data->sortColumn = (UINT) index;
+
+	for(UINT i = 0; i < (UINT) count; i++) {
+		item.mask = HDI_FORMAT;
+		SendMessageW(header, HDM_GETITEM, i, (LPARAM) &item);
+
+		if(data->sortColumn != i) {
+			item.fmt &= ~(HDF_SORTUP | HDF_SORTDOWN);
+			goto setItem;
+		}
+
+		if(item.fmt & HDF_SORTUP) {
+			item.fmt = (item.fmt & ~HDF_SORTUP) | HDF_SORTDOWN;
+		} else if(item.fmt & HDF_SORTDOWN) {
+			item.fmt = (item.fmt & ~HDF_SORTDOWN) | HDF_SORTUP;
+		} else {
+			item.fmt |= HDF_SORTUP;
+		}
+
+		parameter.ascending = item.fmt & HDF_SORTUP;
+	setItem:
+		SendMessageW(header, HDM_SETITEM, i, (LPARAM) &item);
+	}
+sortItem:
+	parameter.sortName = data->sortColumn == 0;
+	SendMessageW(data->list, LVM_SORTITEMS, (WPARAM) &parameter, (LPARAM) compareList);
 }
 
 static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG customData, const PHRSPPACKET packet) {
@@ -167,9 +243,9 @@ static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG custo
 	data->devices = devices;
 	SendMessageW(data->list, LVM_DELETEALLITEMS, 0, 0);
 	LVITEMW item = {0};
-	item.mask = LVIF_PARAM | LVIF_TEXT;
 
 	for(pointer = 0; pointer < count; pointer++) {
+		item.mask = LVIF_PARAM | LVIF_TEXT;
 		item.iItem = (int) pointer;
 		item.iSubItem = 0;
 		item.lParam = (LPARAM) &data->devices[count - pointer - 1];
@@ -196,6 +272,7 @@ static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG custo
 		SendMessageW(data->list, LVM_SETITEM, 0, (LPARAM) &item);
 	}
 
+	sortListView(data, -1);
 	return TRUE;
 functionExit:
 	for(pointer = 0; pointer < count; pointer++) {
@@ -208,25 +285,14 @@ functionExit:
 	return TRUE;
 }
 
-int CALLBACK compareList(PAUDIODEVICE first, PAUDIODEVICE second, LPARAM parameter) {
-	if(!first || !second) {
-		return 0;
-	}
-
-	return wcscmp(first->name, second->name);
-}
-
 static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	USERDATA(PTABAUDIODATA, data, window, message, wparam, lparam);
-	UINT index;
 	RECT bounds;
-	HWND header;
-	HDITEMW item = {0};
 
 	switch(message) {
 	case WM_DESTROY:
 		if(data->devices) {
-			for(index = 0; index < data->deviceCount; index++) KHOPAN_DEALLOCATE(data->devices[index].name);
+			for(UINT i = 0; i < data->deviceCount; i++) KHOPAN_DEALLOCATE(data->devices[i].name);
 			KHOPAN_DEALLOCATE(data->devices);
 		}
 
@@ -245,27 +311,7 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 			break;
 		}
 
-		index = (UINT) ((LPNMLISTVIEW) lparam)->iSubItem;
-		header = (HWND) SendMessageW(data->list, LVM_GETHEADER, 0, 0);
-		item.mask = HDI_FORMAT;
-
-		if(!header || !SendMessageW(header, HDM_GETITEM, index, (LPARAM) &item)) {
-			break;
-		}
-
-		if(item.fmt & HDF_SORTUP) {
-			item.fmt = (item.fmt & ~HDF_SORTUP) | HDF_SORTDOWN;
-		} else if(item.fmt & HDF_SORTDOWN) {
-			item.fmt = (item.fmt & ~HDF_SORTDOWN) | HDF_SORTUP;
-		} else {
-			item.fmt |= HDF_SORTUP;
-		}
-
-		if(!SendMessageW(header, HDM_SETITEM, index, (LPARAM) &item)) {
-			break;
-		}
-
-		//SendMessageW(data->list, LVM_SORTITEMS, 0, (LPARAM) compareList);
+		sortListView(data, ((LPNMLISTVIEW) lparam)->iSubItem);
 		return 0;
 	}
 
