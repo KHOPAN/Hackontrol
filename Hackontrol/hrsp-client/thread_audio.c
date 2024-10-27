@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <libkhopan.h>
 #include <mmdeviceapi.h>
+#include <Audioclient.h>
 #include "hrsp_client_internal.h"
 #include <libkhopanlist.h>
 #include <hrsp_packet.h>
@@ -13,7 +14,9 @@
 #define AUDIO_DEVICE_UNPLUGGED  0x04
 
 EXTERN_GUID(CLSID_MMDeviceEnumerator, 0xBCDE0395, 0xE52F, 0x467C, 0x8E, 0x3D, 0xC4, 0x57, 0x92, 0x91, 0x69, 0x2E);
-EXTERN_GUID(IID_IMMDeviceEnumerator, 0xA95664D2, 0x9614, 0x4F35, 0xA7, 0x46, 0xDE, 0x8D, 0xB6, 0x36, 0x17, 0xE6);
+EXTERN_GUID(IID_IMMDeviceEnumerator,  0xA95664D2, 0x9614, 0x4F35, 0xA7, 0x46, 0xDE, 0x8D, 0xB6, 0x36, 0x17, 0xE6);
+EXTERN_GUID(IID_IAudioClient,         0x1CB9AD4C, 0xDBFA, 0x4C32, 0xB1, 0x78, 0xC2, 0xF5, 0x68, 0xA7, 0x03, 0xB2);
+EXTERN_GUID(IID_IAudioCaptureClient,  0xC8ADBD64, 0xE71E, 0x48A0, 0xA4, 0xDE, 0x18, 0x5C, 0x39, 0x5C, 0xD3, 0x17);
 
 static void queryAudioDevice(const PHRSPCLIENTPARAMETER parameter) {
 	DATASTREAM stream;
@@ -24,7 +27,6 @@ static void queryAudioDevice(const PHRSPCLIENTPARAMETER parameter) {
 
 	IMMDeviceEnumerator* enumerator;
 	HRESULT result = CoCreateInstance(&CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL, &IID_IMMDeviceEnumerator, &enumerator);
-	int codeExit = 1;
 
 	if(FAILED(result)) {
 		goto freeStream;
@@ -154,6 +156,85 @@ freeStream:
 
 static void captureAudio(const LPCWSTR identifier) {
 	printf("Identifier: %ws\n", identifier);
+	IMMDeviceEnumerator* enumerator;
+	HRESULT result = CoCreateInstance(&CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL, &IID_IMMDeviceEnumerator, &enumerator);
+
+	if(FAILED(result)) {
+		return;
+	}
+
+	IMMDevice* device;
+	result = enumerator->lpVtbl->GetDevice(enumerator, identifier, &device);
+	enumerator->lpVtbl->Release(enumerator);
+
+	if(FAILED(result)) {
+		return;
+	}
+
+	IAudioClient* audioClient;
+	result = device->lpVtbl->Activate(device, &IID_IAudioClient, CLSCTX_ALL, NULL, &audioClient);
+	device->lpVtbl->Release(device);
+
+	if(FAILED(result)) {
+		return;
+	}
+
+	WAVEFORMATEX* format;
+	result = audioClient->lpVtbl->GetMixFormat(audioClient, &format);
+
+	if(FAILED(result)) {
+		goto releaseAudioClient;
+	}
+
+	result = audioClient->lpVtbl->Initialize(audioClient, AUDCLNT_SHAREMODE_SHARED, 0, 10000000, 0, format, NULL);
+
+	if(FAILED(result)) {
+		goto freeFormat;
+	}
+
+	IAudioCaptureClient* client;
+	result = audioClient->lpVtbl->GetService(audioClient, &IID_IAudioCaptureClient, &client);
+
+	if(FAILED(result)) {
+		goto freeFormat;
+	}
+
+	result = audioClient->lpVtbl->Start(audioClient);
+
+	if(FAILED(result)) {
+		goto releaseClient;
+	}
+
+	for(size_t i = 0; i < 100; i++) {
+		Sleep(50);
+		PBYTE data;
+		UINT32 frames;
+		DWORD flags;
+		result = client->lpVtbl->GetBuffer(client, &data, &frames, &flags, NULL, NULL);
+
+		if(FAILED(result)) {
+			goto stopClient;
+		}
+
+		printf("Frames: %lu\n", frames);
+		result = client->lpVtbl->ReleaseBuffer(client, frames);
+
+		if(FAILED(result)) {
+			goto stopClient;
+		}
+	}
+stopClient:
+	result = audioClient->lpVtbl->Stop(audioClient);
+
+	if(FAILED(result)) {
+		goto releaseClient;
+	}
+releaseClient:
+	client->lpVtbl->Release(client);
+freeFormat:
+	CoTaskMemFree(format);
+releaseAudioClient:
+	audioClient->lpVtbl->Release(audioClient);
 }
 
 DWORD WINAPI HRSPClientAudioThread(_In_ PHRSPCLIENTPARAMETER parameter) {
