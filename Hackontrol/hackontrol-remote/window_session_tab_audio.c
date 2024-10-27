@@ -147,11 +147,13 @@ static BOOL __stdcall packetHandler(const PCLIENT client, const PULONGLONG custo
 	data->devices = devices;
 	SendMessageW(data->list, LVM_DELETEALLITEMS, 0, 0);
 	LVITEMW item = {0};
-	item.mask = LVIF_TEXT;
+	item.mask = LVIF_PARAM | LVIF_TEXT;
 
 	for(pointer = 0; pointer < count; pointer++) {
+		item.iItem = (int) pointer;
 		item.iSubItem = 0;
-		item.pszText = data->devices[count - pointer - 1].name;
+		item.lParam = (LPARAM) &data->devices[count - pointer - 1];
+		item.pszText = ((PAUDIODEVICE) item.lParam)->name;
 		SendMessageW(data->list, LVM_INSERTITEM, 0, (LPARAM) &item);
 	}
 
