@@ -105,11 +105,9 @@ static int CALLBACK compareList(PAUDIODEVICE first, PAUDIODEVICE second, PSORTPA
 		return 0;
 	}
 
-	if(parameter->sortName) {
-		return wcscmp(first->name, second->name) * (parameter->ascending ? 1 : -1);
-	}
-
-	return (first->state == second->state ? 0 : first->state > second->state ? 1 : -1) * (parameter->ascending ? 1 : -1);
+	int compareName = wcscmp(first->name, second->name);
+	int compareState = first->state == second->state ? 0 : first->state > second->state ? 1 : -1;
+	return (parameter->sortName ? compareName ? compareName : compareState : compareState ? compareState : compareName) * (parameter->ascending ? 1 : -1);
 }
 
 static void sortListView(const PTABAUDIODATA data, const int index) {
