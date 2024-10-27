@@ -7,6 +7,7 @@
 #pragma warning(disable: 6001)
 #pragma warning(disable: 6385)
 #pragma warning(disable: 6386)
+#pragma warning(disable: 26454)
 
 extern HFONT font;
 
@@ -169,9 +170,18 @@ functionExit:
 	return TRUE;
 }
 
+int CALLBACK compareList(PAUDIODEVICE first, PAUDIODEVICE second, LPARAM parameter) {
+	if(!first || !second) {
+		return 0;
+	}
+
+	return wcscmp(first->name, second->name);
+}
+
 static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	USERDATA(PTABAUDIODATA, data, window, message, wparam, lparam);
 	RECT bounds;
+	LPNMLISTVIEW listView;
 
 	switch(message) {
 	case WM_DESTROY:
@@ -190,6 +200,14 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 	case WM_CTLCOLORSTATIC:
 		SetDCBrushColor((HDC) wparam, 0xF9F9F9);
 		return (LRESULT) GetStockObject(DC_BRUSH);
+	case WM_NOTIFY:
+		if(!lparam || ((LPNMHDR) lparam)->code != LVN_COLUMNCLICK) {
+			break;
+		}
+
+		listView = (LPNMLISTVIEW) lparam;
+		SendMessageW(data->list, LVM_SORTITEMS, 0, (LPARAM) compareList);
+		return 0;
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
