@@ -10,7 +10,7 @@ HFONT font;
 int WINAPI WinMain(_In_ HINSTANCE programInstance, _In_opt_ HINSTANCE previousInstance, _In_ LPSTR argument, _In_ int options) {
 	instance = programInstance;
 	int codeExit = 1;
-#if defined(LOGGER_ENABLE) && !defined(NO_CONSOLE)
+#ifdef LOGGER_ENABLE
 	if(!AllocConsole()) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"AllocConsole");
 		goto functionExit;

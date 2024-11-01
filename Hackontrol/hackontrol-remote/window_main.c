@@ -136,7 +136,7 @@ int WindowMain() {
 	windowClass.hInstance = instance;
 	windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
 	windowClass.hbrBackground = (HBRUSH) (COLOR_MENU + 1);
-	windowClass.lpszClassName = CLASS_HACKONTROL_REMOTE;
+	windowClass.lpszClassName = CLASS_REMOTE;
 
 	if(!RegisterClassExW(&windowClass)) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"RegisterClassExW");
@@ -147,7 +147,7 @@ int WindowMain() {
 	double screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	int width = (int) (screenWidth * 0.292825769);
 	int height = (int) (screenHeight * 0.78125);
-	window = CreateWindowExW(WS_EX_TOPMOST, CLASS_HACKONTROL_REMOTE, L"Remote", WS_OVERLAPPEDWINDOW, (int) ((screenWidth - ((double) width)) / 2.0), (int) ((screenHeight - ((double) height)) / 2.0), width, height, NULL, NULL, instance, NULL);
+	window = CreateWindowExW(WS_EX_TOPMOST, CLASS_REMOTE, L"Remote", WS_OVERLAPPEDWINDOW, (int) ((screenWidth - ((double) width)) / 2.0), (int) ((screenHeight - ((double) height)) / 2.0), width, height, NULL, NULL, instance, NULL);
 	int codeExit = 1;
 
 	if(!window) {
@@ -206,7 +206,7 @@ int WindowMain() {
 
 	codeExit = 0;
 unregisterClass:
-	UnregisterClassW(CLASS_HACKONTROL_REMOTE, instance);
+	UnregisterClassW(CLASS_REMOTE, instance);
 	return codeExit;
 }
 
