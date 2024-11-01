@@ -19,7 +19,7 @@ static HWND window;
 static HWND border;
 static HWND listView;
 
-static BOOL openClient(const LONGLONG index) {
+/*static BOOL openClient(const LONGLONG index) {
 	if(index < 0 && WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
 		return FALSE;
 	}
@@ -229,4 +229,106 @@ void WindowMainRefresh() {
 
 void WindowMainExit() {
 	PostMessageW(window, WM_CLOSE, 0, 0);
+}*/
+
+static LRESULT CALLBACK procedure(HWND window, UINT message, WPARAM wparam, LPARAM lparam) {
+	return DefWindowProcW(window, message, wparam, lparam);
+}
+
+BOOL WindowMainInitialize() {
+	LOG("[Main Window]: Initializing\n");
+	WNDCLASSEXW windowClass = {0};
+	windowClass.cbSize = sizeof(WNDCLASSEXW);
+	windowClass.lpfnWndProc = procedure;
+	windowClass.hInstance = instance;
+	windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
+	windowClass.hbrBackground = (HBRUSH) (COLOR_MENU + 1);
+	windowClass.lpszClassName = CLASS_REMOTE;
+
+	if(!RegisterClassExW(&windowClass)) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"RegisterClassExW");
+		return FALSE;
+	}
+
+	double screenWidth = GetSystemMetrics(SM_CXSCREEN);
+	double screenHeight = GetSystemMetrics(SM_CYSCREEN);
+	int width = (int) (screenWidth * 0.292825769);
+	int height = (int) (screenHeight * 0.78125);
+	window = CreateWindowExW(WS_EX_TOPMOST, CLASS_REMOTE, L"Remote", WS_OVERLAPPEDWINDOW, (int) ((screenWidth - ((double) width)) / 2.0), (int) ((screenHeight - ((double) height)) / 2.0), width, height, NULL, NULL, instance, NULL);
+
+	if(!window) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"CreateWindowExW");
+		goto unregisterClass;
+	}
+
+	border = CreateWindowExW(WS_EX_NOPARENTNOTIFY, L"Button", L"Target List", BS_GROUPBOX | WS_CHILD | WS_VISIBLE, 5, 0, 0, 0, window, NULL, NULL, NULL);
+
+	if(!border) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"CreateWindowExW");
+		goto destroyWindow;
+	}
+
+	SendMessageW(border, WM_SETFONT, (WPARAM) font, TRUE);
+	listView = CreateWindowExW(WS_EX_CLIENTEDGE, WC_LISTVIEW, L"", LVS_REPORT | LVS_SINGLESEL | WS_TABSTOP | WS_CHILD | WS_VISIBLE | WS_VSCROLL, 9, 17, 0, 0, window, NULL, NULL, NULL);
+
+	if(!listView) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"CreateWindowExW");
+		goto destroyWindow;
+	}
+
+	SendMessageW(listView, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_DOUBLEBUFFER | LVS_EX_FULLROWSELECT);
+	LVCOLUMNW column = {0};
+	column.mask = LVCF_FMT | LVCF_TEXT | LVCF_WIDTH;
+	column.fmt = LVCFMT_LEFT;
+	column.cx = (int) (screenWidth * 0.133);
+	column.pszText = L"Username";
+
+	if(SendMessageW(listView, LVM_INSERTCOLUMN, 0, (LPARAM) &column) == -1) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"ListView_InsertColumn");
+		goto destroyWindow;
+	}
+
+	column.pszText = L"IP Address";
+
+	if(SendMessageW(listView, LVM_INSERTCOLUMN, 1, (LPARAM) &column) == -1) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"ListView_InsertColumn");
+		goto destroyWindow;
+	}
+
+	return TRUE;
+destroyWindow:
+	DestroyWindow(window);
+unregisterClass:
+	UnregisterClassW(CLASS_REMOTE, instance);
+	return FALSE;
+}
+
+void WindowMain() {
+	ShowWindow(window, SW_NORMAL);
+	LOG("[Main Window]: Finished\n");
+	MSG message;
+
+	while(GetMessageW(&message, NULL, 0, 0)) {
+		//if(message.message == WM_KEYDOWN && (message.wParam == VK_RETURN || message.wParam == VK_SPACE) && openClient((LONGLONG) SendMessageW(listView, LVM_GETNEXTITEM, -1, LVNI_SELECTED))) {
+		//	continue;
+		//}
+
+		if(!IsDialogMessageW(window, &message)) {
+			TranslateMessage(&message);
+			DispatchMessageW(&message);
+		}
+	}
+}
+
+void WindowMainDestroy() {
+	DestroyWindow(window);
+	UnregisterClassW(CLASS_REMOTE, instance);
+}
+
+void WindowMainExit() {
+	PostMessageW(window, WM_CLOSE, 0, 0);
+}
+
+void WindowMainRefresh() {
+
 }
