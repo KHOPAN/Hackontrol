@@ -49,21 +49,9 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	HRSPFreePacket(&packet, NULL);
 	LOG("[Client %ws]: Username: '%ws'\n", client->address, client->name);
 
-	if(WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
-		KHOPANLASTERRORCONSOLE_WIN32(L"WaitForSingleObject");
+	if(!WindowMainAdd(&client, &item)) {
 		goto freeName;
 	}
-
-	if(!KHOPANLinkedAdd(&clientList, (PBYTE) client, &item)) {
-		KHOPANLASTERRORCONSOLE_WIN32(L"KHOPANLinkedAdd");
-		ReleaseMutex(clientListMutex);
-		goto freeName;
-	}
-
-	KHOPAN_DEALLOCATE(client);
-	client = (PCLIENT) item->data;
-	WindowMainRefresh();
-	ReleaseMutex(clientListMutex);
 
 	while(HRSPReceivePacket(client->socket, &client->hrsp, &packet, &protocolError)) {
 		if(!WindowSessionHandlePacket(client, &packet)) {
@@ -93,15 +81,8 @@ functionExit:
 	LOG("[Client %ws]: Exit with code: %d\n", client->address, codeExit);
 	CloseHandle(client->thread);
 
-	if(item && WaitForSingleObject(clientListMutex, INFINITE) != WAIT_FAILED) {
-		if(KHOPANLinkedRemove(item)) {
-			WindowMainRefresh();
-		} else {
-			KHOPANLASTERRORCONSOLE_WIN32(L"KHOPANLinkedRemove");
-			codeExit = 1;
-		}
-
-		ReleaseMutex(clientListMutex);
+	if(!WindowMainRemove(item)) {
+		codeExit = 1;
 	}
 
 	return codeExit;

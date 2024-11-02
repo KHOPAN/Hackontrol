@@ -387,6 +387,40 @@ void WindowMain() {
 	}
 }
 
+BOOL WindowMainAdd(const PPCLIENT client, const PPLINKEDLISTITEM item) {
+	if(WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
+		KHOPANLASTERRORCONSOLE_WIN32(L"WaitForSingleObject");
+		return FALSE;
+	}
+
+	if(!KHOPANLinkedAdd(&clientList, (PBYTE) *client, item)) {
+		KHOPANLASTERRORCONSOLE_WIN32(L"KHOPANLinkedAdd");
+		ReleaseMutex(clientListMutex);
+		return FALSE;
+	}
+
+	KHOPAN_DEALLOCATE(*client);
+	*client = (PCLIENT) (*item)->data;
+	WindowMainRefresh();
+	ReleaseMutex(clientListMutex);
+	return TRUE;
+}
+
+BOOL WindowMainRemove(const PLINKEDLISTITEM item) {
+	if(item && WaitForSingleObject(clientListMutex, INFINITE) != WAIT_FAILED) {
+		if(KHOPANLinkedRemove(item)) {
+			WindowMainRefresh();
+		} else {
+			KHOPANLASTERRORCONSOLE_WIN32(L"KHOPANLinkedRemove");
+			return FALSE;
+		}
+
+		ReleaseMutex(clientListMutex);
+	}
+
+	return TRUE;
+}
+
 void WindowMainDestroy() {
 	DestroyWindow(window);
 	UnregisterClassW(CLASS_REMOTE, instance);
