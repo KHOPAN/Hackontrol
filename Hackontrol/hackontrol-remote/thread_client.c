@@ -4,13 +4,13 @@
 #include "remote.h"
 
 #ifdef LOGGER_ENABLE
-#define ERROR_HRSP(function) message=HRSPGetErrorMessage(function,&protocolError);if(message){LOG("[Client %ws]: %ws",client->address,message);LocalFree(message);}
+#define ERROR_HRSP(function) do{LPWSTR internal_message=HRSPGetErrorMessage(function,&protocolError);if(internal_message){LOG("[Client %ws]: %ws",client->address,internal_message);LocalFree(internal_message);}}while(0)
 #else
 #define ERROR_HRSP(function)
 #endif
 
-extern HANDLE clientListMutex;
 extern LINKEDLIST clientList;
+extern HANDLE clientListMutex;
 
 DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	if(!client) {
@@ -20,12 +20,9 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 
 	LOG("[Client %ws]: Initializing\n", client->address);
 	HRSPERROR protocolError;
-#ifdef LOGGER_ENABLE
-	LPWSTR message;
-#endif
+	DWORD codeExit = 1;
 	PLINKEDLISTITEM item = NULL;
 	BOOL freeClient = FALSE;
-	DWORD codeExit = 1;
 
 	if(!HRSPServerHandshake(client->socket, &client->hrsp, &protocolError)) {
 		ERROR_HRSP(L"HRSPServerHandshake");
@@ -105,7 +102,7 @@ void ThreadClientOpen(const PCLIENT client) {
 }
 
 void ThreadClientDisconnect(const PCLIENT client) {
-	if(client->socket) {
+	if(client->socket != INVALID_SOCKET) {
 		shutdown(client->socket, SD_BOTH);
 		closesocket(client->socket);
 	}

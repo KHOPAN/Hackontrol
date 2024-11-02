@@ -1,9 +1,8 @@
 #include <WS2tcpip.h>
-#include <libkhopanlist.h>
 #include "remote.h"
 
-extern HANDLE clientListMutex;
 extern LINKEDLIST clientList;
+extern HANDLE clientListMutex;
 
 DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 	if(!socketListen) {

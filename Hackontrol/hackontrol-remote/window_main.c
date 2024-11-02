@@ -317,9 +317,9 @@ BOOL WindowMainInitialize() {
 
 	double screenWidth = GetSystemMetrics(SM_CXSCREEN);
 	double screenHeight = GetSystemMetrics(SM_CYSCREEN);
-	int width = (int) (screenWidth * 0.292825769);
-	int height = (int) (screenHeight * 0.78125);
-	window = CreateWindowExW(WS_EX_TOPMOST, CLASS_REMOTE, L"Remote", WS_OVERLAPPEDWINDOW, (int) ((screenWidth - ((double) width)) / 2.0), (int) ((screenHeight - ((double) height)) / 2.0), width, height, NULL, NULL, instance, NULL);
+	double width = screenWidth * 0.292825769;
+	double height = screenHeight * 0.78125;
+	window = CreateWindowExW(WS_EX_TOPMOST, CLASS_REMOTE, L"Remote", WS_OVERLAPPEDWINDOW, (int) ((screenWidth - width) / 2.0), (int) ((screenHeight - height) / 2.0), (int) width, (int) height, NULL, NULL, instance, NULL);
 
 	if(!window) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"CreateWindowExW");
