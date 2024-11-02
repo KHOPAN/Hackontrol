@@ -4,7 +4,11 @@
 #include <hrsp_remote.h>
 #include "remote.h"
 
+#ifdef LOGGER_ENABLE
 #define ERROR_HRSP(function) message=HRSPGetErrorMessage(function,&protocolError);if(message){LOG("[Client %ws]: %ws",client->address,message);LocalFree(message);}
+#else
+#define ERROR_HRSP(function)
+#endif
 
 extern HANDLE clientListMutex;
 extern LINKEDLIST clientList;
@@ -17,7 +21,9 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 
 	LOG("[Client %ws]: Initializing\n", client->address);
 	HRSPERROR protocolError;
+#ifdef LOGGER_ENABLE
 	LPWSTR message;
+#endif
 	PLINKEDLISTITEM item = NULL;
 	DWORD codeExit = 1;
 
@@ -43,7 +49,7 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	HRSPFreePacket(&packet, NULL);
 	LOG("[Client %ws]: Username: '%ws'\n", client->address, client->name);
 
-	if(!clientListMutex || WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
+	if(WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"WaitForSingleObject");
 		goto freeName;
 	}
