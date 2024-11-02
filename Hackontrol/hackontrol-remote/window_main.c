@@ -406,22 +406,29 @@ BOOL WindowMainAdd(const PPCLIENT inputClient, const PPLINKEDLISTITEM inputItem)
 	}
 
 	LVITEMW listItem = {0};
-	listItem.mask = LVIF_TEXT;
+	listItem.mask = LVIF_PARAM | LVIF_TEXT;
 	listItem.pszText = client->name ? client->name : L"(Missing name)";
+	listItem.lParam = (LPARAM) client;
 	int index = (int) SendMessageW(listView, LVM_INSERTITEM, 0, (LPARAM) &listItem);
 
 	if(index == -1) {
+		KHOPANLASTERRORCONSOLE_WIN32(L"ListView_InsertItem");
 		goto removeItem;
 	}
 
+	listItem.mask = LVIF_TEXT;
 	listItem.iSubItem = 1;
 	listItem.pszText = client->address ? client->address : L"(Missing address)";
 
 	if(!SendMessageW(listView, LVM_SETITEM, 0, (LPARAM) &listItem)) {
+		KHOPANLASTERRORCONSOLE_WIN32(L"ListView_SetItem");
 		SendMessageW(listView, LVM_DELETEITEM, index, 0);
 		goto removeItem;
 	}
 
+	KHOPAN_DEALLOCATE(*inputClient);
+	*inputClient = client;
+	*inputItem = item;
 	ReleaseMutex(clientListMutex);
 	return TRUE;
 removeItem:
@@ -432,18 +439,36 @@ releaseMutex:
 }
 
 BOOL WindowMainRemove(const PLINKEDLISTITEM item) {
-	if(item && WaitForSingleObject(clientListMutex, INFINITE) != WAIT_FAILED) {
-		if(KHOPANLinkedRemove(item)) {
-			//WindowMainRefresh();
-		} else {
-			KHOPANLASTERRORCONSOLE_WIN32(L"KHOPANLinkedRemove");
-			return FALSE;
-		}
-
-		ReleaseMutex(clientListMutex);
+	if(WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
+		KHOPANLASTERRORCONSOLE_WIN32(L"WaitForSingleObject");
+		return FALSE;
 	}
 
+	LVFINDINFOW information = {0};
+	information.flags = LVFI_PARAM;
+	information.lParam = (LPARAM) item->data;
+	int index = (int) SendMessageW(listView, LVM_FINDITEM, -1, (LPARAM) &information);
+
+	if(index < 0) {
+		KHOPANLASTERRORCONSOLE_WIN32(L"ListView_FindItem");
+		goto releaseMutex;
+	}
+
+	if(!SendMessageW(listView, LVM_DELETEITEM, index, 0)) {
+		KHOPANLASTERRORCONSOLE_WIN32(L"ListView_DeleteItem");
+		goto releaseMutex;
+	}
+
+	if(!KHOPANLinkedRemove(item)) {
+		KHOPANLASTERRORCONSOLE_WIN32(L"KHOPANLinkedRemove");
+		goto releaseMutex;
+	}
+
+	ReleaseMutex(clientListMutex);
 	return TRUE;
+releaseMutex:
+	ReleaseMutex(clientListMutex);
+	return FALSE;
 }
 
 void WindowMainDestroy() {

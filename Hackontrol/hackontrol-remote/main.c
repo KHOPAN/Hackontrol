@@ -100,6 +100,7 @@ int WINAPI WinMain(_In_ HINSTANCE programInstance, _In_opt_ HINSTANCE previousIn
 
 	WaitForSingleObject(serverThread, INFINITE);
 	CloseHandle(serverThread);
+	codeExit = 0;
 cleanupSocket:
 	WSACleanup();
 cleanupSession:
