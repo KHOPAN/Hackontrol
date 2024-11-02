@@ -17,6 +17,7 @@ extern HANDLE clientListMutex;
 static HWND window;
 static HWND border;
 static HWND listView;
+static int columnIndex;
 
 /*static BOOL openClient(const LONGLONG index) {
 	if(index < 0 && WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
@@ -230,11 +231,23 @@ void WindowMainExit() {
 	PostMessageW(window, WM_CLOSE, 0, 0);
 }*/
 
+static int CALLBACK compareList(PCLIENT first, PCLIENT second, LPARAM parameter) {
+	if(!first || !second) {
+		return 0;
+	}
+
+	return wcscmp(first->name, second->name);
+	//int compareName = wcscmp(first->name, second->name);
+	//int compareState = first->state == second->state ? 0 : first->state > second->state ? 1 : -1;
+	//return (parameter->sortName ? compareName ? compareName : compareState : compareState ? compareState : compareName) * (parameter->ascending ? 1 : -1);
+}
+
 static void clickHeader(const int index) {
 	if(index < 0) {
 		return;
 	}
 
+	columnIndex = index;
 	HWND header = (HWND) SendMessageW(listView, LVM_GETHEADER, 0, 0);
 
 	if(!header) {
@@ -269,6 +282,8 @@ static void clickHeader(const int index) {
 	setItem:
 		SendMessageW(header, HDM_SETITEM, i, (LPARAM) &item);
 	}
+
+	SendMessageW(listView, LVM_SORTITEMS, 0, (LPARAM) compareList);
 }
 
 static LRESULT CALLBACK procedure(HWND inputWindow, UINT message, WPARAM wparam, LPARAM lparam) {
