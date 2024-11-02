@@ -20,23 +20,7 @@ static HWND listView;
 static BOOL sortUsername;
 static BOOL sortAscending;
 
-/*static BOOL openClient(const LONGLONG index) {
-	if(index < 0 && WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
-		return FALSE;
-	}
-
-	PLINKEDLISTITEM item = NULL;
-	BOOL result = KHOPANLinkedGet(&clientList, index, &item) && item && item->data;
-	ReleaseMutex(clientListMutex);
-
-	if(result) {
-		ThreadClientOpen((PCLIENT) item->data);
-	}
-
-	return result;
-}
-
-static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
+/*static LRESULT CALLBACK windowProcedure(_In_ HWND inputWindow, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	RECT bounds;
 	LVHITTESTINFO information = {0};
 	PLINKEDLISTITEM item = NULL;
@@ -209,27 +193,6 @@ int WindowMain() {
 unregisterClass:
 	UnregisterClassW(CLASS_REMOTE, instance);
 	return codeExit;
-}
-
-void WindowMainRefresh() {
-	SendMessageW(listView, LVM_DELETEALLITEMS, 0, 0);
-	LVITEMW listItem = {0};
-	listItem.mask = LVIF_TEXT;
-	PLINKEDLISTITEM item;
-
-	KHOPAN_LINKED_LIST_ITERATE_REVERSE(item, &clientList) {
-		PCLIENT client = (PCLIENT) item->data;
-		listItem.iSubItem = 0;
-		listItem.pszText = client && client->name ? client->name : L"(Missing name)";
-		SendMessageW(listView, LVM_INSERTITEM, 0, (LPARAM) &listItem);
-		listItem.iSubItem = 1;
-		listItem.pszText = client && client->address ? client->address : L"(Missing address)";
-		SendMessageW(listView, LVM_SETITEM, 0, (LPARAM) &listItem);
-	}
-}
-
-void WindowMainExit() {
-	PostMessageW(window, WM_CLOSE, 0, 0);
 }*/
 
 static int CALLBACK compareList(PCLIENT first, PCLIENT second, LPARAM parameter) {
@@ -291,6 +254,25 @@ static void clickHeader(const int index) {
 	ReleaseMutex(clientListMutex);
 }
 
+static BOOL openClient(const int index) {
+	if(index < 0 && WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
+		return FALSE;
+	}
+
+	LVITEMW listItem = {0};
+	listItem.mask = LVIF_PARAM;
+	listItem.iItem = index;
+
+	if(SendMessageW(listView, LVM_GETITEM, 0, (LPARAM) &listItem)) {
+		ReleaseMutex(clientListMutex);
+		ThreadClientOpen((PCLIENT) listItem.lParam);
+		return TRUE;
+	}
+
+	ReleaseMutex(clientListMutex);
+	return FALSE;
+}
+
 static LRESULT CALLBACK procedure(HWND inputWindow, UINT message, WPARAM wparam, LPARAM lparam) {
 	RECT bounds;
 
@@ -309,12 +291,20 @@ static LRESULT CALLBACK procedure(HWND inputWindow, UINT message, WPARAM wparam,
 		SetWindowPos(listView, HWND_TOP, 0, 0, bounds.right - 18, bounds.bottom - 26, SWP_NOMOVE);
 		return 0;
 	case WM_NOTIFY:
-		if(!lparam || ((LPNMHDR) lparam)->code != LVN_COLUMNCLICK) {
+		if(!lparam) {
 			break;
 		}
 
-		clickHeader((UINT) ((LPNMLISTVIEW) lparam)->iSubItem);
-		return 0;
+		switch(((LPNMHDR) lparam)->code) {
+		case LVN_COLUMNCLICK:
+			clickHeader((UINT) ((LPNMLISTVIEW) lparam)->iSubItem);
+			return 0;
+		case NM_DBLCLK:
+			openClient(((LPNMITEMACTIVATE) lparam)->iItem);
+			return 0;
+		}
+
+		break;
 	}
 
 	return DefWindowProcW(inputWindow, message, wparam, lparam);
