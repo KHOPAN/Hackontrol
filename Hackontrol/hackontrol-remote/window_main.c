@@ -231,8 +231,26 @@ void WindowMainExit() {
 	PostMessageW(window, WM_CLOSE, 0, 0);
 }*/
 
-static LRESULT CALLBACK procedure(HWND window, UINT message, WPARAM wparam, LPARAM lparam) {
-	return DefWindowProcW(window, message, wparam, lparam);
+static LRESULT CALLBACK procedure(HWND inputWindow, UINT message, WPARAM wparam, LPARAM lparam) {
+	RECT bounds;
+
+	switch(message) {
+	case WM_CLOSE:
+		DestroyWindow(window);
+		return 0;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+	case WM_SIZE:
+		GetClientRect(window, &bounds);
+		bounds.right -= bounds.left;
+		bounds.bottom -= bounds.top;
+		SetWindowPos(border, HWND_TOP, 0, 0, bounds.right - 10, bounds.bottom - 4, SWP_NOMOVE);
+		SetWindowPos(listView, HWND_TOP, 0, 0, bounds.right - 18, bounds.bottom - 26, SWP_NOMOVE);
+		return 0;
+	}
+
+	return DefWindowProcW(inputWindow, message, wparam, lparam);
 }
 
 BOOL WindowMainInitialize() {
