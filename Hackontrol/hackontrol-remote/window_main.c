@@ -385,9 +385,9 @@ void WindowMain() {
 	MSG message;
 
 	while(GetMessageW(&message, NULL, 0, 0)) {
-		//if(message.message == WM_KEYDOWN && (message.wParam == VK_RETURN || message.wParam == VK_SPACE) && openClient((LONGLONG) SendMessageW(listView, LVM_GETNEXTITEM, -1, LVNI_SELECTED))) {
-		//	continue;
-		//}
+		if(message.message == WM_KEYDOWN && (message.wParam == VK_RETURN || message.wParam == VK_SPACE) && openClient((int) SendMessageW(listView, LVM_GETNEXTITEM, -1, LVNI_SELECTED))) {
+			continue;
+		}
 
 		if(!IsDialogMessageW(window, &message)) {
 			TranslateMessage(&message);
