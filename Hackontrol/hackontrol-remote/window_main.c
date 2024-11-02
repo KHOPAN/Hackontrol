@@ -1,4 +1,3 @@
-#include <libkhopanlist.h>
 #include "remote.h"
 #include <CommCtrl.h>
 
@@ -387,23 +386,49 @@ void WindowMain() {
 	}
 }
 
-BOOL WindowMainAdd(const PPCLIENT client, const PPLINKEDLISTITEM item) {
+BOOL WindowMainAdd(const PPCLIENT inputClient, const PPLINKEDLISTITEM inputItem) {
 	if(WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"WaitForSingleObject");
 		return FALSE;
 	}
 
-	if(!KHOPANLinkedAdd(&clientList, (PBYTE) *client, item)) {
+	PLINKEDLISTITEM item;
+
+	if(!KHOPANLinkedAdd(&clientList, (PBYTE) *inputClient, &item)) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"KHOPANLinkedAdd");
-		ReleaseMutex(clientListMutex);
-		return FALSE;
+		goto releaseMutex;
 	}
 
-	KHOPAN_DEALLOCATE(*client);
-	*client = (PCLIENT) (*item)->data;
-	WindowMainRefresh();
+	PCLIENT client = (PCLIENT) item->data;
+
+	if(!client) {
+		goto removeItem;
+	}
+
+	LVITEMW listItem = {0};
+	listItem.mask = LVIF_TEXT;
+	listItem.pszText = client->name ? client->name : L"(Missing name)";
+	int index = (int) SendMessageW(listView, LVM_INSERTITEM, 0, (LPARAM) &listItem);
+
+	if(index == -1) {
+		goto removeItem;
+	}
+
+	listItem.iSubItem = 1;
+	listItem.pszText = client->address ? client->address : L"(Missing address)";
+
+	if(!SendMessageW(listView, LVM_SETITEM, 0, (LPARAM) &listItem)) {
+		SendMessageW(listView, LVM_DELETEITEM, index, 0);
+		goto removeItem;
+	}
+
 	ReleaseMutex(clientListMutex);
 	return TRUE;
+removeItem:
+	KHOPANLinkedRemove(item);
+releaseMutex:
+	ReleaseMutex(clientListMutex);
+	return FALSE;
 }
 
 BOOL WindowMainRemove(const PLINKEDLISTITEM item) {

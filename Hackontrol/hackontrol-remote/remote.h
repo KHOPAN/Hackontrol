@@ -1,6 +1,7 @@
 #pragma once
 
 #include <libkhopan.h>
+#include <libkhopanlist.h>
 #include <hrsp.h>
 #include <hrsp_packet.h>
 

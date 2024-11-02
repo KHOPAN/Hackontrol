@@ -1,5 +1,4 @@
 #include <WinSock2.h>
-#include <libkhopanlist.h>
 #include <hrsp_handshake.h>
 #include <hrsp_remote.h>
 #include "remote.h"
@@ -25,6 +24,7 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	LPWSTR message;
 #endif
 	PLINKEDLISTITEM item = NULL;
+	BOOL freeClient = FALSE;
 	DWORD codeExit = 1;
 
 	if(!HRSPServerHandshake(client->socket, &client->hrsp, &protocolError)) {
@@ -50,6 +50,7 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	LOG("[Client %ws]: Username: '%ws'\n", client->address, client->name);
 
 	if(!WindowMainAdd(&client, &item)) {
+		freeClient = TRUE;
 		goto freeName;
 	}
 
@@ -77,11 +78,13 @@ freeName:
 		LocalFree(client->name);
 	}
 functionExit:
-	closesocket(client->socket);
 	LOG("[Client %ws]: Exit with code: %d\n", client->address, codeExit);
+	closesocket(client->socket);
 	CloseHandle(client->thread);
 
-	if(!WindowMainRemove(item)) {
+	if(freeClient) {
+		KHOPAN_DEALLOCATE(client);
+	} else if(item && !WindowMainRemove(item)) {
 		codeExit = 1;
 	}
 
