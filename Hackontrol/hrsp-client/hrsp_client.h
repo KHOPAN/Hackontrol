@@ -32,7 +32,7 @@ extern "C" {
 #endif
 LPWSTR HRSPClientGetErrorMessage(const LPCWSTR function, const PHRSPCLIENTERROR error);
 LPCWSTR HRSPClientGetErrorCode(const HRSPCLIENTERRORCODE code);
-BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const PHRSPCLIENTINPUT input, const PHRSPCLIENTERROR error);
+BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const PHRSPCLIENTINPUT input, const PHRSPCLIENTERROR error, const LPCSTR username);
 #ifdef __cplusplus
 }
 #endif

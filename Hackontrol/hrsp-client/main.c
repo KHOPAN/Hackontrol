@@ -29,7 +29,7 @@ static void audioCapture(const PHRSPPACKET packet, const DWORD audioThreadIdenti
 	PostThreadMessageW(audioThreadIdentifier, AM_QUERY_AUDIO_CAPTURE, 0, (LPARAM) buffer);
 }
 
-BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const PHRSPCLIENTINPUT input, const PHRSPCLIENTERROR error) {
+BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const PHRSPCLIENTINPUT input, const PHRSPCLIENTERROR error, const LPCSTR username) {
 	PHRSPCLIENTPARAMETER parameter = KHOPAN_ALLOCATE(sizeof(HRSPCLIENTPARAMETER));
 
 	if(KHOPAN_ALLOCATE_FAILED(parameter)) {
@@ -111,7 +111,7 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 		goto closeSocket;
 	}
 
-	DWORD size = UNLEN + 1;
+	/*DWORD size = UNLEN + 1;
 	PBYTE buffer = KHOPAN_ALLOCATE(size);
 
 	if(KHOPAN_ALLOCATE_FAILED(buffer)) {
@@ -123,14 +123,16 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 		ERROR_WIN32(GetLastError(), L"GetUserNameA");
 		KHOPAN_DEALLOCATE(buffer);
 		goto closeSocket;
-	}
+	}*/
 
 	HRSPPACKET packet;
-	packet.size = size;
+	//packet.size = size;
+	packet.size = (int) strlen(username);
 	packet.type = HRSP_REMOTE_CLIENT_INFORMATION_PACKET;
-	packet.data = buffer;
+	//packet.data = buffer;
+	packet.data = (PBYTE) username;
 	status = HRSPSendPacket(parameter->socket, &parameter->data, &packet, &protocolError);
-	KHOPAN_DEALLOCATE(buffer);
+	//KHOPAN_DEALLOCATE(buffer);
 
 	if(!status) {
 		ERROR_HRSP;
