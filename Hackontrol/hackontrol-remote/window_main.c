@@ -412,7 +412,7 @@ BOOL WindowMainAdd(const PPCLIENT inputClient, const PPLINKEDLISTITEM inputItem)
 	int index = (int) SendMessageW(listView, LVM_INSERTITEM, 0, (LPARAM) &listItem);
 
 	if(index == -1) {
-		KHOPANLASTERRORCONSOLE_WIN32(L"ListView_InsertItem");
+		KHOPANERRORCONSOLE_WIN32(ERROR_FUNCTION_FAILED, L"ListView_InsertItem");
 		goto removeItem;
 	}
 
@@ -421,7 +421,7 @@ BOOL WindowMainAdd(const PPCLIENT inputClient, const PPLINKEDLISTITEM inputItem)
 	listItem.pszText = client->address ? client->address : L"(Missing address)";
 
 	if(!SendMessageW(listView, LVM_SETITEM, 0, (LPARAM) &listItem)) {
-		KHOPANLASTERRORCONSOLE_WIN32(L"ListView_SetItem");
+		KHOPANERRORCONSOLE_WIN32(ERROR_FUNCTION_FAILED, L"ListView_SetItem");
 		SendMessageW(listView, LVM_DELETEITEM, index, 0);
 		goto removeItem;
 	}
@@ -449,26 +449,18 @@ BOOL WindowMainRemove(const PLINKEDLISTITEM item) {
 	information.lParam = (LPARAM) item->data;
 	int index = (int) SendMessageW(listView, LVM_FINDITEM, -1, (LPARAM) &information);
 
-	if(index < 0) {
-		KHOPANLASTERRORCONSOLE_WIN32(L"ListView_FindItem");
-		goto releaseMutex;
+	if(index >= 0) {
+		SendMessageW(listView, LVM_DELETEITEM, index, 0);
 	}
 
-	if(!SendMessageW(listView, LVM_DELETEITEM, index, 0)) {
-		KHOPANLASTERRORCONSOLE_WIN32(L"ListView_DeleteItem");
-		goto releaseMutex;
-	}
+	index = KHOPANLinkedRemove(item);
+	ReleaseMutex(clientListMutex);
 
-	if(!KHOPANLinkedRemove(item)) {
+	if(!index) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"KHOPANLinkedRemove");
-		goto releaseMutex;
 	}
 
-	ReleaseMutex(clientListMutex);
-	return TRUE;
-releaseMutex:
-	ReleaseMutex(clientListMutex);
-	return FALSE;
+	return index;
 }
 
 void WindowMainDestroy() {
