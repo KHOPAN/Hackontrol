@@ -56,7 +56,7 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 	LOG("[Server]: Listening socket started\n");
 	PCLIENT client;
 
-	while(*socketListen) {
+	while(*socketListen != INVALID_SOCKET) {
 		SOCKADDR_IN address;
 		status = sizeof(SOCKADDR_IN);
 		SOCKET socket = accept(*socketListen, (struct sockaddr*) &address, &status);
@@ -120,6 +120,7 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 freeList:
 	KHOPANArrayFree(&list);
 functionExit:
+	WindowMainExit();
 	LOG("[Server]: Exit with code: %d\n", codeExit);
 	return codeExit;
 }

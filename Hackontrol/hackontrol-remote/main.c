@@ -83,7 +83,7 @@ int WINAPI WinMain(_In_ HINSTANCE programInstance, _In_opt_ HINSTANCE previousIn
 		goto cleanupSession;
 	}
 
-	SOCKET socketListen = 0;
+	SOCKET socketListen = INVALID_SOCKET;
 	HANDLE serverThread = CreateThread(NULL, 0, ThreadServer, &socketListen, 0, NULL);
 
 	if(!serverThread) {
@@ -93,9 +93,9 @@ int WINAPI WinMain(_In_ HINSTANCE programInstance, _In_opt_ HINSTANCE previousIn
 
 	WindowMain();
 
-	if(socketListen) {
+	if(socketListen != INVALID_SOCKET) {
 		closesocket(socketListen);
-		socketListen = 0;
+		socketListen = INVALID_SOCKET;
 	}
 
 	WaitForSingleObject(serverThread, INFINITE);
