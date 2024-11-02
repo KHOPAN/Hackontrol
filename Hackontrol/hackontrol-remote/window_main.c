@@ -19,6 +19,11 @@ static HWND border;
 static HWND listView;
 static int columnIndex;
 
+typedef struct {
+	BOOL sortUsername;
+	BOOL ascending;
+} SORTPARAMETER, *PSORTPARAMETER;
+
 /*static BOOL openClient(const LONGLONG index) {
 	if(index < 0 && WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
 		return FALSE;
@@ -231,15 +236,14 @@ void WindowMainExit() {
 	PostMessageW(window, WM_CLOSE, 0, 0);
 }*/
 
-static int CALLBACK compareList(PCLIENT first, PCLIENT second, LPARAM parameter) {
-	if(!first || !second) {
+static int CALLBACK compareList(PCLIENT first, PCLIENT second, PSORTPARAMETER parameter) {
+	if(!first || !second || !parameter) {
 		return 0;
 	}
 
-	return wcscmp(first->name, second->name);
-	//int compareName = wcscmp(first->name, second->name);
-	//int compareState = first->state == second->state ? 0 : first->state > second->state ? 1 : -1;
-	//return (parameter->sortName ? compareName ? compareName : compareState : compareState ? compareState : compareName) * (parameter->ascending ? 1 : -1);
+	int compareUsername = wcscmp(first->name, second->name);
+	int compareAddress = wcscmp(first->name, second->name);
+	return (parameter->sortUsername ? compareUsername ? compareUsername : compareAddress : compareAddress ? compareAddress : compareUsername) * (parameter->ascending ? 1 : -1);
 }
 
 static void clickHeader(const int index) {
@@ -247,7 +251,6 @@ static void clickHeader(const int index) {
 		return;
 	}
 
-	columnIndex = index;
 	HWND header = (HWND) SendMessageW(listView, LVM_GETHEADER, 0, 0);
 
 	if(!header) {
@@ -261,6 +264,7 @@ static void clickHeader(const int index) {
 	}
 
 	HDITEMW item = {0};
+	SORTPARAMETER parameter;
 
 	for(int i = 0; i < count; i++) {
 		item.mask = HDI_FORMAT;
@@ -279,11 +283,14 @@ static void clickHeader(const int index) {
 		} else {
 			item.fmt |= HDF_SORTUP;
 		}
+
+		parameter.ascending = item.fmt & HDF_SORTUP;
 	setItem:
 		SendMessageW(header, HDM_SETITEM, i, (LPARAM) &item);
 	}
 
-	SendMessageW(listView, LVM_SORTITEMS, 0, (LPARAM) compareList);
+	parameter.sortUsername = index == 0;
+	SendMessageW(listView, LVM_SORTITEMS, (WPARAM) &parameter, (LPARAM) compareList);
 }
 
 static LRESULT CALLBACK procedure(HWND inputWindow, UINT message, WPARAM wparam, LPARAM lparam) {
