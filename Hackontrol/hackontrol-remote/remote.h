@@ -49,7 +49,6 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen);
 
 BOOL WindowMainInitialize();
 void WindowMain();
-void WindowMainRefresh();
 BOOL WindowMainAdd(const PPCLIENT client, const PPLINKEDLISTITEM item);
 BOOL WindowMainRemove(const PLINKEDLISTITEM item);
 void WindowMainDestroy();

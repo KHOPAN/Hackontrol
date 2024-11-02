@@ -434,7 +434,7 @@ releaseMutex:
 BOOL WindowMainRemove(const PLINKEDLISTITEM item) {
 	if(item && WaitForSingleObject(clientListMutex, INFINITE) != WAIT_FAILED) {
 		if(KHOPANLinkedRemove(item)) {
-			WindowMainRefresh();
+			//WindowMainRefresh();
 		} else {
 			KHOPANLASTERRORCONSOLE_WIN32(L"KHOPANLinkedRemove");
 			return FALSE;
@@ -453,8 +453,4 @@ void WindowMainDestroy() {
 
 void WindowMainExit() {
 	PostMessageW(window, WM_CLOSE, 0, 0);
-}
-
-void WindowMainRefresh() {
-
 }
