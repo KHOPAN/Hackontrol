@@ -2,18 +2,18 @@
 #include "remote.h"
 #include <CommCtrl.h>
 
-#define IDM_REMOTE_OPEN          0xE001
+/*#define IDM_REMOTE_OPEN          0xE001
 #define IDM_REMOTE_DISCONNECT    0xE002
 #define IDM_REMOTE_REFRESH       0xE003
 #define IDM_REMOTE_ALWAYS_ON_TOP 0xE004
-#define IDM_REMOTE_EXIT          0xE005
+#define IDM_REMOTE_EXIT          0xE005*/
 
 #pragma warning(disable: 26454)
 
 extern HINSTANCE instance;
-extern HANDLE clientListMutex;
-extern LINKEDLIST clientList;
 extern HFONT font;
+extern LINKEDLIST clientList;
+extern HANDLE clientListMutex;
 
 static HWND window;
 static HWND border;
@@ -231,6 +231,47 @@ void WindowMainExit() {
 	PostMessageW(window, WM_CLOSE, 0, 0);
 }*/
 
+static void clickHeader(const int index) {
+	if(index < 0) {
+		return;
+	}
+
+	HWND header = (HWND) SendMessageW(listView, LVM_GETHEADER, 0, 0);
+
+	if(!header) {
+		return;
+	}
+
+	int count = (int) SendMessageW(header, HDM_GETITEMCOUNT, 0, 0);
+
+	if(count < 1) {
+		return;
+	}
+
+	HDITEMW item = {0};
+
+	for(int i = 0; i < count; i++) {
+		item.mask = HDI_FORMAT;
+		item.fmt = 0;
+		SendMessageW(header, HDM_GETITEM, i, (LPARAM) &item);
+
+		if(i != index) {
+			item.fmt &= ~(HDF_SORTUP | HDF_SORTDOWN);
+			goto setItem;
+		}
+
+		if(item.fmt & HDF_SORTUP) {
+			item.fmt = (item.fmt & ~HDF_SORTUP) | HDF_SORTDOWN;
+		} else if(item.fmt & HDF_SORTDOWN) {
+			item.fmt = (item.fmt & ~HDF_SORTDOWN) | HDF_SORTUP;
+		} else {
+			item.fmt |= HDF_SORTUP;
+		}
+	setItem:
+		SendMessageW(header, HDM_SETITEM, i, (LPARAM) &item);
+	}
+}
+
 static LRESULT CALLBACK procedure(HWND inputWindow, UINT message, WPARAM wparam, LPARAM lparam) {
 	RECT bounds;
 
@@ -247,6 +288,13 @@ static LRESULT CALLBACK procedure(HWND inputWindow, UINT message, WPARAM wparam,
 		bounds.bottom -= bounds.top;
 		SetWindowPos(border, HWND_TOP, 0, 0, bounds.right - 10, bounds.bottom - 4, SWP_NOMOVE);
 		SetWindowPos(listView, HWND_TOP, 0, 0, bounds.right - 18, bounds.bottom - 26, SWP_NOMOVE);
+		return 0;
+	case WM_NOTIFY:
+		if(!lparam || ((LPNMHDR) lparam)->code != LVN_COLUMNCLICK) {
+			break;
+		}
+
+		clickHeader((UINT) ((LPNMLISTVIEW) lparam)->iSubItem);
 		return 0;
 	}
 
@@ -313,6 +361,7 @@ BOOL WindowMainInitialize() {
 		goto destroyWindow;
 	}
 
+	clickHeader(0);
 	return TRUE;
 destroyWindow:
 	DestroyWindow(window);
