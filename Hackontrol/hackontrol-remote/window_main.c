@@ -17,12 +17,8 @@ extern HANDLE clientListMutex;
 static HWND window;
 static HWND border;
 static HWND listView;
-static int columnIndex;
-
-typedef struct {
-	BOOL sortUsername;
-	BOOL ascending;
-} SORTPARAMETER, *PSORTPARAMETER;
+static BOOL sortUsername;
+static BOOL sortAscending;
 
 /*static BOOL openClient(const LONGLONG index) {
 	if(index < 0 && WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
@@ -236,35 +232,36 @@ void WindowMainExit() {
 	PostMessageW(window, WM_CLOSE, 0, 0);
 }*/
 
-static int CALLBACK compareList(PCLIENT first, PCLIENT second, PSORTPARAMETER parameter) {
-	if(!first || !second || !parameter) {
+static int CALLBACK compareList(PCLIENT first, PCLIENT second, LPARAM parameter) {
+	if(!first || !second) {
 		return 0;
 	}
 
 	int compareUsername = wcscmp(first->name, second->name);
 	int compareAddress = wcscmp(first->name, second->name);
-	return (parameter->sortUsername ? compareUsername ? compareUsername : compareAddress : compareAddress ? compareAddress : compareUsername) * (parameter->ascending ? 1 : -1);
+	return (sortUsername ? compareUsername ? compareUsername : compareAddress : compareAddress ? compareAddress : compareUsername) * (sortAscending ? 1 : -1);
 }
 
 static void clickHeader(const int index) {
-	if(index < 0) {
+	if(index < 0 || WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
 		return;
 	}
 
 	HWND header = (HWND) SendMessageW(listView, LVM_GETHEADER, 0, 0);
 
 	if(!header) {
+		ReleaseMutex(clientListMutex);
 		return;
 	}
 
 	int count = (int) SendMessageW(header, HDM_GETITEMCOUNT, 0, 0);
 
 	if(count < 1) {
+		ReleaseMutex(clientListMutex);
 		return;
 	}
 
 	HDITEMW item = {0};
-	SORTPARAMETER parameter;
 
 	for(int i = 0; i < count; i++) {
 		item.mask = HDI_FORMAT;
@@ -284,13 +281,14 @@ static void clickHeader(const int index) {
 			item.fmt |= HDF_SORTUP;
 		}
 
-		parameter.ascending = item.fmt & HDF_SORTUP;
+		sortAscending = item.fmt & HDF_SORTUP;
 	setItem:
 		SendMessageW(header, HDM_SETITEM, i, (LPARAM) &item);
 	}
 
-	parameter.sortUsername = index == 0;
-	SendMessageW(listView, LVM_SORTITEMS, (WPARAM) &parameter, (LPARAM) compareList);
+	sortUsername = index == 0;
+	SendMessageW(listView, LVM_SORTITEMS, 0, (LPARAM) compareList);
+	ReleaseMutex(clientListMutex);
 }
 
 static LRESULT CALLBACK procedure(HWND inputWindow, UINT message, WPARAM wparam, LPARAM lparam) {
@@ -428,10 +426,23 @@ BOOL WindowMainAdd(const PPCLIENT inputClient, const PPLINKEDLISTITEM inputItem)
 	}
 
 	LVITEMW listItem = {0};
+	listItem.mask = LVIF_PARAM;
+	int size = (int) SendMessageW(listView, LVM_GETITEMCOUNT, 0, 0);
+	int index;
+
+	for(index = 0; index < size; index++) {
+		listItem.iItem = size - index - 1;
+
+		if(SendMessageW(listView, LVM_GETITEM, 0, (LPARAM) &listItem) && compareList(client, (PCLIENT) listItem.lParam, 0) > 0) {
+			listItem.iItem++;
+			break;
+		}
+	}
+
 	listItem.mask = LVIF_PARAM | LVIF_TEXT;
 	listItem.pszText = client->name ? client->name : L"(Missing name)";
 	listItem.lParam = (LPARAM) client;
-	int index = (int) SendMessageW(listView, LVM_INSERTITEM, 0, (LPARAM) &listItem);
+	index = (int) SendMessageW(listView, LVM_INSERTITEM, 0, (LPARAM) &listItem);
 
 	if(index == -1) {
 		KHOPANERRORCONSOLE_WIN32(ERROR_FUNCTION_FAILED, L"ListView_InsertItem");
