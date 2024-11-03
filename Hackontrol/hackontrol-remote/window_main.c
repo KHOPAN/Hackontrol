@@ -1,5 +1,6 @@
 #include "remote.h"
 #include <CommCtrl.h>
+#include <windowsx.h>
 
 /*#define IDM_REMOTE_OPEN          0xE001
 #define IDM_REMOTE_DISCONNECT    0xE002
@@ -173,10 +174,42 @@ static BOOL openClient(const int index) {
 
 static LRESULT CALLBACK procedure(HWND inputWindow, UINT message, WPARAM wparam, LPARAM lparam) {
 	RECT bounds;
+	LVHITTESTINFO information = {0};
+	HWND header;
+	BOOL showItem = TRUE;
+	LVITEMW item = {0};
+	PCLIENT client = NULL;
 
 	switch(message) {
 	case WM_CLOSE:
 		DestroyWindow(window);
+		return 0;
+	case WM_CONTEXTMENU:
+		GetClientRect(listView, &bounds);
+		information.pt.x = GET_X_LPARAM(lparam);
+		information.pt.y = GET_Y_LPARAM(lparam);
+		ScreenToClient(listView, &information.pt);
+
+		if(information.pt.x < bounds.left || information.pt.x > bounds.right || information.pt.y < bounds.top || information.pt.y > bounds.bottom) {
+			break;
+		}
+
+		if(header = (HWND) SendMessageW(listView, LVM_GETHEADER, 0, 0)) {
+			GetClientRect(header, &bounds);
+			if(information.pt.x >= bounds.left && information.pt.x <= bounds.right && information.pt.y >= bounds.top && information.pt.y <= bounds.bottom) showItem = FALSE;
+		}
+
+		if(showItem && WaitForSingleObject(clientListMutex, INFINITE) != WAIT_FAILED) {
+			if(SendMessageW(listView, LVM_HITTEST, 0, (LPARAM) &information) != -1) {
+				item.mask = LVIF_PARAM;
+				item.iItem = information.iItem;
+				if(SendMessageW(listView, LVM_GETITEM, 0, (LPARAM) &item)) client = (PCLIENT) item.lParam;
+			}
+
+			ReleaseMutex(clientListMutex);
+		}
+
+		LOG("Display %ws\n", client ? client->name : L"Empty");
 		return 0;
 	/*case WM_CONTEXTMENU:
 		GetCursorPos(&information.pt);
