@@ -192,7 +192,7 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 		}
 	}
 
-	client->session.tab = CreateWindowExW(0L, WC_TABCONTROL, L"", WS_CHILD | WS_TABSTOP | WS_VISIBLE, TAB_OFFSET, TAB_OFFSET, 0, 0, client->session.window, NULL, NULL, NULL);
+	client->session.tab = CreateWindowExW(WS_EX_COMPOSITED, WC_TABCONTROL, L"", WS_CHILD | WS_TABSTOP | WS_VISIBLE, TAB_OFFSET, TAB_OFFSET, 0, 0, client->session.window, NULL, NULL, NULL);
 
 	if(!client->session.tab) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");

@@ -4,7 +4,7 @@
 
 #define CLASS_NAME L"HackontrolRemoteSessionTabAudio"
 
-#define IDM_AUDIO_CAPTURE 0xE001
+/*#define IDM_AUDIO_CAPTURE 0xE001
 #define IDM_AUDIO_REFRESH 0xE002
 
 #pragma warning(disable: 6001)
@@ -404,12 +404,12 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
-}
+}*/
 
 void __stdcall WindowSessionTabAudio(const PTABINITIALIZER tab) {
 	tab->name = L"Audio";
-	tab->clientInitialize = clientInitialize;
-	tab->packetHandler = packetHandler;
-	tab->windowClass.lpfnWndProc = procedure;
+	//tab->clientInitialize = clientInitialize;
+	//tab->packetHandler = packetHandler;
+	//tab->windowClass.lpfnWndProc = procedure;
 	tab->windowClass.lpszClassName = CLASS_NAME;
 }
