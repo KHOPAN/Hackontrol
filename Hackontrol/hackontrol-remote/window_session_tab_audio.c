@@ -329,40 +329,13 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 	HRSPPACKET packet;
 
 	switch(message) {
-	case WM_DESTROY:
-		if(data->devices) {
-			for(UINT i = 0; i < data->deviceCount; i++) {
-				KHOPAN_DEALLOCATE(data->devices[i].identifier);
-				KHOPAN_DEALLOCATE(data->devices[i].name);
-			}
-
-			KHOPAN_DEALLOCATE(data->devices);
-		}
-
-		KHOPAN_DEALLOCATE(data);
-		return 0;
-	case WM_SIZE:
-		GetClientRect(window, &bounds);
-		SetWindowPos(data->border, HWND_TOP, 0, 0, bounds.right - bounds.left - 2, bounds.bottom - bounds.top, SWP_NOMOVE);
-		SetWindowPos(data->list, HWND_TOP, 0, 0, bounds.right - bounds.left - 8, bounds.bottom - bounds.top - 21, SWP_NOMOVE);
-		return 0;
-	case WM_CTLCOLORSTATIC:
-		SetDCBrushColor((HDC) wparam, 0xF9F9F9);
-		return (LRESULT) GetStockObject(DC_BRUSH);
-	case WM_NOTIFY:
-		if(!lparam || ((LPNMHDR) lparam)->code != LVN_COLUMNCLICK) {
-			break;
-		}
-
-		sortListView(data, ((LPNMLISTVIEW) lparam)->iSubItem);
-		return 0;
 	case WM_CONTEXTMENU:
 		GetCursorPos(&information.pt);
 		ScreenToClient(data->list, &information.pt);
 		GetClientRect(window, &bounds);
 
 		if(information.pt.x < bounds.left || information.pt.x > bounds.right || information.pt.y < bounds.top || information.pt.y > bounds.bottom) {
-			return 0;
+			break;
 		}
 
 		if(SendMessageW(data->list, LVM_HITTEST, 0, (LPARAM) &information) != -1) {
@@ -374,7 +347,7 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 		menu = CreatePopupMenu();
 
 		if(!menu) {
-			return 0;
+			break;
 		}
 
 		if(item.lParam) {
@@ -400,6 +373,33 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 			return 0;
 		}
 
+		break;
+	case WM_CTLCOLORSTATIC:
+		SetDCBrushColor((HDC) wparam, 0xF9F9F9);
+		return (LRESULT) GetStockObject(DC_BRUSH);
+	case WM_DESTROY:
+		if(data->devices) {
+			for(UINT i = 0; i < data->deviceCount; i++) {
+				KHOPAN_DEALLOCATE(data->devices[i].identifier);
+				KHOPAN_DEALLOCATE(data->devices[i].name);
+			}
+
+			KHOPAN_DEALLOCATE(data->devices);
+		}
+
+		KHOPAN_DEALLOCATE(data);
+		return 0;
+	case WM_NOTIFY:
+		if(!lparam || ((LPNMHDR) lparam)->code != LVN_COLUMNCLICK) {
+			break;
+		}
+
+		sortListView(data, ((LPNMLISTVIEW) lparam)->iSubItem);
+		return 0;
+	case WM_SIZE:
+		GetClientRect(window, &bounds);
+		SetWindowPos(data->border, HWND_TOP, 0, 0, bounds.right - bounds.left - 2, bounds.bottom - bounds.top, SWP_NOMOVE);
+		SetWindowPos(data->list, HWND_TOP, 0, 0, bounds.right - bounds.left - 8, bounds.bottom - bounds.top - 21, SWP_NOMOVE);
 		return 0;
 	}
 

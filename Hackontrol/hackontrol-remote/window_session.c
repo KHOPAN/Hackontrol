@@ -64,21 +64,21 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
+	case WM_NOTIFY:
+		switch(((LPNMHDR) lparam)->code) {
+		case TCN_SELCHANGE:
+			selectTab(client);
+			return FALSE;
+		case TCN_SELCHANGING:
+			return FALSE;
+		}
+
+		break;
 	case WM_SIZE:
 		GetClientRect(window, &bounds);
 		SetWindowPos(client->session.tab, HWND_TOP, 0, 0, bounds.right - bounds.left - TAB_OFFSET * 2, bounds.bottom - bounds.top - TAB_OFFSET * 2, SWP_NOMOVE);
 		resizeTab(client);
 		return 0;
-	case WM_NOTIFY:
-		switch(((LPNMHDR) lparam)->code) {
-		case TCN_SELCHANGING:
-			return FALSE;
-		case TCN_SELCHANGE:
-			selectTab(client);
-			return FALSE;
-		}
-
-		break;
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);

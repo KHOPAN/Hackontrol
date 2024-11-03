@@ -409,23 +409,6 @@ static LRESULT CALLBACK tabProcedure(_In_ HWND window, _In_ UINT message, _In_ W
 	RECT bounds;
 
 	switch(message) {
-	case WM_DESTROY:
-		if(data->stream.thread) {
-			PostMessageW(data->stream.window, WM_CLOSE, 0, 0);
-			WaitForSingleObject(data->stream.thread, INFINITE);
-		}
-
-		WaitForSingleObject(data->mutex, INFINITE);
-		CloseHandle(data->mutex);
-		KHOPAN_DEALLOCATE(data);
-		return 0;
-	case WM_SIZE:
-		GetClientRect(window, &bounds);
-		SetWindowPos(data->button, NULL, (int) ((((double) bounds.right) - ((double) bounds.left) - ((double) data->buttonWidth)) / 2.0), (int) ((((double) bounds.bottom) - ((double) bounds.top) - ((double) data->buttonHeight)) / 2.0), 0, 0, SWP_NOSIZE | SWP_NOZORDER);
-		return 0;
-	case WM_CTLCOLORBTN:
-		SetDCBrushColor((HDC) wparam, 0xF9F9F9);
-		return (LRESULT) GetStockObject(DC_BRUSH);
 	case WM_COMMAND:
 		if(HIWORD(wparam) != BN_CLICKED) {
 			break;
@@ -445,6 +428,23 @@ static LRESULT CALLBACK tabProcedure(_In_ HWND window, _In_ UINT message, _In_ W
 			break;
 		}
 
+		return 0;
+	case WM_CTLCOLORBTN:
+		SetDCBrushColor((HDC) wparam, 0xF9F9F9);
+		return (LRESULT) GetStockObject(DC_BRUSH);
+	case WM_DESTROY:
+		if(data->stream.thread) {
+			PostMessageW(data->stream.window, WM_CLOSE, 0, 0);
+			WaitForSingleObject(data->stream.thread, INFINITE);
+		}
+
+		WaitForSingleObject(data->mutex, INFINITE);
+		CloseHandle(data->mutex);
+		KHOPAN_DEALLOCATE(data);
+		return 0;
+	case WM_SIZE:
+		GetClientRect(window, &bounds);
+		SetWindowPos(data->button, NULL, (int) ((((double) bounds.right) - ((double) bounds.left) - ((double) data->buttonWidth)) / 2.0), (int) ((((double) bounds.bottom) - ((double) bounds.top) - ((double) data->buttonHeight)) / 2.0), 0, 0, SWP_NOSIZE | SWP_NOZORDER);
 		return 0;
 	}
 
@@ -498,91 +498,6 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 	case WM_CLOSE:
 		DestroyWindow(window);
 		return 0;
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		return 0;
-	case WM_ERASEBKGND:
-		return 1;
-	case WM_SIZE:
-		GetClientRect(window, &bounds);
-		bounds.right -= bounds.left;
-		bounds.bottom -= bounds.top;
-
-		if(bounds.right < 1 || bounds.bottom < 1 || !data->stream.targetWidth || !data->stream.targetHeight || WaitForSingleObject(data->mutex, INFINITE) == WAIT_FAILED) {
-			return 0;
-		}
-
-		data->stream.renderWidth = (UINT) (((double) data->stream.targetWidth) / ((double) data->stream.targetHeight) * ((double) bounds.bottom));
-		data->stream.renderHeight = (UINT) (((double) data->stream.targetHeight) / ((double) data->stream.targetWidth) * ((double) bounds.right));
-		temporary = data->stream.renderWidth < ((UINT) bounds.right);
-
-		if(temporary) {
-			data->stream.renderHeight = bounds.bottom;
-		} else {
-			data->stream.renderWidth = bounds.right;
-		}
-
-		data->stream.renderX = temporary ? (UINT) ((((double) bounds.right) - ((double) data->stream.renderWidth)) / 2.0) : 0;
-		data->stream.renderY = temporary ? 0 : (UINT) ((((double) bounds.bottom) - ((double) data->stream.renderHeight)) / 2.0);
-		ReleaseMutex(data->mutex);
-		return 0;
-	case WM_PAINT:
-		context = BeginPaint(window, &paintStruct);
-		memoryContext = CreateCompatibleDC(context);
-		GetClientRect(window, &bounds);
-		bitmap = CreateCompatibleBitmap(context, bounds.right, bounds.bottom);
-		oldBitmap = SelectObject(memoryContext, bitmap);
-		brush = GetStockObject(DC_BRUSH);
-		SetDCBrushColor(memoryContext, 0x000000);
-		FillRect(memoryContext, &bounds, brush);
-
-		if(data->stream.pixels && WaitForSingleObject(data->mutex, INFINITE) != WAIT_FAILED) {
-			information.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-			information.bmiHeader.biWidth = data->stream.targetWidth;
-			information.bmiHeader.biHeight = data->stream.targetHeight;
-			information.bmiHeader.biPlanes = 1;
-			information.bmiHeader.biBitCount = 32;
-			SetStretchBltMode(memoryContext, HALFTONE);
-			StretchDIBits(memoryContext, data->stream.matchAspectRatio && !data->stream.fullscreen ? bounds.left : data->stream.renderX, data->stream.matchAspectRatio && !data->stream.fullscreen ? bounds.top : data->stream.renderY, data->stream.matchAspectRatio && !data->stream.fullscreen ? bounds.right - bounds.left : data->stream.renderWidth, data->stream.matchAspectRatio && !data->stream.fullscreen ? bounds.bottom - bounds.top : data->stream.renderHeight, 0, 0, data->stream.targetWidth, data->stream.targetHeight, data->stream.pixels, &information, DIB_RGB_COLORS, SRCCOPY);
-			ReleaseMutex(data->mutex);
-		}
-
-		BitBlt(context, 0, 0, bounds.right, bounds.bottom, memoryContext, 0, 0, SRCCOPY);
-		SelectObject(memoryContext, oldBitmap);
-		DeleteObject(bitmap);
-		DeleteDC(memoryContext);
-		EndPaint(window, &paintStruct);
-		return 0;
-	case WM_CONTEXTMENU:
-		menu = CreatePopupMenu();
-
-		if(!menu) {
-			return 0;
-		}
-
-		AppendMenuW(menu, MF_STRING | (data->stream.stream ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_ENABLE, L"Enable Stream");
-
-		if(sendMethodMenu = CreateMenu()) {
-			AppendMenuW(sendMethodMenu, MF_STRING | (data->stream.method == SEND_METHOD_FULL         ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_FULL,         L"Full");
-			AppendMenuW(sendMethodMenu, MF_STRING | (data->stream.method == SEND_METHOD_BOUNDARY     ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_BOUNDARY,     L"Boundary Differences");
-			AppendMenuW(sendMethodMenu, MF_STRING | (data->stream.method == SEND_METHOD_COLOR        ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_COLOR,        L"Color Differences");
-			AppendMenuW(sendMethodMenu, MF_STRING | (data->stream.method == SEND_METHOD_UNCOMPRESSED ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_UNCOMPRESSED, L"Uncompressed");
-		}
-
-		AppendMenuW(menu, MF_POPUP | (data->stream.stream ? MF_ENABLED : MF_DISABLED), (UINT_PTR) sendMethodMenu, L"Send Method");
-		AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
-		AppendMenuW(menu, MF_STRING | ((GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST) ? MF_CHECKED : MF_UNCHECKED), IDM_ALWAYS_ON_TOP, L"Always On Top");
-		AppendMenuW(menu, MF_STRING | (data->stream.fullscreen ? MF_CHECKED : MF_UNCHECKED), IDM_FULLSCREEN, L"Fullscreen");
-		AppendMenuW(menu, MF_STRING | (data->stream.limitToScreen ? MF_CHECKED : MF_UNCHECKED) | (data->stream.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_LIMIT_TO_SCREEN, L"Limit To Screen");
-		AppendMenuW(menu, MF_STRING | (data->stream.lockFrame ? MF_CHECKED : MF_UNCHECKED) | (data->stream.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_LOCK_FRAME, L"Lock Frame");
-		AppendMenuW(menu, MF_STRING | (data->stream.matchAspectRatio ? MF_CHECKED : MF_UNCHECKED) | (data->stream.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_MATCH_ASPECT_RATIO, L"Match Aspect Ratio");
-		AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
-		AppendMenuW(menu, MF_STRING, IDM_MINIMIZE, L"Minimize");
-		AppendMenuW(menu, MF_STRING, IDM_CLOSE, L"Close");
-		SetForegroundWindow(window);
-		TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
-		DestroyMenu(menu);
-		return 0;
 	case WM_COMMAND:
 		switch(LOWORD(wparam)) {
 		case IDM_STREAM_ENABLE:
@@ -632,11 +547,54 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 			return 0;
 		}
 
+		break;
+	case WM_CONTEXTMENU:
+		menu = CreatePopupMenu();
+
+		if(!menu) {
+			break;
+		}
+
+		AppendMenuW(menu, MF_STRING | (data->stream.stream ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_ENABLE, L"Enable Stream");
+
+		if(sendMethodMenu = CreateMenu()) {
+			AppendMenuW(sendMethodMenu, MF_STRING | (data->stream.method == SEND_METHOD_FULL ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_FULL, L"Full");
+			AppendMenuW(sendMethodMenu, MF_STRING | (data->stream.method == SEND_METHOD_BOUNDARY ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_BOUNDARY, L"Boundary Differences");
+			AppendMenuW(sendMethodMenu, MF_STRING | (data->stream.method == SEND_METHOD_COLOR ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_COLOR, L"Color Differences");
+			AppendMenuW(sendMethodMenu, MF_STRING | (data->stream.method == SEND_METHOD_UNCOMPRESSED ? MF_CHECKED : MF_UNCHECKED), IDM_SEND_METHOD_UNCOMPRESSED, L"Uncompressed");
+		}
+
+		AppendMenuW(menu, MF_POPUP | (data->stream.stream ? MF_ENABLED : MF_DISABLED), (UINT_PTR) sendMethodMenu, L"Send Method");
+		AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
+		AppendMenuW(menu, MF_STRING | ((GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST) ? MF_CHECKED : MF_UNCHECKED), IDM_ALWAYS_ON_TOP, L"Always On Top");
+		AppendMenuW(menu, MF_STRING | (data->stream.fullscreen ? MF_CHECKED : MF_UNCHECKED), IDM_FULLSCREEN, L"Fullscreen");
+		AppendMenuW(menu, MF_STRING | (data->stream.limitToScreen ? MF_CHECKED : MF_UNCHECKED) | (data->stream.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_LIMIT_TO_SCREEN, L"Limit To Screen");
+		AppendMenuW(menu, MF_STRING | (data->stream.lockFrame ? MF_CHECKED : MF_UNCHECKED) | (data->stream.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_LOCK_FRAME, L"Lock Frame");
+		AppendMenuW(menu, MF_STRING | (data->stream.matchAspectRatio ? MF_CHECKED : MF_UNCHECKED) | (data->stream.fullscreen ? MF_DISABLED : MF_ENABLED), IDM_MATCH_ASPECT_RATIO, L"Match Aspect Ratio");
+		AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
+		AppendMenuW(menu, MF_STRING, IDM_MINIMIZE, L"Minimize");
+		AppendMenuW(menu, MF_STRING, IDM_CLOSE, L"Close");
+		SetForegroundWindow(window);
+		TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
+		DestroyMenu(menu);
+		return 0;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+	case WM_ERASEBKGND:
+		return 1;
+	case WM_LBUTTONDOWN:
+		GetWindowRect(window, &data->stream.pressedBounds);
+		GetCursorPos(&data->stream.pressedLocation);
+		SetCapture(window);
+		return 0;
+	case WM_LBUTTONUP:
+		ReleaseCapture();
 		return 0;
 	case WM_MOUSEMOVE:
 		if(data->stream.lockFrame || data->stream.fullscreen) {
 			SetCursor(LoadCursorW(NULL, IDC_ARROW));
-			return 0;
+			break;
 		}
 
 		if(!(wparam & MK_LBUTTON)) {
@@ -645,10 +603,10 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 			GetClientRect(window, &bounds);
 			data->stream.cursorNorth = location.y >= 0 && location.y <= data->activationDistance;
 			data->stream.cursorEast = location.x >= bounds.right - data->activationDistance && location.x < bounds.right;
-			data->stream.cursorSouth =  location.y >= bounds.bottom - data->activationDistance && location.y < bounds.bottom;
+			data->stream.cursorSouth = location.y >= bounds.bottom - data->activationDistance && location.y < bounds.bottom;
 			data->stream.cursorWest = location.x >= 0 && location.x <= data->activationDistance;
 			SetCursor(LoadCursorW(NULL, data->stream.cursorNorth ? data->stream.cursorWest ? IDC_SIZENWSE : data->stream.cursorEast ? IDC_SIZENESW : IDC_SIZENS : data->stream.cursorSouth ? data->stream.cursorWest ? IDC_SIZENESW : data->stream.cursorEast ? IDC_SIZENWSE : IDC_SIZENS : data->stream.cursorWest ? IDC_SIZEWE : data->stream.cursorEast ? IDC_SIZEWE : IDC_ARROW));
-			return 0;
+			break;
 		}
 
 		GetCursorPos(&location);
@@ -659,7 +617,7 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 			bounds.left = location.x - data->stream.pressedLocation.x + data->stream.pressedBounds.left;
 			bounds.top = location.y - data->stream.pressedLocation.y + data->stream.pressedBounds.top;
 			limitToScreen(data, screenWidth, screenHeight, bounds.left, bounds.top, bounds.left + data->stream.pressedBounds.right - data->stream.pressedBounds.left, bounds.top + data->stream.pressedBounds.bottom - data->stream.pressedBounds.top);
-			return 0;
+			break;
 		}
 
 		GetWindowRect(window, &bounds);
@@ -714,13 +672,55 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 
 		limitToScreen(data, screenWidth, screenHeight, bounds.left, bounds.top, bounds.right, bounds.bottom);
 		return 0;
-	case WM_LBUTTONDOWN:
-		GetWindowRect(window, &data->stream.pressedBounds);
-		GetCursorPos(&data->stream.pressedLocation);
-		SetCapture(window);
+	case WM_PAINT:
+		context = BeginPaint(window, &paintStruct);
+		memoryContext = CreateCompatibleDC(context);
+		GetClientRect(window, &bounds);
+		bitmap = CreateCompatibleBitmap(context, bounds.right, bounds.bottom);
+		oldBitmap = SelectObject(memoryContext, bitmap);
+		brush = GetStockObject(DC_BRUSH);
+		SetDCBrushColor(memoryContext, 0x000000);
+		FillRect(memoryContext, &bounds, brush);
+
+		if(data->stream.pixels && WaitForSingleObject(data->mutex, INFINITE) != WAIT_FAILED) {
+			information.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+			information.bmiHeader.biWidth = data->stream.targetWidth;
+			information.bmiHeader.biHeight = data->stream.targetHeight;
+			information.bmiHeader.biPlanes = 1;
+			information.bmiHeader.biBitCount = 32;
+			SetStretchBltMode(memoryContext, HALFTONE);
+			StretchDIBits(memoryContext, data->stream.matchAspectRatio && !data->stream.fullscreen ? bounds.left : data->stream.renderX, data->stream.matchAspectRatio && !data->stream.fullscreen ? bounds.top : data->stream.renderY, data->stream.matchAspectRatio && !data->stream.fullscreen ? bounds.right - bounds.left : data->stream.renderWidth, data->stream.matchAspectRatio && !data->stream.fullscreen ? bounds.bottom - bounds.top : data->stream.renderHeight, 0, 0, data->stream.targetWidth, data->stream.targetHeight, data->stream.pixels, &information, DIB_RGB_COLORS, SRCCOPY);
+			ReleaseMutex(data->mutex);
+		}
+
+		BitBlt(context, 0, 0, bounds.right, bounds.bottom, memoryContext, 0, 0, SRCCOPY);
+		SelectObject(memoryContext, oldBitmap);
+		DeleteObject(bitmap);
+		DeleteDC(memoryContext);
+		EndPaint(window, &paintStruct);
 		return 0;
-	case WM_LBUTTONUP:
-		ReleaseCapture();
+	case WM_SIZE:
+		GetClientRect(window, &bounds);
+		bounds.right -= bounds.left;
+		bounds.bottom -= bounds.top;
+
+		if(bounds.right < 1 || bounds.bottom < 1 || !data->stream.targetWidth || !data->stream.targetHeight || WaitForSingleObject(data->mutex, INFINITE) == WAIT_FAILED) {
+			break;
+		}
+
+		data->stream.renderWidth = (UINT) (((double) data->stream.targetWidth) / ((double) data->stream.targetHeight) * ((double) bounds.bottom));
+		data->stream.renderHeight = (UINT) (((double) data->stream.targetHeight) / ((double) data->stream.targetWidth) * ((double) bounds.right));
+		temporary = data->stream.renderWidth < ((UINT) bounds.right);
+
+		if(temporary) {
+			data->stream.renderHeight = bounds.bottom;
+		} else {
+			data->stream.renderWidth = bounds.right;
+		}
+
+		data->stream.renderX = temporary ? (UINT) ((((double) bounds.right) - ((double) data->stream.renderWidth)) / 2.0) : 0;
+		data->stream.renderY = temporary ? 0 : (UINT) ((((double) bounds.bottom) - ((double) data->stream.renderHeight)) / 2.0);
+		ReleaseMutex(data->mutex);
 		return 0;
 	}
 
