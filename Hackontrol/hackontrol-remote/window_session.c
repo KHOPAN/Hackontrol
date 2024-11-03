@@ -3,7 +3,7 @@
 
 #define TAB_OFFSET 5
 
-static SESSIONTAB sessionTabs[] = {
+static void(__stdcall* sessionTabs[]) (const PTABINITIALIZER tab) = {
 	WindowSessionTabStream,
 	WindowSessionTabAudio
 };
@@ -53,7 +53,7 @@ static void selectTab(const PCLIENT client) {
 	resizeTab(client);
 }
 
-static LRESULT CALLBACK windowProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
+static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	USERDATA(PCLIENT, client, window, message, wparam, lparam);
 	RECT bounds;
 
@@ -100,7 +100,7 @@ BOOL WindowSessionInitialize() {
 
 	TABINITIALIZER initializer = {0};
 	initializer.windowClass.cbSize = sizeof(WNDCLASSEXW);
-	initializer.windowClass.lpfnWndProc = windowProcedure;
+	initializer.windowClass.lpfnWndProc = procedure;
 	initializer.windowClass.hInstance = instance;
 	initializer.windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
 	initializer.windowClass.hbrBackground = (HBRUSH) (COLOR_MENU + 1);
@@ -170,10 +170,10 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 
 	double screenWidth = GetSystemMetrics(SM_CXSCREEN);
 	double screenHeight = GetSystemMetrics(SM_CYSCREEN);
-	int width = (int) (screenWidth * 0.219619327);
-	int height = (int) (screenHeight * 0.5859375);
+	double width = screenWidth * 0.219619327;
+	double height = screenHeight * 0.5859375;
 	LPWSTR title = KHOPANFormatMessage(L"%ws [%ws]", client->address, client->name);
-	client->session.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_REMOTE_SESSION, title ? title : L"Session", WS_OVERLAPPEDWINDOW, (int) ((screenWidth - ((double) width)) / 2.0), (int) ((screenHeight - ((double) height)) / 2.0), width, height, NULL, NULL, instance, client);
+	client->session.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_REMOTE_SESSION, title ? title : L"Session", WS_OVERLAPPEDWINDOW, (int) ((screenWidth - width) / 2.0), (int) ((screenHeight - height) / 2.0), (int) width, (int) height, NULL, NULL, instance, client);
 
 	if(title) {
 		LocalFree(title);
@@ -192,7 +192,7 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 		}
 	}
 
-	client->session.tab = CreateWindowExW(0L, WC_TABCONTROL, L"", WS_TABSTOP | WS_CHILD | WS_VISIBLE, TAB_OFFSET, TAB_OFFSET, 0, 0, client->session.window, NULL, NULL, NULL);
+	client->session.tab = CreateWindowExW(0L, WC_TABCONTROL, L"", WS_CHILD | WS_TABSTOP | WS_VISIBLE, TAB_OFFSET, TAB_OFFSET, 0, 0, client->session.window, NULL, NULL, NULL);
 
 	if(!client->session.tab) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
