@@ -92,6 +92,13 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 		goto destroyWindow;
 	}
 
+	LVITEMW item = {0};
+	item.mask = LVIF_TEXT;
+	item.pszText = L"Test Device";
+	SendMessageW(data->list, LVM_INSERTITEM, 0, (LPARAM) &item);
+	item.iSubItem = 1;
+	item.pszText = L"Active";
+	SendMessageW(data->list, LVM_SETITEM, 0, (LPARAM) &item);
 	HRSPSendTypePacket(client->socket, &client->hrsp, HRSP_REMOTE_SERVER_AUDIO_QUERY_DEVICE, NULL);
 	*customData = (ULONGLONG) data;
 	return window;
