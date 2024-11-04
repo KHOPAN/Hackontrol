@@ -92,13 +92,34 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 		goto destroyWindow;
 	}
 
-	LVITEMW item = {0};
+	column.pszText = L"Status";
+
+	if(SendMessageW(data->list, LVM_INSERTCOLUMN, 2, (LPARAM) &column) == -1) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"ListView_InsertColumn");
+		goto destroyWindow;
+	}
+
+	column.pszText = L"Volume";
+
+	if(SendMessageW(data->list, LVM_INSERTCOLUMN, 3, (LPARAM) &column) == -1) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"ListView_InsertColumn");
+		goto destroyWindow;
+	}
+
+	column.pszText = L"Type";
+
+	if(SendMessageW(data->list, LVM_INSERTCOLUMN, 4, (LPARAM) &column) == -1) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"ListView_InsertColumn");
+		goto destroyWindow;
+	}
+
+	/*LVITEMW item = {0};
 	item.mask = LVIF_TEXT;
 	item.pszText = L"Test Device";
 	SendMessageW(data->list, LVM_INSERTITEM, 0, (LPARAM) &item);
 	item.iSubItem = 1;
 	item.pszText = L"Active";
-	SendMessageW(data->list, LVM_SETITEM, 0, (LPARAM) &item);
+	SendMessageW(data->list, LVM_SETITEM, 0, (LPARAM) &item);*/
 	HRSPSendTypePacket(client->socket, &client->hrsp, HRSP_REMOTE_SERVER_AUDIO_QUERY_DEVICE, NULL);
 	*customData = (ULONGLONG) data;
 	return window;
@@ -393,12 +414,14 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 		KHOPAN_DEALLOCATE(data);
 		return 0;
 	/*case WM_NOTIFY:
-		if(!lparam || ((LPNMHDR) lparam)->code != LVN_COLUMNCLICK) {
+		if(!lparam || ((LPNMHDR) lparam)->code != NM_CUSTOMDRAW) {
 			break;
 		}
 
-		sortListView(data, ((LPNMLISTVIEW) lparam)->iSubItem);
-		return 0;*/
+		//sortListView(data, ((LPNMLISTVIEW) lparam)->iSubItem);
+		//return 0;
+		LOG("Custom draw\n");
+		break;*/
 	case WM_SIZE:
 		GetClientRect(window, &bounds);
 		SetWindowPos(data->border, HWND_TOP, 0, 0, bounds.right - bounds.left - 2, bounds.bottom - bounds.top, SWP_NOMOVE);
