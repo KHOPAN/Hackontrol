@@ -4,6 +4,8 @@
 
 #define CLASS_NAME L"HackontrolRemoteSessionTabAudio"
 
+extern HFONT font;
+
 /*#define IDM_AUDIO_CAPTURE 0xE001
 #define IDM_AUDIO_REFRESH 0xE002
 
@@ -11,8 +13,6 @@
 #pragma warning(disable: 6385)
 #pragma warning(disable: 6386)
 #pragma warning(disable: 26454)
-
-extern HFONT font;
 
 typedef struct {
 	BOOL sortName;
@@ -30,15 +30,15 @@ typedef struct {
 	LPWSTR identifier;
 	LPWSTR name;
 	AUDIODEVICESTATE state;
-} AUDIODEVICE, *PAUDIODEVICE;
+} AUDIODEVICE, *PAUDIODEVICE;*/
 
 typedef struct {
 	PCLIENT client;
 	HWND border;
 	HWND list;
-	UINT sortColumn;
+	/*UINT sortColumn;
 	UINT deviceCount;
-	PAUDIODEVICE devices;
+	PAUDIODEVICE devices;*/
 } TABAUDIODATA, *PTABAUDIODATA;
 
 static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG customData, const HWND parent) {
@@ -54,17 +54,14 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 
 	if(!window) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
-		KHOPAN_DEALLOCATE(data);
-		return NULL;
+		goto freeData;
 	}
 
 	data->border = CreateWindowExW(WS_EX_NOPARENTNOTIFY, L"Button", L"Audio Devices", BS_GROUPBOX | WS_CHILD | WS_VISIBLE, 0, 0, 0, 0, window, NULL, NULL, NULL);
 
 	if(!data->border) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
-		DestroyWindow(window);
-		KHOPAN_DEALLOCATE(data);
-		return NULL;
+		goto destroyWindow;
 	}
 
 	SendMessageW(data->border, WM_SETFONT, (WPARAM) font, TRUE);
@@ -72,41 +69,40 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 
 	if(!data->list) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
-		DestroyWindow(window);
-		KHOPAN_DEALLOCATE(data);
-		return NULL;
+		goto destroyWindow;
 	}
 
 	SendMessageW(data->list, WM_SETFONT, (WPARAM) font, TRUE);
 	SendMessageW(data->list, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_DOUBLEBUFFER | LVS_EX_FULLROWSELECT);
 	LVCOLUMNW column = {0};
-	column.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
+	column.mask = LVCF_FMT | LVCF_SUBITEM | LVCF_TEXT | LVCF_WIDTH;
 	column.cx = (int) (((double) GetSystemMetrics(SM_CXSCREEN)) * 0.13250366);
 	column.fmt = LVCFMT_LEFT;
 	column.pszText = L"Name";
 
 	if(SendMessageW(data->list, LVM_INSERTCOLUMN, 0, (LPARAM) &column) == -1) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"ListView_InsertColumn");
-		DestroyWindow(window);
-		KHOPAN_DEALLOCATE(data);
-		return NULL;
+		goto destroyWindow;
 	}
 
 	column.pszText = L"State";
 
 	if(SendMessageW(data->list, LVM_INSERTCOLUMN, 1, (LPARAM) &column) == -1) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"ListView_InsertColumn");
-		DestroyWindow(window);
-		KHOPAN_DEALLOCATE(data);
-		return NULL;
+		goto destroyWindow;
 	}
 
 	HRSPSendTypePacket(client->socket, &client->hrsp, HRSP_REMOTE_SERVER_AUDIO_QUERY_DEVICE, NULL);
 	*customData = (ULONGLONG) data;
 	return window;
+destroyWindow:
+	DestroyWindow(window);
+freeData:
+	KHOPAN_DEALLOCATE(data);
+	return NULL;
 }
 
-static int CALLBACK compareList(PAUDIODEVICE first, PAUDIODEVICE second, PSORTPARAMETER parameter) {
+/*static int CALLBACK compareList(PAUDIODEVICE first, PAUDIODEVICE second, PSORTPARAMETER parameter) {
 	if(!first || !second || !parameter) {
 		return 0;
 	}
@@ -317,19 +313,19 @@ functionExit:
 
 	KHOPAN_DEALLOCATE(devices);
 	return TRUE;
-}
+}*/
 
 static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	USERDATA(PTABAUDIODATA, data, window, message, wparam, lparam);
 	RECT bounds;
-	LVHITTESTINFO information = {0};
+	/*LVHITTESTINFO information = {0};
 	LVITEMW item = {0};
 	HMENU menu;
 	BOOL option;
-	HRSPPACKET packet;
+	HRSPPACKET packet;*/
 
 	switch(message) {
-	case WM_CONTEXTMENU:
+	/*case WM_CONTEXTMENU:
 		GetCursorPos(&information.pt);
 		ScreenToClient(data->list, &information.pt);
 		GetClientRect(window, &bounds);
@@ -373,29 +369,29 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 			return 0;
 		}
 
-		break;
+		break;*/
 	case WM_CTLCOLORSTATIC:
 		SetDCBrushColor((HDC) wparam, 0xF9F9F9);
 		return (LRESULT) GetStockObject(DC_BRUSH);
 	case WM_DESTROY:
-		if(data->devices) {
+		/*if(data->devices) {
 			for(UINT i = 0; i < data->deviceCount; i++) {
 				KHOPAN_DEALLOCATE(data->devices[i].identifier);
 				KHOPAN_DEALLOCATE(data->devices[i].name);
 			}
 
 			KHOPAN_DEALLOCATE(data->devices);
-		}
+		}*/
 
 		KHOPAN_DEALLOCATE(data);
 		return 0;
-	case WM_NOTIFY:
+	/*case WM_NOTIFY:
 		if(!lparam || ((LPNMHDR) lparam)->code != LVN_COLUMNCLICK) {
 			break;
 		}
 
 		sortListView(data, ((LPNMLISTVIEW) lparam)->iSubItem);
-		return 0;
+		return 0;*/
 	case WM_SIZE:
 		GetClientRect(window, &bounds);
 		SetWindowPos(data->border, HWND_TOP, 0, 0, bounds.right - bounds.left - 2, bounds.bottom - bounds.top, SWP_NOMOVE);
@@ -404,12 +400,12 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
-}*/
+}
 
 void __stdcall WindowSessionTabAudio(const PTABINITIALIZER tab) {
 	tab->name = L"Audio";
-	//tab->clientInitialize = clientInitialize;
+	tab->clientInitialize = clientInitialize;
 	//tab->packetHandler = packetHandler;
-	//tab->windowClass.lpfnWndProc = procedure;
+	tab->windowClass.lpfnWndProc = procedure;
 	tab->windowClass.lpszClassName = CLASS_NAME;
 }
