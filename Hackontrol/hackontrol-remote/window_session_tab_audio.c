@@ -92,7 +92,7 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 		goto destroyWindow;
 	}
 
-	column.pszText = L"Status";
+	/*column.pszText = L"Status";
 
 	if(SendMessageW(data->list, LVM_INSERTCOLUMN, 2, (LPARAM) &column) == -1) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"ListView_InsertColumn");
@@ -111,15 +111,15 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 	if(SendMessageW(data->list, LVM_INSERTCOLUMN, 4, (LPARAM) &column) == -1) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"ListView_InsertColumn");
 		goto destroyWindow;
-	}
+	}*/
 
-	/*LVITEMW item = {0};
+	LVITEMW item = {0};
 	item.mask = LVIF_TEXT;
 	item.pszText = L"Test Device";
 	SendMessageW(data->list, LVM_INSERTITEM, 0, (LPARAM) &item);
 	item.iSubItem = 1;
 	item.pszText = L"Active";
-	SendMessageW(data->list, LVM_SETITEM, 0, (LPARAM) &item);*/
+	SendMessageW(data->list, LVM_SETITEM, 0, (LPARAM) &item);
 	HRSPSendTypePacket(client->socket, &client->hrsp, HRSP_REMOTE_SERVER_AUDIO_QUERY_DEVICE, NULL);
 	*customData = (ULONGLONG) data;
 	return window;
@@ -353,51 +353,51 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 	HRSPPACKET packet;*/
 
 	switch(message) {
-	/*case WM_CONTEXTMENU:
-		GetCursorPos(&information.pt);
-		ScreenToClient(data->list, &information.pt);
-		GetClientRect(window, &bounds);
+		/*case WM_CONTEXTMENU:
+			GetCursorPos(&information.pt);
+			ScreenToClient(data->list, &information.pt);
+			GetClientRect(window, &bounds);
 
-		if(information.pt.x < bounds.left || information.pt.x > bounds.right || information.pt.y < bounds.top || information.pt.y > bounds.bottom) {
-			break;
-		}
+			if(information.pt.x < bounds.left || information.pt.x > bounds.right || information.pt.y < bounds.top || information.pt.y > bounds.bottom) {
+				break;
+			}
 
-		if(SendMessageW(data->list, LVM_HITTEST, 0, (LPARAM) &information) != -1) {
-			item.mask = LVIF_PARAM;
-			item.iItem = information.iItem;
-			SendMessageW(data->list, LVM_GETITEM, 0, (LPARAM) &item);
-		}
+			if(SendMessageW(data->list, LVM_HITTEST, 0, (LPARAM) &information) != -1) {
+				item.mask = LVIF_PARAM;
+				item.iItem = information.iItem;
+				SendMessageW(data->list, LVM_GETITEM, 0, (LPARAM) &item);
+			}
 
-		menu = CreatePopupMenu();
+			menu = CreatePopupMenu();
 
-		if(!menu) {
-			break;
-		}
+			if(!menu) {
+				break;
+			}
 
-		if(item.lParam) {
-			AppendMenuW(menu, MF_STRING, IDM_AUDIO_CAPTURE, L"Capture");
-			AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
-		}
+			if(item.lParam) {
+				AppendMenuW(menu, MF_STRING, IDM_AUDIO_CAPTURE, L"Capture");
+				AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
+			}
 
-		AppendMenuW(menu, MF_STRING, IDM_AUDIO_REFRESH, L"Refresh");
-		SetForegroundWindow(window);
-		option = TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_TOPALIGN, LOWORD(lparam), HIWORD(lparam), window, NULL);
-		DestroyMenu(menu);
+			AppendMenuW(menu, MF_STRING, IDM_AUDIO_REFRESH, L"Refresh");
+			SetForegroundWindow(window);
+			option = TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_TOPALIGN, LOWORD(lparam), HIWORD(lparam), window, NULL);
+			DestroyMenu(menu);
 
-		switch(option) {
-		case IDM_AUDIO_CAPTURE:
-			if(!item.lParam) return 0;
-			packet.size = (int) (wcslen(((PAUDIODEVICE) item.lParam)->identifier) * sizeof(WCHAR));
-			packet.type = HRSP_REMOTE_SERVER_AUDIO_CAPTURE;
-			packet.data = (PBYTE) ((PAUDIODEVICE) item.lParam)->identifier;
-			HRSPSendPacket(data->client->socket, &data->client->hrsp, &packet, NULL);
-			return 0;
-		case IDM_AUDIO_REFRESH:
-			HRSPSendTypePacket(data->client->socket, &data->client->hrsp, HRSP_REMOTE_SERVER_AUDIO_QUERY_DEVICE, NULL);
-			return 0;
-		}
+			switch(option) {
+			case IDM_AUDIO_CAPTURE:
+				if(!item.lParam) return 0;
+				packet.size = (int) (wcslen(((PAUDIODEVICE) item.lParam)->identifier) * sizeof(WCHAR));
+				packet.type = HRSP_REMOTE_SERVER_AUDIO_CAPTURE;
+				packet.data = (PBYTE) ((PAUDIODEVICE) item.lParam)->identifier;
+				HRSPSendPacket(data->client->socket, &data->client->hrsp, &packet, NULL);
+				return 0;
+			case IDM_AUDIO_REFRESH:
+				HRSPSendTypePacket(data->client->socket, &data->client->hrsp, HRSP_REMOTE_SERVER_AUDIO_QUERY_DEVICE, NULL);
+				return 0;
+			}
 
-		break;*/
+			break;*/
 	case WM_CTLCOLORSTATIC:
 		SetDCBrushColor((HDC) wparam, 0xF9F9F9);
 		return (LRESULT) GetStockObject(DC_BRUSH);
@@ -413,15 +413,51 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 
 		KHOPAN_DEALLOCATE(data);
 		return 0;
-	/*case WM_NOTIFY:
+	case WM_NOTIFY:
 		if(!lparam || ((LPNMHDR) lparam)->code != NM_CUSTOMDRAW) {
 			break;
 		}
 
 		//sortListView(data, ((LPNMLISTVIEW) lparam)->iSubItem);
 		//return 0;
-		LOG("Custom draw\n");
-		break;*/
+		LPNMLVCUSTOMDRAW customDraw = (LPNMLVCUSTOMDRAW) lparam;
+		//LOG("Stage: 0x%08X\n", customDraw->nmcd.dwDrawStage);
+
+		switch(customDraw->nmcd.dwDrawStage) {
+		case CDDS_PREPAINT:
+			return CDRF_NOTIFYITEMDRAW;
+		case CDDS_ITEMPREPAINT:
+			return CDRF_NOTIFYSUBITEMDRAW;
+		case CDDS_ITEMPREPAINT | CDDS_SUBITEM:
+			if(customDraw->iSubItem != 1) {
+				return CDRF_DODEFAULT;
+			}
+
+			COLORREF color = GetDCBrushColor(customDraw->nmcd.hdc);
+			SetDCBrushColor(customDraw->nmcd.hdc, 0x00FF00);
+			HBRUSH brush = GetStockObject(DC_BRUSH);
+			FillRect(customDraw->nmcd.hdc, &customDraw->nmcd.rc, brush);
+			SetDCBrushColor(customDraw->nmcd.hdc, color);
+			return CDRF_SKIPDEFAULT;
+		}
+
+		/*if(customDraw->nmcd.dwDrawStage == CDDS_PREPAINT) {
+			//return CDDS_POSTPAINT;
+			return CDRF_NOTIFYPOSTPAINT;
+		} else if(customDraw->nmcd.dwDrawStage == CDDS_POSTPAINT) {
+			return CDRF_NOTIFYITEMDRAW;
+		} else if(customDraw->nmcd.dwDrawStage == CDDS_ITEMPOSTPAINT) {
+			return CDRF_NOTIFYSUBITEMDRAW;
+		} else if(customDraw->nmcd.dwDrawStage != (CDDS_ITEMPOSTPAINT | CDDS_SUBITEM)) {
+			break;
+		}
+
+		LOG("Rendering\n");
+		SetDCBrushColor(customDraw->nmcd.hdc, 0x00FF00);
+		HBRUSH brush = GetStockObject(DC_BRUSH);
+		FillRect(customDraw->nmcd.hdc, &customDraw->nmcd.rc, brush);
+		return CDRF_SKIPDEFAULT;*/
+		break;
 	case WM_SIZE:
 		GetClientRect(window, &bounds);
 		SetWindowPos(data->border, HWND_TOP, 0, 0, bounds.right - bounds.left - 2, bounds.bottom - bounds.top, SWP_NOMOVE);
