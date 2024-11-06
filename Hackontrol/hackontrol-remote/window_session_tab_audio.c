@@ -343,6 +343,31 @@ functionExit:
 	return TRUE;
 }*/
 
+static LRESULT customDraw(HWND window, UINT message, WPARAM wparam, LPARAM lparam) {
+	LPNMLVCUSTOMDRAW custom = (LPNMLVCUSTOMDRAW) lparam;
+	//LOG("Stage: 0x%08X\n", custom->nmcd.dwDrawStage);
+
+	switch(custom->nmcd.dwDrawStage) {
+	case CDDS_PREPAINT:
+		return CDRF_NOTIFYITEMDRAW;
+	case CDDS_ITEMPREPAINT:
+		return CDRF_NOTIFYSUBITEMDRAW;
+	case CDDS_ITEMPREPAINT | CDDS_SUBITEM:
+		if(custom->iSubItem != 1) {
+			return CDRF_DODEFAULT;
+		}
+
+		COLORREF color = GetDCBrushColor(custom->nmcd.hdc);
+		SetDCBrushColor(custom->nmcd.hdc, 0x00FF00);
+		HBRUSH brush = GetStockObject(DC_BRUSH);
+		FillRect(custom->nmcd.hdc, &custom->nmcd.rc, brush);
+		SetDCBrushColor(custom->nmcd.hdc, color);
+		return CDRF_SKIPDEFAULT;
+	}
+
+	return DefWindowProcW(window, message, wparam, lparam);
+}
+
 static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	USERDATA(PTABAUDIODATA, data, window, message, wparam, lparam);
 	RECT bounds;
@@ -414,49 +439,15 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 		KHOPAN_DEALLOCATE(data);
 		return 0;
 	case WM_NOTIFY:
-		if(!lparam || ((LPNMHDR) lparam)->code != NM_CUSTOMDRAW) {
+		if(!lparam) {
 			break;
 		}
 
-		//sortListView(data, ((LPNMLISTVIEW) lparam)->iSubItem);
-		//return 0;
-		LPNMLVCUSTOMDRAW customDraw = (LPNMLVCUSTOMDRAW) lparam;
-		//LOG("Stage: 0x%08X\n", customDraw->nmcd.dwDrawStage);
-
-		switch(customDraw->nmcd.dwDrawStage) {
-		case CDDS_PREPAINT:
-			return CDRF_NOTIFYITEMDRAW;
-		case CDDS_ITEMPREPAINT:
-			return CDRF_NOTIFYSUBITEMDRAW;
-		case CDDS_ITEMPREPAINT | CDDS_SUBITEM:
-			if(customDraw->iSubItem != 1) {
-				return CDRF_DODEFAULT;
-			}
-
-			COLORREF color = GetDCBrushColor(customDraw->nmcd.hdc);
-			SetDCBrushColor(customDraw->nmcd.hdc, 0x00FF00);
-			HBRUSH brush = GetStockObject(DC_BRUSH);
-			FillRect(customDraw->nmcd.hdc, &customDraw->nmcd.rc, brush);
-			SetDCBrushColor(customDraw->nmcd.hdc, color);
-			return CDRF_SKIPDEFAULT;
+		switch(((LPNMHDR) lparam)->code) {
+		case NM_CUSTOMDRAW:
+			return customDraw(window, message, wparam, lparam);
 		}
 
-		/*if(customDraw->nmcd.dwDrawStage == CDDS_PREPAINT) {
-			//return CDDS_POSTPAINT;
-			return CDRF_NOTIFYPOSTPAINT;
-		} else if(customDraw->nmcd.dwDrawStage == CDDS_POSTPAINT) {
-			return CDRF_NOTIFYITEMDRAW;
-		} else if(customDraw->nmcd.dwDrawStage == CDDS_ITEMPOSTPAINT) {
-			return CDRF_NOTIFYSUBITEMDRAW;
-		} else if(customDraw->nmcd.dwDrawStage != (CDDS_ITEMPOSTPAINT | CDDS_SUBITEM)) {
-			break;
-		}
-
-		LOG("Rendering\n");
-		SetDCBrushColor(customDraw->nmcd.hdc, 0x00FF00);
-		HBRUSH brush = GetStockObject(DC_BRUSH);
-		FillRect(customDraw->nmcd.hdc, &customDraw->nmcd.rc, brush);
-		return CDRF_SKIPDEFAULT;*/
 		break;
 	case WM_SIZE:
 		GetClientRect(window, &bounds);
