@@ -356,3 +356,16 @@ LPWSTR KHOPANStringDuplicate(const LPCWSTR text) {
 	SetLastError(ERROR_SUCCESS);
 	return buffer;
 }
+
+LPWSTR KHOPANGetErrorMessageHRESULT(const HRESULT result) {
+	//BOOL ntstatus = (((long) result) >> 28) & 1;
+	//printf("NTSTATUS: %s\n", ntstatus ? "True" : "False");
+	printf("Binary: 0b");
+
+	for(int i = 31; i >= 0; i--) {
+		printf("%d", (((long) result) >> i) & 1);
+	}
+
+	printf("\n");
+	return NULL;
+}
