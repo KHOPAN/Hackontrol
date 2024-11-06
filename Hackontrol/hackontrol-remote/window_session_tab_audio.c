@@ -357,17 +357,19 @@ static LRESULT customDraw(HWND window, UINT message, WPARAM wparam, LPARAM lpara
 			return CDRF_DODEFAULT;
 		}
 
-		if(custom->nmcd.uItemState & CDIS_SELECTED) {
-			FillRect(custom->nmcd.hdc, &custom->nmcd.rc, GetSysColorBrush(COLOR_HIGHLIGHT));
-		} else {
-			SetDCBrushColor(custom->nmcd.hdc, custom->clrFace);
-			FillRect(custom->nmcd.hdc, &custom->nmcd.rc, GetStockObject(DC_BRUSH));
-		}
-
-		return CDRF_SKIPDEFAULT;
+		break;
+	default:
+		return DefWindowProcW(window, message, wparam, lparam);
 	}
 
-	return DefWindowProcW(window, message, wparam, lparam);
+	if(custom->nmcd.uItemState & CDIS_SELECTED) {
+		FillRect(custom->nmcd.hdc, &custom->nmcd.rc, GetSysColorBrush(COLOR_HIGHLIGHT));
+	} else {
+		SetDCBrushColor(custom->nmcd.hdc, custom->clrFace);
+		FillRect(custom->nmcd.hdc, &custom->nmcd.rc, GetStockObject(DC_BRUSH));
+	}
+
+	return CDRF_SKIPDEFAULT;
 }
 
 static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
