@@ -357,11 +357,9 @@ static LRESULT customDraw(HWND window, UINT message, WPARAM wparam, LPARAM lpara
 			return CDRF_DODEFAULT;
 		}
 
-		COLORREF color = GetDCBrushColor(custom->nmcd.hdc);
 		SetDCBrushColor(custom->nmcd.hdc, 0x00FF00);
 		HBRUSH brush = GetStockObject(DC_BRUSH);
 		FillRect(custom->nmcd.hdc, &custom->nmcd.rc, brush);
-		SetDCBrushColor(custom->nmcd.hdc, color);
 		return CDRF_SKIPDEFAULT;
 	}
 
