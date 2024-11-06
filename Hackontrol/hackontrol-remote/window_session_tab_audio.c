@@ -4,6 +4,8 @@
 
 #define CLASS_NAME L"HackontrolRemoteSessionTabAudio"
 
+#define VOLUME_OFFSET 2
+
 extern HFONT font;
 
 /*#define IDM_AUDIO_CAPTURE 0xE001
@@ -362,11 +364,24 @@ static LRESULT customDraw(HWND window, UINT message, WPARAM wparam, LPARAM lpara
 		return DefWindowProcW(window, message, wparam, lparam);
 	}
 
-	if(custom->nmcd.uItemState & CDIS_SELECTED) {
-		FillRect(custom->nmcd.hdc, &custom->nmcd.rc, GetSysColorBrush(COLOR_HIGHLIGHT));
-	} else {
-		SetDCBrushColor(custom->nmcd.hdc, custom->clrFace);
-		FillRect(custom->nmcd.hdc, &custom->nmcd.rc, GetStockObject(DC_BRUSH));
+	HBRUSH brush = GetStockObject(DC_BRUSH);
+	SetDCBrushColor(custom->nmcd.hdc, custom->nmcd.uItemState & CDIS_SELECTED ? GetSysColor(COLOR_HIGHLIGHT) : custom->clrFace);
+	FillRect(custom->nmcd.hdc, &custom->nmcd.rc, brush);
+	RECT bounds = custom->nmcd.rc;
+	bounds.left += VOLUME_OFFSET;
+	bounds.top += VOLUME_OFFSET;
+	bounds.right -= VOLUME_OFFSET;
+	bounds.bottom -= VOLUME_OFFSET;
+	SetDCBrushColor(custom->nmcd.hdc, GetSysColor(COLOR_MENU));
+	FillRect(custom->nmcd.hdc, &bounds, brush);
+	LONG start = bounds.left;
+	LONG end = bounds.right - bounds.left;
+
+	for(LONG x = 0; x < end - 20; x++) {
+		bounds.left = start + x;
+		bounds.right = start + x + 1;
+		SetDCBrushColor(custom->nmcd.hdc, ((((int) (((double) x) / ((double) (end - 1)) * 50.0 + 150.0)) & 0xFF) << 8) | 0x320032);
+		FillRect(custom->nmcd.hdc, &bounds, brush);
 	}
 
 	return CDRF_SKIPDEFAULT;
