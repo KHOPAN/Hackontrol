@@ -367,5 +367,13 @@ LPWSTR KHOPANGetErrorMessageHRESULT(const HRESULT result) {
 	}
 
 	printf("\n");
+	LPWSTR buffer = NULL;
+	FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, result & 0xFFFF, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR) &buffer, 0, NULL);
+	printf("Format: %ws\n", buffer);
+
+	if(buffer) {
+		LocalFree(buffer);
+	}
+
 	return NULL;
 }
