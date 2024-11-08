@@ -25,36 +25,24 @@
 #define KHOPANLASTERRORCONSOLE_WIN32(function) KHOPANERRORCONSOLE_WIN32(GetLastError(),function)
 #define KHOPANLASTERRORCONSOLE_WSA(function)   KHOPANERRORCONSOLE_WIN32(WSAGetLastError(),function)
 
-#define KHOPAN_ALLOCATION_HEAP
+#define KHOPAN_ALLOCATE(size)     HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,size)
+#define KHOPAN_DEALLOCATE(buffer) HeapFree(GetProcessHeap(),0,buffer)
 
-#ifdef KHOPAN_ALLOCATION_HEAP
-#define KHOPAN_ALLOCATE_INTERNAL(size)     (HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,(size_t)(size)))
-#define KHOPAN_ALLOCATE_FAILED(buffer)     (((LPVOID)(buffer))==NULL)
-#define KHOPAN_ALLOCATE_ERROR              (ERROR_FUNCTION_FAILED)
-#define KHOPAN_ALLOCATE_FUNCTION           (L"HeapAlloc")
-#define KHOPAN_DEALLOCATE_INTERNAL(buffer) (HeapFree(GetProcessHeap(),0,(LPVOID)(buffer)))
-#define KHOPAN_DEALLOCATE_FAILED(status)   (((BOOL)(status))==FALSE)
-#define KHOPAN_DEALLOCATE_ERROR            (GetLastError())
-#define KHOPAN_DEALLOCATE_FUNCTION         (L"HeapFree")
-#else
-#endif
+#define ERROR_FACILITY_WIN32  0x0000
+#define ERROR_FACILITY_COMMON 0x0001
 
-/*#ifdef KHOPAN_USE_HEAP
-#define KHOPAN_ALLOCATE(size)         ((PBYTE)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,(size_t)(size)))
-#define KHOPAN_ALLOCATE_ERROR(buffer) (((PBYTE)(buffer))==NULL)
-#define KHOPAN_ALLOCATE_WIN32_CODE    (ERROR_FUNCTION_FAILED)
-#define KHOPAN_ALLOCATE_FUNCTION      L"HeapAlloc"
-#define KHOPAN_FREE(buffer)           (HeapFree(GetProcessHeap(),0,(PBYTE)(buffer)))
-#else
-#define KHOPAN_ALLOCATE(size)         ((PBYTE)LocalAlloc(LMEM_FIXED,(size_t)(size)))
-#define KHOPAN_ALLOCATE_ERROR(buffer) (((PBYTE)(buffer))==NULL)
-#define KHOPAN_ALLOCATE_WIN32_CODE    (GetLastError())
-#define KHOPAN_ALLOCATE_FUNCTION      L"LocalAlloc"
-#define KHOPAN_FREE(buffer)           (LocalFree((PBYTE)(buffer)))
-#endif*/
+enum ERRORFACLIITYCOMMON {
+	ERROR_COMMON_SUCCESS,
+	ERROR_COMMON_UNDEFINED,
+	ERROR_COMMON_FUNCTION_FAILED,
+	ERROR_COMMON_INVALID_PARAMETER
+};
 
-#define KHOPAN_ALLOCATE   KHOPAN_ALLOCATE_INTERNAL
-#define KHOPAN_DEALLOCATE KHOPAN_DEALLOCATE_INTERNAL
+typedef struct {
+	UINT facility;
+	ULONG code;
+	LPCWSTR function;
+} KHOPANERROR, *PKHOPANERROR;
 
 #ifdef __cplusplus
 extern "C" {
@@ -73,6 +61,11 @@ LPWSTR KHOPANInternalGetErrorMessage(const DWORD code, const LPCWSTR function, c
 LPWSTR KHOPANStringDuplicate(const LPCWSTR text);
 
 LPWSTR KHOPANGetErrorMessageHRESULT(const HRESULT result);
+LPWSTR KHOPANGetErrorMessageKHOPANERROR(const PKHOPANERROR error);
+LPWSTR KHOPANGetErrorMessage(const PKHOPANERROR error);
 #ifdef __cplusplus
 }
 #endif
+
+#define KHOPAN_ALLOCATE_ERROR 0
+#define KHOPAN_ALLOCATE_FAILED(x) FALSE

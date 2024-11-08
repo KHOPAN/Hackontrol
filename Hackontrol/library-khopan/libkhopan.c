@@ -249,7 +249,6 @@ LPWSTR KHOPANFolderGetWindows() {
 
 LPWSTR KHOPANFormatMessage(const LPCWSTR format, ...) {
 	if(!format) {
-		SetLastError(ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
@@ -259,24 +258,19 @@ LPWSTR KHOPANFormatMessage(const LPCWSTR format, ...) {
 	LPWSTR buffer = NULL;
 
 	if(length == -1) {
-		SetLastError(ERROR_INVALID_PARAMETER);
 		goto functionExit;
 	}
 
-	buffer = LocalAlloc(LMEM_FIXED, (((size_t) length) + 1) * sizeof(WCHAR));
+	buffer = KHOPAN_ALLOCATE((((size_t) length) + 1) * sizeof(WCHAR));
 
 	if(!buffer) {
 		goto functionExit;
 	}
 
 	if(vswprintf_s(buffer, ((size_t) length) + 1, format, list) == -1) {
-		LocalFree(buffer);
+		KHOPAN_DEALLOCATE(buffer);
 		buffer = NULL;
-		SetLastError(ERROR_INVALID_PARAMETER);
-		goto functionExit;
 	}
-
-	SetLastError(ERROR_SUCCESS);
 functionExit:
 	va_end(list);
 	return buffer;
@@ -284,7 +278,6 @@ functionExit:
 
 LPSTR KHOPANFormatANSI(const LPCSTR format, ...) {
 	if(!format) {
-		SetLastError(ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
@@ -294,24 +287,19 @@ LPSTR KHOPANFormatANSI(const LPCSTR format, ...) {
 	LPSTR buffer = NULL;
 
 	if(length == -1) {
-		SetLastError(ERROR_INVALID_PARAMETER);
 		goto functionExit;
 	}
 
-	buffer = LocalAlloc(LMEM_FIXED, ((size_t) length) + 1);
+	buffer = KHOPAN_ALLOCATE(((size_t) length) + 1);
 
 	if(!buffer) {
 		goto functionExit;
 	}
 
 	if(vsprintf_s(buffer, ((size_t) length) + 1, format, list) == -1) {
-		LocalFree(buffer);
+		KHOPAN_DEALLOCATE(buffer);
 		buffer = NULL;
-		SetLastError(ERROR_INVALID_PARAMETER);
-		goto functionExit;
 	}
-
-	SetLastError(ERROR_SUCCESS);
 functionExit:
 	va_end(list);
 	return buffer;
@@ -369,4 +357,43 @@ LPWSTR KHOPANGetErrorMessageHRESULT(const HRESULT result) {
 	}
 
 	return buffer;
+}
+
+LPWSTR KHOPANGetErrorMessageKHOPANERROR(const PKHOPANERROR error) {
+	if(!error) {
+		return L"No message code was provided";
+	}
+
+	if(error->facility != ERROR_FACILITY_COMMON) {
+		return L"Unrecognized error facility";
+	}
+
+	switch(error->code) {
+	case ERROR_COMMON_SUCCESS:           return L"An operation completed successfully";
+	case ERROR_COMMON_UNDEFINED:         return L"Undefined or unknown error";
+	case ERROR_COMMON_FUNCTION_FAILED:   return L"Function has failed";
+	case ERROR_COMMON_INVALID_PARAMETER: return L"Function parameter is invalid";
+	default:                             return L"Undefined or unknown error";
+	}
+}
+
+LPWSTR KHOPANGetErrorMessage(const PKHOPANERROR error) {
+	if(!error) {
+		return NULL;
+	}
+
+	LPWSTR message = error->facility == ERROR_FACILITY_WIN32 ? KHOPANGetErrorMessageHRESULT(error->code) : KHOPANGetErrorMessageKHOPANERROR(error);
+	LPWSTR result;
+
+	if(message) {
+		result = error->function ? KHOPANFormatMessage(L"%ws() error occurred. Facility: %u Error code: %lu Message:\n%ws", error->function, error->facility, error->code, message) : KHOPANFormatMessage(L"Facility: %u Error code: %lu Message:\n%ws", error->facility, error->code, message);
+
+		if(error->facility == ERROR_FACILITY_WIN32) {
+			LocalFree(message);
+		}
+	} else {
+		result = error->function ? KHOPANFormatMessage(L"%ws() error occurred. Facility: %u Error code: %lu", error->function, error->facility, error->code) : KHOPANFormatMessage(L"Facility: %u Error code: %lu", error->facility, error->code);
+	}
+
+	return result;
 }
