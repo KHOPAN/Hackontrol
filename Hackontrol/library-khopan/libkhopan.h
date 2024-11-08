@@ -60,8 +60,6 @@ LPSTR KHOPANFormatANSI(const LPCSTR format, ...);
 LPWSTR KHOPANInternalGetErrorMessage(const DWORD code, const LPCWSTR function, const BOOL win32);
 LPWSTR KHOPANStringDuplicate(const LPCWSTR text);
 
-LPWSTR KHOPANGetErrorMessageHRESULT(const HRESULT result);
-LPWSTR KHOPANGetErrorMessageKHOPANERROR(const PKHOPANERROR error);
 LPWSTR KHOPANGetErrorMessage(const PKHOPANERROR error);
 #ifdef __cplusplus
 }

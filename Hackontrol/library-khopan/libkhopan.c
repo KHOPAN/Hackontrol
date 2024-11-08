@@ -345,7 +345,7 @@ LPWSTR KHOPANStringDuplicate(const LPCWSTR text) {
 	return buffer;
 }
 
-LPWSTR KHOPANGetErrorMessageHRESULT(const HRESULT result) {
+static LPWSTR getHRESULT(const HRESULT result) {
 	if(((long) result) & 0x20000000) {
 		return NULL;
 	}
@@ -359,7 +359,7 @@ LPWSTR KHOPANGetErrorMessageHRESULT(const HRESULT result) {
 	return buffer;
 }
 
-LPWSTR KHOPANGetErrorMessageKHOPANERROR(const PKHOPANERROR error) {
+static LPWSTR getKHOPANERROR(const PKHOPANERROR error) {
 	if(!error) {
 		return L"No message code was provided";
 	}
@@ -382,17 +382,17 @@ LPWSTR KHOPANGetErrorMessage(const PKHOPANERROR error) {
 		return NULL;
 	}
 
-	LPWSTR message = error->facility == ERROR_FACILITY_WIN32 ? KHOPANGetErrorMessageHRESULT(error->code) : KHOPANGetErrorMessageKHOPANERROR(error);
+	LPWSTR message = error->facility == ERROR_FACILITY_WIN32 ? getHRESULT(error->code) : getKHOPANERROR(error);
 	LPWSTR result;
 
 	if(message) {
-		result = error->function ? KHOPANFormatMessage(L"%ws() error occurred. Facility: %u Error code: %lu Message:\n%ws", error->function, error->facility, error->code, message) : KHOPANFormatMessage(L"Facility: %u Error code: %lu Message:\n%ws", error->facility, error->code, message);
+		result = error->function ? KHOPANFormatMessage(L"%ws() error occurred. Facility: 0x%04X Error code: 0x%08X Message:\n%ws", error->function, error->facility, error->code, message) : KHOPANFormatMessage(L"Facility: 0x%04X Error code: 0x%08X Message:\n%ws", error->facility, error->code, message);
 
 		if(error->facility == ERROR_FACILITY_WIN32) {
 			LocalFree(message);
 		}
 	} else {
-		result = error->function ? KHOPANFormatMessage(L"%ws() error occurred. Facility: %u Error code: %lu", error->function, error->facility, error->code) : KHOPANFormatMessage(L"Facility: %u Error code: %lu", error->facility, error->code);
+		result = error->function ? KHOPANFormatMessage(L"%ws() error occurred. Facility: 0x%04X Error code: 0x%08X", error->function, error->facility, error->code) : KHOPANFormatMessage(L"Facility: 0x%04X Error code: 0x%08X", error->facility, error->code);
 	}
 
 	return result;
