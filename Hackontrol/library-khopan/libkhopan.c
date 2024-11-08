@@ -358,22 +358,15 @@ LPWSTR KHOPANStringDuplicate(const LPCWSTR text) {
 }
 
 LPWSTR KHOPANGetErrorMessageHRESULT(const HRESULT result) {
-	//BOOL ntstatus = (((long) result) >> 28) & 1;
-	//printf("NTSTATUS: %s\n", ntstatus ? "True" : "False");
-	printf("Binary: 0b");
-
-	for(int i = 31; i >= 0; i--) {
-		printf("%d", (((long) result) >> i) & 1);
+	if(((long) result) & 0x20000000) {
+		return NULL;
 	}
 
-	printf("\n");
-	LPWSTR buffer = NULL;
-	FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, result & 0xFFFF, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR) &buffer, 0, NULL);
-	printf("Format: %ws\n", buffer);
+	LPWSTR buffer;
 
-	if(buffer) {
-		LocalFree(buffer);
+	if(!FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK | (((long) result) & 0x10000000 ? FORMAT_MESSAGE_FROM_HMODULE : 0), ((long) result) & 0x10000000 ? LoadLibraryW(L"ntdll.dll") : NULL, result & (((long) result) & 0x10000000 ? ~0x10000000 : 0xFFFF), MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), (LPWSTR) &buffer, 0, NULL)) {
+		return NULL;
 	}
 
-	return NULL;
+	return buffer;
 }
