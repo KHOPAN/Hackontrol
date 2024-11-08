@@ -42,7 +42,7 @@ typedef struct {
 #ifdef __cplusplus
 extern "C" {
 #endif
-BOOL KHOPANEnablePrivilege(const LPCWSTR privilege);
+BOOL KHOPANEnablePrivilege(const LPCWSTR privilege, const PKHOPANERROR error);
 BOOL KHOPANExecuteCommand(const LPCWSTR command, const BOOL block);
 BOOL KHOPANExecuteDynamicLibrary(const LPCWSTR file, const LPCSTR function, const LPCSTR argument);
 BOOL KHOPANExecuteProcess(const LPCWSTR file, const LPCWSTR argument, const BOOL block);

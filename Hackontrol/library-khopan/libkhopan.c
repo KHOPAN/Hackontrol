@@ -1,5 +1,9 @@
 #include "libkhopan.h"
 
+#define ERROR_COMMON(errorCode, functionName) if(error){error->facility=ERROR_FACILITY_COMMON;error->code=errorCode;error->function=functionName;}
+#define ERROR_WIN32(functionName)             if(error){error->facility=ERROR_FACILITY_HRESULT;error->code=HRESULT_FROM_WIN32(GetLastError());error->function=functionName;}
+#define ERROR_CLEAR ERROR_COMMON(ERROR_COMMON_SUCCESS,NULL)
+
 #define SAFECALL(x) {DWORD internalError=GetLastError();x;SetLastError(internalError);}
 
 typedef void(__stdcall* RUNDLL32FUNCTION) (HWND window, HINSTANCE instance, LPSTR argument, int command);
@@ -26,22 +30,24 @@ static DWORD WINAPI KHOPANExecuteRundll32FunctionThread(_In_ LPVOID parameter) {
 	return 0;
 }
 
-BOOL KHOPANEnablePrivilege(const LPCWSTR privilege) {
+BOOL KHOPANEnablePrivilege(const LPCWSTR privilege, const PKHOPANERROR error) {
 	if(!privilege) {
-		SetLastError(ERROR_INVALID_PARAMETER);
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANEnablePrivilege");
 		return FALSE;
 	}
 
 	HANDLE token;
 
 	if(!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &token)) {
+		ERROR_WIN32(L"OpenProcessToken");
 		return FALSE;
 	}
 
 	LUID identifier;
 
 	if(!LookupPrivilegeValueW(NULL, privilege, &identifier)) {
-		SAFECALL(CloseHandle(token));
+		ERROR_WIN32(L"LookupPrivilegeValueW");
+		CloseHandle(token);
 		return FALSE;
 	}
 
@@ -49,14 +55,15 @@ BOOL KHOPANEnablePrivilege(const LPCWSTR privilege) {
 	privileges.PrivilegeCount = 1;
 	privileges.Privileges[0].Luid = identifier;
 	privileges.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
-	identifier.LowPart = AdjustTokenPrivileges(token, FALSE, &privileges, sizeof(privileges), NULL, NULL);
-	SAFECALL(CloseHandle(token));
 
-	if(!identifier.LowPart) {
+	if(!AdjustTokenPrivileges(token, FALSE, &privileges, sizeof(privileges), NULL, NULL)) {
+		ERROR_WIN32(L"AdjustTokenPrivileges");
+		CloseHandle(token);
 		return FALSE;
 	}
 
-	SetLastError(ERROR_SUCCESS);
+	CloseHandle(token);
+	ERROR_CLEAR;
 	return TRUE;
 }
 
