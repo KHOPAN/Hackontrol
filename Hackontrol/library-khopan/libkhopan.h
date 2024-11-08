@@ -7,29 +7,24 @@
 #define FILE_RUNDLL32   L"rundll32.exe"
 #define FOLDER_SYSTEM32 L"System32"
 
-#define KHOPANRAWERROR_WIN32(code, function)    KHOPANInternalGetErrorMessage(code,function,TRUE)
-#define KHOPANRAWERROR_HRESULT(code, function)  KHOPANInternalGetErrorMessage((code)==S_OK?ERROR_SUCCESS:(HRESULT)(((HRESULT)code)&0xFFFF0000)==MAKE_HRESULT(SEVERITY_ERROR,FACILITY_WIN32,0)?HRESULT_CODE((HRESULT)code):ERROR_FUNCTION_FAILED,function,TRUE)
-#define KHOPANRAWERROR_NTSTATUS(code, function) KHOPANInternalGetErrorMessage(code,function,FALSE)
-
-#define KHOPANERRORMESSAGE_WIN32(code, function)    do{LPWSTR __temporaryMessage__=KHOPANRAWERROR_WIN32(code,function);if(__temporaryMessage__){MessageBoxW(NULL,__temporaryMessage__,L"Error",MB_OK|MB_DEFBUTTON1|MB_ICONERROR|MB_SYSTEMMODAL);LocalFree(__temporaryMessage__);}}while(0)
-#define KHOPANERRORMESSAGE_HRESULT(code, function)  do{LPWSTR __temporaryMessage__=KHOPANRAWERROR_HRESULT(code,function);if(__temporaryMessage__){MessageBoxW(NULL,__temporaryMessage__,L"Error",MB_OK|MB_DEFBUTTON1|MB_ICONERROR|MB_SYSTEMMODAL);LocalFree(__temporaryMessage__);}}while(0)
-#define KHOPANERRORMESSAGE_NTSTATUS(code, function) do{LPWSTR __temporaryMessage__=KHOPANRAWERROR_NTSTATUS(code,function);if(__temporaryMessage__){MessageBoxW(NULL,__temporaryMessage__,L"Error",MB_OK|MB_DEFBUTTON1|MB_ICONERROR|MB_SYSTEMMODAL);LocalFree(__temporaryMessage__);}}while(0)
-
-#define KHOPANERRORCONSOLE_WIN32(code, function)    do{LPWSTR __temporaryMessage__=KHOPANRAWERROR_WIN32(code,function);if(__temporaryMessage__){_putws(__temporaryMessage__);LocalFree(__temporaryMessage__);}}while(0)
-#define KHOPANERRORCONSOLE_HRESULT(code, function)  do{LPWSTR __temporaryMessage__=KHOPANRAWERROR_HRESULT(code,function);if(__temporaryMessage__){_putws(__temporaryMessage__);LocalFree(__temporaryMessage__);}}while(0)
-#define KHOPANERRORCONSOLE_NTSTATUS(code, function) do{LPWSTR __temporaryMessage__=KHOPANRAWERROR_NTSTATUS(code,function);if(__temporaryMessage__){_putws(__temporaryMessage__);LocalFree(__temporaryMessage__);}}while(0)
-
-#define KHOPANLASTERRORMESSAGE_WIN32(function) KHOPANERRORMESSAGE_WIN32(GetLastError(),function)
-#define KHOPANLASTERRORMESSAGE_WSA(function)   KHOPANERRORMESSAGE_WIN32(WSAGetLastError(),function)
-
-#define KHOPANLASTERRORCONSOLE_WIN32(function) KHOPANERRORCONSOLE_WIN32(GetLastError(),function)
-#define KHOPANLASTERRORCONSOLE_WSA(function)   KHOPANERRORCONSOLE_WIN32(WSAGetLastError(),function)
-
 #define KHOPAN_ALLOCATE(size)     HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,size)
 #define KHOPAN_DEALLOCATE(buffer) HeapFree(GetProcessHeap(),0,buffer)
 
-#define ERROR_FACILITY_WIN32  0x0000
-#define ERROR_FACILITY_COMMON 0x0001
+#define ERROR_FACILITY_HRESULT 0x0000
+#define ERROR_FACILITY_COMMON  0x0001
+
+#define KHOPANERRORMESSAGE_HRESULT(result, functionName) do{KHOPANERROR __temporaryError__;__temporaryError__.facility=ERROR_FACILITY_HRESULT;__temporaryError__.code=(HRESULT)(result);__temporaryError__.function=(LPCWSTR)(functionName);LPWSTR __temporaryMessage__=KHOPANGetErrorMessage(&__temporaryError__);if(__temporaryMessage__){MessageBoxW(NULL,__temporaryMessage__,L"Error",MB_OK|MB_DEFBUTTON1|MB_ICONERROR|MB_SYSTEMMODAL);KHOPAN_DEALLOCATE(__temporaryMessage__);}}while(0)
+#define KHOPANERRORMESSAGE_WIN32(code, function)         KHOPANERRORMESSAGE_HRESULT(HRESULT_FROM_WIN32((unsigned long)(code)),function)
+#define KHOPANERRORMESSAGE_NTSTATUS(code, function)      KHOPANERRORMESSAGE_HRESULT((code)|0x10000000,function)
+
+#define KHOPANERRORCONSOLE_HRESULT(result, functionName) do{KHOPANERROR __temporaryError__;__temporaryError__.facility=ERROR_FACILITY_HRESULT;__temporaryError__.code=(HRESULT)(result);__temporaryError__.function=(LPCWSTR)(functionName);LPWSTR __temporaryMessage__=KHOPANGetErrorMessage(&__temporaryError__);if(__temporaryMessage__){_putws(__temporaryMessage__);KHOPAN_DEALLOCATE(__temporaryMessage__);}}while(0)
+#define KHOPANERRORCONSOLE_WIN32(code, function)         KHOPANERRORCONSOLE_HRESULT(HRESULT_FROM_WIN32((unsigned long)(code)),function)
+#define KHOPANERRORCONSOLE_NTSTATUS(code, function)      KHOPANERRORCONSOLE_HRESULT((code)|0x10000000,function)
+
+#define KHOPANLASTERRORMESSAGE_WIN32(function) KHOPANERRORMESSAGE_WIN32(GetLastError(),function)
+#define KHOPANLASTERRORMESSAGE_WSA(function)   KHOPANERRORMESSAGE_WIN32(WSAGetLastError(),function)
+#define KHOPANLASTERRORCONSOLE_WIN32(function) KHOPANERRORCONSOLE_WIN32(GetLastError(),function)
+#define KHOPANLASTERRORCONSOLE_WSA(function)   KHOPANERRORCONSOLE_WIN32(WSAGetLastError(),function)
 
 enum ERRORFACLIITYCOMMON {
 	ERROR_COMMON_SUCCESS,
@@ -57,7 +52,6 @@ LPWSTR KHOPANFileGetRundll32();
 LPWSTR KHOPANFolderGetWindows();
 LPWSTR KHOPANFormatMessage(const LPCWSTR format, ...);
 LPSTR KHOPANFormatANSI(const LPCSTR format, ...);
-LPWSTR KHOPANInternalGetErrorMessage(const DWORD code, const LPCWSTR function, const BOOL win32);
 LPWSTR KHOPANStringDuplicate(const LPCWSTR text);
 
 LPWSTR KHOPANGetErrorMessage(const PKHOPANERROR error);

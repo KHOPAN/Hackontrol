@@ -305,18 +305,6 @@ functionExit:
 	return buffer;
 }
 
-LPWSTR KHOPANInternalGetErrorMessage(const DWORD code, const LPCWSTR function, const BOOL win32) {
-	LPWSTR buffer;
-
-	if(!FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | (win32 ? 0 : FORMAT_MESSAGE_FROM_HMODULE), win32 ? NULL : LoadLibraryW(L"ntdll.dll"), code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR) &buffer, 0, NULL)) {
-		return function ? KHOPANFormatMessage(L"%ws() error occurred. Error code: %lu", function, code) : KHOPANFormatMessage(L"Error occurred. Error code: %lu", code);
-	}
-
-	LPWSTR message = function ? KHOPANFormatMessage(L"%ws() error occurred. Error code: %lu Message:\n%ws", function, code, buffer) : KHOPANFormatMessage(L"Error occurred. Error code: %lu Message:\n%ws", code, buffer);
-	SAFECALL(LocalFree(buffer));
-	return message;
-}
-
 LPWSTR KHOPANStringDuplicate(const LPCWSTR text) {
 	if(!text) {
 		SetLastError(ERROR_INVALID_PARAMETER);
@@ -382,13 +370,13 @@ LPWSTR KHOPANGetErrorMessage(const PKHOPANERROR error) {
 		return NULL;
 	}
 
-	LPWSTR message = error->facility == ERROR_FACILITY_WIN32 ? getHRESULT(error->code) : getKHOPANERROR(error);
+	LPWSTR message = error->facility == ERROR_FACILITY_HRESULT ? getHRESULT(error->code) : getKHOPANERROR(error);
 	LPWSTR result;
 
 	if(message) {
 		result = error->function ? KHOPANFormatMessage(L"%ws() error occurred. Facility: 0x%04X Error code: 0x%08X Message:\n%ws", error->function, error->facility, error->code, message) : KHOPANFormatMessage(L"Facility: 0x%04X Error code: 0x%08X Message:\n%ws", error->facility, error->code, message);
 
-		if(error->facility == ERROR_FACILITY_WIN32) {
+		if(error->facility == ERROR_FACILITY_HRESULT) {
 			LocalFree(message);
 		}
 	} else {
