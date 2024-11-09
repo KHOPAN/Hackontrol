@@ -312,6 +312,50 @@ functionExit:
 	return buffer;
 }
 
+static LPWSTR commonFacility(const PKHOPANERROR error) {
+	if(error->facility != ERROR_FACILITY_COMMON) {
+		return L"Unrecognized error facility";
+	}
+
+	switch(error->code) {
+	case ERROR_COMMON_SUCCESS:           return L"An operation completed successfully";
+	case ERROR_COMMON_UNDEFINED:         return L"Undefined or unknown error";
+	case ERROR_COMMON_FUNCTION_FAILED:   return L"Function has failed";
+	case ERROR_COMMON_INVALID_PARAMETER: return L"Function parameter is invalid";
+	default:                             return L"Undefined or unknown error";
+	}
+}
+
+LPWSTR KHOPANGetErrorMessage(const PKHOPANERROR error) {
+	if(!error) {
+		return NULL;
+	}
+
+	LPWSTR message = NULL;
+
+	if(error->facility == ERROR_FACILITY_HRESULT) {
+		if(error->code & 0x20000000) {
+			FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK | (error->code & 0x10000000 ? FORMAT_MESSAGE_FROM_HMODULE : 0), error->code & 0x10000000 ? LoadLibraryW(L"ntdll.dll") : NULL, error->code & (error->code & 0x10000000 ? ~0x10000000 : 0xFFFF), MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), (LPWSTR) &message, 0, NULL);
+		}
+	} else {
+		message = commonFacility(error);
+	}
+
+	LPWSTR result;
+
+	if(message) {
+		result = error->function ? KHOPANFormatMessage(L"%ws() error occurred. Facility: 0x%04X Error code: 0x%08X Message:\n%ws", error->function, error->facility, error->code, message) : KHOPANFormatMessage(L"Facility: 0x%04X Error code: 0x%08X Message:\n%ws", error->facility, error->code, message);
+
+		if(error->facility == ERROR_FACILITY_HRESULT) {
+			LocalFree(message);
+		}
+	} else {
+		result = error->function ? KHOPANFormatMessage(L"%ws() error occurred. Facility: 0x%04X Error code: 0x%08X", error->function, error->facility, error->code) : KHOPANFormatMessage(L"Facility: 0x%04X Error code: 0x%08X", error->facility, error->code);
+	}
+
+	return result;
+}
+
 LPWSTR KHOPANStringDuplicate(const LPCWSTR text) {
 	if(!text) {
 		SetLastError(ERROR_INVALID_PARAMETER);
@@ -338,57 +382,4 @@ LPWSTR KHOPANStringDuplicate(const LPCWSTR text) {
 	buffer[length] = 0;
 	SetLastError(ERROR_SUCCESS);
 	return buffer;
-}
-
-static LPWSTR getHRESULT(const HRESULT result) {
-	if(((long) result) & 0x20000000) {
-		return NULL;
-	}
-
-	LPWSTR buffer;
-
-	if(!FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK | (((long) result) & 0x10000000 ? FORMAT_MESSAGE_FROM_HMODULE : 0), ((long) result) & 0x10000000 ? LoadLibraryW(L"ntdll.dll") : NULL, result & (((long) result) & 0x10000000 ? ~0x10000000 : 0xFFFF), MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), (LPWSTR) &buffer, 0, NULL)) {
-		return NULL;
-	}
-
-	return buffer;
-}
-
-static LPWSTR getKHOPANERROR(const PKHOPANERROR error) {
-	if(!error) {
-		return L"No message code was provided";
-	}
-
-	if(error->facility != ERROR_FACILITY_COMMON) {
-		return L"Unrecognized error facility";
-	}
-
-	switch(error->code) {
-	case ERROR_COMMON_SUCCESS:           return L"An operation completed successfully";
-	case ERROR_COMMON_UNDEFINED:         return L"Undefined or unknown error";
-	case ERROR_COMMON_FUNCTION_FAILED:   return L"Function has failed";
-	case ERROR_COMMON_INVALID_PARAMETER: return L"Function parameter is invalid";
-	default:                             return L"Undefined or unknown error";
-	}
-}
-
-LPWSTR KHOPANGetErrorMessage(const PKHOPANERROR error) {
-	if(!error) {
-		return NULL;
-	}
-
-	LPWSTR message = error->facility == ERROR_FACILITY_HRESULT ? getHRESULT(error->code) : getKHOPANERROR(error);
-	LPWSTR result;
-
-	if(message) {
-		result = error->function ? KHOPANFormatMessage(L"%ws() error occurred. Facility: 0x%04X Error code: 0x%08X Message:\n%ws", error->function, error->facility, error->code, message) : KHOPANFormatMessage(L"Facility: 0x%04X Error code: 0x%08X Message:\n%ws", error->facility, error->code, message);
-
-		if(error->facility == ERROR_FACILITY_HRESULT) {
-			LocalFree(message);
-		}
-	} else {
-		result = error->function ? KHOPANFormatMessage(L"%ws() error occurred. Facility: 0x%04X Error code: 0x%08X", error->function, error->facility, error->code) : KHOPANFormatMessage(L"Facility: 0x%04X Error code: 0x%08X", error->facility, error->code);
-	}
-
-	return result;
 }
