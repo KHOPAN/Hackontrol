@@ -312,12 +312,8 @@ functionExit:
 	return buffer;
 }
 
-static LPWSTR commonFacility(const PKHOPANERROR error) {
-	if(error->facility != ERROR_FACILITY_COMMON) {
-		return L"Unrecognized error facility";
-	}
-
-	switch(error->code) {
+static LPWSTR commonFacility(const ULONG code) {
+	switch(code) {
 	case ERROR_COMMON_SUCCESS:           return L"An operation completed successfully";
 	case ERROR_COMMON_UNDEFINED:         return L"Undefined or unknown error";
 	case ERROR_COMMON_FUNCTION_FAILED:   return L"Function has failed";
@@ -338,7 +334,11 @@ LPWSTR KHOPANGetErrorMessage(const PKHOPANERROR error) {
 			FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK | (error->code & 0x10000000 ? FORMAT_MESSAGE_FROM_HMODULE : 0), error->code & 0x10000000 ? LoadLibraryW(L"ntdll.dll") : NULL, error->code & (error->code & 0x10000000 ? ~0x10000000 : 0xFFFF), MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), (LPWSTR) &message, 0, NULL);
 		}
 	} else {
-		message = commonFacility(error);
+		if(error->facility != ERROR_FACILITY_COMMON) {
+			message = L"Unrecognized error facility";
+		} else {
+			message = commonFacility(error->code);
+		}
 	}
 
 	LPWSTR result;
