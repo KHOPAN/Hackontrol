@@ -57,13 +57,13 @@ BOOL KHOPANExecuteCommand(const LPCWSTR command, const BOOL block);
 BOOL KHOPANExecuteDynamicLibrary(const LPCWSTR file, const LPCSTR function, const LPCSTR argument);
 BOOL KHOPANExecuteProcess(const LPCWSTR file, const LPCWSTR argument, const BOOL block);
 BOOL KHOPANExecuteRundll32Function(const LPWSTR file, const LPCSTR function, const LPCSTR argument, const BOOL block);
-LPWSTR KHOPANFileGetCmd();
-LPWSTR KHOPANFileGetRundll32();
-LPWSTR KHOPANFolderGetWindows();
+LPWSTR KHOPANFileGetCmd(const PKHOPANERROR error);
+LPWSTR KHOPANFileGetRundll32(const PKHOPANERROR error);
+LPWSTR KHOPANFolderGetWindows(const PKHOPANERROR error);
 LPWSTR KHOPANFormatMessage(const LPCWSTR format, ...);
 LPSTR KHOPANFormatANSI(const LPCSTR format, ...);
 LPWSTR KHOPANGetErrorMessage(const PKHOPANERROR error, const KHOPANERRORDECODER decoder);
-LPWSTR KHOPANStringDuplicate(const LPCWSTR text);
+LPWSTR KHOPANStringDuplicate(const LPCWSTR text, const PKHOPANERROR error);
 #ifdef __cplusplus
 }
 #endif

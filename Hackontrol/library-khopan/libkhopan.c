@@ -1,8 +1,9 @@
 #include "libkhopan.h"
 
-#define ERROR_WIN32(functionName, errorSource) if(error){error->facility=ERROR_FACILITY_WIN32;error->code=GetLastError();error->function=functionName;error->source=errorSource;}
-#define ERROR_COMMON(errorCode, functionName)  if(error){error->facility=ERROR_FACILITY_COMMON;error->code=errorCode;error->function=functionName;error->source=NULL;}
-#define ERROR_CLEAR ERROR_COMMON(ERROR_COMMON_SUCCESS,NULL)
+#define ERROR_WIN32(functionName, errorSource)              if(error){error->facility=ERROR_FACILITY_WIN32;error->code=GetLastError();error->function=functionName;error->source=errorSource;}
+#define ERROR_COMMON(errorCode, functionName, errorSource)  if(error){error->facility=ERROR_FACILITY_COMMON;error->code=errorCode;error->function=functionName;error->source=errorSource;}
+#define ERROR_CLEAR                                         ERROR_COMMON(ERROR_COMMON_SUCCESS,NULL,NULL)
+#define ERROR_SOURCE(errorSource)                           if(error){error->source=errorSource;}
 
 #define SAFECALL(x) {DWORD internalError=GetLastError();x;SetLastError(internalError);}
 
@@ -32,7 +33,7 @@ static DWORD WINAPI KHOPANExecuteRundll32FunctionThread(_In_ LPVOID parameter) {
 
 BOOL KHOPANEnablePrivilege(const LPCWSTR privilege, const PKHOPANERROR error) {
 	if(!privilege) {
-		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANEnablePrivilege");
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANEnablePrivilege", NULL);
 		return FALSE;
 	}
 
@@ -86,7 +87,7 @@ BOOL KHOPANExecuteCommand(const LPCWSTR command, const BOOL block) {
 		return FALSE;
 	}
 
-	LPWSTR fileCommandPrompt = KHOPANFileGetCmd();
+	LPWSTR fileCommandPrompt = KHOPANFileGetCmd(NULL);
 
 	if(!fileCommandPrompt) {
 		return FALSE;
@@ -120,7 +121,7 @@ BOOL KHOPANExecuteDynamicLibrary(const LPCWSTR file, const LPCSTR function, cons
 		return FALSE;
 	}
 
-	LPWSTR fileRundll32 = KHOPANFileGetRundll32();
+	LPWSTR fileRundll32 = KHOPANFileGetRundll32(NULL);
 
 	if(!fileRundll32) {
 		return FALSE;
@@ -145,7 +146,7 @@ BOOL KHOPANExecuteProcess(const LPCWSTR file, const LPCWSTR argument, const BOOL
 		return FALSE;
 	}
 
-	LPWSTR argumentMutable = KHOPANStringDuplicate(argument);
+	LPWSTR argumentMutable = KHOPANStringDuplicate(argument, NULL);
 	STARTUPINFOW startup = {0};
 	startup.cb = sizeof(startup);
 	PROCESS_INFORMATION process;
@@ -221,49 +222,68 @@ BOOL KHOPANExecuteRundll32Function(const LPWSTR file, const LPCSTR function, con
 	return TRUE;
 }
 
-LPWSTR KHOPANFileGetCmd() {
-	LPWSTR folderWindows = KHOPANFolderGetWindows();
+LPWSTR KHOPANFileGetCmd(const PKHOPANERROR error) {
+	LPWSTR folderWindows = KHOPANFolderGetWindows(error);
 
 	if(!folderWindows) {
+		ERROR_SOURCE(L"KHOPANFileGetCmd");
 		return NULL;
 	}
 
 	LPWSTR fileCommandPrompt = KHOPANFormatMessage(L"%ws\\" FOLDER_SYSTEM32 L"\\" FILE_CMD, folderWindows);
-	SAFECALL(LocalFree(folderWindows));
+	KHOPAN_DEALLOCATE(folderWindows);
+
+	if(!fileCommandPrompt) {
+		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"KHOPANFormatMessage", L"KHOPANFileGetCmd");
+		return NULL;
+	}
+
+	ERROR_CLEAR;
 	return fileCommandPrompt;
 }
 
-LPWSTR KHOPANFileGetRundll32() {
-	LPWSTR folderWindows = KHOPANFolderGetWindows();
+LPWSTR KHOPANFileGetRundll32(const PKHOPANERROR error) {
+	LPWSTR folderWindows = KHOPANFolderGetWindows(error);
 
 	if(!folderWindows) {
+		ERROR_SOURCE(L"KHOPANFileGetRundll32");
 		return NULL;
 	}
 
 	LPWSTR fileRundll32 = KHOPANFormatMessage(L"%ws\\" FOLDER_SYSTEM32 L"\\" FILE_RUNDLL32, folderWindows);
-	SAFECALL(LocalFree(folderWindows));
-	return fileRundll32;
-}
+	KHOPAN_DEALLOCATE(folderWindows);
 
-LPWSTR KHOPANFolderGetWindows() {
-	UINT size = GetSystemWindowsDirectoryW(NULL, 0);
-
-	if(!size) {
+	if(!fileRundll32) {
+		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"KHOPANFormatMessage", L"KHOPANFileGetRundll32");
 		return NULL;
 	}
 
-	LPWSTR buffer = LocalAlloc(LMEM_FIXED, size * sizeof(WCHAR));
+	ERROR_CLEAR;
+	return fileRundll32;
+}
+
+LPWSTR KHOPANFolderGetWindows(const PKHOPANERROR error) {
+	UINT size = GetSystemWindowsDirectoryW(NULL, 0);
+
+	if(!size) {
+		ERROR_WIN32(L"GetSystemWindowsDirectoryW", L"KHOPANFolderGetWindows");
+		return NULL;
+	}
+
+	LPWSTR buffer = KHOPAN_ALLOCATE(size * sizeof(WCHAR));
 
 	if(!buffer) {
+		ERROR_WIN32(L"KHOPAN_ALLOCATE", L"KHOPANFolderGetWindows");
 		return NULL;
 	}
 
 	if(!GetSystemWindowsDirectoryW(buffer, size)) {
-		SAFECALL(LocalFree(buffer));
+		ERROR_WIN32(L"GetSystemWindowsDirectoryW", L"KHOPANFolderGetWindows");
+		KHOPAN_DEALLOCATE(buffer);
 		return NULL;
 	}
 
-	SetLastError(ERROR_SUCCESS);
+	ERROR_CLEAR;
 	return buffer;
 }
 
@@ -373,22 +393,23 @@ LPWSTR KHOPANGetErrorMessage(const PKHOPANERROR error, const KHOPANERRORDECODER 
 	return result;
 }
 
-LPWSTR KHOPANStringDuplicate(const LPCWSTR text) {
+LPWSTR KHOPANStringDuplicate(const LPCWSTR text, const PKHOPANERROR error) {
 	if(!text) {
-		SetLastError(ERROR_INVALID_PARAMETER);
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANStringDuplicate", NULL);
 		return NULL;
 	}
 
 	size_t length = wcslen(text);
 
 	if(length < 1) {
-		SetLastError(ERROR_INVALID_DATA);
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANStringDuplicate", NULL);
 		return NULL;
 	}
 
-	LPWSTR buffer = LocalAlloc(LMEM_FIXED, (length + 1) * sizeof(WCHAR));
+	LPWSTR buffer = KHOPAN_ALLOCATE((length + 1) * sizeof(WCHAR));
 
 	if(!buffer) {
+		ERROR_WIN32(L"KHOPAN_ALLOCATE", L"KHOPANStringDuplicate");
 		return NULL;
 	}
 
@@ -397,6 +418,6 @@ LPWSTR KHOPANStringDuplicate(const LPCWSTR text) {
 	}
 
 	buffer[length] = 0;
-	SetLastError(ERROR_SUCCESS);
+	ERROR_CLEAR;
 	return buffer;
 }
