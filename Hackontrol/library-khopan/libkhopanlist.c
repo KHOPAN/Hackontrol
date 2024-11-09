@@ -1,9 +1,7 @@
 #include "libkhopanlist.h"
 
-//#define ERROR_WIN32(sourceName, functionName)             if(error){error->facility=ERROR_FACILITY_WIN32;error->code=GetLastError();error->source=sourceName;error->function=functionName;}
 #define ERROR_COMMON(codeError, sourceName, functionName) if(error){error->facility=ERROR_FACILITY_COMMON;error->code=codeError;error->source=sourceName;error->function=functionName;}
 #define ERROR_CLEAR                                       ERROR_COMMON(ERROR_COMMON_SUCCESS,NULL,NULL)
-//#define ERROR_SOURCE(sourceName)                          if(error){error->source=sourceName;}
 
 #pragma warning(disable: 6386)
 
@@ -205,52 +203,40 @@ BOOL KHOPANArrayFree(const PARRAYLIST list, const PKHOPANERROR error) {
 	return TRUE;
 }
 
-BOOL KHOPANLinkedInitialize(_Out_ const PLINKEDLIST list, _In_ const size_t size) {
-	if(list) {
-		for(size_t i = 0; i < sizeof(LINKEDLIST); i++) {
-			((PBYTE) list)[i] = 0;
-		}
-	}
-
+BOOL KHOPANLinkedInitialize(const PLINKEDLIST list, const size_t size, const PKHOPANERROR error) {
 	if(!list || !size) {
-		SetLastError(ERROR_INVALID_PARAMETER);
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANLinkedInitialize", NULL);
 		return FALSE;
 	}
 
 	list->size = size;
-	SetLastError(ERROR_SUCCESS);
+	ERROR_CLEAR;
 	return TRUE;
 }
 
-BOOL KHOPANLinkedAdd(_Inout_ const PLINKEDLIST list, _In_ const PBYTE data, _Out_opt_ const PPLINKEDLISTITEM item) {
-	if(item) {
-		*item = NULL;
-	}
-
+BOOL KHOPANLinkedAdd(const PLINKEDLIST list, const PBYTE data, const PPLINKEDLISTITEM item, const PKHOPANERROR error) {
 	if(!list || !data || !list->size) {
-		SetLastError(ERROR_INVALID_PARAMETER);
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANLinkedAdd", NULL);
 		return FALSE;
 	}
 
 	PLINKEDLISTITEM buffer = KHOPAN_ALLOCATE(sizeof(LINKEDLISTITEM));
 
-	if(KHOPAN_ALLOCATE_FAILED(buffer)) {
-		SetLastError(KHOPAN_ALLOCATE_ERROR);
+	if(!buffer) {
+		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"KHOPANLinkedAdd", L"KHOPAN_ALLOCATE");
 		return FALSE;
 	}
 
 	buffer->data = KHOPAN_ALLOCATE(list->size);
-	size_t index;
 
-	if(KHOPAN_ALLOCATE_FAILED(buffer->data)) {
-		index = KHOPAN_ALLOCATE_ERROR;
+	if(!buffer->data) {
+		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"KHOPANLinkedAdd", L"KHOPAN_ALLOCATE");
 		KHOPAN_DEALLOCATE(buffer);
-		SetLastError((DWORD) index);
 		return FALSE;
 	}
 
-	for(index = 0; index < list->size; index++) {
-		buffer->data[index] = data[index];
+	for(size_t i = 0; i < list->size; i++) {
+		buffer->data[i] = data[i];
 	}
 
 	buffer->list = list;
@@ -271,20 +257,20 @@ BOOL KHOPANLinkedAdd(_Inout_ const PLINKEDLIST list, _In_ const PBYTE data, _Out
 	}
 
 	list->count++;
-	SetLastError(ERROR_SUCCESS);
+	ERROR_CLEAR;
 	return TRUE;
 }
 
-BOOL KHOPANLinkedRemove(_In_ const PLINKEDLISTITEM item) {
+BOOL KHOPANLinkedRemove(const PLINKEDLISTITEM item, const PKHOPANERROR error) {
 	if(!item) {
-		SetLastError(ERROR_INVALID_PARAMETER);
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANLinkedRemove", NULL);
 		return FALSE;
 	}
 
 	PLINKEDLIST list = item->list;
 
 	if(!list) {
-		SetLastError(ERROR_INVALID_PARAMETER);
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANLinkedRemove", NULL);
 		return FALSE;
 	}
 
@@ -310,22 +296,18 @@ BOOL KHOPANLinkedRemove(_In_ const PLINKEDLISTITEM item) {
 
 	KHOPAN_DEALLOCATE(item);
 	list->count--;
-	SetLastError(ERROR_SUCCESS);
+	ERROR_CLEAR;
 	return TRUE;
 }
 
-BOOL KHOPANLinkedGet(_In_ const PLINKEDLIST list, _In_ const size_t index, _Out_ const PPLINKEDLISTITEM item) {
-	if(item) {
-		*item = NULL;
-	}
-
+BOOL KHOPANLinkedGet(const PLINKEDLIST list, const size_t index, const PPLINKEDLISTITEM item, const PKHOPANERROR error) {
 	if(!list || !item) {
-		SetLastError(ERROR_INVALID_PARAMETER);
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANLinkedGet", NULL);
 		return FALSE;
 	}
 
 	if(index >= list->count) {
-		SetLastError(ERROR_INDEX_OUT_OF_BOUNDS);
+		ERROR_COMMON(ERROR_COMMON_INDEX_OUT_OF_BOUNDS, L"KHOPANLinkedGet", NULL);
 		return FALSE;
 	}
 
@@ -343,13 +325,18 @@ BOOL KHOPANLinkedGet(_In_ const PLINKEDLIST list, _In_ const size_t index, _Out_
 		count++;
 	}
 
-	SetLastError(found ? ERROR_SUCCESS : ERROR_INDEX_OUT_OF_BOUNDS);
+	if(!found) {
+		ERROR_COMMON(ERROR_COMMON_INDEX_OUT_OF_BOUNDS, L"KHOPANLinkedGet", NULL);
+		return FALSE;
+	}
+
+	ERROR_CLEAR;
 	return TRUE;
 }
 
-BOOL KHOPANLinkedFree(_Inout_ const PLINKEDLIST list) {
+BOOL KHOPANLinkedFree(const PLINKEDLIST list, const PKHOPANERROR error) {
 	if(!list) {
-		SetLastError(ERROR_INVALID_PARAMETER);
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANLinkedFree", NULL);
 		return FALSE;
 	}
 
@@ -370,6 +357,6 @@ BOOL KHOPANLinkedFree(_Inout_ const PLINKEDLIST list) {
 	list->size = 0;
 	list->first = NULL;
 	list->last = NULL;
-	SetLastError(ERROR_SUCCESS);
+	ERROR_CLEAR;
 	return TRUE;
 }

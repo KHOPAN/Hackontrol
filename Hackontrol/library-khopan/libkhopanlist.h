@@ -49,11 +49,11 @@ BOOL KHOPANArrayAdd(const PARRAYLIST list, const PBYTE data, const PKHOPANERROR 
 BOOL KHOPANArrayRemove(const PARRAYLIST list, const size_t index, const PKHOPANERROR error);
 BOOL KHOPANArrayGet(const PARRAYLIST list, const size_t index, PBYTE* const data, const PKHOPANERROR error);
 BOOL KHOPANArrayFree(const PARRAYLIST list, const PKHOPANERROR error);
-BOOL KHOPANLinkedInitialize(_Out_ const PLINKEDLIST list, _In_ const size_t size);
-BOOL KHOPANLinkedAdd(_Inout_ const PLINKEDLIST list, _In_ const PBYTE data, _Out_opt_ const PPLINKEDLISTITEM item);
-BOOL KHOPANLinkedRemove(_In_ const PLINKEDLISTITEM item);
-BOOL KHOPANLinkedGet(_In_ const PLINKEDLIST list, _In_ const size_t index, _Out_ const PPLINKEDLISTITEM item);
-BOOL KHOPANLinkedFree(_Inout_ const PLINKEDLIST list);
+BOOL KHOPANLinkedInitialize(const PLINKEDLIST list, const size_t size, const PKHOPANERROR error);
+BOOL KHOPANLinkedAdd(const PLINKEDLIST list, const PBYTE data, const PPLINKEDLISTITEM item, const PKHOPANERROR error);
+BOOL KHOPANLinkedRemove(const PLINKEDLISTITEM item, const PKHOPANERROR error);
+BOOL KHOPANLinkedGet(const PLINKEDLIST list, const size_t index, const PPLINKEDLISTITEM item, const PKHOPANERROR error);
+BOOL KHOPANLinkedFree(const PLINKEDLIST list, const PKHOPANERROR error);
 #ifdef __cplusplus
 }
 #endif
