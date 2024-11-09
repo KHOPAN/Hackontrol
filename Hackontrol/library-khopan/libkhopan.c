@@ -20,10 +20,11 @@ LPCWSTR KHOPANErrorCommonDecoder(const PKHOPANERROR error) {
 	}
 
 	switch(error->code) {
-	case ERROR_COMMON_SUCCESS:           return L"An operation completed successfully";
-	case ERROR_COMMON_FUNCTION_FAILED:   return L"The function has failed";
-	case ERROR_COMMON_INVALID_PARAMETER: return L"The function parameter is invalid";
-	default:                             return L"Undefined or unknown error";
+	case ERROR_COMMON_SUCCESS:             return L"An operation completed successfully";
+	case ERROR_COMMON_FUNCTION_FAILED:     return L"The function has failed";
+	case ERROR_COMMON_INVALID_PARAMETER:   return L"The function parameter is invalid";
+	case ERROR_COMMON_INDEX_OUT_OF_BOUNDS: return L"The specified index is out of bounds";
+	default:                               return L"Undefined or unknown error";
 	}
 }
 

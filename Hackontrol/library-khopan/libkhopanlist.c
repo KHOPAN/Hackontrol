@@ -83,35 +83,30 @@ BOOL KHOPANStreamFree(const PDATASTREAM stream, const PKHOPANERROR error) {
 	return TRUE;
 }
 
-BOOL KHOPANArrayInitialize(_Out_ const PARRAYLIST list, _In_ const size_t size) {
-	if(list) {
-		for(size_t i = 0; i < sizeof(ARRAYLIST); i++) {
-			((PBYTE) list)[i] = 0;
-		}
-	}
-
+BOOL KHOPANArrayInitialize(const PARRAYLIST list, const size_t size, const PKHOPANERROR error) {
 	if(!list || !size) {
-		SetLastError(ERROR_INVALID_PARAMETER);
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANArrayInitialize", NULL);
 		return FALSE;
 	}
 
 	PBYTE buffer = KHOPAN_ALLOCATE(size * KHOPAN_ARRAY_INITIAL_CAPACITY);
 
 	if(KHOPAN_ALLOCATE_FAILED(buffer)) {
-		SetLastError(KHOPAN_ALLOCATE_ERROR);
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANArrayInitialize", L"KHOPAN_ALLOCATE");
 		return FALSE;
 	}
 
+	list->count = 0;
 	list->size = size;
 	list->capacity = KHOPAN_ARRAY_INITIAL_CAPACITY;
 	list->data = buffer;
-	SetLastError(ERROR_SUCCESS);
+	ERROR_CLEAR;
 	return TRUE;
 }
 
-BOOL KHOPANArrayAdd(_Inout_ const PARRAYLIST list, _In_ const PBYTE data) {
+BOOL KHOPANArrayAdd(const PARRAYLIST list, const PBYTE data, const PKHOPANERROR error) {
 	if(!list || !data) {
-		SetLastError(ERROR_INVALID_PARAMETER);
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANArrayAdd", NULL);
 		return FALSE;
 	}
 
@@ -122,8 +117,8 @@ BOOL KHOPANArrayAdd(_Inout_ const PARRAYLIST list, _In_ const PBYTE data) {
 		size_t size = list->size * list->capacity;
 		buffer = KHOPAN_ALLOCATE(size * KHOPAN_ARRAY_SCALE_FACTOR);
 
-		if(KHOPAN_ALLOCATE_FAILED(buffer)) {
-			SetLastError(KHOPAN_ALLOCATE_ERROR);
+		if(!buffer) {
+			ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANArrayAdd", L"KHOPAN_ALLOCATE");
 			return FALSE;
 		}
 
@@ -143,25 +138,25 @@ BOOL KHOPANArrayAdd(_Inout_ const PARRAYLIST list, _In_ const PBYTE data) {
 	}
 
 	list->count++;
-	SetLastError(ERROR_SUCCESS);
+	ERROR_CLEAR;
 	return TRUE;
 }
 
-BOOL KHOPANArrayRemove(_Inout_ const PARRAYLIST list, _In_ const size_t index) {
-	if(!list || !list->count) {
-		SetLastError(ERROR_INVALID_PARAMETER);
+BOOL KHOPANArrayRemove(const PARRAYLIST list, const size_t index, const PKHOPANERROR error) {
+	if(!list) {
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANArrayRemove", NULL);
 		return FALSE;
 	}
 
 	if(index >= list->count) {
-		SetLastError(ERROR_INDEX_OUT_OF_BOUNDS);
+		ERROR_COMMON(ERROR_COMMON_INDEX_OUT_OF_BOUNDS, L"KHOPANArrayRemove", NULL);
 		return FALSE;
 	}
 
 	list->count--;
 
 	if(!list->count) {
-		SetLastError(ERROR_SUCCESS);
+		ERROR_CLEAR;
 		return TRUE;
 	}
 
@@ -171,33 +166,29 @@ BOOL KHOPANArrayRemove(_Inout_ const PARRAYLIST list, _In_ const size_t index) {
 		buffer[i] = buffer[i + list->size];
 	}
 
-	SetLastError(ERROR_SUCCESS);
+	ERROR_CLEAR;
 	return TRUE;
 }
 
-BOOL KHOPANArrayGet(_In_ const PARRAYLIST list, _In_ const size_t index, _Out_ PBYTE* const data) {
-	if(data) {
-		*data = 0;
-	}
-
+BOOL KHOPANArrayGet(const PARRAYLIST list, const size_t index, PBYTE* const data, const PKHOPANERROR error) {
 	if(!list || !data || !list->count) {
-		SetLastError(ERROR_INVALID_PARAMETER);
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANArrayGet", NULL);
 		return FALSE;
 	}
 
 	if(index >= list->count) {
-		SetLastError(ERROR_INDEX_OUT_OF_BOUNDS);
+		ERROR_COMMON(ERROR_COMMON_INDEX_OUT_OF_BOUNDS, L"KHOPANArrayGet", NULL);
 		return FALSE;
 	}
 
 	*data = list->data + list->size * index;
-	SetLastError(ERROR_SUCCESS);
+	ERROR_CLEAR;
 	return TRUE;
 }
 
-BOOL KHOPANArrayFree(_Inout_ const PARRAYLIST list) {
+BOOL KHOPANArrayFree(const PARRAYLIST list, const PKHOPANERROR error) {
 	if(!list) {
-		SetLastError(ERROR_INVALID_PARAMETER);
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANArrayFree", NULL);
 		return FALSE;
 	}
 
@@ -210,7 +201,7 @@ BOOL KHOPANArrayFree(_Inout_ const PARRAYLIST list) {
 		list->data = NULL;
 	}
 
-	SetLastError(ERROR_SUCCESS);
+	ERROR_CLEAR;
 	return TRUE;
 }
 
