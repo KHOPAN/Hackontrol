@@ -161,13 +161,11 @@
   <ItemGroup>
     <ClCompile Include="libkhopanlist.c" />
     <ClCompile Include="libkhopan.c" />
-    <ClCompile Include="libkhopancurl.c" />
     <ClCompile Include="libkhopanjava.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="libkhopanlist.h" />
     <ClInclude Include="libkhopan.h" />
-    <ClInclude Include="libkhopancurl.h" />
     <ClInclude Include="libkhopanjava.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

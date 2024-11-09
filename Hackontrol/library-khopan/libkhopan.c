@@ -1,4 +1,5 @@
 #include "libkhopan.h"
+#include <curl/curl.h>
 
 #define ERROR_WIN32(sourceName, functionName)              if(error){error->facility=ERROR_FACILITY_WIN32;error->code=GetLastError();error->source=sourceName;error->function=functionName;}
 #define ERROR_COMMON(codeError, sourceName, functionName)  if(error){error->facility=ERROR_FACILITY_COMMON;error->code=codeError;error->source=sourceName;error->function=functionName;}
@@ -12,6 +13,136 @@ typedef struct {
 	LPSTR argument;
 	HANDLE thread;
 } RUNDLL32DATA, *PRUNDLL32DATA;
+
+LPCWSTR KHOPANErrorCommonDecoder(const PKHOPANERROR error) {
+	if(!error) {
+		return NULL;
+	}
+
+	switch(error->code) {
+	case ERROR_COMMON_SUCCESS:           return L"An operation completed successfully";
+	case ERROR_COMMON_FUNCTION_FAILED:   return L"The function has failed";
+	case ERROR_COMMON_INVALID_PARAMETER: return L"The function parameter is invalid";
+	default:                             return L"Undefined or unknown error";
+	}
+}
+
+LPWSTR KHOPANFormatMessage(const LPCWSTR format, ...) {
+	if(!format) {
+		return NULL;
+	}
+
+	va_list list;
+	va_start(list, format);
+	int length = _vscwprintf(format, list);
+	LPWSTR buffer = NULL;
+
+	if(length == -1) {
+		goto functionExit;
+	}
+
+	buffer = KHOPAN_ALLOCATE((((size_t) length) + 1) * sizeof(WCHAR));
+
+	if(!buffer) {
+		goto functionExit;
+	}
+
+	if(vswprintf_s(buffer, ((size_t) length) + 1, format, list) == -1) {
+		KHOPAN_DEALLOCATE(buffer);
+		buffer = NULL;
+	}
+functionExit:
+	va_end(list);
+	return buffer;
+}
+
+LPSTR KHOPANFormatANSI(const LPCSTR format, ...) {
+	if(!format) {
+		return NULL;
+	}
+
+	va_list list;
+	va_start(list, format);
+	int length = _vscprintf(format, list);
+	LPSTR buffer = NULL;
+
+	if(length == -1) {
+		goto functionExit;
+	}
+
+	buffer = KHOPAN_ALLOCATE(((size_t) length) + 1);
+
+	if(!buffer) {
+		goto functionExit;
+	}
+
+	if(vsprintf_s(buffer, ((size_t) length) + 1, format, list) == -1) {
+		KHOPAN_DEALLOCATE(buffer);
+		buffer = NULL;
+	}
+functionExit:
+	va_end(list);
+	return buffer;
+}
+
+LPWSTR KHOPANGetErrorMessage(const PKHOPANERROR error, const KHOPANERRORDECODER decoder) {
+	if(!error) {
+		return NULL;
+	}
+
+	LPWSTR message = NULL;
+
+	switch(error->facility) {
+	case ERROR_FACILITY_WIN32:
+		FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK, NULL, error->code, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), (LPWSTR) &message, 0, NULL);
+		break;
+	case ERROR_FACILITY_HRESULT:
+		FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK, NULL, error->code & 0xFFFF, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), (LPWSTR) &message, 0, NULL);
+		break;
+	case ERROR_FACILITY_NTSTATUS:
+		FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK | FORMAT_MESSAGE_FROM_HMODULE, LoadLibraryW(L"ntdll.dll"), error->code, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), (LPWSTR) &message, 0, NULL);
+		break;
+	case ERROR_FACILITY_CURL:
+		message = KHOPANFormatMessage(L"%S", curl_easy_strerror(error->code));
+		break;
+	default:
+		if(decoder) {
+			message = (LPWSTR) decoder(error);
+		}
+
+		break;
+	}
+
+	LPWSTR result;
+	LPCWSTR source = error->source ? error->source : error->function;
+
+	if(message) {
+		if(source) {
+			result = error->function ? KHOPANFormatMessage(L"%ws() error occurred. Function: %ws() Facility: 0x%04X Error code: 0x%08X Message:\n%ws", source, error->function, error->facility, error->code, message) : KHOPANFormatMessage(L"%ws() error occurred. Facility: 0x%04X Error code: 0x%08X Message:\n%ws", source, error->facility, error->code, message);
+		} else {
+			result = error->function ? KHOPANFormatMessage(L"Function: %ws() Facility: 0x%04X Error code: 0x%08X Message:\n%ws", error->function, error->facility, error->code, message) : KHOPANFormatMessage(L"Facility: 0x%04X Error code: 0x%08X Message:\n%ws", error->facility, error->code, message);
+		}
+
+		switch(error->facility) {
+		case ERROR_FACILITY_WIN32:
+		case ERROR_FACILITY_HRESULT:
+		case ERROR_FACILITY_NTSTATUS:
+			LocalFree(message);
+			break;
+		case ERROR_FACILITY_CURL:
+			KHOPAN_DEALLOCATE(message);
+			break;
+		}
+	} else {
+		if(source) {
+			result = error->function ? KHOPANFormatMessage(L"%ws() error occurred. Function: %ws() Facility: 0x%04X Error code: 0x%08X", source, error->function, error->facility, error->code) : KHOPANFormatMessage(L"%ws() error occurred. Facility: 0x%04X Error code: 0x%08X", source, error->facility, error->code);
+		} else {
+			result = error->function ? KHOPANFormatMessage(L"Function: %ws() Facility: 0x%04X Error code: 0x%08X", error->function, error->facility, error->code) : KHOPANFormatMessage(L"Facility: 0x%04X Error code: 0x%08X", error->facility, error->code);
+		}
+	}
+
+	return result;
+}
 
 BOOL KHOPANEnablePrivilege(const LPCWSTR privilege, const PKHOPANERROR error) {
 	if(!privilege) {
@@ -48,19 +179,6 @@ BOOL KHOPANEnablePrivilege(const LPCWSTR privilege, const PKHOPANERROR error) {
 	CloseHandle(token);
 	ERROR_CLEAR;
 	return TRUE;
-}
-
-LPCWSTR KHOPANErrorCommonDecoder(const PKHOPANERROR error) {
-	if(!error) {
-		return NULL;
-	}
-
-	switch(error->code) {
-	case ERROR_COMMON_SUCCESS:           return L"An operation completed successfully";
-	case ERROR_COMMON_FUNCTION_FAILED:   return L"The function has failed";
-	case ERROR_COMMON_INVALID_PARAMETER: return L"The function parameter is invalid";
-	default:                             return L"Undefined or unknown error";
-	}
 }
 
 BOOL KHOPANExecuteCommand(const LPCWSTR command, const BOOL block, const PKHOPANERROR error) {
@@ -320,113 +438,6 @@ LPWSTR KHOPANFolderGetWindows(const PKHOPANERROR error) {
 
 	ERROR_CLEAR;
 	return buffer;
-}
-
-LPWSTR KHOPANFormatMessage(const LPCWSTR format, ...) {
-	if(!format) {
-		return NULL;
-	}
-
-	va_list list;
-	va_start(list, format);
-	int length = _vscwprintf(format, list);
-	LPWSTR buffer = NULL;
-
-	if(length == -1) {
-		goto functionExit;
-	}
-
-	buffer = KHOPAN_ALLOCATE((((size_t) length) + 1) * sizeof(WCHAR));
-
-	if(!buffer) {
-		goto functionExit;
-	}
-
-	if(vswprintf_s(buffer, ((size_t) length) + 1, format, list) == -1) {
-		KHOPAN_DEALLOCATE(buffer);
-		buffer = NULL;
-	}
-functionExit:
-	va_end(list);
-	return buffer;
-}
-
-LPSTR KHOPANFormatANSI(const LPCSTR format, ...) {
-	if(!format) {
-		return NULL;
-	}
-
-	va_list list;
-	va_start(list, format);
-	int length = _vscprintf(format, list);
-	LPSTR buffer = NULL;
-
-	if(length == -1) {
-		goto functionExit;
-	}
-
-	buffer = KHOPAN_ALLOCATE(((size_t) length) + 1);
-
-	if(!buffer) {
-		goto functionExit;
-	}
-
-	if(vsprintf_s(buffer, ((size_t) length) + 1, format, list) == -1) {
-		KHOPAN_DEALLOCATE(buffer);
-		buffer = NULL;
-	}
-functionExit:
-	va_end(list);
-	return buffer;
-}
-
-LPWSTR KHOPANGetErrorMessage(const PKHOPANERROR error, const KHOPANERRORDECODER decoder) {
-	if(!error) {
-		return NULL;
-	}
-
-	LPWSTR message = NULL;
-
-	switch(error->facility) {
-	case ERROR_FACILITY_WIN32:
-		FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK, NULL, error->code, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), (LPWSTR) &message, 0, NULL);
-		break;
-	case ERROR_FACILITY_HRESULT:
-		FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK, NULL, error->code & 0xFFFF, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), (LPWSTR) &message, 0, NULL);
-		break;
-	case ERROR_FACILITY_NTSTATUS:
-		FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK | FORMAT_MESSAGE_FROM_HMODULE, LoadLibraryW(L"ntdll.dll"), error->code, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), (LPWSTR) &message, 0, NULL);
-		break;
-	default:
-		if(decoder) {
-			message = (LPWSTR) decoder(error);
-		}
-
-		break;
-	}
-
-	LPWSTR result;
-	LPCWSTR source = error->source ? error->source : error->function;
-
-	if(message) {
-		if(source) {
-			result = error->function ? KHOPANFormatMessage(L"%ws() error occurred. Function: %ws() Facility: 0x%04X Error code: 0x%08X Message:\n%ws", source, error->function, error->facility, error->code, message) : KHOPANFormatMessage(L"%ws() error occurred. Facility: 0x%04X Error code: 0x%08X Message:\n%ws", source, error->facility, error->code, message);
-		} else {
-			result = error->function ? KHOPANFormatMessage(L"Function: %ws() Facility: 0x%04X Error code: 0x%08X Message:\n%ws", error->function, error->facility, error->code, message) : KHOPANFormatMessage(L"Facility: 0x%04X Error code: 0x%08X Message:\n%ws", error->facility, error->code, message);
-		}
-
-		if(error->facility >= ERROR_FACILITY_WIN32 && error->facility <= ERROR_FACILITY_NTSTATUS) {
-			LocalFree(message);
-		}
-	} else {
-		if(source) {
-			result = error->function ? KHOPANFormatMessage(L"%ws() error occurred. Function: %ws() Facility: 0x%04X Error code: 0x%08X", source, error->function, error->facility, error->code) : KHOPANFormatMessage(L"%ws() error occurred. Facility: 0x%04X Error code: 0x%08X", source, error->facility, error->code);
-		} else {
-			result = error->function ? KHOPANFormatMessage(L"Function: %ws() Facility: 0x%04X Error code: 0x%08X", error->function, error->facility, error->code) : KHOPANFormatMessage(L"Facility: 0x%04X Error code: 0x%08X", error->facility, error->code);
-		}
-	}
-
-	return result;
 }
 
 LPWSTR KHOPANStringDuplicate(const LPCWSTR text, const PKHOPANERROR error) {
