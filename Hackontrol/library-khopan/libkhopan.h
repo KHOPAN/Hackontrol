@@ -80,6 +80,3 @@ LPWSTR KHOPANStringDuplicate(const LPCWSTR text, const PKHOPANERROR error);
 #ifdef __cplusplus
 }
 #endif
-
-#define KHOPAN_ALLOCATE_ERROR 0
-#define KHOPAN_ALLOCATE_FAILED(x) FALSE

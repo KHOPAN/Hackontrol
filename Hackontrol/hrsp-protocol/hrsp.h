@@ -1,30 +1,21 @@
 #pragma once
 
-#include <Windows.h>
+#include <libkhopan.h>
 
 #define HRSP_PROTOCOL_VERSION       1
 #define HRSP_PROTOCOL_VERSION_MINOR 0
 #define HRSP_PROTOCOL_PORT          42485
 #define HRSP_PROTOCOL_PORT_STRING   L"42485"
 
-#define HRSP_FACILITY_WIN32 0x00
-#define HRSP_FACILITY_HRSP  0x01
+#define ERROR_FACILITY_HRSP 0x0005
 
-typedef enum {
-	HRSP_ERROR_SUCCESS,
-	HRSP_ERROR_UNDEFINED,
-	HRSP_ERROR_FUNCTION_FAILED,
-	HRSP_ERROR_INVALID_PARAMETER,
-	HRSP_ERROR_INVALID_MAGIC,
-	HRSP_ERROR_UNSUPPORTED_VERSION,
-	HRSP_ERROR_CONNECTION_CLOSED
-} HRSPERRORCODE;
+#define KHOPAN_ERROR_DECODER HRSPErrorHRSPDecoder
 
-typedef struct {
-	UINT facility;
-	ULONG code;
-	LPCWSTR function;
-} HRSPERROR, *PHRSPERROR;
+enum ERRORFACLIITYHRSP {
+	ERROR_HRSP_INVALID_MAGIC,
+	ERROR_HRSP_UNSUPPORTED_VERSION,
+	ERROR_HRSP_CONNECTION_CLOSED
+};
 
 //typedef struct {
 //	BYTE placeholder;
@@ -33,8 +24,7 @@ typedef struct {
 #ifdef __cplusplus
 extern "C" {
 #endif
-LPCWSTR HRSPGetErrorCode(const HRSPERRORCODE code);
-LPWSTR HRSPGetErrorMessage(const LPCWSTR function, const PHRSPERROR error);
+LPCWSTR HRSPErrorHRSPDecoder(const PKHOPANERROR error);
 #ifdef __cplusplus
 }
 #endif

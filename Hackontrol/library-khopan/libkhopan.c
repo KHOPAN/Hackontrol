@@ -15,7 +15,7 @@ typedef struct {
 } RUNDLL32DATA, *PRUNDLL32DATA;
 
 LPCWSTR KHOPANErrorCommonDecoder(const PKHOPANERROR error) {
-	if(!error) {
+	if(!error || error->facility != ERROR_FACILITY_COMMON) {
 		return NULL;
 	}
 
