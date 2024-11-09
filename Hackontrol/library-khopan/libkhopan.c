@@ -1,10 +1,10 @@
 #include "libkhopan.h"
 #include <curl/curl.h>
 
-#define ERROR_WIN32(sourceName, functionName)              if(error){error->facility=ERROR_FACILITY_WIN32;error->code=GetLastError();error->source=sourceName;error->function=functionName;}
-#define ERROR_COMMON(codeError, sourceName, functionName)  if(error){error->facility=ERROR_FACILITY_COMMON;error->code=codeError;error->source=sourceName;error->function=functionName;}
-#define ERROR_CLEAR                                        ERROR_COMMON(ERROR_COMMON_SUCCESS,NULL,NULL)
-#define ERROR_SOURCE(sourceName)                           if(error){error->source=sourceName;}
+#define ERROR_WIN32(sourceName, functionName)             if(error){error->facility=ERROR_FACILITY_WIN32;error->code=GetLastError();error->source=sourceName;error->function=functionName;}
+#define ERROR_COMMON(codeError, sourceName, functionName) if(error){error->facility=ERROR_FACILITY_COMMON;error->code=codeError;error->source=sourceName;error->function=functionName;}
+#define ERROR_CLEAR                                       ERROR_COMMON(ERROR_COMMON_SUCCESS,NULL,NULL)
+#define ERROR_SOURCE(sourceName)                          if(error){error->source=sourceName;}
 
 typedef void(__stdcall* RUNDLL32FUNCTION) (HWND window, HINSTANCE instance, LPSTR argument, int command);
 

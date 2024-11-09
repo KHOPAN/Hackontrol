@@ -1,33 +1,30 @@
-#include "libkhopan.h"
 #include "libkhopanlist.h"
 
-#pragma warning(disable: 6386)
+//#define ERROR_WIN32(sourceName, functionName)             if(error){error->facility=ERROR_FACILITY_WIN32;error->code=GetLastError();error->source=sourceName;error->function=functionName;}
+#define ERROR_COMMON(codeError, sourceName, functionName) if(error){error->facility=ERROR_FACILITY_COMMON;error->code=codeError;error->source=sourceName;error->function=functionName;}
+#define ERROR_CLEAR                                       ERROR_COMMON(ERROR_COMMON_SUCCESS,NULL,NULL)
+//#define ERROR_SOURCE(sourceName)                          if(error){error->source=sourceName;}
 
-BOOL KHOPANStreamInitialize(_Out_ const PDATASTREAM stream, _In_opt_ const size_t size) {
-	if(stream) {
-		for(size_t i = 0; i < sizeof(DATASTREAM); i++) {
-			((PBYTE) stream)[i] = 0;
-		}
-	}
-
+BOOL KHOPANStreamInitialize(const PDATASTREAM stream, const size_t size, const PKHOPANERROR error) {
 	if(!stream) {
-		SetLastError(ERROR_INVALID_PARAMETER);
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANStreamInitialize", NULL);
 		return FALSE;
 	}
 
 	if(size) {
 		stream->data = KHOPAN_ALLOCATE(size);
 
-		if(KHOPAN_ALLOCATE_FAILED(stream->data)) {
-			SetLastError(KHOPAN_ALLOCATE_ERROR);
+		if(!stream->data) {
+			ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANStreamInitialize", L"KHOPAN_ALLOCATE");
 			return FALSE;
 		}
 	} else {
 		stream->data = NULL;
 	}
 
+	stream->size = 0;
 	stream->capacity = size;
-	SetLastError(ERROR_SUCCESS);
+	ERROR_CLEAR;
 	return TRUE;
 }
 

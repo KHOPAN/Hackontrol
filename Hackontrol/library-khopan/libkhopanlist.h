@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Windows.h>
+#include "libkhopan.h"
 
 #define KHOPAN_ARRAY_INITIAL_CAPACITY 10
 #define KHOPAN_ARRAY_SCALE_FACTOR     2
@@ -41,7 +41,7 @@ struct _LINKEDLIST {
 #ifdef __cplusplus
 extern "C" {
 #endif
-BOOL KHOPANStreamInitialize(_Out_ const PDATASTREAM stream, _In_opt_ const size_t size);
+BOOL KHOPANStreamInitialize(const PDATASTREAM stream, const size_t size, const PKHOPANERROR error);
 BOOL KHOPANStreamAdd(_Inout_ const PDATASTREAM stream, _In_ const PBYTE data, _In_ const size_t size);
 BOOL KHOPANStreamFree(_Inout_ const PDATASTREAM stream);
 BOOL KHOPANArrayInitialize(_Out_ const PARRAYLIST list, _In_ const size_t size);

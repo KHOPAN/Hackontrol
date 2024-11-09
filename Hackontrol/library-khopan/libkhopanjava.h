@@ -10,8 +10,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-void KHOPANJavaStandardOutput(JNIEnv* environment, const LPCWSTR message);
-void KHOPANJavaStandardError(JNIEnv* environment, const LPCWSTR message);
 void KHOPANJavaThrow(JNIEnv* environment, const LPCSTR class, const LPCWSTR message);
 #ifdef __cplusplus
 }
