@@ -10,21 +10,27 @@
 #define KHOPAN_ALLOCATE(size)     HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,size)
 #define KHOPAN_DEALLOCATE(buffer) HeapFree(GetProcessHeap(),0,buffer)
 
-#define ERROR_FACILITY_HRESULT 0x0000
-#define ERROR_FACILITY_COMMON  0x0001
+#define ERROR_FACILITY_WIN32    0x0000
+#define ERROR_FACILITY_HRESULT  0x0001
+#define ERROR_FACILITY_NTSTATUS 0x0002
+#define ERROR_FACILITY_COMMON   0x0003
 
-#define KHOPANERRORMESSAGE_HRESULT(result, functionName) do{KHOPANERROR __temporaryError__;__temporaryError__.facility=ERROR_FACILITY_HRESULT;__temporaryError__.code=(HRESULT)(result);__temporaryError__.function=(LPCWSTR)(functionName);LPWSTR __temporaryMessage__=KHOPANGetErrorMessage(&__temporaryError__);if(__temporaryMessage__){MessageBoxW(NULL,__temporaryMessage__,L"Error",MB_OK|MB_DEFBUTTON1|MB_ICONERROR|MB_SYSTEMMODAL);KHOPAN_DEALLOCATE(__temporaryMessage__);}}while(0)
-#define KHOPANERRORMESSAGE_WIN32(code, function)         KHOPANERRORMESSAGE_HRESULT(HRESULT_FROM_WIN32((unsigned long)(code)),function)
-#define KHOPANERRORMESSAGE_NTSTATUS(code, function)      KHOPANERRORMESSAGE_HRESULT((code)|0x10000000,function)
+#define KHOPANERRORCONSOLE_KHOPAN(code)                      do{LPWSTR __temporaryMessage__=KHOPANGetErrorMessage((PKHOPANERROR)(&code),KHOPAN_ERROR_DECODER);if(__temporaryMessage__){_putws(__temporaryMessage__);KHOPAN_DEALLOCATE(__temporaryMessage__);}}while(0)
+#define KHOPANERRORCONSOLE_WIN32(errorCode, functionName)    do{KHOPANERROR __temporaryError__={0};__temporaryError__.facility=ERROR_FACILITY_WIN32;__temporaryError__.code=(ULONG)(errorCode);__temporaryError__.function=(LPCWSTR)(functionName);LPWSTR __temporaryMessage__=KHOPANGetErrorMessage(&__temporaryError__,KHOPAN_ERROR_DECODER);if(__temporaryMessage__){_putws(__temporaryMessage__);KHOPAN_DEALLOCATE(__temporaryMessage__);}}while(0)
+#define KHOPANERRORCONSOLE_HRESULT(errorCode, functionName)  do{KHOPANERROR __temporaryError__={0};__temporaryError__.facility=ERROR_FACILITY_HRESULT;__temporaryError__.code=(HRESULT)(errorCode);__temporaryError__.function=(LPCWSTR)(functionName);LPWSTR __temporaryMessage__=KHOPANGetErrorMessage(&__temporaryError__,KHOPAN_ERROR_DECODER);if(__temporaryMessage__){_putws(__temporaryMessage__);KHOPAN_DEALLOCATE(__temporaryMessage__);}}while(0)
+#define KHOPANERRORCONSOLE_NTSTATUS(errorCode, functionName) do{KHOPANERROR __temporaryError__={0};__temporaryError__.facility=ERROR_FACILITY_NTSTATUS;__temporaryError__.code=(NTSTATUS)(errorCode);__temporaryError__.function=(LPCWSTR)(functionName);LPWSTR __temporaryMessage__=KHOPANGetErrorMessage(&__temporaryError__,KHOPAN_ERROR_DECODER);if(__temporaryMessage__){_putws(__temporaryMessage__);KHOPAN_DEALLOCATE(__temporaryMessage__);}}while(0)
 
-#define KHOPANERRORCONSOLE_HRESULT(result, functionName) do{KHOPANERROR __temporaryError__;__temporaryError__.facility=ERROR_FACILITY_HRESULT;__temporaryError__.code=(HRESULT)(result);__temporaryError__.function=(LPCWSTR)(functionName);LPWSTR __temporaryMessage__=KHOPANGetErrorMessage(&__temporaryError__);if(__temporaryMessage__){_putws(__temporaryMessage__);KHOPAN_DEALLOCATE(__temporaryMessage__);}}while(0)
-#define KHOPANERRORCONSOLE_WIN32(code, function)         KHOPANERRORCONSOLE_HRESULT(HRESULT_FROM_WIN32((unsigned long)(code)),function)
-#define KHOPANERRORCONSOLE_NTSTATUS(code, function)      KHOPANERRORCONSOLE_HRESULT((code)|0x10000000,function)
+#define KHOPANERRORMESSAGE_KHOPAN(code)                      do{LPWSTR __temporaryMessage__=KHOPANGetErrorMessage((PKHOPANERROR)(&code),KHOPAN_ERROR_DECODER);if(__temporaryMessage__){MessageBoxW(NULL,__temporaryMessage__,L"Error",MB_OK|MB_DEFBUTTON1|MB_ICONERROR|MB_SYSTEMMODAL);KHOPAN_DEALLOCATE(__temporaryMessage__);}}while(0)
+#define KHOPANERRORMESSAGE_WIN32(errorCode, functionName)    do{KHOPANERROR __temporaryError__={0};__temporaryError__.facility=ERROR_FACILITY_WIN32;__temporaryError__.code=(ULONG)(errorCode);__temporaryError__.function=(LPCWSTR)(functionName);LPWSTR __temporaryMessage__=KHOPANGetErrorMessage(&__temporaryError__,KHOPAN_ERROR_DECODER);if(__temporaryMessage__){MessageBoxW(NULL,__temporaryMessage__,L"Error",MB_OK|MB_DEFBUTTON1|MB_ICONERROR|MB_SYSTEMMODAL);KHOPAN_DEALLOCATE(__temporaryMessage__);}}while(0)
+#define KHOPANERRORMESSAGE_HRESULT(errorCode, functionName)  do{KHOPANERROR __temporaryError__={0};__temporaryError__.facility=ERROR_FACILITY_HRESULT;__temporaryError__.code=(HRESULT)(errorCode);__temporaryError__.function=(LPCWSTR)(functionName);LPWSTR __temporaryMessage__=KHOPANGetErrorMessage(&__temporaryError__,KHOPAN_ERROR_DECODER);if(__temporaryMessage__){MessageBoxW(NULL,__temporaryMessage__,L"Error",MB_OK|MB_DEFBUTTON1|MB_ICONERROR|MB_SYSTEMMODAL);KHOPAN_DEALLOCATE(__temporaryMessage__);}}while(0)
+#define KHOPANERRORMESSAGE_NTSTATUS(errorCode, functionName) do{KHOPANERROR __temporaryError__={0};__temporaryError__.facility=ERROR_FACILITY_NTSTATUS;__temporaryError__.code=(NTSTATUS)(errorCode);__temporaryError__.function=(LPCWSTR)(functionName);LPWSTR __temporaryMessage__=KHOPANGetErrorMessage(&__temporaryError__,KHOPAN_ERROR_DECODER);if(__temporaryMessage__){MessageBoxW(NULL,__temporaryMessage__,L"Error",MB_OK|MB_DEFBUTTON1|MB_ICONERROR|MB_SYSTEMMODAL);KHOPAN_DEALLOCATE(__temporaryMessage__);}}while(0)
 
-#define KHOPANLASTERRORMESSAGE_WIN32(function) KHOPANERRORMESSAGE_WIN32(GetLastError(),function)
-#define KHOPANLASTERRORMESSAGE_WSA(function)   KHOPANERRORMESSAGE_WIN32(WSAGetLastError(),function)
 #define KHOPANLASTERRORCONSOLE_WIN32(function) KHOPANERRORCONSOLE_WIN32(GetLastError(),function)
 #define KHOPANLASTERRORCONSOLE_WSA(function)   KHOPANERRORCONSOLE_WIN32(WSAGetLastError(),function)
+#define KHOPANLASTERRORMESSAGE_WIN32(function) KHOPANERRORMESSAGE_WIN32(GetLastError(),function)
+#define KHOPANLASTERRORMESSAGE_WSA(function)   KHOPANERRORMESSAGE_WIN32(WSAGetLastError(),function)
+
+#define KHOPAN_ERROR_DECODER KHOPANErrorCommonDecoder
 
 enum ERRORFACLIITYCOMMON {
 	ERROR_COMMON_SUCCESS,
@@ -37,12 +43,16 @@ typedef struct {
 	UINT facility;
 	ULONG code;
 	LPCWSTR function;
+	LPCWSTR source;
 } KHOPANERROR, *PKHOPANERROR;
+
+typedef LPCWSTR(__stdcall* KHOPANERRORDECODER) (const PKHOPANERROR error);
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 BOOL KHOPANEnablePrivilege(const LPCWSTR privilege, const PKHOPANERROR error);
+LPCWSTR KHOPANErrorCommonDecoder(const PKHOPANERROR error);
 BOOL KHOPANExecuteCommand(const LPCWSTR command, const BOOL block);
 BOOL KHOPANExecuteDynamicLibrary(const LPCWSTR file, const LPCSTR function, const LPCSTR argument);
 BOOL KHOPANExecuteProcess(const LPCWSTR file, const LPCWSTR argument, const BOOL block);
@@ -52,7 +62,7 @@ LPWSTR KHOPANFileGetRundll32();
 LPWSTR KHOPANFolderGetWindows();
 LPWSTR KHOPANFormatMessage(const LPCWSTR format, ...);
 LPSTR KHOPANFormatANSI(const LPCSTR format, ...);
-LPWSTR KHOPANGetErrorMessage(const PKHOPANERROR error);
+LPWSTR KHOPANGetErrorMessage(const PKHOPANERROR error, const KHOPANERRORDECODER decoder);
 LPWSTR KHOPANStringDuplicate(const LPCWSTR text);
 #ifdef __cplusplus
 }

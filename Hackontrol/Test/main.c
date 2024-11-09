@@ -1,6 +1,12 @@
 #include <libkhopan.h>
 
 int main(int argc, char** argv) {
-	KHOPANERRORMESSAGE_NTSTATUS(STATUS_ALREADY_REGISTERED, L"SimpleFunction");
+	KHOPANERROR error;
+
+	if(!KHOPANEnablePrivilege(L"PleaseDoNotExist", &error)) {
+		KHOPANERRORMESSAGE_KHOPAN(error);
+		return 1;
+	}
+
 	return 0;
 }
