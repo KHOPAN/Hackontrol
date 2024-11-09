@@ -42,8 +42,8 @@ struct _LINKEDLIST {
 extern "C" {
 #endif
 BOOL KHOPANStreamInitialize(const PDATASTREAM stream, const size_t size, const PKHOPANERROR error);
-BOOL KHOPANStreamAdd(_Inout_ const PDATASTREAM stream, _In_ const PBYTE data, _In_ const size_t size);
-BOOL KHOPANStreamFree(_Inout_ const PDATASTREAM stream);
+BOOL KHOPANStreamAdd(const PDATASTREAM stream, const PBYTE data, const size_t size, const PKHOPANERROR error);
+BOOL KHOPANStreamFree(const PDATASTREAM stream, const PKHOPANERROR error);
 BOOL KHOPANArrayInitialize(_Out_ const PARRAYLIST list, _In_ const size_t size);
 BOOL KHOPANArrayAdd(_Inout_ const PARRAYLIST list, _In_ const PBYTE data);
 BOOL KHOPANArrayRemove(_Inout_ const PARRAYLIST list, _In_ const size_t index);

@@ -3,9 +3,9 @@
 static size_t addDataStream(void* const data, const size_t size, const size_t count, const PDATASTREAM stream) {
 	size_t total = size * count;
 
-	if(!KHOPANStreamAdd(stream, data, total)) {
+	/*if(!KHOPANStreamAdd(stream, data, total)) {
 		return 0;
-	}
+	}*/
 
 	return total;
 }
@@ -70,7 +70,7 @@ CURLcode HackontrolDownload(const LPCSTR location, const PDATASTREAM stream, con
 	code = CURLE_OK;
 
 	while(curl_easy_perform(curl) != CURLE_OK) {
-		KHOPANStreamFree(stream);
+		//KHOPANStreamFree(stream);
 		Sleep(DELAY_FORCE_DOWNLOAD);
 	}
 cleanupEasy:

@@ -5,6 +5,8 @@
 #define ERROR_CLEAR                                       ERROR_COMMON(ERROR_COMMON_SUCCESS,NULL,NULL)
 //#define ERROR_SOURCE(sourceName)                          if(error){error->source=sourceName;}
 
+#pragma warning(disable: 6386)
+
 BOOL KHOPANStreamInitialize(const PDATASTREAM stream, const size_t size, const PKHOPANERROR error) {
 	if(!stream) {
 		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANStreamInitialize", NULL);
@@ -28,9 +30,9 @@ BOOL KHOPANStreamInitialize(const PDATASTREAM stream, const size_t size, const P
 	return TRUE;
 }
 
-BOOL KHOPANStreamAdd(_Inout_ const PDATASTREAM stream, _In_ const PBYTE data, _In_ const size_t size) {
+BOOL KHOPANStreamAdd(const PDATASTREAM stream, const PBYTE data, const size_t size, const PKHOPANERROR error) {
 	if(!stream || !data || !size) {
-		SetLastError(ERROR_INVALID_PARAMETER);
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANStreamAdd", NULL);
 		return FALSE;
 	}
 
@@ -40,8 +42,8 @@ BOOL KHOPANStreamAdd(_Inout_ const PDATASTREAM stream, _In_ const PBYTE data, _I
 	if(length > stream->capacity) {
 		PBYTE buffer = KHOPAN_ALLOCATE(length);
 
-		if(KHOPAN_ALLOCATE_FAILED(buffer)) {
-			SetLastError(KHOPAN_ALLOCATE_ERROR);
+		if(!buffer) {
+			ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANStreamAdd", L"KHOPAN_ALLOCATE");
 			return FALSE;
 		}
 
@@ -59,13 +61,13 @@ BOOL KHOPANStreamAdd(_Inout_ const PDATASTREAM stream, _In_ const PBYTE data, _I
 	}
 
 	stream->size += size;
-	SetLastError(ERROR_SUCCESS);
+	ERROR_CLEAR;
 	return TRUE;
 }
 
-BOOL KHOPANStreamFree(_Inout_ const PDATASTREAM stream) {
+BOOL KHOPANStreamFree(const PDATASTREAM stream, const PKHOPANERROR error) {
 	if(!stream) {
-		SetLastError(ERROR_INVALID_PARAMETER);
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANStreamFree", NULL);
 		return FALSE;
 	}
 
@@ -77,7 +79,7 @@ BOOL KHOPANStreamFree(_Inout_ const PDATASTREAM stream) {
 		stream->data = NULL;
 	}
 
-	SetLastError(ERROR_SUCCESS);
+	ERROR_CLEAR;
 	return TRUE;
 }
 
