@@ -161,7 +161,6 @@
   <ItemGroup>
     <ClCompile Include="libkhopanlist.c" />
     <ClCompile Include="libkhopan.c" />
-    <ClCompile Include="libkhopanjava.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="libkhopanlist.h" />

@@ -1,4 +1,5 @@
 #include "libkhopan.h"
+#include "libkhopanjava.h"
 #include <curl/curl.h>
 
 #define ERROR_WIN32(sourceName, functionName)             if(error){error->facility=ERROR_FACILITY_WIN32;error->code=GetLastError();error->source=sourceName;error->function=functionName;}
@@ -23,6 +24,7 @@ LPCWSTR KHOPANErrorCommonDecoder(const PKHOPANERROR error) {
 	case ERROR_COMMON_SUCCESS:             return L"An operation completed successfully";
 	case ERROR_COMMON_FUNCTION_FAILED:     return L"The function has failed";
 	case ERROR_COMMON_INVALID_PARAMETER:   return L"The function parameter is invalid";
+	case ERROR_COMMON_ALLOCATION_FAILED:   return L"Failed to allocate memory";
 	case ERROR_COMMON_INDEX_OUT_OF_BOUNDS: return L"The specified index is out of bounds";
 	default:                               return L"Undefined or unknown error";
 	}
@@ -338,7 +340,7 @@ BOOL KHOPANExecuteRundll32Function(const LPWSTR file, const LPCSTR function, con
 	LPSTR argumentDuplicate = KHOPAN_ALLOCATE(length + 1);
 
 	if(!argumentDuplicate) {
-		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"KHOPANExecuteRundll32Function", L"KHOPAN_ALLOCATE");
+		ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"KHOPANExecuteRundll32Function", L"KHOPAN_ALLOCATE");
 		return FALSE;
 	}
 
@@ -356,7 +358,7 @@ BOOL KHOPANExecuteRundll32Function(const LPWSTR file, const LPCSTR function, con
 	PRUNDLL32DATA data = KHOPAN_ALLOCATE(sizeof(RUNDLL32DATA));
 
 	if(!data) {
-		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"KHOPANExecuteRundll32Function", L"KHOPAN_ALLOCATE");
+		ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"KHOPANExecuteRundll32Function", L"KHOPAN_ALLOCATE");
 		KHOPAN_DEALLOCATE(argumentDuplicate);
 		return FALSE;
 	}
@@ -427,7 +429,7 @@ LPWSTR KHOPANFolderGetWindows(const PKHOPANERROR error) {
 	LPWSTR buffer = KHOPAN_ALLOCATE(size * sizeof(WCHAR));
 
 	if(!buffer) {
-		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"KHOPANFolderGetWindows", L"KHOPAN_ALLOCATE");
+		ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"KHOPANFolderGetWindows", L"KHOPAN_ALLOCATE");
 		return NULL;
 	}
 
@@ -457,7 +459,7 @@ LPWSTR KHOPANStringDuplicate(const LPCWSTR text, const PKHOPANERROR error) {
 	LPWSTR buffer = KHOPAN_ALLOCATE((length + 1) * sizeof(WCHAR));
 
 	if(!buffer) {
-		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"KHOPANStringDuplicate", L"KHOPAN_ALLOCATE");
+		ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"KHOPANStringDuplicate", L"KHOPAN_ALLOCATE");
 		return NULL;
 	}
 
@@ -468,4 +470,28 @@ LPWSTR KHOPANStringDuplicate(const LPCWSTR text, const PKHOPANERROR error) {
 	buffer[length] = 0;
 	ERROR_CLEAR;
 	return buffer;
+}
+
+void KHOPANJavaThrow(JNIEnv* environment, const LPCSTR class, const LPCWSTR message) {
+	if(!environment || !class || !message) {
+		return;
+	}
+
+	jclass classObject = (*environment)->FindClass(environment, class);
+
+	if(!classObject) {
+		return;
+	}
+
+	jmethodID constructor = (*environment)->GetMethodID(environment, classObject, "<init>", "(Ljava/lang/String;)V");
+
+	if(!constructor) {
+		return;
+	}
+
+	jobject object = (*environment)->NewObject(environment, classObject, constructor, (*environment)->NewString(environment, message, (jsize) wcslen(message)));
+
+	if(object) {
+		(*environment)->Throw(environment, (jthrowable) object);
+	}
 }

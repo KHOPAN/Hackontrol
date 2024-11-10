@@ -17,9 +17,6 @@
     <ClCompile Include="libkhopan.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="libkhopanjava.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="libkhopan.h">
