@@ -19,8 +19,14 @@ enum ERRORFACLIITYHRSP {
 };
 
 typedef struct {
-	BYTE placeholder;
+	SOCKET socket;
 } HRSPDATA, *PHRSPDATA;
+
+typedef struct {
+	UINT type;
+	size_t size;
+	PBYTE data;
+} HRSPPACKET, *PHRSPPACKET;
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,6 +34,9 @@ extern "C" {
 LPCWSTR HRSPErrorHRSPDecoder(const PKHOPANERROR error);
 BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPANERROR error);
 BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPANERROR error);
+BOOL HRSPPacketSend(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPANERROR error);
+BOOL HRSPPacketReceive(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPANERROR error);
+BOOL HRSPCleanup(const PHRSPDATA data, const PKHOPANERROR error);
 #ifdef __cplusplus
 }
 #endif

@@ -2,12 +2,6 @@
 
 #include "hrsp.h"
 
-typedef struct {
-	int size;
-	UINT type;
-	PBYTE data;
-} HRSPPACKET, *PHRSPPACKET;
-
 #ifdef __cplusplus
 extern "C" {
 #endif

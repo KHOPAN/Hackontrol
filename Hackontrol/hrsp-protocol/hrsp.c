@@ -54,6 +54,7 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 		return FALSE;
 	}
 
+	data->socket = socket;
 	ERROR_CLEAR;
 	return TRUE;
 }
@@ -88,6 +89,72 @@ BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 		return FALSE;
 	}
 
+	data->socket = socket;
+	ERROR_CLEAR;
+	return TRUE;
+}
+
+BOOL HRSPPacketSend(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPANERROR error) {
+	if(!data || !packet) {
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"HRSPPacketSend", NULL);
+		return FALSE;
+	}
+
+	BYTE buffer[13];
+	buffer[0] = packet->size > 0;
+	buffer[1] = (packet->type >> 24) & 0xFF;
+	buffer[2] = (packet->type >> 16) & 0xFF;
+	buffer[3] = (packet->type >> 8) & 0xFF;
+	buffer[4] = packet->type & 0xFF;
+
+	if(!buffer[0]) {
+		if(send(data->socket, buffer, 5, 0) == SOCKET_ERROR) {
+			ERROR_WSA(L"HRSPPacketSend", L"send");
+			return FALSE;
+		}
+
+		ERROR_CLEAR;
+		return TRUE;
+	}
+
+	buffer[5] = (packet->size >> 56) & 0xFF;
+	buffer[6] = (packet->size >> 48) & 0xFF;
+	buffer[7] = (packet->size >> 40) & 0xFF;
+	buffer[8] = (packet->size >> 32) & 0xFF;
+	buffer[9] = (packet->size >> 24) & 0xFF;
+	buffer[10] = (packet->size >> 16) & 0xFF;
+	buffer[11] = (packet->size >> 8) & 0xFF;
+	buffer[12] = packet->size & 0xFF;
+
+	if(send(data->socket, buffer, sizeof(buffer), 0) == SOCKET_ERROR) {
+		ERROR_WSA(L"HRSPPacketSend", L"send");
+		return FALSE;
+	}
+
+	size_t pointer = 0;
+
+	while(pointer < packet->size) {
+		size_t size = packet->size - pointer;
+		int sent = send(data->socket, packet->data + pointer, (int) min(size, INT_MAX), 0);
+
+		if(sent == SOCKET_ERROR) {
+			ERROR_WSA(L"HRSPPacketSend", L"send");
+			return FALSE;
+		}
+
+		pointer += sent;
+	}
+
+	ERROR_CLEAR;
+	return TRUE;
+}
+
+BOOL HRSPPacketReceive(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPANERROR error) {
+	ERROR_CLEAR;
+	return TRUE;
+}
+
+BOOL HRSPCleanup(const PHRSPDATA data, const PKHOPANERROR error) {
 	ERROR_CLEAR;
 	return TRUE;
 }

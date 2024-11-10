@@ -1,4 +1,3 @@
-#include <libkhopanlist.h>
 #include "remote.h"
 #include <CommCtrl.h>
 
@@ -55,8 +54,10 @@ int WINAPI WinMain(_In_ HINSTANCE programInstance, _In_opt_ HINSTANCE previousIn
 		goto functionExit;
 	}
 
-	if(!KHOPANLinkedInitialize(&clientList, sizeof(CLIENT))) {
-		KHOPANLASTERRORMESSAGE_WIN32(L"KHOPANLinkedInitialize");
+	KHOPANERROR error;
+
+	if(!KHOPANLinkedInitialize(&clientList, sizeof(CLIENT), &error)) {
+		KHOPANERRORMESSAGE_KHOPAN(error);
 		goto deleteFont;
 	}
 
@@ -111,7 +112,7 @@ closeClientListMutex:
 	WaitForSingleObject(clientListMutex, INFINITE);
 	CloseHandle(clientListMutex);
 freeClientList:
-	KHOPANLinkedFree(&clientList);
+	KHOPANLinkedFree(&clientList, NULL);
 deleteFont:
 	DeleteObject(font);
 functionExit:
