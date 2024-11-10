@@ -1,21 +1,19 @@
-#include <libkhopanlist.h>
+#include <libkhopan.h>
+#include <bcrypt.h>
 
 int main(int argc, char** argv) {
-	DATASTREAM stream;
-	KHOPANERROR error;
+	BCRYPT_ALG_HANDLE provider;
+	NTSTATUS status = BCryptOpenAlgorithmProvider(&provider, BCRYPT_AES_ALGORITHM, NULL, 0);
 
-	if(!KHOPANStreamInitialize(&stream, 0, &error)) {
-		KHOPANERRORMESSAGE_KHOPAN(error);
+	if(!BCRYPT_SUCCESS(status)) {
+		KHOPANERRORMESSAGE_NTSTATUS(status, L"BCryptOpenAlgorithmProvider");
 		return 1;
 	}
 
-	if(!KHOPANStreamAdd(&stream, (PBYTE) "Four", 4, &error)) {
-		KHOPANERRORMESSAGE_KHOPAN(error);
-		return 1;
-	}
+	status = BCryptCloseAlgorithmProvider(provider, 0);
 
-	if(!KHOPANStreamFree(&stream, &error)) {
-		KHOPANERRORMESSAGE_KHOPAN(error);
+	if(!BCRYPT_SUCCESS(status)) {
+		KHOPANERRORMESSAGE_NTSTATUS(status, L"BCryptCloseAlgorithmProvider");
 		return 1;
 	}
 
