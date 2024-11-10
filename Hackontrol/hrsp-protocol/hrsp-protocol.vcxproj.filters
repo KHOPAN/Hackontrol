@@ -22,9 +22,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="error_message.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="hrsp_packet.c">
       <Filter>Source Files</Filter>
     </ClCompile>

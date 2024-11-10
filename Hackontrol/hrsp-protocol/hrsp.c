@@ -6,6 +6,23 @@
 #define ERROR_HRSP(codeError, sourceName, functionName)   if(error){error->facility=ERROR_FACILITY_HRSP;error->code=codeError;error->source=sourceName;error->function=functionName;}
 #define ERROR_CLEAR                                       ERROR_COMMON(ERROR_COMMON_SUCCESS,NULL,NULL)
 
+LPCWSTR HRSPErrorHRSPDecoder(const PKHOPANERROR error) {
+	if(!error) {
+		return NULL;
+	}
+
+	if(error->facility != ERROR_FACILITY_HRSP) {
+		return KHOPANErrorCommonDecoder(error);
+	}
+
+	switch(error->code) {
+	case ERROR_HRSP_INVALID_MAGIC:       return L"Invalid HRSP magic number";
+	case ERROR_HRSP_UNSUPPORTED_VERSION: return L"Incompatible client and server version";
+	case ERROR_HRSP_CONNECTION_CLOSED:   return L"The connection was already closed";
+	default:                             return L"Unknown error code";
+	}
+}
+
 BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPANERROR error) {
 	if(!socket || !data) {
 		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"HRSPClientHandshake", NULL);
