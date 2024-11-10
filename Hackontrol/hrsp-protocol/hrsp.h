@@ -9,6 +9,7 @@
 
 #define ERROR_FACILITY_HRSP 0x0005
 
+#undef KHOPAN_ERROR_DECODER
 #define KHOPAN_ERROR_DECODER HRSPErrorHRSPDecoder
 
 enum ERRORFACLIITYHRSP {
@@ -17,14 +18,16 @@ enum ERRORFACLIITYHRSP {
 	ERROR_HRSP_CONNECTION_CLOSED
 };
 
-//typedef struct {
-//	BYTE placeholder;
-//} HRSPDATA, *PHRSPDATA;
+typedef struct {
+	BYTE placeholder;
+} HRSPDATA, *PHRSPDATA;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 LPCWSTR HRSPErrorHRSPDecoder(const PKHOPANERROR error);
+BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPANERROR error);
+BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPANERROR error);
 #ifdef __cplusplus
 }
 #endif

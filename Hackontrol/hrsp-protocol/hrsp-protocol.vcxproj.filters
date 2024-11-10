@@ -11,9 +11,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="hrsp_handshake.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="hrsp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -25,13 +22,13 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="hrsp_handshake.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="error_message.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="hrsp_packet.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="hrsp.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

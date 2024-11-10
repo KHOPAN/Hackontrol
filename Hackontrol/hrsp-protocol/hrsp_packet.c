@@ -5,8 +5,8 @@
 #define ERROR_WIN32(errorCode, functionName) if(error){error->win32=TRUE;error->code=errorCode;error->function=functionName;}
 #define ERROR_NEUTRAL if(error){error->win32=FALSE;error->code=0;error->function=NULL;}
 
-BOOL HRSPSendPacket(const SOCKET socket, const PHRSPDATA data, const PHRSPPACKET packet, const PHRSPERROR error) {
-	if(!socket || !data || !packet) {
+BOOL HRSPSendPacket(const SOCKET socket, const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPANERROR error) {
+	/*if(!socket || !data || !packet) {
 		ERROR_HRSP(HRSP_ERROR_INVALID_FUNCTION_PARAMETER, L"HRSPSendPacket");
 		return FALSE;
 	}
@@ -32,12 +32,12 @@ BOOL HRSPSendPacket(const SOCKET socket, const PHRSPDATA data, const PHRSPPACKET
 		return FALSE;
 	}
 
-	ERROR_NEUTRAL;
+	ERROR_NEUTRAL;*/
 	return TRUE;
 }
 
-BOOL HRSPReceivePacket(const SOCKET socket, const PHRSPDATA data, const PHRSPPACKET packet, const PHRSPERROR error) {
-	if(!socket || !data || !packet) {
+BOOL HRSPReceivePacket(const SOCKET socket, const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPANERROR error) {
+	/*if(!socket || !data || !packet) {
 		ERROR_HRSP(HRSP_ERROR_INVALID_FUNCTION_PARAMETER, L"HRSPReceivePacket");
 		return FALSE;
 	}
@@ -90,12 +90,12 @@ BOOL HRSPReceivePacket(const SOCKET socket, const PHRSPDATA data, const PHRSPPAC
 	packet->size = size;
 	packet->type = type;
 	packet->data = buffer;
-	ERROR_NEUTRAL;
+	ERROR_NEUTRAL;*/
 	return TRUE;
 }
 
-BOOL HRSPFreePacket(const PHRSPPACKET packet, const PHRSPERROR error) {
-	if(!packet) {
+BOOL HRSPFreePacket(const PHRSPPACKET packet, const PKHOPANERROR error) {
+	/*if(!packet) {
 		ERROR_HRSP(HRSP_ERROR_INVALID_FUNCTION_PARAMETER, L"HRSPFreePacket");
 		return FALSE;
 	}
@@ -113,12 +113,13 @@ BOOL HRSPFreePacket(const PHRSPPACKET packet, const PHRSPERROR error) {
 	packet->size = 0;
 	packet->type = 0;
 	packet->data = NULL;
-	ERROR_NEUTRAL;
+	ERROR_NEUTRAL;*/
 	return TRUE;
 }
 
-BOOL HRSPSendTypePacket(const SOCKET socket, const PHRSPDATA data, const UINT type, const PHRSPERROR error) {
-	HRSPPACKET packet = {0};
+BOOL HRSPSendTypePacket(const SOCKET socket, const PHRSPDATA data, const UINT type, const PKHOPANERROR error) {
+	/*HRSPPACKET packet = {0};
 	packet.type = type;
-	return HRSPSendPacket(socket, data, &packet, error);
+	return HRSPSendPacket(socket, data, &packet, error);*/
+	return TRUE;
 }
