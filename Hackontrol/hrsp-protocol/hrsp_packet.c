@@ -1,5 +1,5 @@
 #include <WinSock2.h>
-#include "hrsp_packet.h"
+#include "hrsp.h"
 
 #define ERROR_HRSP(errorCode, functionName) if(error){error->win32=FALSE;error->code=errorCode;error->function=functionName;}
 #define ERROR_WIN32(errorCode, functionName) if(error){error->win32=TRUE;error->code=errorCode;error->function=functionName;}

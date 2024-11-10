@@ -140,7 +140,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="hrsp.h" />
-    <ClInclude Include="hrsp_packet.h" />
     <ClInclude Include="hrsp_remote.h" />
   </ItemGroup>
   <ItemGroup>

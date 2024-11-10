@@ -150,6 +150,44 @@ BOOL HRSPPacketSend(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPA
 }
 
 BOOL HRSPPacketReceive(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPANERROR error) {
+	if(!data || !packet) {
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"HRSPPacketReceive", NULL);
+		return FALSE;
+	}
+
+	BYTE buffer[5];
+	int status = recv(data->socket, buffer, sizeof(buffer), MSG_WAITALL);
+
+	if(status == SOCKET_ERROR) {
+		ERROR_WSA(L"HRSPPacketReceive", L"recv");
+		return FALSE;
+	}
+
+	if(!status) {
+		ERROR_COMMON(ERROR_HRSP_CONNECTION_CLOSED, L"HRSPPacketReceive", NULL);
+		return FALSE;
+	}
+
+	if(!buffer[0]) {
+		packet->type = ((buffer[1] & 0xFF) << 24) | ((buffer[2] & 0xFF) << 16) | ((buffer[3] & 0xFF) << 8) | (buffer[4] & 0xFF);
+		packet->size = 0;
+		packet->data = NULL;
+		ERROR_CLEAR;
+		return TRUE;
+	}
+
+	BYTE sizeBuffer[8];
+	status = recv(data->socket, sizeBuffer, sizeof(sizeBuffer), MSG_WAITALL);
+
+	if(status == SOCKET_ERROR) {
+		ERROR_WSA(L"HRSPPacketReceive", L"recv");
+		return FALSE;
+	}
+
+	LARGE_INTEGER size;
+	size.HighPart = ((sizeBuffer[0] & 0xFF) << 24) | ((sizeBuffer[1] & 0xFF) << 16) | ((sizeBuffer[2] & 0xFF) << 8) | (sizeBuffer[3] & 0xFF);
+	size.LowPart = ((sizeBuffer[4] & 0xFF) << 24) | ((sizeBuffer[5] & 0xFF) << 16) | ((sizeBuffer[6] & 0xFF) << 8) | (sizeBuffer[7] & 0xFF);
+	printf("Size: %llu\n", size.QuadPart);
 	ERROR_CLEAR;
 	return TRUE;
 }
