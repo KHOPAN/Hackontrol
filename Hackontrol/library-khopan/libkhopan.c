@@ -65,20 +65,20 @@ LPSTR KHOPANFormatANSI(const LPCSTR format, ...) {
 
 	va_list list;
 	va_start(list, format);
-	int length = _vscprintf(format, list);
+	size_t length = (UINT) (_vscprintf(format, list) + 1);
 	LPSTR buffer = NULL;
 
-	if(length == -1) {
+	if(!length) {
 		goto functionExit;
 	}
 
-	buffer = KHOPAN_ALLOCATE(((size_t) length) + 1);
+	buffer = KHOPAN_ALLOCATE(length);
 
 	if(!buffer) {
 		goto functionExit;
 	}
 
-	if(vsprintf_s(buffer, ((size_t) length) + 1, format, list) == -1) {
+	if(vsprintf_s(buffer, length, format, list) == -1) {
 		KHOPAN_DEALLOCATE(buffer);
 		buffer = NULL;
 	}

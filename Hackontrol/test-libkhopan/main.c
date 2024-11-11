@@ -1,8 +1,8 @@
 #include <libkhopan.h>
 
 int main(int argc, char** argv) {
-	LPWSTR message = KHOPANFormatMessage(L"%ws:%02d:%S", L"12", 0, "00");
-	printf("Message: %ws\n", message);
+	LPSTR message = KHOPANFormatANSI("%ws:%02d", L"12", 0);
+	printf("Message: %s\n", message);
 
 	if(message) {
 		KHOPAN_DEALLOCATE(message);
