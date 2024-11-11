@@ -28,14 +28,27 @@
 #define KHOPANERRORMESSAGE_NTSTATUS(codeError, sourceName) do{KHOPANERROR __temporaryError__={0};__temporaryError__.facility=ERROR_FACILITY_NTSTATUS;__temporaryError__.code=(NTSTATUS)(codeError);__temporaryError__.source=(LPCWSTR)(sourceName);LPWSTR __temporaryMessage__=KHOPANGetErrorMessage(&__temporaryError__,KHOPAN_ERROR_DECODER);if(__temporaryMessage__){MessageBoxW(NULL,__temporaryMessage__,L"Error",MB_OK|MB_DEFBUTTON1|MB_ICONERROR|MB_SYSTEMMODAL);KHOPAN_DEALLOCATE(__temporaryMessage__);}}while(0)
 #define KHOPANERRORMESSAGE_CURL(codeError, sourceName)     do{KHOPANERROR __temporaryError__={0};__temporaryError__.facility=ERROR_FACILITY_CURL;__temporaryError__.code=(ULONG)(codeError);__temporaryError__.source=(LPCWSTR)(sourceName);LPWSTR __temporaryMessage__=KHOPANGetErrorMessage(&__temporaryError__,KHOPAN_ERROR_DECODER);if(__temporaryMessage__){MessageBoxW(NULL,__temporaryMessage__,L"Error",MB_OK|MB_DEFBUTTON1|MB_ICONERROR|MB_SYSTEMMODAL);KHOPAN_DEALLOCATE(__temporaryMessage__);}}while(0)
 
+
+/*#define KHOPANERRORCONSOLE_KHOPAN(error)          InternalKHOPANErrorKHOPAN(&(error),TRUE)
+#define KHOPANERRORCONSOLE_WIN32(code, source)    InternalKHOPANError(ERROR_FACILITY_WIN32,(code),(source),(KHOPAN_ERROR_DECODER),TRUE)
+#define KHOPANERRORCONSOLE_HRESULT(code, source)  InternalKHOPANError(ERROR_FACILITY_HRESULT,(code),(source),(KHOPAN_ERROR_DECODER),TRUE)
+#define KHOPANERRORCONSOLE_NTSTATUS(code, source) InternalKHOPANError(ERROR_FACILITY_NTSTATUS,(code),(source),(KHOPAN_ERROR_DECODER),TRUE)
+#define KHOPANERRORCONSOLE_CURL(code, source)     InternalKHOPANError(ERROR_FACILITY_CURL,(code),(source),(KHOPAN_ERROR_DECODER),TRUE)
+#define KHOPANERRORCONSOLE_COMMON(code, source)   InternalKHOPANError(ERROR_FACILITY_COMMON,(code),(source),(KHOPAN_ERROR_DECODER),TRUE)
+
+#define KHOPANERRORMESSAGE_KHOPAN(error)          InternalKHOPANErrorKHOPAN(&(error),FALSE)
+#define KHOPANERRORMESSAGE_WIN32(code, source)    InternalKHOPANError(ERROR_FACILITY_WIN32,(code),(source),(KHOPAN_ERROR_DECODER),FALSE)
+#define KHOPANERRORMESSAGE_HRESULT(code, source)  InternalKHOPANError(ERROR_FACILITY_HRESULT,(code),(source),(KHOPAN_ERROR_DECODER),FALSE)
+#define KHOPANERRORMESSAGE_NTSTATUS(code, source) InternalKHOPANError(ERROR_FACILITY_NTSTATUS,(code),(source),(KHOPAN_ERROR_DECODER),FALSE)
+#define KHOPANERRORMESSAGE_CURL(code, source)     InternalKHOPANError(ERROR_FACILITY_CURL,(code),(source),(KHOPAN_ERROR_DECODER),FALSE)
+#define KHOPANERRORMESSAGE_COMMON(code, source)   InternalKHOPANError(ERROR_FACILITY_COMMON,(code),(source),(KHOPAN_ERROR_DECODER),FALSE)
+*/
 #define KHOPANLASTERRORCONSOLE_WIN32(source) KHOPANERRORCONSOLE_WIN32(GetLastError(),source)
 #define KHOPANLASTERRORCONSOLE_WSA(source)   KHOPANERRORCONSOLE_WIN32(WSAGetLastError(),source)
 #define KHOPANLASTERRORMESSAGE_WIN32(source) KHOPANERRORMESSAGE_WIN32(GetLastError(),source)
 #define KHOPANLASTERRORMESSAGE_WSA(source)   KHOPANERRORMESSAGE_WIN32(WSAGetLastError(),source)
 
 #define KHOPAN_ERROR_DECODER KHOPANErrorCommonDecoder
-
-#define CURL_STATICLIB
 
 enum ERRORFACLIITYCOMMON {
 	ERROR_COMMON_SUCCESS,
@@ -62,6 +75,8 @@ LPCWSTR KHOPANErrorCommonDecoder(const PKHOPANERROR error);
 LPWSTR KHOPANFormatMessage(const LPCWSTR format, ...);
 LPSTR KHOPANFormatANSI(const LPCSTR format, ...);
 LPWSTR KHOPANGetErrorMessage(const PKHOPANERROR error, const KHOPANERRORDECODER decoder);
+void InternalKHOPANErrorKHOPAN(const PKHOPANERROR error, const BOOL console);
+void InternalKHOPANError(const UINT facility, const ULONG code, const LPCWSTR source, const KHOPANERRORDECODER decoder, const BOOL console);
 #ifdef __cplusplus
 }
 #endif
