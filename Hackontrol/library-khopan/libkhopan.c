@@ -36,20 +36,20 @@ LPWSTR KHOPANFormatMessage(const LPCWSTR format, ...) {
 
 	va_list list;
 	va_start(list, format);
-	int length = _vscwprintf(format, list);
+	size_t length = (UINT) (_vscwprintf(format, list) + 1);
 	LPWSTR buffer = NULL;
 
-	if(length == -1) {
+	if(!length) {
 		goto functionExit;
 	}
 
-	buffer = KHOPAN_ALLOCATE((((size_t) length) + 1) * sizeof(WCHAR));
+	buffer = KHOPAN_ALLOCATE(length * sizeof(WCHAR));
 
 	if(!buffer) {
 		goto functionExit;
 	}
 
-	if(vswprintf_s(buffer, ((size_t) length) + 1, format, list) == -1) {
+	if(vswprintf_s(buffer, length, format, list) == -1) {
 		KHOPAN_DEALLOCATE(buffer);
 		buffer = NULL;
 	}
