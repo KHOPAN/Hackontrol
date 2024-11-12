@@ -65,6 +65,59 @@ freeStream:
 	return codeExit;
 }
 
+int linkedTest() {
+	LINKEDLIST list;
+	KHOPANERROR error;
+
+	if(!KHOPANLinkedInitialize(&list, sizeof(ULONGLONG), &error)) {
+		KHOPANERRORMESSAGE_KHOPAN(error);
+		return 1;
+	}
+
+	int codeExit = 0;
+
+	for(UINT i = 0; i < 15; i++) {
+		ULONGLONG number = i;
+
+		if(!KHOPANLinkedAdd(&list, (PBYTE) &number, NULL, &error)) {
+			KHOPANERRORMESSAGE_KHOPAN(error);
+			goto freeStream;
+		}
+	}
+
+	PLINKEDLISTITEM item;
+
+	if(!KHOPANLinkedGet(&list, 5, &item, &error)) {
+		KHOPANERRORMESSAGE_KHOPAN(error);
+		goto freeStream;
+	}
+
+	if(!KHOPANLinkedRemove(item, &error)) {
+		KHOPANERRORMESSAGE_KHOPAN(error);
+		goto freeStream;
+	}
+
+	for(UINT i = 0; i < 14; i++) {
+		PLINKEDLISTITEM item;
+
+		if(!KHOPANLinkedGet(&list, i, &item, &error)) {
+			KHOPANERRORMESSAGE_KHOPAN(error);
+			goto freeStream;
+		}
+
+		printf("%llu\n", *((PULONGLONG) item->data));
+	}
+
+	codeExit = 0;
+freeStream:
+	if(!KHOPANLinkedFree(&list, &error)) {
+		KHOPANERRORMESSAGE_KHOPAN(error);
+		codeExit = 1;
+	}
+
+	return codeExit;
+}
+
 int main(int argc, char** argv) {
-	return arrayTest();
+	return linkedTest();
 }

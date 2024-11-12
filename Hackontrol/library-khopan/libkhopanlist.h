@@ -5,8 +5,8 @@
 #define KHOPAN_ARRAY_INITIAL_CAPACITY 10
 #define KHOPAN_ARRAY_SCALE_FACTOR     2
 
-#define KHOPAN_LINKED_LIST_ITERATE(variable, list) for(variable=((PLINKEDLIST)list)->first;variable;variable=((PLINKEDLISTITEM)variable)->next)
-#define KHOPAN_LINKED_LIST_ITERATE_REVERSE(variable, list) for(variable=((PLINKEDLIST)list)->last;variable;variable=((PLINKEDLISTITEM)variable)->previous)
+#define KHOPAN_LINKED_LIST_ITERATE_FORWARD(variable, list)  for((variable)=((PLINKEDLIST)(list))->first;(variable);(variable)=((PLINKEDLISTITEM)(variable))->next)
+#define KHOPAN_LINKED_LIST_ITERATE_BACKWARD(variable, list) for((variable)=((PLINKEDLIST)(list))->last;(variable);(variable)=((PLINKEDLISTITEM)(variable))->previous)
 
 typedef struct {
 	size_t size;
@@ -24,18 +24,18 @@ typedef struct {
 typedef struct _LINKEDLIST LINKEDLIST, *PLINKEDLIST;
 typedef struct _LINKEDLISTITEM LINKEDLISTITEM, *PLINKEDLISTITEM, **PPLINKEDLISTITEM;
 
-struct _LINKEDLISTITEM {
-	PBYTE data;
-	PLINKEDLIST list;
-	PLINKEDLISTITEM previous;
-	PLINKEDLISTITEM next;
-};
-
 struct _LINKEDLIST {
 	size_t count;
 	size_t size;
 	PLINKEDLISTITEM first;
 	PLINKEDLISTITEM last;
+};
+
+struct _LINKEDLISTITEM {
+	PBYTE data;
+	PLINKEDLIST list;
+	PLINKEDLISTITEM previous;
+	PLINKEDLISTITEM next;
 };
 
 #ifdef __cplusplus

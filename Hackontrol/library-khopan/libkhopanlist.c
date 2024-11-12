@@ -209,13 +209,16 @@ BOOL KHOPANLinkedInitialize(const PLINKEDLIST list, const size_t size, const PKH
 		return FALSE;
 	}
 
+	list->count = 0;
 	list->size = size;
+	list->first = NULL;
+	list->last = NULL;
 	ERROR_CLEAR;
 	return TRUE;
 }
 
 BOOL KHOPANLinkedAdd(const PLINKEDLIST list, const PBYTE data, const PPLINKEDLISTITEM item, const PKHOPANERROR error) {
-	if(!list || !data || !list->size) {
+	if(!list || !data) {
 		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANLinkedAdd", NULL);
 		return FALSE;
 	}
@@ -315,7 +318,7 @@ BOOL KHOPANLinkedGet(const PLINKEDLIST list, const size_t index, const PPLINKEDL
 	BOOL found = FALSE;
 	PLINKEDLISTITEM listItem;
 
-	KHOPAN_LINKED_LIST_ITERATE(listItem, list) {
+	KHOPAN_LINKED_LIST_ITERATE_FORWARD(listItem, list) {
 		if(index == count) {
 			*item = listItem;
 			found = TRUE;
