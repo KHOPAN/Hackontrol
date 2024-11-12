@@ -11,14 +11,14 @@
 typedef struct {
 	size_t size;
 	size_t capacity;
-	PBYTE data;
+	LPVOID data;
 } DATASTREAM, *PDATASTREAM;
 
 typedef struct {
 	size_t count;
 	size_t size;
 	size_t capacity;
-	PBYTE data;
+	LPVOID data;
 } ARRAYLIST, *PARRAYLIST;
 
 typedef struct _LINKEDLIST LINKEDLIST, *PLINKEDLIST;
@@ -32,7 +32,7 @@ struct _LINKEDLIST {
 };
 
 struct _LINKEDLISTITEM {
-	PBYTE data;
+	LPVOID data;
 	PLINKEDLIST list;
 	PLINKEDLISTITEM previous;
 	PLINKEDLISTITEM next;
@@ -42,15 +42,15 @@ struct _LINKEDLISTITEM {
 extern "C" {
 #endif
 BOOL KHOPANStreamInitialize(const PDATASTREAM stream, const size_t size, const PKHOPANERROR error);
-BOOL KHOPANStreamAdd(const PDATASTREAM stream, const PBYTE data, const size_t size, const PKHOPANERROR error);
+BOOL KHOPANStreamAdd(const PDATASTREAM stream, const LPVOID data, const size_t size, const PKHOPANERROR error);
 BOOL KHOPANStreamFree(const PDATASTREAM stream, const PKHOPANERROR error);
 BOOL KHOPANArrayInitialize(const PARRAYLIST list, const size_t size, const PKHOPANERROR error);
-BOOL KHOPANArrayAdd(const PARRAYLIST list, const PBYTE data, const PKHOPANERROR error);
+BOOL KHOPANArrayAdd(const PARRAYLIST list, const LPVOID data, const PKHOPANERROR error);
 BOOL KHOPANArrayRemove(const PARRAYLIST list, const size_t index, const PKHOPANERROR error);
-BOOL KHOPANArrayGet(const PARRAYLIST list, const size_t index, PBYTE* const data, const PKHOPANERROR error);
+BOOL KHOPANArrayGet(const PARRAYLIST list, const size_t index, LPVOID* const data, const PKHOPANERROR error);
 BOOL KHOPANArrayFree(const PARRAYLIST list, const PKHOPANERROR error);
 BOOL KHOPANLinkedInitialize(const PLINKEDLIST list, const size_t size, const PKHOPANERROR error);
-BOOL KHOPANLinkedAdd(const PLINKEDLIST list, const PBYTE data, const PPLINKEDLISTITEM item, const PKHOPANERROR error);
+BOOL KHOPANLinkedAdd(const PLINKEDLIST list, const LPVOID data, const PPLINKEDLISTITEM item, const PKHOPANERROR error);
 BOOL KHOPANLinkedRemove(const PLINKEDLISTITEM item, const PKHOPANERROR error);
 BOOL KHOPANLinkedGet(const PLINKEDLIST list, const size_t index, const PPLINKEDLISTITEM item, const PKHOPANERROR error);
 BOOL KHOPANLinkedFree(const PLINKEDLIST list, const PKHOPANERROR error);

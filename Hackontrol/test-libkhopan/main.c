@@ -97,14 +97,7 @@ int linkedTest() {
 		goto freeStream;
 	}
 
-	for(UINT i = 0; i < 14; i++) {
-		PLINKEDLISTITEM item;
-
-		if(!KHOPANLinkedGet(&list, i, &item, &error)) {
-			KHOPANERRORMESSAGE_KHOPAN(error);
-			goto freeStream;
-		}
-
+	KHOPAN_LINKED_LIST_ITERATE_FORWARD(item, &list) {
 		printf("%llu\n", *((PULONGLONG) item->data));
 	}
 

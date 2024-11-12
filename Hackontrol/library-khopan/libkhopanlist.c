@@ -28,7 +28,7 @@ BOOL KHOPANStreamInitialize(const PDATASTREAM stream, const size_t size, const P
 	return TRUE;
 }
 
-BOOL KHOPANStreamAdd(const PDATASTREAM stream, const PBYTE data, const size_t size, const PKHOPANERROR error) {
+BOOL KHOPANStreamAdd(const PDATASTREAM stream, const LPVOID data, const size_t size, const PKHOPANERROR error) {
 	if(!stream || !data || !size) {
 		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANStreamAdd", NULL);
 		return FALSE;
@@ -38,7 +38,7 @@ BOOL KHOPANStreamAdd(const PDATASTREAM stream, const PBYTE data, const size_t si
 	size_t index;
 
 	if(length > stream->capacity) {
-		PBYTE buffer = KHOPAN_ALLOCATE(length);
+		LPVOID buffer = KHOPAN_ALLOCATE(length);
 
 		if(!buffer) {
 			ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"KHOPANStreamAdd", L"KHOPAN_ALLOCATE");
@@ -46,7 +46,7 @@ BOOL KHOPANStreamAdd(const PDATASTREAM stream, const PBYTE data, const size_t si
 		}
 
 		if(stream->data) {
-			for(index = 0; index < stream->size; index++) buffer[index] = stream->data[index];
+			for(index = 0; index < stream->size; index++) ((PBYTE) buffer)[index] = ((PBYTE) stream->data)[index];
 			KHOPAN_DEALLOCATE(stream->data);
 		}
 
@@ -55,7 +55,7 @@ BOOL KHOPANStreamAdd(const PDATASTREAM stream, const PBYTE data, const size_t si
 	}
 
 	for(index = 0; index < size; index++) {
-		stream->data[stream->size + index] = data[index];
+		((PBYTE) stream->data)[stream->size + index] = ((PBYTE) data)[index];
 	}
 
 	stream->size += size;
@@ -87,7 +87,7 @@ BOOL KHOPANArrayInitialize(const PARRAYLIST list, const size_t size, const PKHOP
 		return FALSE;
 	}
 
-	PBYTE buffer = KHOPAN_ALLOCATE(size * KHOPAN_ARRAY_INITIAL_CAPACITY);
+	LPVOID buffer = KHOPAN_ALLOCATE(size * KHOPAN_ARRAY_INITIAL_CAPACITY);
 
 	if(!buffer) {
 		ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"KHOPANArrayInitialize", L"KHOPAN_ALLOCATE");
@@ -102,13 +102,13 @@ BOOL KHOPANArrayInitialize(const PARRAYLIST list, const size_t size, const PKHOP
 	return TRUE;
 }
 
-BOOL KHOPANArrayAdd(const PARRAYLIST list, const PBYTE data, const PKHOPANERROR error) {
+BOOL KHOPANArrayAdd(const PARRAYLIST list, const LPVOID data, const PKHOPANERROR error) {
 	if(!list || !data) {
 		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANArrayAdd", NULL);
 		return FALSE;
 	}
 
-	PBYTE buffer;
+	LPVOID buffer;
 	size_t index;
 
 	if(list->count >= list->capacity) {
@@ -121,7 +121,7 @@ BOOL KHOPANArrayAdd(const PARRAYLIST list, const PBYTE data, const PKHOPANERROR 
 		}
 
 		for(index = 0; index < size; index++) {
-			buffer[index] = list->data[index];
+			((PBYTE) buffer)[index] = ((PBYTE) list->data)[index];
 		}
 
 		KHOPAN_DEALLOCATE(list->data);
@@ -129,10 +129,10 @@ BOOL KHOPANArrayAdd(const PARRAYLIST list, const PBYTE data, const PKHOPANERROR 
 		list->data = buffer;
 	}
 
-	buffer = list->data + list->size * list->count;
+	buffer = ((PBYTE) list->data) + list->size * list->count;
 
 	for(index = 0; index < list->size; index++) {
-		buffer[index] = data[index];
+		((PBYTE) buffer)[index] = ((PBYTE) data)[index];
 	}
 
 	list->count++;
@@ -158,17 +158,17 @@ BOOL KHOPANArrayRemove(const PARRAYLIST list, const size_t index, const PKHOPANE
 		return TRUE;
 	}
 
-	PBYTE buffer = list->data + list->size * index;
+	LPVOID buffer = ((PBYTE) list->data) + list->size * index;
 
 	for(size_t i = 0; i < (list->count - index) * list->size; i++) {
-		buffer[i] = buffer[i + list->size];
+		((PBYTE) buffer)[i] = ((PBYTE) buffer)[i + list->size];
 	}
 
 	ERROR_CLEAR;
 	return TRUE;
 }
 
-BOOL KHOPANArrayGet(const PARRAYLIST list, const size_t index, PBYTE* const data, const PKHOPANERROR error) {
+BOOL KHOPANArrayGet(const PARRAYLIST list, const size_t index, LPVOID* const data, const PKHOPANERROR error) {
 	if(!list || !data || !list->count) {
 		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANArrayGet", NULL);
 		return FALSE;
@@ -179,7 +179,7 @@ BOOL KHOPANArrayGet(const PARRAYLIST list, const size_t index, PBYTE* const data
 		return FALSE;
 	}
 
-	*data = list->data + list->size * index;
+	*data = ((PBYTE) list->data) + list->size * index;
 	ERROR_CLEAR;
 	return TRUE;
 }
@@ -217,7 +217,7 @@ BOOL KHOPANLinkedInitialize(const PLINKEDLIST list, const size_t size, const PKH
 	return TRUE;
 }
 
-BOOL KHOPANLinkedAdd(const PLINKEDLIST list, const PBYTE data, const PPLINKEDLISTITEM item, const PKHOPANERROR error) {
+BOOL KHOPANLinkedAdd(const PLINKEDLIST list, const LPVOID data, const PPLINKEDLISTITEM item, const PKHOPANERROR error) {
 	if(!list || !data) {
 		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANLinkedAdd", NULL);
 		return FALSE;
@@ -239,7 +239,7 @@ BOOL KHOPANLinkedAdd(const PLINKEDLIST list, const PBYTE data, const PPLINKEDLIS
 	}
 
 	for(size_t i = 0; i < list->size; i++) {
-		buffer->data[i] = data[i];
+		((PBYTE) buffer->data)[i] = ((PBYTE) data)[i];
 	}
 
 	buffer->list = list;
