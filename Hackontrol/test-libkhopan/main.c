@@ -8,7 +8,7 @@ int main(int argc, char** argv) {
 		return 1;
 	}*/
 
-	LPWSTR text = KHOPANStringDuplicate(L"Hello, world!");
+	LPWSTR text = KHOPANFolderGetWindows();
 	printf("%ws\n", text);
 
 	if(text) {

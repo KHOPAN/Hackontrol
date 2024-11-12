@@ -396,7 +396,7 @@ BOOL KHOPANExecuteRundll32Function(const LPWSTR file, const LPCSTR function, con
 }
 
 LPWSTR KHOPANFileGetCmd(const PKHOPANERROR error) {
-	LPWSTR folderWindows = KHOPANFolderGetWindows(error);
+	LPWSTR folderWindows = KHOPANFolderGetWindows();
 
 	if(!folderWindows) {
 		ERROR_SOURCE(L"KHOPANFileGetCmd");
@@ -416,7 +416,7 @@ LPWSTR KHOPANFileGetCmd(const PKHOPANERROR error) {
 }
 
 LPWSTR KHOPANFileGetRundll32(const PKHOPANERROR error) {
-	LPWSTR folderWindows = KHOPANFolderGetWindows(error);
+	LPWSTR folderWindows = KHOPANFolderGetWindows();
 
 	if(!folderWindows) {
 		ERROR_SOURCE(L"KHOPANFileGetRundll32");
@@ -435,28 +435,24 @@ LPWSTR KHOPANFileGetRundll32(const PKHOPANERROR error) {
 	return fileRundll32;
 }
 
-LPWSTR KHOPANFolderGetWindows(const PKHOPANERROR error) {
+LPWSTR KHOPANFolderGetWindows() {
 	UINT size = GetSystemWindowsDirectoryW(NULL, 0);
 
 	if(!size) {
-		ERROR_WIN32(L"KHOPANFolderGetWindows", L"GetSystemWindowsDirectoryW");
 		return NULL;
 	}
 
 	LPWSTR buffer = KHOPAN_ALLOCATE(size * sizeof(WCHAR));
 
 	if(!buffer) {
-		ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"KHOPANFolderGetWindows", L"KHOPAN_ALLOCATE");
 		return NULL;
 	}
 
 	if(!GetSystemWindowsDirectoryW(buffer, size)) {
-		ERROR_WIN32(L"KHOPANFolderGetWindows", L"GetSystemWindowsDirectoryW");
 		KHOPAN_DEALLOCATE(buffer);
 		return NULL;
 	}
 
-	ERROR_CLEAR;
 	return buffer;
 }
 
