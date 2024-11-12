@@ -207,7 +207,7 @@ BOOL KHOPANExecuteCommand(const LPCWSTR command, const BOOL block, const PKHOPAN
 		return FALSE;
 	}
 
-	LPWSTR fileCmd = KHOPANFileGetCmd(error);
+	LPWSTR fileCmd = KHOPANFileGetCmd();
 
 	if(!fileCmd) {
 		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"KHOPANExecuteCommand", L"KHOPANFileGetCmd");
@@ -259,7 +259,7 @@ BOOL KHOPANExecuteDynamicLibrary(const LPCWSTR file, const LPCSTR function, cons
 	LPWSTR fileRundll32 = KHOPANFileGetRundll32();
 
 	if(!fileRundll32) {
-		ERROR_SOURCE(L"KHOPANExecuteDynamicLibrary");
+		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"KHOPANExecuteDynamicLibrary", L"KHOPANFileGetRundll32");
 		return FALSE;
 	}
 
@@ -277,10 +277,9 @@ BOOL KHOPANExecuteDynamicLibrary(const LPCWSTR file, const LPCSTR function, cons
 
 	if(!response) {
 		ERROR_SOURCE(L"KHOPANExecuteDynamicLibrary");
-		return FALSE;
 	}
 
-	return TRUE;
+	return response;
 }
 
 BOOL KHOPANExecuteProcess(const LPCWSTR file, const LPCWSTR argument, const BOOL block, const PKHOPANERROR error) {
