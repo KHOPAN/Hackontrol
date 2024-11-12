@@ -207,25 +207,25 @@ BOOL KHOPANExecuteCommand(const LPCWSTR command, const BOOL block, const PKHOPAN
 		return FALSE;
 	}
 
-	LPWSTR fileCommandPrompt = KHOPANFileGetCmd(error);
+	LPWSTR fileCmd = KHOPANFileGetCmd(error);
 
-	if(!fileCommandPrompt) {
-		ERROR_SOURCE(L"KHOPANExecuteCommand");
+	if(!fileCmd) {
+		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"KHOPANExecuteCommand", L"KHOPANFileGetCmd");
 		return FALSE;
 	}
 
-	LPWSTR argument = KHOPANFormatMessage(L"%ws /c \"%ws\"", fileCommandPrompt, command);
+	LPWSTR argument = KHOPANFormatMessage(L"%ws /c \"%ws\"", fileCmd, command);
 
 	if(!argument) {
 		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"KHOPANExecuteCommand", L"KHOPANFormatMessage");
-		goto freeFileCommandPrompt;
+		goto freeFileCmd;
 	}
 
 	STARTUPINFOW startup = {0};
 	startup.cb = sizeof(STARTUPINFOW);
 	PROCESS_INFORMATION process;
 
-	if(!CreateProcessW(fileCommandPrompt, argument, NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW, NULL, NULL, &startup, &process)) {
+	if(!CreateProcessW(fileCmd, argument, NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW, NULL, NULL, &startup, &process)) {
 		ERROR_WIN32(L"KHOPANExecuteCommand", L"CreateProcessW");
 		goto freeArgument;
 	}
@@ -240,13 +240,13 @@ BOOL KHOPANExecuteCommand(const LPCWSTR command, const BOOL block, const PKHOPAN
 	CloseHandle(process.hProcess);
 	CloseHandle(process.hThread);
 	KHOPAN_DEALLOCATE(argument);
-	KHOPAN_DEALLOCATE(fileCommandPrompt);
+	KHOPAN_DEALLOCATE(fileCmd);
 	ERROR_CLEAR;
 	return TRUE;
 freeArgument:
 	KHOPAN_DEALLOCATE(argument);
-freeFileCommandPrompt:
-	KHOPAN_DEALLOCATE(fileCommandPrompt);
+freeFileCmd:
+	KHOPAN_DEALLOCATE(fileCmd);
 	return FALSE;
 }
 
