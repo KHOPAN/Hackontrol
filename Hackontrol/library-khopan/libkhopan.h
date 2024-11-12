@@ -58,12 +58,12 @@ typedef LPCWSTR(__stdcall* KHOPANERRORDECODER) (const PKHOPANERROR error);
 #ifdef __cplusplus
 extern "C" {
 #endif
+void InternalKHOPANError(const UINT facility, const ULONG code, const LPCWSTR source, const KHOPANERRORDECODER decoder, const BOOL console);
+void InternalKHOPANErrorKHOPAN(const PKHOPANERROR error, const KHOPANERRORDECODER decoder, const BOOL console);
 LPCWSTR KHOPANErrorCommonDecoder(const PKHOPANERROR error);
 LPWSTR KHOPANFormatMessage(const LPCWSTR format, ...);
 LPSTR KHOPANFormatANSI(const LPCSTR format, ...);
 LPWSTR KHOPANGetErrorMessage(const PKHOPANERROR error, const KHOPANERRORDECODER decoder);
-void InternalKHOPANErrorKHOPAN(const PKHOPANERROR error, const KHOPANERRORDECODER decoder, const BOOL console);
-void InternalKHOPANError(const UINT facility, const ULONG code, const LPCWSTR source, const KHOPANERRORDECODER decoder, const BOOL console);
 #ifdef __cplusplus
 }
 #endif

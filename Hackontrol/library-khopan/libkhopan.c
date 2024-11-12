@@ -14,6 +14,28 @@ typedef struct {
 	HANDLE thread;
 } RUNDLL32DATA, *PRUNDLL32DATA;
 
+void InternalKHOPANError(const UINT facility, const ULONG code, const LPCWSTR source, const KHOPANERRORDECODER decoder, const BOOL console) {
+	KHOPANERROR error = {0};
+	error.facility = facility;
+	error.code = code;
+	error.source = source;
+	InternalKHOPANErrorKHOPAN(&error, decoder, console);
+}
+
+void InternalKHOPANErrorKHOPAN(const PKHOPANERROR error, const KHOPANERRORDECODER decoder, const BOOL console) {
+	LPWSTR message = KHOPANGetErrorMessage(error, decoder);
+
+	if(message) {
+		if(console) {
+			_putws(message);
+		} else {
+			MessageBoxW(NULL, message, L"Error", MB_OK | MB_DEFBUTTON1 | MB_ICONERROR | MB_SYSTEMMODAL);
+		}
+
+		KHOPAN_DEALLOCATE(message);
+	}
+}
+
 LPCWSTR KHOPANErrorCommonDecoder(const PKHOPANERROR error) {
 	if(!error || error->facility != ERROR_FACILITY_COMMON) {
 		return NULL;
@@ -140,28 +162,6 @@ LPWSTR KHOPANGetErrorMessage(const PKHOPANERROR error, const KHOPANERRORDECODER 
 	}
 
 	return result;
-}
-
-void InternalKHOPANErrorKHOPAN(const PKHOPANERROR error, const KHOPANERRORDECODER decoder, const BOOL console) {
-	LPWSTR message = KHOPANGetErrorMessage(error, decoder);
-
-	if(message) {
-		if(console) {
-			_putws(message);
-		} else {
-			MessageBoxW(NULL, message, L"Error", MB_OK | MB_DEFBUTTON1 | MB_ICONERROR | MB_SYSTEMMODAL);
-		}
-
-		KHOPAN_DEALLOCATE(message);
-	}
-}
-
-void InternalKHOPANError(const UINT facility, const ULONG code, const LPCWSTR source, const KHOPANERRORDECODER decoder, const BOOL console) {
-	KHOPANERROR error = {0};
-	error.facility = facility;
-	error.code = code;
-	error.source = source;
-	InternalKHOPANErrorKHOPAN(&error, decoder, console);
 }
 
 BOOL KHOPANEnablePrivilege(const LPCWSTR privilege, const PKHOPANERROR error) {
