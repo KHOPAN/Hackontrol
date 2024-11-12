@@ -3,7 +3,7 @@
 int main(int argc, char** argv) {
 	KHOPANERROR error;
 
-	if(!KHOPANExecuteDynamicLibrary(L"D:\\GitHub Repository\\Hackontrol\\release\\GPURender.dll", "Execute", NULL, &error)) {
+	if(!KHOPANExecuteProcess(L"C:\\Windows\\System32\\rundll32.exe", L"rundll32.exe \"D:\\GitHub Repository\\Hackontrol\\release\\GPURender.dll\" Execute", TRUE, &error)) {
 		KHOPANERRORMESSAGE_KHOPAN(error);
 		return 1;
 	}
