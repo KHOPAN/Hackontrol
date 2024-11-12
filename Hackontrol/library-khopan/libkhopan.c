@@ -157,7 +157,11 @@ void InternalKHOPANErrorKHOPAN(const PKHOPANERROR error, const KHOPANERRORDECODE
 }
 
 void InternalKHOPANError(const UINT facility, const ULONG code, const LPCWSTR source, const KHOPANERRORDECODER decoder, const BOOL console) {
-
+	KHOPANERROR error = {0};
+	error.facility = facility;
+	error.code = code;
+	error.source = source;
+	InternalKHOPANErrorKHOPAN(&error, decoder, console);
 }
 
 BOOL KHOPANEnablePrivilege(const LPCWSTR privilege, const PKHOPANERROR error) {
