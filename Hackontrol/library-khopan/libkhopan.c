@@ -395,24 +395,16 @@ BOOL KHOPANExecuteRundll32Function(const LPWSTR file, const LPCSTR function, con
 	return TRUE;
 }
 
-LPWSTR KHOPANFileGetCmd(const PKHOPANERROR error) {
+LPWSTR KHOPANFileGetCmd() {
 	LPWSTR folderWindows = KHOPANFolderGetWindows();
 
 	if(!folderWindows) {
-		ERROR_SOURCE(L"KHOPANFileGetCmd");
 		return NULL;
 	}
 
-	LPWSTR fileCommandPrompt = KHOPANFormatMessage(L"%ws\\" FOLDER_SYSTEM32 L"\\" FILE_CMD, folderWindows);
+	LPWSTR fileCmd = KHOPANFormatMessage(L"%ws\\" FOLDER_SYSTEM32 L"\\" FILE_CMD, folderWindows);
 	KHOPAN_DEALLOCATE(folderWindows);
-
-	if(!fileCommandPrompt) {
-		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"KHOPANFileGetCmd", L"KHOPANFormatMessage");
-		return NULL;
-	}
-
-	ERROR_CLEAR;
-	return fileCommandPrompt;
+	return fileCmd;
 }
 
 LPWSTR KHOPANFileGetRundll32() {
