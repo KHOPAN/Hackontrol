@@ -76,8 +76,8 @@ BOOL KHOPANExecuteCommand(const LPCWSTR command, const BOOL block, const PKHOPAN
 BOOL KHOPANExecuteDynamicLibrary(const LPCWSTR file, const LPCSTR function, const LPCSTR argument, const PKHOPANERROR error);
 BOOL KHOPANExecuteProcess(const LPCWSTR file, const LPCWSTR argument, const BOOL block, const PKHOPANERROR error);
 BOOL KHOPANExecuteRundll32Function(const LPWSTR file, const LPCSTR function, const LPCSTR argument, const BOOL block, const PKHOPANERROR error);
-LPWSTR KHOPANFileGetCmd(const PKHOPANERROR error);
-LPWSTR KHOPANFileGetRundll32(const PKHOPANERROR error);
+LPWSTR KHOPANFileGetCmd();
+LPWSTR KHOPANFileGetRundll32();
 LPWSTR KHOPANFolderGetWindows();
 LPWSTR KHOPANStringDuplicate(const LPCWSTR text);
 #ifdef __cplusplus

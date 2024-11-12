@@ -256,7 +256,7 @@ BOOL KHOPANExecuteDynamicLibrary(const LPCWSTR file, const LPCSTR function, cons
 		return FALSE;
 	}
 
-	LPWSTR fileRundll32 = KHOPANFileGetRundll32(error);
+	LPWSTR fileRundll32 = KHOPANFileGetRundll32();
 
 	if(!fileRundll32) {
 		ERROR_SOURCE(L"KHOPANExecuteDynamicLibrary");
@@ -415,23 +415,15 @@ LPWSTR KHOPANFileGetCmd(const PKHOPANERROR error) {
 	return fileCommandPrompt;
 }
 
-LPWSTR KHOPANFileGetRundll32(const PKHOPANERROR error) {
+LPWSTR KHOPANFileGetRundll32() {
 	LPWSTR folderWindows = KHOPANFolderGetWindows();
 
 	if(!folderWindows) {
-		ERROR_SOURCE(L"KHOPANFileGetRundll32");
 		return NULL;
 	}
 
 	LPWSTR fileRundll32 = KHOPANFormatMessage(L"%ws\\" FOLDER_SYSTEM32 L"\\" FILE_RUNDLL32, folderWindows);
 	KHOPAN_DEALLOCATE(folderWindows);
-
-	if(!fileRundll32) {
-		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"KHOPANFileGetRundll32", L"KHOPANFormatMessage");
-		return NULL;
-	}
-
-	ERROR_CLEAR;
 	return fileRundll32;
 }
 

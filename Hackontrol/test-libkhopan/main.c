@@ -8,7 +8,7 @@ int main(int argc, char** argv) {
 		return 1;
 	}*/
 
-	LPWSTR text = KHOPANFolderGetWindows();
+	LPWSTR text = KHOPANFileGetRundll32();
 	printf("%ws\n", text);
 
 	if(text) {
