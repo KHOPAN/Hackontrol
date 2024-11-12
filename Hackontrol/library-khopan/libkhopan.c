@@ -142,6 +142,24 @@ LPWSTR KHOPANGetErrorMessage(const PKHOPANERROR error, const KHOPANERRORDECODER 
 	return result;
 }
 
+void InternalKHOPANErrorKHOPAN(const PKHOPANERROR error, const KHOPANERRORDECODER decoder, const BOOL console) {
+	LPWSTR message = KHOPANGetErrorMessage(error, decoder);
+
+	if(message) {
+		if(console) {
+			_putws(message);
+		} else {
+			MessageBoxW(NULL, message, L"Error", MB_OK | MB_DEFBUTTON1 | MB_ICONERROR | MB_SYSTEMMODAL);
+		}
+
+		KHOPAN_DEALLOCATE(message);
+	}
+}
+
+void InternalKHOPANError(const UINT facility, const ULONG code, const LPCWSTR source, const KHOPANERRORDECODER decoder, const BOOL console) {
+
+}
+
 BOOL KHOPANEnablePrivilege(const LPCWSTR privilege, const PKHOPANERROR error) {
 	if(!privilege) {
 		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANEnablePrivilege", NULL);
