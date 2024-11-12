@@ -289,7 +289,7 @@ BOOL KHOPANExecuteProcess(const LPCWSTR file, const LPCWSTR argument, const BOOL
 		return FALSE;
 	}
 
-	LPWSTR argumentMutable = KHOPANStringDuplicate(argument, NULL);
+	LPWSTR argumentMutable = KHOPANStringDuplicate(argument);
 	STARTUPINFOW startup = {0};
 	startup.cb = sizeof(STARTUPINFOW);
 	PROCESS_INFORMATION process;
@@ -460,23 +460,20 @@ LPWSTR KHOPANFolderGetWindows(const PKHOPANERROR error) {
 	return buffer;
 }
 
-LPWSTR KHOPANStringDuplicate(const LPCWSTR text, const PKHOPANERROR error) {
+LPWSTR KHOPANStringDuplicate(const LPCWSTR text) {
 	if(!text) {
-		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANStringDuplicate", NULL);
 		return NULL;
 	}
 
 	size_t length = wcslen(text);
 
 	if(length < 1) {
-		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANStringDuplicate", NULL);
 		return NULL;
 	}
 
 	LPWSTR buffer = KHOPAN_ALLOCATE((length + 1) * sizeof(WCHAR));
 
 	if(!buffer) {
-		ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"KHOPANStringDuplicate", L"KHOPAN_ALLOCATE");
 		return NULL;
 	}
 
@@ -485,7 +482,6 @@ LPWSTR KHOPANStringDuplicate(const LPCWSTR text, const PKHOPANERROR error) {
 	}
 
 	buffer[length] = 0;
-	ERROR_CLEAR;
 	return buffer;
 }
 
