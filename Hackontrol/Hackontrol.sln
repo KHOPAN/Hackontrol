@@ -17,8 +17,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "library-khopan", "library-k
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libupdate32", "libupdate32\libupdate32.vcxproj", "{E81461D8-4C91-4F48-AA4A-7A0D77508F50}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "library-hackontrol", "library-hackontrol\library-hackontrol.vcxproj", "{7AD64C41-0110-4779-BDAA-7F2017F2692F}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libhrsp32", "libhrsp32\libhrsp32.vcxproj", "{BEFA7A9A-6DA9-47B7-9340-5776159A0BA0}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hackontrol-remote", "hackontrol-remote\hackontrol-remote.vcxproj", "{65BD71D9-0AB9-438A-BA5C-6EA14E00E51C}"
@@ -95,14 +93,6 @@ Global
 		{E81461D8-4C91-4F48-AA4A-7A0D77508F50}.Release|x64.Build.0 = Release|x64
 		{E81461D8-4C91-4F48-AA4A-7A0D77508F50}.Release|x86.ActiveCfg = Release|Win32
 		{E81461D8-4C91-4F48-AA4A-7A0D77508F50}.Release|x86.Build.0 = Release|Win32
-		{7AD64C41-0110-4779-BDAA-7F2017F2692F}.Debug|x64.ActiveCfg = Debug|x64
-		{7AD64C41-0110-4779-BDAA-7F2017F2692F}.Debug|x64.Build.0 = Debug|x64
-		{7AD64C41-0110-4779-BDAA-7F2017F2692F}.Debug|x86.ActiveCfg = Debug|Win32
-		{7AD64C41-0110-4779-BDAA-7F2017F2692F}.Debug|x86.Build.0 = Debug|Win32
-		{7AD64C41-0110-4779-BDAA-7F2017F2692F}.Release|x64.ActiveCfg = Release|x64
-		{7AD64C41-0110-4779-BDAA-7F2017F2692F}.Release|x64.Build.0 = Release|x64
-		{7AD64C41-0110-4779-BDAA-7F2017F2692F}.Release|x86.ActiveCfg = Release|Win32
-		{7AD64C41-0110-4779-BDAA-7F2017F2692F}.Release|x86.Build.0 = Release|Win32
 		{BEFA7A9A-6DA9-47B7-9340-5776159A0BA0}.Debug|x64.ActiveCfg = Debug|x64
 		{BEFA7A9A-6DA9-47B7-9340-5776159A0BA0}.Debug|x64.Build.0 = Debug|x64
 		{BEFA7A9A-6DA9-47B7-9340-5776159A0BA0}.Debug|x86.ActiveCfg = Debug|Win32
