@@ -25,7 +25,7 @@ typedef struct {
 typedef struct {
 	UINT type;
 	size_t size;
-	PBYTE data;
+	LPVOID data;
 } HRSPPACKET, *PHRSPPACKET;
 
 #ifdef __cplusplus

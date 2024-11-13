@@ -135,7 +135,7 @@ BOOL HRSPPacketSend(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPA
 
 	while(pointer < packet->size) {
 		size_t size = packet->size - pointer;
-		int sent = send(data->socket, packet->data + pointer, (int) min(size, INT_MAX), 0);
+		int sent = send(data->socket, ((PBYTE) packet->data) + pointer, (int) min(size, INT_MAX), 0);
 
 		if(sent == SOCKET_ERROR) {
 			ERROR_WSA(L"HRSPPacketSend", L"send");
