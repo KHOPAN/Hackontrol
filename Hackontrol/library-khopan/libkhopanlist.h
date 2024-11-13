@@ -57,3 +57,11 @@ BOOL KHOPANLinkedFree(const PLINKEDLIST list, const PKHOPANERROR error);
 #ifdef __cplusplus
 }
 #endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+BOOL KHOPANDownloadData(const PDATASTREAM stream, const LPCSTR address, const BOOL initialized, const BOOL force, const PKHOPANERROR error);
+#ifdef __cplusplus
+}
+#endif

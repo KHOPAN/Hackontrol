@@ -1,6 +1,6 @@
 #pragma once
 
-#include "libkhopan.h"
+#include "libkhopanlist.h"
 
 #define CURL_STATICLIB
 #include <curl/curl.h>

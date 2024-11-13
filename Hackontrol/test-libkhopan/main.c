@@ -111,6 +111,33 @@ freeStream:
 	return codeExit;
 }
 
+int downloadTest() {
+	DATASTREAM stream;
+	KHOPANERROR error;
+
+	if(!KHOPANStreamInitialize(&stream, 0, &error)) {
+		KHOPANERRORMESSAGE_KHOPAN(error);
+		return 1;
+	}
+
+	int codeExit = 1;
+
+	if(!KHOPANDownloadData(&stream, "https://www.youtube.com", FALSE, TRUE, &error)) {
+		KHOPANERRORMESSAGE_KHOPAN(error);
+		goto freeStream;
+	}
+
+	printf("%s\n", (LPSTR) stream.data);
+	codeExit = 0;
+freeStream:
+	if(!KHOPANStreamFree(&stream, &error)) {
+		KHOPANERRORMESSAGE_KHOPAN(error);
+		codeExit = 1;
+	}
+
+	return codeExit;
+}
+
 int main(int argc, char** argv) {
-	return linkedTest();
+	return downloadTest();
 }
