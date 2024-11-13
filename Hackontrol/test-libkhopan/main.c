@@ -1,4 +1,4 @@
-#include <libkhopanlist.h>
+#include <libkhopancurl.h>
 
 int streamTest() {
 	DATASTREAM stream;

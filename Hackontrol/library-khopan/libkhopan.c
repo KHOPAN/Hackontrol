@@ -465,30 +465,6 @@ LPWSTR KHOPANStringDuplicate(const LPCWSTR text) {
 	return buffer;
 }
 
-void KHOPANJavaThrow(JNIEnv* environment, const LPCSTR class, const LPCWSTR message) {
-	if(!environment || !class || !message) {
-		return;
-	}
-
-	jclass classObject = (*environment)->FindClass(environment, class);
-
-	if(!classObject) {
-		return;
-	}
-
-	jmethodID constructor = (*environment)->GetMethodID(environment, classObject, "<init>", "(Ljava/lang/String;)V");
-
-	if(!constructor) {
-		return;
-	}
-
-	jobject object = (*environment)->NewObject(environment, classObject, constructor, (*environment)->NewString(environment, message, (jsize) wcslen(message)));
-
-	if(object) {
-		(*environment)->Throw(environment, (jthrowable) object);
-	}
-}
-
 static size_t appendData(const LPVOID data, const size_t size, const size_t count, const PDATASTREAM stream) {
 	size_t total = size * count;
 
@@ -577,4 +553,28 @@ cleanupGlobal:
 	}
 
 	return codeExit;
+}
+
+void KHOPANJavaThrow(JNIEnv* environment, const LPCSTR class, const LPCWSTR message) {
+	if(!environment || !class || !message) {
+		return;
+	}
+
+	jclass classObject = (*environment)->FindClass(environment, class);
+
+	if(!classObject) {
+		return;
+	}
+
+	jmethodID constructor = (*environment)->GetMethodID(environment, classObject, "<init>", "(Ljava/lang/String;)V");
+
+	if(!constructor) {
+		return;
+	}
+
+	jobject object = (*environment)->NewObject(environment, classObject, constructor, (*environment)->NewString(environment, message, (jsize) wcslen(message)));
+
+	if(object) {
+		(*environment)->Throw(environment, (jthrowable) object);
+	}
 }
