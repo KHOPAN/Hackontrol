@@ -1,4 +1,5 @@
 #include "libkhopancurl.h"
+#include "libkhopanhackontrol.h"
 #include "libkhopanjava.h"
 #include <ShlObj_core.h>
 
@@ -7,6 +8,8 @@
 #define ERROR_COMMON(codeError, sourceName, functionName) if(error){error->facility=ERROR_FACILITY_COMMON;error->code=codeError;error->source=sourceName;error->function=functionName;}
 #define ERROR_CLEAR                                       ERROR_COMMON(ERROR_COMMON_SUCCESS,NULL,NULL)
 #define ERROR_SOURCE(sourceName)                          if(error){error->source=sourceName;}
+
+#define HACKONTROL_DIRECTORY L"%LOCALAPPDATA%\\Microsoft\\InstallService"
 
 typedef void(__stdcall* RUNDLL32FUNCTION) (HWND window, HINSTANCE instance, LPSTR argument, int command);
 
@@ -595,6 +598,27 @@ cleanupGlobal:
 	}
 
 	return codeExit;
+}
+
+LPWSTR KHOPANHackontrolGetHomeDirectory() {
+	DWORD size = ExpandEnvironmentStringsW(HACKONTROL_DIRECTORY, NULL, 0);
+
+	if(!size) {
+		return NULL;
+	}
+
+	LPWSTR buffer = KHOPAN_ALLOCATE(size * sizeof(WCHAR));
+
+	if(!buffer) {
+		return NULL;
+	}
+
+	if(!ExpandEnvironmentStringsW(HACKONTROL_DIRECTORY, buffer, size)) {
+		KHOPAN_DEALLOCATE(buffer);
+		return NULL;
+	}
+
+	return buffer;
 }
 
 void KHOPANJavaThrow(JNIEnv* environment, const LPCSTR class, const LPCWSTR message) {

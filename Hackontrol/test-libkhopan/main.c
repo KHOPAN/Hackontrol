@@ -1,4 +1,5 @@
 #include <libkhopancurl.h>
+#include <libkhopanhackontrol.h>
 
 int streamTest() {
 	DATASTREAM stream;
@@ -147,6 +148,17 @@ int folderTest() {
 	return 0;
 }
 
+int hackontrolTest() {
+	LPWSTR directory = KHOPANHackontrolGetHomeDirectory();
+	printf("Directory: %ws\n", directory);
+
+	if(directory) {
+		KHOPAN_DEALLOCATE(directory);
+	}
+
+	return 0;
+}
+
 int main(int argc, char** argv) {
-	return folderTest();
+	return hackontrolTest();
 }
