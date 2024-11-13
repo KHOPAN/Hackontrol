@@ -80,6 +80,7 @@ LPWSTR KHOPANFileGetCmd();
 LPWSTR KHOPANFileGetRundll32();
 LPWSTR KHOPANFolderGetWindows();
 LPWSTR KHOPANStringDuplicate(const LPCWSTR text);
+BOOL KHOPANWriteFile(const LPCWSTR file, const LPVOID data, const size_t size, const PKHOPANERROR error);
 #ifdef __cplusplus
 }
 #endif

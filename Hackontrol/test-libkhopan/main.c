@@ -127,7 +127,11 @@ int downloadTest() {
 		goto freeStream;
 	}
 
-	printf("%s\n", (LPSTR) stream.data);
+	if(!KHOPANWriteFile(L"D:\\youtube.html", stream.data, stream.size, &error)) {
+		KHOPANERRORMESSAGE_KHOPAN(error);
+		goto freeStream;
+	}
+
 	codeExit = 0;
 freeStream:
 	if(!KHOPANStreamFree(&stream, &error)) {

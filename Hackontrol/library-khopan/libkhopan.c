@@ -465,6 +465,39 @@ LPWSTR KHOPANStringDuplicate(const LPCWSTR text) {
 	return buffer;
 }
 
+BOOL KHOPANWriteFile(const LPCWSTR file, const LPVOID data, const size_t size, const PKHOPANERROR error) {
+	if(!file || !data || !size) {
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANWriteFile", NULL);
+		return FALSE;
+	}
+
+	HANDLE handle = CreateFileW(file, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+
+	if(handle == INVALID_HANDLE_VALUE) {
+		ERROR_WIN32(L"KHOPANWriteFile", L"CreateFileW");
+		return FALSE;
+	}
+
+	size_t pointer = 0;
+	DWORD written = 0;
+
+	while(pointer < size) {
+		size_t remaining = size - pointer;
+
+		if(!WriteFile(handle, ((PBYTE) data) + pointer, (DWORD) min(remaining, MAXDWORD), &written, NULL)) {
+			ERROR_WIN32(L"KHOPANWriteFile", L"WriteFile");
+			CloseHandle(handle);
+			return FALSE;
+		}
+
+		pointer += written;
+	}
+
+	CloseHandle(handle);
+	ERROR_CLEAR;
+	return TRUE;
+}
+
 static size_t appendData(const LPVOID data, const size_t size, const size_t count, const PDATASTREAM stream) {
 	size_t total = size * count;
 
