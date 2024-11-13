@@ -142,6 +142,11 @@ freeStream:
 	return codeExit;
 }
 
+int folderTest() {
+	KHOPANCreateDirectory(L"D:\\FolderTest\\Hello");
+	return 0;
+}
+
 int main(int argc, char** argv) {
-	return downloadTest();
+	return folderTest();
 }

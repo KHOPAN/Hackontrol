@@ -71,6 +71,7 @@ LPWSTR KHOPANGetErrorMessage(const PKHOPANERROR error, const KHOPANERRORDECODER 
 #ifdef __cplusplus
 extern "C" {
 #endif
+BOOL KHOPANCreateDirectory(const LPCWSTR folder);
 BOOL KHOPANEnablePrivilege(const LPCWSTR privilege, const PKHOPANERROR error);
 BOOL KHOPANExecuteCommand(const LPCWSTR command, const BOOL block, const PKHOPANERROR error);
 BOOL KHOPANExecuteDynamicLibrary(const LPCWSTR file, const LPCSTR function, const LPCSTR argument, const PKHOPANERROR error);

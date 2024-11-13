@@ -1,5 +1,6 @@
 #include "libkhopancurl.h"
 #include "libkhopanjava.h"
+#include <ShlObj_core.h>
 
 #define ERROR_WIN32(sourceName, functionName)             if(error){error->facility=ERROR_FACILITY_WIN32;error->code=GetLastError();error->source=sourceName;error->function=functionName;}
 #define ERROR_CURL(sourceName, functionName)              if(error){error->facility=ERROR_FACILITY_CURL;error->code=code;error->source=sourceName;error->function=functionName;}
@@ -163,6 +164,14 @@ LPWSTR KHOPANGetErrorMessage(const PKHOPANERROR error, const KHOPANERRORDECODER 
 	}
 
 	return result;
+}
+
+BOOL KHOPANCreateDirectory(const LPCWSTR folder) {
+	if(!folder) {
+		return FALSE;
+	}
+
+	return SHCreateDirectoryExW(NULL, folder, NULL) ? FALSE : TRUE;
 }
 
 BOOL KHOPANEnablePrivilege(const LPCWSTR privilege, const PKHOPANERROR error) {
