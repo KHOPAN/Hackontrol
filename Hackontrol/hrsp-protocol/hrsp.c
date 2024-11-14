@@ -72,12 +72,15 @@ BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 		return FALSE;
 	}
 
+	printf("Buffer: %.8s\n", buffer);
+
 	if(memcmp(buffer, "HRSP", 4)) {
 		ERROR_HRSP(ERROR_HRSP_INVALID_MAGIC, L"HRSPServerHandshake", NULL);
 		return FALSE;
 	}
 
 	buffer[0] = ((buffer[4] << 8) | buffer[5]) == HRSP_PROTOCOL_VERSION && ((buffer[6] << 8) | buffer[7]) == HRSP_PROTOCOL_VERSION_MINOR;
+	printf("Match: %s\n", buffer[0] ? "True" : "False");
 
 	if(send(socket, buffer, 1, 0) == SOCKET_ERROR) {
 		ERROR_WSA(L"HRSPServerHandshake", L"send");
