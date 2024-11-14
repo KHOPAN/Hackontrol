@@ -1,7 +1,71 @@
+#include <WS2tcpip.h>
 #include "hrsp_client.h"
 
+#define ERROR_WIN32(codeError, sourceName, functionName)  if(error){error->facility=ERROR_FACILITY_WIN32;error->code=codeError;error->source=sourceName;error->function=functionName;}
+#define ERROR_WSA(sourceName, functionName)               if(error){error->facility=ERROR_FACILITY_WIN32;error->code=WSAGetLastError();error->source=sourceName;error->function=functionName;}
+#define ERROR_COMMON(codeError, sourceName, functionName) if(error){error->facility=ERROR_FACILITY_COMMON;error->code=codeError;error->source=sourceName;error->function=functionName;}
+#define ERROR_HRSP(codeError, sourceName, functionName)   if(error){error->facility=ERROR_FACILITY_HRSP;error->code=codeError;error->source=sourceName;error->function=functionName;}
+#define ERROR_CLEAR                                       ERROR_COMMON(ERROR_COMMON_SUCCESS,NULL,NULL)
+
 BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const PHRSPCLIENTINPUT input, const PKHOPANERROR error) {
-	return TRUE;
+	WSADATA data;
+	int status = WSAStartup(MAKEWORD(2, 2), &data);
+
+	if(status) {
+		ERROR_WIN32(status, L"HRSPClientConnectToServer", L"WSAStartup");
+		return 1;
+	}
+
+	ADDRINFOW hints = {0};
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = IPPROTO_TCP;
+	BOOL codeExit = FALSE;
+
+	if(GetAddrInfoW(address ? address : L"localhost", port ? port : HRSP_PROTOCOL_PORT_STRING, &hints, &hints.ai_next)) {
+		ERROR_WSA(L"HRSPClientConnectToServer", L"GetAddrInfoW");
+		goto cleanupSocket;
+	}
+
+	/*parameter->socket = INVALID_SOCKET;
+
+	for(PADDRINFOW pointer = result; pointer != NULL; pointer = pointer->ai_next) {
+		parameter->socket = socket(pointer->ai_family, pointer->ai_socktype, pointer->ai_protocol);
+
+		if(parameter->socket == INVALID_SOCKET) {
+			ERROR_WIN32(WSAGetLastError(), L"socket");
+			FreeAddrInfoW(result);
+			goto cleanupSocket;
+		}
+
+		if(connect(parameter->socket, pointer->ai_addr, (int) pointer->ai_addrlen) != SOCKET_ERROR) {
+			break;
+		}
+
+		if(closesocket(parameter->socket) == SOCKET_ERROR) {
+			ERROR_WIN32(WSAGetLastError(), L"closesocket");
+			goto cleanupSocket;
+		}
+
+		parameter->socket = INVALID_SOCKET;
+	}
+
+	FreeAddrInfoW(result);
+
+	if(parameter->socket == INVALID_SOCKET) {
+		if(error) {
+			error->type = HRSP_CLIENT_ERROR_TYPE_CLIENT;
+			error->function = L"HRSPClientConnectToServer";
+			error->code = HRSP_CLIENT_ERROR_CANNOT_CONNECT_SERVER;
+		}
+
+		goto cleanupSocket;
+	}*/
+
+	codeExit = TRUE;
+cleanupSocket:
+	WSACleanup();
+	return codeExit;
 }
 
 /*#include <WS2tcpip.h>
