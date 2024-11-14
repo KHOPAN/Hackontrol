@@ -11,10 +11,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="libkhopanlist.c">
+    <ClCompile Include="libkhopan.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="libkhopan.c">
+    <ClCompile Include="libkhopancurl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

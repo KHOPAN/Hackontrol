@@ -1,15 +1,16 @@
-#include "libkhopancurl.h"
 #include "libkhopanhackontrol.h"
 #include "libkhopanjava.h"
+#include "libkhopanlist.h"
 #include <ShlObj_core.h>
 
 #define ERROR_WIN32(sourceName, functionName)             if(error){error->facility=ERROR_FACILITY_WIN32;error->code=GetLastError();error->source=sourceName;error->function=functionName;}
-#define ERROR_CURL(sourceName, functionName)              if(error){error->facility=ERROR_FACILITY_CURL;error->code=code;error->source=sourceName;error->function=functionName;}
 #define ERROR_COMMON(codeError, sourceName, functionName) if(error){error->facility=ERROR_FACILITY_COMMON;error->code=codeError;error->source=sourceName;error->function=functionName;}
 #define ERROR_CLEAR                                       ERROR_COMMON(ERROR_COMMON_SUCCESS,NULL,NULL)
 #define ERROR_SOURCE(sourceName)                          if(error){error->source=sourceName;}
 
 #define HACKONTROL_DIRECTORY L"%LOCALAPPDATA%\\Microsoft\\InstallService"
+
+#pragma warning(disable: 6386)
 
 typedef void(__stdcall* RUNDLL32FUNCTION) (HWND window, HINSTANCE instance, LPSTR argument, int command);
 
@@ -128,7 +129,7 @@ LPWSTR KHOPANGetErrorMessage(const PKHOPANERROR error, const KHOPANERRORDECODER 
 		FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK | (error->facility == ERROR_FACILITY_NTSTATUS ? FORMAT_MESSAGE_FROM_HMODULE : 0), error->facility == ERROR_FACILITY_NTSTATUS ? LoadLibraryW(L"ntdll.dll") : NULL, error->facility == ERROR_FACILITY_HRESULT ? error->code & 0xFFFF : error->code, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), (LPWSTR) &message, 0, NULL);
 		break;
 	case ERROR_FACILITY_CURL:
-		message = KHOPANFormatMessage(L"%S", curl_easy_strerror(error->code));
+		message = NULL;
 		break;
 	default:
 		if(decoder) {
@@ -153,9 +154,6 @@ LPWSTR KHOPANGetErrorMessage(const PKHOPANERROR error, const KHOPANERRORDECODER 
 		case ERROR_FACILITY_HRESULT:
 		case ERROR_FACILITY_NTSTATUS:
 			LocalFree(message);
-			break;
-		case ERROR_FACILITY_CURL:
-			KHOPAN_DEALLOCATE(message);
 			break;
 		}
 	} else {
@@ -510,96 +508,6 @@ BOOL KHOPANWriteFile(const LPCWSTR file, const LPVOID data, const size_t size, c
 	return TRUE;
 }
 
-static size_t appendData(const LPVOID data, const size_t size, const size_t count, const PDATASTREAM stream) {
-	size_t total = size * count;
-
-	if(!KHOPANStreamAdd(stream, data, total, NULL)) {
-		return 0;
-	}
-
-	return total;
-}
-
-BOOL KHOPANDownloadData(const PDATASTREAM stream, const LPCSTR address, const BOOL initialized, const BOOL force, const PKHOPANERROR error) {
-	if(!stream || !address) {
-		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANDownloadData", NULL);
-		return FALSE;
-	}
-
-	CURLcode code;
-
-	if(!initialized) {
-		code = curl_global_init(CURL_GLOBAL_ALL);
-
-		if(code != CURLE_OK) {
-			ERROR_CURL(L"KHOPANDownloadData", L"curl_global_init");
-			return FALSE;
-		}
-	}
-
-	CURL* curl = curl_easy_init();
-	BOOL codeExit = FALSE;
-
-	if(!curl) {
-		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"KHOPANDownloadData", L"curl_easy_init");
-		goto cleanupGlobal;
-	}
-
-	code = curl_easy_setopt(curl, CURLOPT_WRITEDATA, stream);
-
-	if(code != CURLE_OK) {
-		ERROR_CURL(L"KHOPANDownloadData", L"curl_easy_setopt");
-		goto cleanupEasy;
-	}
-
-	code = curl_easy_setopt(curl, CURLOPT_URL, address);
-
-	if(code != CURLE_OK) {
-		ERROR_CURL(L"KHOPANDownloadData", L"curl_easy_setopt");
-		goto cleanupEasy;
-	}
-
-	code = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, appendData);
-
-	if(code != CURLE_OK) {
-		ERROR_CURL(L"KHOPANDownloadData", L"curl_easy_setopt");
-		goto cleanupEasy;
-	}
-
-	code = curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
-
-	if(code != CURLE_OK) {
-		ERROR_CURL(L"KHOPANDownloadData", L"curl_easy_setopt");
-		goto cleanupEasy;
-	}
-
-	if(!force) {
-		code = curl_easy_perform(curl);
-
-		if(code != CURLE_OK) {
-			ERROR_CURL(L"KHOPANDownloadData", L"curl_easy_perform");
-			goto cleanupEasy;
-		}
-
-		goto clearError;
-	}
-
-	while(curl_easy_perform(curl) != CURLE_OK) {
-		KHOPANStreamFree(stream, NULL);
-	}
-clearError:
-	ERROR_CLEAR;
-	codeExit = TRUE;
-cleanupEasy:
-	curl_easy_cleanup(curl);
-cleanupGlobal:
-	if(!initialized) {
-		curl_global_cleanup();
-	}
-
-	return codeExit;
-}
-
 LPWSTR KHOPANHackontrolGetHomeDirectory() {
 	DWORD size = ExpandEnvironmentStringsW(HACKONTROL_DIRECTORY, NULL, 0);
 
@@ -643,4 +551,363 @@ void KHOPANJavaThrow(JNIEnv* environment, const LPCSTR class, const LPCWSTR mess
 	if(object) {
 		(*environment)->Throw(environment, (jthrowable) object);
 	}
+}
+
+BOOL KHOPANStreamInitialize(const PDATASTREAM stream, const size_t size, const PKHOPANERROR error) {
+	if(!stream) {
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANStreamInitialize", NULL);
+		return FALSE;
+	}
+
+	if(size) {
+		stream->data = KHOPAN_ALLOCATE(size);
+
+		if(!stream->data) {
+			ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"KHOPANStreamInitialize", L"KHOPAN_ALLOCATE");
+			return FALSE;
+		}
+	} else {
+		stream->data = NULL;
+	}
+
+	stream->size = 0;
+	stream->capacity = size;
+	ERROR_CLEAR;
+	return TRUE;
+}
+
+BOOL KHOPANStreamAdd(const PDATASTREAM stream, const LPVOID data, const size_t size, const PKHOPANERROR error) {
+	if(!stream || !data || !size) {
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANStreamAdd", NULL);
+		return FALSE;
+	}
+
+	size_t length = stream->size + size;
+	size_t index;
+
+	if(length > stream->capacity) {
+		LPVOID buffer = KHOPAN_ALLOCATE(length);
+
+		if(!buffer) {
+			ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"KHOPANStreamAdd", L"KHOPAN_ALLOCATE");
+			return FALSE;
+		}
+
+		if(stream->data) {
+			for(index = 0; index < stream->size; index++) ((PBYTE) buffer)[index] = ((PBYTE) stream->data)[index];
+			KHOPAN_DEALLOCATE(stream->data);
+		}
+
+		stream->capacity = length;
+		stream->data = buffer;
+	}
+
+	for(index = 0; index < size; index++) {
+		((PBYTE) stream->data)[stream->size + index] = ((PBYTE) data)[index];
+	}
+
+	stream->size += size;
+	ERROR_CLEAR;
+	return TRUE;
+}
+
+BOOL KHOPANStreamFree(const PDATASTREAM stream, const PKHOPANERROR error) {
+	if(!stream) {
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANStreamFree", NULL);
+		return FALSE;
+	}
+
+	stream->size = 0;
+	stream->capacity = 0;
+
+	if(stream->data) {
+		KHOPAN_DEALLOCATE(stream->data);
+		stream->data = NULL;
+	}
+
+	ERROR_CLEAR;
+	return TRUE;
+}
+
+BOOL KHOPANArrayInitialize(const PARRAYLIST list, const size_t size, const PKHOPANERROR error) {
+	if(!list || !size) {
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANArrayInitialize", NULL);
+		return FALSE;
+	}
+
+	LPVOID buffer = KHOPAN_ALLOCATE(size * KHOPAN_ARRAY_INITIAL_CAPACITY);
+
+	if(!buffer) {
+		ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"KHOPANArrayInitialize", L"KHOPAN_ALLOCATE");
+		return FALSE;
+	}
+
+	list->count = 0;
+	list->size = size;
+	list->capacity = KHOPAN_ARRAY_INITIAL_CAPACITY;
+	list->data = buffer;
+	ERROR_CLEAR;
+	return TRUE;
+}
+
+BOOL KHOPANArrayAdd(const PARRAYLIST list, const LPVOID data, const PKHOPANERROR error) {
+	if(!list || !data) {
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANArrayAdd", NULL);
+		return FALSE;
+	}
+
+	LPVOID buffer;
+	size_t index;
+
+	if(list->count >= list->capacity) {
+		size_t size = list->size * list->capacity;
+		buffer = KHOPAN_ALLOCATE(size * KHOPAN_ARRAY_SCALE_FACTOR);
+
+		if(!buffer) {
+			ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"KHOPANArrayAdd", L"KHOPAN_ALLOCATE");
+			return FALSE;
+		}
+
+		for(index = 0; index < size; index++) {
+			((PBYTE) buffer)[index] = ((PBYTE) list->data)[index];
+		}
+
+		KHOPAN_DEALLOCATE(list->data);
+		list->capacity *= KHOPAN_ARRAY_SCALE_FACTOR;
+		list->data = buffer;
+	}
+
+	buffer = ((PBYTE) list->data) + list->size * list->count;
+
+	for(index = 0; index < list->size; index++) {
+		((PBYTE) buffer)[index] = ((PBYTE) data)[index];
+	}
+
+	list->count++;
+	ERROR_CLEAR;
+	return TRUE;
+}
+
+BOOL KHOPANArrayRemove(const PARRAYLIST list, const size_t index, const PKHOPANERROR error) {
+	if(!list) {
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANArrayRemove", NULL);
+		return FALSE;
+	}
+
+	if(index >= list->count) {
+		ERROR_COMMON(ERROR_COMMON_INDEX_OUT_OF_BOUNDS, L"KHOPANArrayRemove", NULL);
+		return FALSE;
+	}
+
+	list->count--;
+
+	if(!list->count) {
+		ERROR_CLEAR;
+		return TRUE;
+	}
+
+	LPVOID buffer = ((PBYTE) list->data) + list->size * index;
+
+	for(size_t i = 0; i < (list->count - index) * list->size; i++) {
+		((PBYTE) buffer)[i] = ((PBYTE) buffer)[i + list->size];
+	}
+
+	ERROR_CLEAR;
+	return TRUE;
+}
+
+BOOL KHOPANArrayGet(const PARRAYLIST list, const size_t index, LPVOID* const data, const PKHOPANERROR error) {
+	if(!list || !data || !list->count) {
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANArrayGet", NULL);
+		return FALSE;
+	}
+
+	if(index >= list->count) {
+		ERROR_COMMON(ERROR_COMMON_INDEX_OUT_OF_BOUNDS, L"KHOPANArrayGet", NULL);
+		return FALSE;
+	}
+
+	*data = ((PBYTE) list->data) + list->size * index;
+	ERROR_CLEAR;
+	return TRUE;
+}
+
+BOOL KHOPANArrayFree(const PARRAYLIST list, const PKHOPANERROR error) {
+	if(!list) {
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANArrayFree", NULL);
+		return FALSE;
+	}
+
+	list->count = 0;
+	list->size = 0;
+	list->capacity = 0;
+
+	if(list->data) {
+		KHOPAN_DEALLOCATE(list->data);
+		list->data = NULL;
+	}
+
+	ERROR_CLEAR;
+	return TRUE;
+}
+
+BOOL KHOPANLinkedInitialize(const PLINKEDLIST list, const size_t size, const PKHOPANERROR error) {
+	if(!list || !size) {
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANLinkedInitialize", NULL);
+		return FALSE;
+	}
+
+	list->count = 0;
+	list->size = size;
+	list->first = NULL;
+	list->last = NULL;
+	ERROR_CLEAR;
+	return TRUE;
+}
+
+BOOL KHOPANLinkedAdd(const PLINKEDLIST list, const LPVOID data, const PPLINKEDLISTITEM item, const PKHOPANERROR error) {
+	if(!list || !data) {
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANLinkedAdd", NULL);
+		return FALSE;
+	}
+
+	PLINKEDLISTITEM buffer = KHOPAN_ALLOCATE(sizeof(LINKEDLISTITEM));
+
+	if(!buffer) {
+		ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"KHOPANLinkedAdd", L"KHOPAN_ALLOCATE");
+		return FALSE;
+	}
+
+	buffer->data = KHOPAN_ALLOCATE(list->size);
+
+	if(!buffer->data) {
+		ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"KHOPANLinkedAdd", L"KHOPAN_ALLOCATE");
+		KHOPAN_DEALLOCATE(buffer);
+		return FALSE;
+	}
+
+	for(size_t i = 0; i < list->size; i++) {
+		((PBYTE) buffer->data)[i] = ((PBYTE) data)[i];
+	}
+
+	buffer->list = list;
+	buffer->previous = NULL;
+	buffer->next = NULL;
+
+	if(list->last) {
+		list->last->next = buffer;
+		buffer->previous = list->last;
+	} else {
+		list->first = buffer;
+	}
+
+	list->last = buffer;
+
+	if(item) {
+		*item = buffer;
+	}
+
+	list->count++;
+	ERROR_CLEAR;
+	return TRUE;
+}
+
+BOOL KHOPANLinkedRemove(const PLINKEDLISTITEM item, const PKHOPANERROR error) {
+	if(!item) {
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANLinkedRemove", NULL);
+		return FALSE;
+	}
+
+	PLINKEDLIST list = item->list;
+
+	if(!list) {
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANLinkedRemove", NULL);
+		return FALSE;
+	}
+
+	if(list->first == item) {
+		list->first = item->next;
+	}
+
+	if(list->last == item) {
+		list->last = item->previous;
+	}
+
+	if(item->previous) {
+		item->previous->next = item->next;
+	}
+
+	if(item->next) {
+		item->next->previous = item->previous;
+	}
+
+	if(item->data) {
+		KHOPAN_DEALLOCATE(item->data);
+	}
+
+	KHOPAN_DEALLOCATE(item);
+	list->count--;
+	ERROR_CLEAR;
+	return TRUE;
+}
+
+BOOL KHOPANLinkedGet(const PLINKEDLIST list, const size_t index, const PPLINKEDLISTITEM item, const PKHOPANERROR error) {
+	if(!list || !item) {
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANLinkedGet", NULL);
+		return FALSE;
+	}
+
+	if(index >= list->count) {
+		ERROR_COMMON(ERROR_COMMON_INDEX_OUT_OF_BOUNDS, L"KHOPANLinkedGet", NULL);
+		return FALSE;
+	}
+
+	size_t count = 0;
+	BOOL found = FALSE;
+	PLINKEDLISTITEM listItem;
+
+	KHOPAN_LINKED_LIST_ITERATE_FORWARD(listItem, list) {
+		if(index == count) {
+			*item = listItem;
+			found = TRUE;
+			break;
+		}
+
+		count++;
+	}
+
+	if(!found) {
+		ERROR_COMMON(ERROR_COMMON_INDEX_OUT_OF_BOUNDS, L"KHOPANLinkedGet", NULL);
+		return FALSE;
+	}
+
+	ERROR_CLEAR;
+	return TRUE;
+}
+
+BOOL KHOPANLinkedFree(const PLINKEDLIST list, const PKHOPANERROR error) {
+	if(!list) {
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"KHOPANLinkedFree", NULL);
+		return FALSE;
+	}
+
+	PLINKEDLISTITEM item = list->last;
+
+	while(item) {
+		PLINKEDLISTITEM buffer = item->previous;
+
+		if(item->data) {
+			KHOPAN_DEALLOCATE(item->data);
+		}
+
+		KHOPAN_DEALLOCATE(item);
+		item = buffer;
+	}
+
+	list->count = 0;
+	list->size = 0;
+	list->first = NULL;
+	list->last = NULL;
+	ERROR_CLEAR;
+	return TRUE;
 }
