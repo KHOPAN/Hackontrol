@@ -39,9 +39,9 @@ typedef struct {
 	SESSION session;
 } CLIENT, *PCLIENT, **PPCLIENT;
 
-/*DWORD WINAPI ThreadClient(_In_ PCLIENT client);
+DWORD WINAPI ThreadClient(_In_ PCLIENT client);
 void ThreadClientOpen(const PCLIENT client);
-void ThreadClientDisconnect(const PCLIENT client);*/
+void ThreadClientDisconnect(const PCLIENT client);
 DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen);
 /*BOOL WindowMainInitialize();
 void WindowMain();

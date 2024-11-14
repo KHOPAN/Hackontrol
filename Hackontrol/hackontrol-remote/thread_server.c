@@ -80,12 +80,12 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 		}
 
 		client->socket = socket;
-		/*client->thread = CreateThread(NULL, 0, ThreadClient, client, 0, NULL);
+		client->thread = CreateThread(NULL, 0, ThreadClient, client, 0, NULL);
 
 		if(!client->thread) {
 			KHOPANLASTERRORCONSOLE_WIN32(L"CreateThread");
 			goto freeClient;
-		}*/
+		}
 
 		continue;
 	freeClient:
@@ -100,7 +100,7 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 		KHOPAN_LINKED_LIST_ITERATE_FORWARD(item, &clientList) {
 			client = (PCLIENT) item->data;
 			if(!client) continue;
-			//ThreadClientDisconnect(client);
+			ThreadClientDisconnect(client);
 			KHOPANArrayAdd(&list, &client->thread, NULL);
 		}
 

@@ -1,4 +1,4 @@
-/*#include <WinSock2.h>
+#include <WinSock2.h>
 #include <hrsp_remote.h>
 #include "remote.h"
 
@@ -14,15 +14,15 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	LOG("[Client %ws]: Initializing\n", client->address);
 	KHOPANERROR error;
 	DWORD codeExit = 1;
-	PLINKEDLISTITEM item = NULL;
-	BOOL freeClient = FALSE;
+	//PLINKEDLISTITEM item = NULL;
+	//BOOL freeClient = FALSE;
 
 	if(!HRSPServerHandshake(client->socket, &client->hrsp, &error)) {
 		KHOPANERRORCONSOLE_KHOPAN(error);
 		goto functionExit;
 	}
 
-	HRSPPACKET packet;
+	/*HRSPPACKET packet;
 
 	if(!HRSPReceivePacket(client->socket, &client->hrsp, &packet, &protocolError)) {
 		ERROR_HRSP(L"HRSPReceivePacket");
@@ -66,23 +66,25 @@ closeSession:
 freeName:
 	if(client->name) {
 		LocalFree(client->name);
-	}
+	}*/
+
+	codeExit = 0;
 functionExit:
 	LOG("[Client %ws]: Exit with code: %d\n", client->address, codeExit);
 	closesocket(client->socket);
 	CloseHandle(client->thread);
 
-	if(freeClient) {
+	//if(freeClient) {
 		KHOPAN_DEALLOCATE(client);
-	} else if(item && !WindowMainRemove(item)) {
-		codeExit = 1;
-	}
+	//} else if(item && !WindowMainRemove(item)) {
+	//	codeExit = 1;
+	//}
 
 	return codeExit;
 }
 
 void ThreadClientOpen(const PCLIENT client) {
-	if(client->session.thread) {
+	/*if(client->session.thread) {
 		WindowSessionClose(client);
 		WaitForSingleObject(client->session.thread, INFINITE);
 	}
@@ -91,7 +93,7 @@ void ThreadClientOpen(const PCLIENT client) {
 
 	if(!client->session.thread) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateThread");
-	}
+	}*/
 }
 
 void ThreadClientDisconnect(const PCLIENT client) {
@@ -99,4 +101,4 @@ void ThreadClientDisconnect(const PCLIENT client) {
 		shutdown(client->socket, SD_BOTH);
 		closesocket(client->socket);
 	}
-}*/
+}
