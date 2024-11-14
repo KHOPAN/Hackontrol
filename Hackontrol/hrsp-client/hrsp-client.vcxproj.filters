@@ -14,9 +14,6 @@
     <ClCompile Include="main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="error_message.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="thread_stream.c">
       <Filter>Source Files</Filter>
     </ClCompile>

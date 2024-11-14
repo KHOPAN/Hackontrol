@@ -1,4 +1,4 @@
-#include <hrsp_packet.h>
+/*#include <hrsp_packet.h>
 #include <hrsp_remote.h>
 #include "hrsp_client_internal.h"
 
@@ -354,4 +354,4 @@ DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTPARAMETER parameter) {
 	}
 
 	return 0;
-}
+}*/

@@ -1,4 +1,10 @@
-#include <WS2tcpip.h>
+#include "hrsp_client.h"
+
+BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const PHRSPCLIENTINPUT input, const PKHOPANERROR error) {
+	return TRUE;
+}
+
+/*#include <WS2tcpip.h>
 #include <libkhopan.h>
 #include <lmcons.h>
 #include <hrsp_handshake.h>
@@ -123,7 +129,7 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 		ERROR_WIN32(GetLastError(), L"GetUserNameA");
 		KHOPAN_DEALLOCATE(buffer);
 		goto closeSocket;
-	}*/
+	}
 
 	HRSPPACKET packet;
 	//packet.size = size;
@@ -209,4 +215,4 @@ closeMutex:
 streamDeallocate:
 	KHOPAN_DEALLOCATE(parameter);
 	return codeExit;
-}
+}*/

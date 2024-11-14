@@ -1,4 +1,4 @@
-#include <stdio.h>
+/*#include <stdio.h>
 #include <libkhopan.h>
 #include <mmdeviceapi.h>
 #include <Audioclient.h>
@@ -266,4 +266,4 @@ DWORD WINAPI HRSPClientAudioThread(_In_ PHRSPCLIENTPARAMETER parameter) {
 uninitialize:
 	CoUninitialize();
 	return 0;
-}
+}*/
