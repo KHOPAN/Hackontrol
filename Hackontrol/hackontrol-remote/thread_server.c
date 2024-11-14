@@ -5,29 +5,29 @@ extern LINKEDLIST clientList;
 extern HANDLE clientListMutex;
 
 DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
-	/*if(!socketListen) {
+	if(!socketListen) {
 		LOG("[Server]: Empty thread parameter\n");
 		return 1;
 	}
 
 	LOG("[Server]: Initializing\n");
 	ARRAYLIST list;
+	KHOPANERROR error;
 	DWORD codeExit = 1;
 
-	if(!KHOPANArrayInitialize(&list, sizeof(HANDLE))) {
-		KHOPANLASTERRORMESSAGE_WIN32(L"KHOPANArrayInitialize");
+	if(!KHOPANArrayInitialize(&list, sizeof(HANDLE), &error)) {
+		KHOPANERRORMESSAGE_KHOPAN(error);
 		goto functionExit;
 	}
 
 	ADDRINFOW hints = {0};
+	hints.ai_flags = AI_PASSIVE;
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
-	hints.ai_flags = AI_PASSIVE;
-	int status = GetAddrInfoW(NULL, REMOTE_PORT, &hints, &hints.ai_next);
 
-	if(status) {
-		KHOPANERRORMESSAGE_WIN32(status, L"GetAddrInfoW");
+	if(GetAddrInfoW(NULL, HRSP_PROTOCOL_PORT_STRING, &hints, &hints.ai_next)) {
+		KHOPANLASTERRORMESSAGE_WSA(L"GetAddrInfoW");
 		goto freeList;
 	}
 
@@ -39,13 +39,13 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 		goto freeList;
 	}
 
-	status = bind(*socketListen, hints.ai_next->ai_addr, (int) hints.ai_next->ai_addrlen);
-	FreeAddrInfoW(hints.ai_next);
-
-	if(status == SOCKET_ERROR) {
+	if(bind(*socketListen, hints.ai_next->ai_addr, (int) hints.ai_next->ai_addrlen) == SOCKET_ERROR) {
 		KHOPANLASTERRORMESSAGE_WSA(L"bind");
+		FreeAddrInfoW(hints.ai_next);
 		goto freeList;
 	}
+
+	FreeAddrInfoW(hints.ai_next);
 
 	if(listen(*socketListen, SOMAXCONN) == SOCKET_ERROR) {
 		KHOPANLASTERRORMESSAGE_WSA(L"listen");
@@ -53,12 +53,13 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 	}
 
 	LOG("[Server]: Listening socket started\n");
+	int size;
+	SOCKADDR_IN address;
 	PCLIENT client;
 
 	while(*socketListen != INVALID_SOCKET) {
-		SOCKADDR_IN address;
-		status = sizeof(SOCKADDR_IN);
-		SOCKET socket = accept(*socketListen, (struct sockaddr*) &address, &status);
+		size = sizeof(SOCKADDR_IN);
+		SOCKET socket = accept(*socketListen, (struct sockaddr*) &address, &size);
 
 		if(socket == INVALID_SOCKET) {
 			if(WSAGetLastError() == WSAEINTR) break;
@@ -68,23 +69,23 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 
 		client = KHOPAN_ALLOCATE(sizeof(CLIENT));
 
-		if(KHOPAN_ALLOCATE_FAILED(client)) {
-			KHOPANERRORCONSOLE_WIN32(KHOPAN_ALLOCATE_ERROR, KHOPAN_ALLOCATE_FUNCTION);
+		if(!client) {
+			KHOPANERRORCONSOLE_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"KHOPAN_ALLOCATE");
 			goto closeSocket;
 		}
 
-		if(!InetNtopW(AF_INET, &address.sin_addr, client->address, 16)) {
+		if(!InetNtopW(AF_INET, &address.sin_addr, client->address, sizeof(client->address) / sizeof(WCHAR))) {
 			KHOPANLASTERRORCONSOLE_WSA(L"InetNtopW");
 			goto freeClient;
 		}
 
 		client->socket = socket;
-		client->thread = CreateThread(NULL, 0, ThreadClient, client, 0, NULL);
+		/*client->thread = CreateThread(NULL, 0, ThreadClient, client, 0, NULL);
 
 		if(!client->thread) {
 			KHOPANLASTERRORCONSOLE_WIN32(L"CreateThread");
 			goto freeClient;
-		}
+		}*/
 
 		continue;
 	freeClient:
@@ -96,11 +97,11 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 	if(WaitForSingleObject(clientListMutex, INFINITE) != WAIT_FAILED) {
 		PLINKEDLISTITEM item;
 
-		KHOPAN_LINKED_LIST_ITERATE(item, &clientList) {
+		KHOPAN_LINKED_LIST_ITERATE_FORWARD(item, &clientList) {
 			client = (PCLIENT) item->data;
 			if(!client) continue;
-			ThreadClientDisconnect(client);
-			KHOPANArrayAdd(&list, (PBYTE) &client->thread);
+			//ThreadClientDisconnect(client);
+			KHOPANArrayAdd(&list, &client->thread, NULL);
 		}
 
 		ReleaseMutex(clientListMutex);
@@ -109,7 +110,7 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 	PHANDLE handle = NULL;
 
 	for(size_t i = 0; i < list.count; i++) {
-		if(KHOPANArrayGet(&list, i, (PBYTE*) &handle)) {
+		if(KHOPANArrayGet(&list, i, (LPVOID*) &handle, NULL)) {
 			if(handle && *handle) WaitForSingleObject(*handle, INFINITE);
 			handle = NULL;
 		}
@@ -117,10 +118,9 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 
 	codeExit = 0;
 freeList:
-	KHOPANArrayFree(&list);
+	KHOPANArrayFree(&list, NULL);
 functionExit:
-	WindowMainExit();
+	//WindowMainExit();
 	LOG("[Server]: Exit with code: %d\n", codeExit);
-	return codeExit;*/
-	return 0;
+	return codeExit;
 }
