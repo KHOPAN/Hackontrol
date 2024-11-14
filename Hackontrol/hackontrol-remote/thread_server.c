@@ -5,7 +5,7 @@ extern LINKEDLIST clientList;
 extern HANDLE clientListMutex;
 
 DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
-	if(!socketListen) {
+	/*if(!socketListen) {
 		LOG("[Server]: Empty thread parameter\n");
 		return 1;
 	}
@@ -121,5 +121,6 @@ freeList:
 functionExit:
 	WindowMainExit();
 	LOG("[Server]: Exit with code: %d\n", codeExit);
-	return codeExit;
+	return codeExit;*/
+	return 0;
 }

@@ -1,4 +1,4 @@
-#include "window_session_tabs.h"
+/*#include "window_session_tabs.h"
 #include <CommCtrl.h>
 #include <hrsp_remote.h>
 
@@ -34,13 +34,13 @@ typedef struct {
 	AUDIODEVICESTATE state;
 } AUDIODEVICE, *PAUDIODEVICE;*/
 
-typedef struct {
+/*typedef struct {
 	PCLIENT client;
 	HWND border;
 	HWND list;
 	/*UINT sortColumn;
 	UINT deviceCount;
-	PAUDIODEVICE devices;*/
+	PAUDIODEVICE devices;
 } TABAUDIODATA, *PTABAUDIODATA;
 
 static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG customData, const HWND parent) {
@@ -115,7 +115,7 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 		goto destroyWindow;
 	}*/
 
-	LVITEMW item = {0};
+	/*LVITEMW item = {0};
 	item.mask = LVIF_TEXT;
 	item.pszText = L"Test Device";
 	SendMessageW(data->list, LVM_INSERTITEM, 0, (LPARAM) &item);
@@ -345,7 +345,7 @@ functionExit:
 	return TRUE;
 }*/
 
-static LRESULT customDraw(HWND window, UINT message, WPARAM wparam, LPARAM lparam) {
+/*static LRESULT customDraw(HWND window, UINT message, WPARAM wparam, LPARAM lparam) {
 	LPNMLVCUSTOMDRAW custom = (LPNMLVCUSTOMDRAW) lparam;
 	//LOG("Stage: 0x%08X\n", custom->nmcd.dwDrawStage);
 
@@ -396,7 +396,7 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 	BOOL option;
 	HRSPPACKET packet;*/
 
-	switch(message) {
+	//switch(message) {
 		/*case WM_CONTEXTMENU:
 			GetCursorPos(&information.pt);
 			ScreenToClient(data->list, &information.pt);
@@ -442,10 +442,10 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 			}
 
 			break;*/
-	case WM_CTLCOLORSTATIC:
-		SetDCBrushColor((HDC) wparam, 0xF9F9F9);
-		return (LRESULT) GetStockObject(DC_BRUSH);
-	case WM_DESTROY:
+	//case WM_CTLCOLORSTATIC:
+	//	SetDCBrushColor((HDC) wparam, 0xF9F9F9);
+	//	return (LRESULT) GetStockObject(DC_BRUSH);
+	//case WM_DESTROY:
 		/*if(data->devices) {
 			for(UINT i = 0; i < data->deviceCount; i++) {
 				KHOPAN_DEALLOCATE(data->devices[i].identifier);
@@ -455,7 +455,7 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 			KHOPAN_DEALLOCATE(data->devices);
 		}*/
 
-		KHOPAN_DEALLOCATE(data);
+		/*KHOPAN_DEALLOCATE(data);
 		return 0;
 	case WM_NOTIFY:
 		if(!lparam) {
@@ -484,4 +484,4 @@ void __stdcall WindowSessionTabAudio(const PTABINITIALIZER tab) {
 	//tab->packetHandler = packetHandler;
 	tab->windowClass.lpfnWndProc = procedure;
 	tab->windowClass.lpszClassName = CLASS_NAME;
-}
+}*/

@@ -1,4 +1,4 @@
-#include <WinSock2.h>
+/*#include <WinSock2.h>
 #include <hrsp_remote.h>
 #include "remote.h"
 
@@ -99,4 +99,4 @@ void ThreadClientDisconnect(const PCLIENT client) {
 		shutdown(client->socket, SD_BOTH);
 		closesocket(client->socket);
 	}
-}
+}*/

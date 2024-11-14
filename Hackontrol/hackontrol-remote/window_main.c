@@ -1,4 +1,4 @@
-#include "remote.h"
+/*#include "remote.h"
 #include <CommCtrl.h>
 #include <windowsx.h>
 
@@ -403,4 +403,4 @@ void WindowMainDestroy() {
 
 void WindowMainExit() {
 	PostMessageW(window, WM_CLOSE, 0, 0);
-}
+}*/

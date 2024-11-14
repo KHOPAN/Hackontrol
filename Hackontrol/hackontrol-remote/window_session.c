@@ -1,4 +1,4 @@
-#include "window_session_tabs.h"
+/*#include "window_session_tabs.h"
 #include <CommCtrl.h>
 
 #define TAB_OFFSET 5
@@ -290,4 +290,4 @@ void WindowSessionCleanup() {
 
 	UnregisterClassW(CLASS_REMOTE_SESSION, instance);
 	KHOPAN_DEALLOCATE(tabData);
-}
+}*/

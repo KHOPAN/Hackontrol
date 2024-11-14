@@ -30,7 +30,7 @@ int WINAPI WinMain(_In_ HINSTANCE programInstance, _In_opt_ HINSTANCE previousIn
 	INITCOMMONCONTROLSEX controls;
 	controls.dwSize = sizeof(INITCOMMONCONTROLSEX);
 
-	for(size_t i = 0; i < SIZEOFARRAY(controlList); i++) {
+	for(size_t i = 0; i < ARRAY_SIZE(controlList); i++) {
 		controls.dwICC = controlList[i];
 
 		if(!InitCommonControlsEx(&controls)) {
@@ -68,13 +68,13 @@ int WINAPI WinMain(_In_ HINSTANCE programInstance, _In_opt_ HINSTANCE previousIn
 		goto freeClientList;
 	}
 
-	if(!WindowMainInitialize()) {
+	/*if(!WindowMainInitialize()) {
 		goto closeClientListMutex;
 	}
 
 	if(!WindowSessionInitialize()) {
 		goto destroyMainWindow;
-	}
+	}*/
 
 	WSADATA data;
 	int status = WSAStartup(MAKEWORD(2, 2), &data);
@@ -92,7 +92,7 @@ int WINAPI WinMain(_In_ HINSTANCE programInstance, _In_opt_ HINSTANCE previousIn
 		goto cleanupSocket;
 	}
 
-	WindowMain();
+	//WindowMain();
 
 	if(socketListen != INVALID_SOCKET) {
 		closesocket(socketListen);
@@ -105,9 +105,9 @@ int WINAPI WinMain(_In_ HINSTANCE programInstance, _In_opt_ HINSTANCE previousIn
 cleanupSocket:
 	WSACleanup();
 cleanupSession:
-	WindowSessionCleanup();
+	//WindowSessionCleanup();
 destroyMainWindow:
-	WindowMainDestroy();
+	//WindowMainDestroy();
 closeClientListMutex:
 	WaitForSingleObject(clientListMutex, INFINITE);
 	CloseHandle(clientListMutex);
