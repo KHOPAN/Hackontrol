@@ -27,41 +27,34 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 		goto cleanupSocket;
 	}
 
-	/*parameter->socket = INVALID_SOCKET;
+	SOCKET clientSocket = INVALID_SOCKET;
 
-	for(PADDRINFOW pointer = result; pointer != NULL; pointer = pointer->ai_next) {
-		parameter->socket = socket(pointer->ai_family, pointer->ai_socktype, pointer->ai_protocol);
+	for(PADDRINFOW pointer = hints.ai_next; pointer != NULL; pointer = pointer->ai_next) {
+		clientSocket = socket(pointer->ai_family, pointer->ai_socktype, pointer->ai_protocol);
 
-		if(parameter->socket == INVALID_SOCKET) {
-			ERROR_WIN32(WSAGetLastError(), L"socket");
-			FreeAddrInfoW(result);
+		if(clientSocket == INVALID_SOCKET) {
+			ERROR_WSA(L"HRSPClientConnectToServer", L"socket");
+			FreeAddrInfoW(hints.ai_next);
 			goto cleanupSocket;
 		}
 
-		if(connect(parameter->socket, pointer->ai_addr, (int) pointer->ai_addrlen) != SOCKET_ERROR) {
+		if(connect(clientSocket, pointer->ai_addr, (int) pointer->ai_addrlen) != SOCKET_ERROR) {
 			break;
 		}
 
-		if(closesocket(parameter->socket) == SOCKET_ERROR) {
-			ERROR_WIN32(WSAGetLastError(), L"closesocket");
-			goto cleanupSocket;
-		}
-
-		parameter->socket = INVALID_SOCKET;
+		closesocket(clientSocket);
+		clientSocket = INVALID_SOCKET;
 	}
 
-	FreeAddrInfoW(result);
+	FreeAddrInfoW(hints.ai_next);
 
-	if(parameter->socket == INVALID_SOCKET) {
-		if(error) {
-			error->type = HRSP_CLIENT_ERROR_TYPE_CLIENT;
-			error->function = L"HRSPClientConnectToServer";
-			error->code = HRSP_CLIENT_ERROR_CANNOT_CONNECT_SERVER;
-		}
-
+	if(clientSocket == INVALID_SOCKET) {
+		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"HRSPClientConnectToServer", NULL);
 		goto cleanupSocket;
-	}*/
+	}
 
+	printf("Established\n");
+	ERROR_CLEAR;
 	codeExit = TRUE;
 cleanupSocket:
 	WSACleanup();
