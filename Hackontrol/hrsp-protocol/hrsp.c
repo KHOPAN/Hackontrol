@@ -54,6 +54,7 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 		return FALSE;
 	}
 
+	printf("Client: Handshake Done\n");
 	data->socket = socket;
 	ERROR_CLEAR;
 	return TRUE;

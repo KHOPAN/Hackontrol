@@ -4,8 +4,8 @@
 #define ERROR_WIN32(codeError, sourceName, functionName)  if(error){error->facility=ERROR_FACILITY_WIN32;error->code=codeError;error->source=sourceName;error->function=functionName;}
 #define ERROR_WSA(sourceName, functionName)               if(error){error->facility=ERROR_FACILITY_WIN32;error->code=WSAGetLastError();error->source=sourceName;error->function=functionName;}
 #define ERROR_COMMON(codeError, sourceName, functionName) if(error){error->facility=ERROR_FACILITY_COMMON;error->code=codeError;error->source=sourceName;error->function=functionName;}
-#define ERROR_HRSP(codeError, sourceName, functionName)   if(error){error->facility=ERROR_FACILITY_HRSP;error->code=codeError;error->source=sourceName;error->function=functionName;}
 #define ERROR_CLEAR                                       ERROR_COMMON(ERROR_COMMON_SUCCESS,NULL,NULL)
+#define ERROR_SOURCE(sourceName)                          if(error){error->source=sourceName;}
 
 BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const PHRSPCLIENTINPUT input, const PKHOPANERROR error) {
 	WSADATA data;
@@ -53,9 +53,18 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 		goto cleanupSocket;
 	}
 
+	HRSPDATA protocolData;
+
+	if(!HRSPClientHandshake(clientSocket, &protocolData, error)) {
+		ERROR_SOURCE(L"HRSPClientConnectToServer");
+		goto closeSocket;
+	}
+
 	printf("Established\n");
 	ERROR_CLEAR;
 	codeExit = TRUE;
+closeSocket:
+	closesocket(clientSocket);
 cleanupSocket:
 	WSACleanup();
 	return codeExit;
