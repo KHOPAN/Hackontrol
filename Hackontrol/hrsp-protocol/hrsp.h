@@ -19,7 +19,7 @@ enum ERRORFACLIITYHRSP {
 };
 
 typedef struct {
-	SOCKET socket;
+	LPVOID internal;
 } HRSPDATA, *PHRSPDATA;
 
 typedef struct {
@@ -36,7 +36,7 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPANERROR error);
 BOOL HRSPPacketSend(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPANERROR error);
 BOOL HRSPPacketReceive(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPANERROR error);
-BOOL HRSPCleanup(const PHRSPDATA data, const PKHOPANERROR error);
+void HRSPCleanup(const PHRSPDATA data);
 #ifdef __cplusplus
 }
 #endif

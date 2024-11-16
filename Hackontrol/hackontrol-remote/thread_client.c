@@ -22,6 +22,8 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 		goto functionExit;
 	}
 
+	printf("Established\n");
+	HRSPCleanup(&client->hrsp);
 	/*HRSPPACKET packet;
 
 	if(!HRSPReceivePacket(client->socket, &client->hrsp, &packet, &protocolError)) {

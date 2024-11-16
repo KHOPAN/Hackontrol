@@ -6,6 +6,10 @@
 #define ERROR_HRSP(codeError, sourceName, functionName)   if(error){error->facility=ERROR_FACILITY_HRSP;error->code=codeError;error->source=sourceName;error->function=functionName;}
 #define ERROR_CLEAR                                       ERROR_COMMON(ERROR_COMMON_SUCCESS,NULL,NULL)
 
+typedef struct {
+	SOCKET socket;
+} INTERNALDATA, *PINTERNALDATA;
+
 LPCWSTR HRSPErrorHRSPDecoder(const PKHOPANERROR error) {
 	if(!error) {
 		return NULL;
@@ -54,8 +58,15 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 		return FALSE;
 	}
 
+	data->internal = KHOPAN_ALLOCATE(sizeof(INTERNALDATA));
+
+	if(!data->internal) {
+		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"HRSPClientHandshake", L"KHOPAN_ALLOCATE");
+		return FALSE;
+	}
+
+	((PINTERNALDATA) data->internal)->socket = socket;
 	printf("Client: Handshake Done\n");
-	data->socket = socket;
 	ERROR_CLEAR;
 	return TRUE;
 }
@@ -73,15 +84,12 @@ BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 		return FALSE;
 	}
 
-	printf("Buffer: %.8s\n", buffer);
-
 	if(memcmp(buffer, "HRSP", 4)) {
 		ERROR_HRSP(ERROR_HRSP_INVALID_MAGIC, L"HRSPServerHandshake", NULL);
 		return FALSE;
 	}
 
 	buffer[0] = ((buffer[4] << 8) | buffer[5]) == HRSP_PROTOCOL_VERSION && ((buffer[6] << 8) | buffer[7]) == HRSP_PROTOCOL_VERSION_MINOR;
-	printf("Match: %s\n", buffer[0] ? "True" : "False");
 
 	if(send(socket, buffer, 1, 0) == SOCKET_ERROR) {
 		ERROR_WSA(L"HRSPServerHandshake", L"send");
@@ -93,13 +101,21 @@ BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 		return FALSE;
 	}
 
-	data->socket = socket;
+	data->internal = KHOPAN_ALLOCATE(sizeof(INTERNALDATA));
+
+	if(!data->internal) {
+		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"HRSPServerHandshake", L"KHOPAN_ALLOCATE");
+		return FALSE;
+	}
+
+	((PINTERNALDATA) data->internal)->socket = socket;
+	printf("Server: Handshake Done\n");
 	ERROR_CLEAR;
 	return TRUE;
 }
 
 BOOL HRSPPacketSend(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPANERROR error) {
-	if(!data || !packet) {
+	/*if(!data || !packet) {
 		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"HRSPPacketSend", NULL);
 		return FALSE;
 	}
@@ -149,12 +165,12 @@ BOOL HRSPPacketSend(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPA
 		pointer += sent;
 	}
 
-	ERROR_CLEAR;
+	ERROR_CLEAR;*/
 	return TRUE;
 }
 
 BOOL HRSPPacketReceive(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPANERROR error) {
-	if(!data || !packet) {
+	/*if(!data || !packet) {
 		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"HRSPPacketReceive", NULL);
 		return FALSE;
 	}
@@ -192,11 +208,15 @@ BOOL HRSPPacketReceive(const PHRSPDATA data, const PHRSPPACKET packet, const PKH
 	size.HighPart = ((sizeBuffer[0] & 0xFF) << 24) | ((sizeBuffer[1] & 0xFF) << 16) | ((sizeBuffer[2] & 0xFF) << 8) | (sizeBuffer[3] & 0xFF);
 	size.LowPart = ((sizeBuffer[4] & 0xFF) << 24) | ((sizeBuffer[5] & 0xFF) << 16) | ((sizeBuffer[6] & 0xFF) << 8) | (sizeBuffer[7] & 0xFF);
 	printf("Size: %llu\n", size.QuadPart);
-	ERROR_CLEAR;
+	ERROR_CLEAR;*/
 	return TRUE;
 }
 
-BOOL HRSPCleanup(const PHRSPDATA data, const PKHOPANERROR error) {
-	ERROR_CLEAR;
-	return TRUE;
+void HRSPCleanup(const PHRSPDATA data) {
+	if(!data || !data->internal) {
+		return;
+	}
+
+	KHOPAN_DEALLOCATE(data->internal);
+	printf("Deallocated\n");
 }
