@@ -68,7 +68,65 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 		goto freeBuffer;
 	}
 
-	NTSTATUS status = BCryptGenRandom(NULL, buffer, RSA_KEY_LENGTH, BCRYPT_USE_SYSTEM_PREFERRED_RNG);
+	BCRYPT_ALG_HANDLE algorithm;
+	NTSTATUS status = BCryptOpenAlgorithmProvider(&algorithm, BCRYPT_RSA_ALGORITHM, NULL, 0);
+
+	if(!BCRYPT_SUCCESS(status)) {
+		ERROR_NTSTATUS(status, L"HRSPClientHandshake", L"BCryptOpenAlgorithmProvider");
+		goto freeBuffer;
+	}
+
+	BCRYPT_KEY_HANDLE key;
+	status = BCryptGenerateKeyPair(algorithm, &key, RSA_KEY_LENGTH * 8, 0);
+
+	if(!BCRYPT_SUCCESS(status)) {
+		ERROR_NTSTATUS(status, L"HRSPClientHandshake", L"BCryptGenerateKeyPair");
+		BCryptCloseAlgorithmProvider(algorithm, 0);
+		goto freeBuffer;
+	}
+
+	status = BCryptFinalizeKeyPair(key, 0);
+
+	if(!BCRYPT_SUCCESS(status)) {
+		ERROR_NTSTATUS(status, L"HRSPClientHandshake", L"BCryptFinalizeKeyPair");
+		BCryptDestroyKey(key);
+		BCryptCloseAlgorithmProvider(algorithm, 0);
+		goto freeBuffer;
+	}
+
+	ULONG keySize;
+	status = BCryptExportKey(key, NULL, BCRYPT_RSAPUBLIC_BLOB, NULL, 0, &keySize, 0);
+
+	if(!BCRYPT_SUCCESS(status)) {
+		ERROR_NTSTATUS(status, L"HRSPClientHandshake", L"BCryptExportKey");
+		BCryptDestroyKey(key);
+		BCryptCloseAlgorithmProvider(algorithm, 0);
+		goto freeBuffer;
+	}
+
+	PBYTE publicKey = KHOPAN_ALLOCATE(keySize);
+
+	if(!publicKey) {
+		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"HRSPClientHandshake", L"KHOPAN_ALLOCATE");
+		BCryptDestroyKey(key);
+		BCryptCloseAlgorithmProvider(algorithm, 0);
+		goto freeBuffer;
+	}
+
+	status = BCryptExportKey(key, NULL, BCRYPT_RSAPUBLIC_BLOB, publicKey, keySize, &keySize, 0);
+
+	if(!BCRYPT_SUCCESS(status)) {
+		ERROR_NTSTATUS(status, L"HRSPClientHandshake", L"BCryptExportKey");
+		KHOPAN_DEALLOCATE(publicKey);
+		BCryptDestroyKey(key);
+		BCryptCloseAlgorithmProvider(algorithm, 0);
+		goto freeBuffer;
+	}
+
+	KHOPAN_DEALLOCATE(publicKey);
+	BCryptDestroyKey(key);
+	BCryptCloseAlgorithmProvider(algorithm, 0);
+	/*status = BCryptGenRandom(NULL, buffer, RSA_KEY_LENGTH, BCRYPT_USE_SYSTEM_PREFERRED_RNG);
 
 	if(!BCRYPT_SUCCESS(status)) {
 		ERROR_NTSTATUS(status, L"HRSPClientHandshake", L"BCryptGenRandom");
@@ -78,7 +136,7 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 	if(send(socket, buffer, RSA_KEY_LENGTH, 0) == SOCKET_ERROR) {
 		ERROR_WSA(L"HRSPClientHandshake", L"send");
 		goto freeBuffer;
-	}
+	}*/
 
 	data->internal = KHOPAN_ALLOCATE(sizeof(INTERNALDATA));
 
@@ -88,7 +146,7 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 	}
 
 	((PINTERNALDATA) data->internal)->socket = socket;
-	printf("Client: Handshake Done");
+	printf("Client: Handshake Done\n");
 	ERROR_CLEAR;
 	codeExit = TRUE;
 freeBuffer:
@@ -146,7 +204,7 @@ BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 	}
 
 	((PINTERNALDATA) data->internal)->socket = socket;
-	printf("Server: Handshake Done");
+	printf("Server: Handshake Done\n");
 	ERROR_CLEAR;
 	codeExit = TRUE;
 freeBuffer:
