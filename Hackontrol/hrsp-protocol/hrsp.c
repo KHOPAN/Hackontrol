@@ -114,11 +114,10 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 		goto destroyKey;
 	}
 
-	BCRYPT_RSAKEY_BLOB blob = *((BCRYPT_RSAKEY_BLOB*) publicKey);
-	printf("Size: %lu\nMagic: %.4s\nBit Length: %lu\nPublic Exponent: %lu\nModulus: %lu\nPrime 1: %lu\nPrime 2: %lu\nData: 0x", keySize, (LPCSTR) &blob.Magic, blob.BitLength, blob.cbPublicExp, blob.cbModulus, blob.cbPrime1, blob.cbPrime2);
+	printf("Key Length: %lu\nData: 0x", keySize);
 
-	for(size_t i = 0; i < blob.BitLength / 8; i++) {
-		printf("%02X", ((PBYTE) (publicKey + sizeof(BCRYPT_RSAKEY_BLOB)))[i]);
+	for(ULONG i = 0; i < keySize; i++) {
+		printf("%02X", publicKey[i]);
 	}
 
 	printf("\n");
@@ -133,7 +132,7 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 		goto destroyKey;
 	}
 
-	if(send(socket, publicKey, RSA_KEY_LENGTH, 0) == SOCKET_ERROR) {
+	if(send(socket, publicKey, keySize, 0) == SOCKET_ERROR) {
 		ERROR_WSA(L"HRSPClientHandshake", L"send");
 		KHOPAN_DEALLOCATE(publicKey);
 		goto destroyKey;
