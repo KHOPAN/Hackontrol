@@ -194,18 +194,41 @@ BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 		return FALSE;
 	}
 
+	BCRYPT_ALG_HANDLE algorithm;
+	NTSTATUS status = BCryptOpenAlgorithmProvider(&algorithm, BCRYPT_RSA_ALGORITHM, NULL, 0);
+
+	if(!BCRYPT_SUCCESS(status)) {
+		ERROR_NTSTATUS(status, L"HRSPServerHandshake", L"BCryptOpenAlgorithmProvider");
+		KHOPAN_DEALLOCATE(publicKey);
+		return FALSE;
+	}
+
+	BCRYPT_KEY_HANDLE key;
+	status = BCryptImportKeyPair(algorithm, NULL, BCRYPT_RSAPUBLIC_BLOB, &key, publicKey, publicKeyLength, 0);
 	KHOPAN_DEALLOCATE(publicKey);
+	BOOL codeExit = FALSE;
+
+	if(!BCRYPT_SUCCESS(status)) {
+		ERROR_NTSTATUS(status, L"HRSPServerHandshake", L"BCryptImportKeyPair");
+		goto closeAlgorithm;
+	}
+
+	BCryptDestroyKey(key);
+	printf("Destroyed\n");
 	data->internal = KHOPAN_ALLOCATE(sizeof(INTERNALDATA));
 
 	if(!data->internal) {
 		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"HRSPServerHandshake", L"KHOPAN_ALLOCATE");
-		return FALSE;
+		goto closeAlgorithm;
 	}
 
 	((PINTERNALDATA) data->internal)->socket = socket;
 	printf("Server: Handshake Done\n");
 	ERROR_CLEAR;
-	return TRUE;
+	codeExit = TRUE;
+closeAlgorithm:
+	BCryptCloseAlgorithmProvider(algorithm, 0);
+	return codeExit;
 }
 
 BOOL HRSPPacketSend(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPANERROR error) {
