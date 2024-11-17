@@ -81,17 +81,14 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 
 	if(!BCRYPT_SUCCESS(status)) {
 		ERROR_NTSTATUS(status, L"HRSPClientHandshake", L"BCryptGenerateKeyPair");
-		BCryptCloseAlgorithmProvider(algorithm, 0);
-		goto freeBuffer;
+		goto closeAlgorithm;
 	}
 
 	status = BCryptFinalizeKeyPair(key, 0);
 
 	if(!BCRYPT_SUCCESS(status)) {
 		ERROR_NTSTATUS(status, L"HRSPClientHandshake", L"BCryptFinalizeKeyPair");
-		BCryptDestroyKey(key);
-		BCryptCloseAlgorithmProvider(algorithm, 0);
-		goto freeBuffer;
+		goto destroyKey;
 	}
 
 	ULONG keySize;
@@ -99,18 +96,14 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 
 	if(!BCRYPT_SUCCESS(status)) {
 		ERROR_NTSTATUS(status, L"HRSPClientHandshake", L"BCryptExportKey");
-		BCryptDestroyKey(key);
-		BCryptCloseAlgorithmProvider(algorithm, 0);
-		goto freeBuffer;
+		goto destroyKey;
 	}
 
 	PBYTE publicKey = KHOPAN_ALLOCATE(keySize);
 
 	if(!publicKey) {
 		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"HRSPClientHandshake", L"KHOPAN_ALLOCATE");
-		BCryptDestroyKey(key);
-		BCryptCloseAlgorithmProvider(algorithm, 0);
-		goto freeBuffer;
+		goto destroyKey;
 	}
 
 	status = BCryptExportKey(key, NULL, BCRYPT_RSAPUBLIC_BLOB, publicKey, keySize, &keySize, 0);
@@ -118,14 +111,35 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 	if(!BCRYPT_SUCCESS(status)) {
 		ERROR_NTSTATUS(status, L"HRSPClientHandshake", L"BCryptExportKey");
 		KHOPAN_DEALLOCATE(publicKey);
-		BCryptDestroyKey(key);
-		BCryptCloseAlgorithmProvider(algorithm, 0);
-		goto freeBuffer;
+		goto destroyKey;
+	}
+
+	BCRYPT_RSAKEY_BLOB blob = *((BCRYPT_RSAKEY_BLOB*) publicKey);
+	printf("Size: %lu\nMagic: %.4s\nBit Length: %lu\nPublic Exponent: %lu\nModulus: %lu\nPrime 1: %lu\nPrime 2: %lu\nData: 0x", keySize, (LPCSTR) &blob.Magic, blob.BitLength, blob.cbPublicExp, blob.cbModulus, blob.cbPrime1, blob.cbPrime2);
+
+	for(size_t i = 0; i < blob.BitLength / 8; i++) {
+		printf("%02X", ((PBYTE) (publicKey + sizeof(BCRYPT_RSAKEY_BLOB)))[i]);
+	}
+
+	printf("\n");
+	buffer[0] = (keySize >> 24) & 0xFF;
+	buffer[1] = (keySize >> 16) & 0xFF;
+	buffer[2] = (keySize >> 8) & 0xFF;
+	buffer[3] = keySize & 0xFF;
+
+	if(send(socket, buffer, 4, 0) == SOCKET_ERROR) {
+		ERROR_WSA(L"HRSPClientHandshake", L"send");
+		KHOPAN_DEALLOCATE(publicKey);
+		goto destroyKey;
+	}
+
+	if(send(socket, publicKey, RSA_KEY_LENGTH, 0) == SOCKET_ERROR) {
+		ERROR_WSA(L"HRSPClientHandshake", L"send");
+		KHOPAN_DEALLOCATE(publicKey);
+		goto destroyKey;
 	}
 
 	KHOPAN_DEALLOCATE(publicKey);
-	BCryptDestroyKey(key);
-	BCryptCloseAlgorithmProvider(algorithm, 0);
 	/*status = BCryptGenRandom(NULL, buffer, RSA_KEY_LENGTH, BCRYPT_USE_SYSTEM_PREFERRED_RNG);
 
 	if(!BCRYPT_SUCCESS(status)) {
@@ -149,6 +163,10 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 	printf("Client: Handshake Done\n");
 	ERROR_CLEAR;
 	codeExit = TRUE;
+destroyKey:
+	BCryptDestroyKey(key);
+closeAlgorithm:
+	BCryptCloseAlgorithmProvider(algorithm, 0);
 freeBuffer:
 	KHOPAN_DEALLOCATE(buffer);
 	return codeExit;
@@ -191,11 +209,33 @@ BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 		goto freeBuffer;
 	}
 
-	if(recv(socket, buffer, RSA_KEY_LENGTH, MSG_WAITALL) == SOCKET_ERROR) {
+	if(recv(socket, buffer, 4, MSG_WAITALL) == SOCKET_ERROR) {
 		ERROR_WSA(L"HRSPServerHandshake", L"recv");
 		goto freeBuffer;
 	}
 
+	ULONG publicKeyLength = (buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3];
+	PBYTE publicKey = KHOPAN_ALLOCATE(publicKeyLength);
+
+	if(!publicKey) {
+		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"HRSPServerHandshake", L"KHOPAN_ALLOCATE");
+		goto freeBuffer;
+	}
+
+	if(recv(socket, publicKey, publicKeyLength, MSG_WAITALL) == SOCKET_ERROR) {
+		ERROR_WSA(L"HRSPServerHandshake", L"recv");
+		KHOPAN_DEALLOCATE(publicKey);
+		goto freeBuffer;
+	}
+
+	printf("Key Length: %lu\nData: 0x", publicKeyLength);
+
+	for(ULONG i = 0; i < publicKeyLength; i++) {
+		printf("%02X", publicKey[i]);
+	}
+
+	printf("\n");
+	KHOPAN_DEALLOCATE(publicKey);
 	data->internal = KHOPAN_ALLOCATE(sizeof(INTERNALDATA));
 
 	if(!data->internal) {
