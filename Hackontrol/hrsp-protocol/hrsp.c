@@ -9,6 +9,8 @@
 
 #define RSA_KEY_LENGTH 512
 
+#pragma warning(disable: 6385)
+
 typedef struct {
 	SOCKET socket;
 } INTERNALDATA, *PINTERNALDATA;
@@ -36,13 +38,7 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 		return FALSE;
 	}
 
-	PBYTE buffer = KHOPAN_ALLOCATE(max(RSA_KEY_LENGTH, 8));
-
-	if(!buffer) {
-		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"HRSPClientHandshake", L"KHOPAN_ALLOCATE");
-		return FALSE;
-	}
-
+	BYTE buffer[8];
 	buffer[0] = 'H';
 	buffer[1] = 'R';
 	buffer[2] = 'S';
@@ -55,17 +51,17 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 
 	if(send(socket, buffer, 8, 0) == SOCKET_ERROR) {
 		ERROR_WSA(L"HRSPClientHandshake", L"send");
-		goto freeBuffer;
+		return FALSE;
 	}
 
 	if(recv(socket, buffer, 1, MSG_WAITALL) == SOCKET_ERROR) {
 		ERROR_WSA(L"HRSPClientHandshake", L"recv");
-		goto freeBuffer;
+		return FALSE;
 	}
 
 	if(!buffer[0]) {
 		ERROR_HRSP(ERROR_HRSP_UNSUPPORTED_VERSION, L"HRSPClientHandshake", NULL);
-		goto freeBuffer;
+		return FALSE;
 	}
 
 	BCRYPT_ALG_HANDLE algorithm;
@@ -73,7 +69,7 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 
 	if(!BCRYPT_SUCCESS(status)) {
 		ERROR_NTSTATUS(status, L"HRSPClientHandshake", L"BCryptOpenAlgorithmProvider");
-		goto freeBuffer;
+		return FALSE;
 	}
 
 	BCRYPT_KEY_HANDLE key;
@@ -91,22 +87,32 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 		goto destroyKey;
 	}
 
-	ULONG keySize;
-	status = BCryptExportKey(key, NULL, BCRYPT_RSAPUBLIC_BLOB, NULL, 0, &keySize, 0);
+	ULONG publicKeyLength;
+	status = BCryptExportKey(key, NULL, BCRYPT_RSAPUBLIC_BLOB, NULL, 0, &publicKeyLength, 0);
 
 	if(!BCRYPT_SUCCESS(status)) {
 		ERROR_NTSTATUS(status, L"HRSPClientHandshake", L"BCryptExportKey");
 		goto destroyKey;
 	}
 
-	PBYTE publicKey = KHOPAN_ALLOCATE(keySize);
+	buffer[0] = (publicKeyLength >> 24) & 0xFF;
+	buffer[1] = (publicKeyLength >> 16) & 0xFF;
+	buffer[2] = (publicKeyLength >> 8) & 0xFF;
+	buffer[3] = publicKeyLength & 0xFF;
+
+	if(send(socket, buffer, 4, 0) == SOCKET_ERROR) {
+		ERROR_WSA(L"HRSPClientHandshake", L"send");
+		goto destroyKey;
+	}
+
+	PBYTE publicKey = KHOPAN_ALLOCATE(publicKeyLength);
 
 	if(!publicKey) {
 		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"HRSPClientHandshake", L"KHOPAN_ALLOCATE");
 		goto destroyKey;
 	}
 
-	status = BCryptExportKey(key, NULL, BCRYPT_RSAPUBLIC_BLOB, publicKey, keySize, &keySize, 0);
+	status = BCryptExportKey(key, NULL, BCRYPT_RSAPUBLIC_BLOB, publicKey, publicKeyLength, &publicKeyLength, 0);
 
 	if(!BCRYPT_SUCCESS(status)) {
 		ERROR_NTSTATUS(status, L"HRSPClientHandshake", L"BCryptExportKey");
@@ -114,48 +120,18 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 		goto destroyKey;
 	}
 
-	printf("Key Length: %lu\nData: 0x", keySize);
-
-	for(ULONG i = 0; i < keySize; i++) {
-		printf("%02X", publicKey[i]);
-	}
-
-	printf("\n");
-	buffer[0] = (keySize >> 24) & 0xFF;
-	buffer[1] = (keySize >> 16) & 0xFF;
-	buffer[2] = (keySize >> 8) & 0xFF;
-	buffer[3] = keySize & 0xFF;
-
-	if(send(socket, buffer, 4, 0) == SOCKET_ERROR) {
-		ERROR_WSA(L"HRSPClientHandshake", L"send");
-		KHOPAN_DEALLOCATE(publicKey);
-		goto destroyKey;
-	}
-
-	if(send(socket, publicKey, keySize, 0) == SOCKET_ERROR) {
+	if(send(socket, publicKey, publicKeyLength, 0) == SOCKET_ERROR) {
 		ERROR_WSA(L"HRSPClientHandshake", L"send");
 		KHOPAN_DEALLOCATE(publicKey);
 		goto destroyKey;
 	}
 
 	KHOPAN_DEALLOCATE(publicKey);
-	/*status = BCryptGenRandom(NULL, buffer, RSA_KEY_LENGTH, BCRYPT_USE_SYSTEM_PREFERRED_RNG);
-
-	if(!BCRYPT_SUCCESS(status)) {
-		ERROR_NTSTATUS(status, L"HRSPClientHandshake", L"BCryptGenRandom");
-		goto freeBuffer;
-	}
-
-	if(send(socket, buffer, RSA_KEY_LENGTH, 0) == SOCKET_ERROR) {
-		ERROR_WSA(L"HRSPClientHandshake", L"send");
-		goto freeBuffer;
-	}*/
-
 	data->internal = KHOPAN_ALLOCATE(sizeof(INTERNALDATA));
 
 	if(!data->internal) {
 		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"HRSPClientHandshake", L"KHOPAN_ALLOCATE");
-		goto freeBuffer;
+		goto destroyKey;
 	}
 
 	((PINTERNALDATA) data->internal)->socket = socket;
@@ -166,8 +142,6 @@ destroyKey:
 	BCryptDestroyKey(key);
 closeAlgorithm:
 	BCryptCloseAlgorithmProvider(algorithm, 0);
-freeBuffer:
-	KHOPAN_DEALLOCATE(buffer);
 	return codeExit;
 }
 
