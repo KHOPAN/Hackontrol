@@ -33,7 +33,13 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 		return FALSE;
 	}
 
-	BYTE buffer[8];
+	PBYTE buffer = KHOPAN_ALLOCATE(512);
+
+	if(!buffer) {
+		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"HRSPClientHandshake", L"KHOPAN_ALLOCATE");
+		return FALSE;
+	}
+
 	buffer[0] = 'H';
 	buffer[1] = 'R';
 	buffer[2] = 'S';
@@ -42,33 +48,37 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 	buffer[5] = HRSP_PROTOCOL_VERSION & 0xFF;
 	buffer[6] = (HRSP_PROTOCOL_VERSION_MINOR >> 8) & 0xFF;
 	buffer[7] = HRSP_PROTOCOL_VERSION_MINOR & 0xFF;
+	BOOL codeExit = FALSE;
 
 	if(send(socket, buffer, 8, 0) == SOCKET_ERROR) {
 		ERROR_WSA(L"HRSPClientHandshake", L"send");
-		return FALSE;
+		goto freeBuffer;
 	}
 
 	if(recv(socket, buffer, 1, MSG_WAITALL) == SOCKET_ERROR) {
 		ERROR_WSA(L"HRSPClientHandshake", L"recv");
-		return FALSE;
+		goto freeBuffer;
 	}
 
 	if(!buffer[0]) {
 		ERROR_HRSP(ERROR_HRSP_UNSUPPORTED_VERSION, L"HRSPClientHandshake", NULL);
-		return FALSE;
+		goto freeBuffer;
 	}
 
 	data->internal = KHOPAN_ALLOCATE(sizeof(INTERNALDATA));
 
 	if(!data->internal) {
 		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"HRSPClientHandshake", L"KHOPAN_ALLOCATE");
-		return FALSE;
+		goto freeBuffer;
 	}
 
 	((PINTERNALDATA) data->internal)->socket = socket;
 	printf("Client: Handshake Done\n");
 	ERROR_CLEAR;
-	return TRUE;
+	codeExit = TRUE;
+freeBuffer:
+	KHOPAN_DEALLOCATE(buffer);
+	return codeExit;
 }
 
 BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPANERROR error) {
