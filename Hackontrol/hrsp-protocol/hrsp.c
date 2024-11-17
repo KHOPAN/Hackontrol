@@ -213,8 +213,16 @@ BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 		goto closeAlgorithm;
 	}
 
+	ULONG keyLength;
+	status = BCryptEncrypt(key, "Hell", 4, NULL, NULL, 0, NULL, 0, &keyLength, BCRYPT_PAD_PKCS1);
 	BCryptDestroyKey(key);
-	printf("Destroyed\n");
+
+	if(!BCRYPT_SUCCESS(status)) {
+		ERROR_NTSTATUS(status, L"HRSPServerHandshake", L"BCryptEncrypt");
+		goto closeAlgorithm;
+	}
+
+	printf("Length: %lu\n", keyLength);
 	data->internal = KHOPAN_ALLOCATE(sizeof(INTERNALDATA));
 
 	if(!data->internal) {
