@@ -1,10 +1,13 @@
 #include <WinSock2.h>
 #include "hrsp.h"
 
-#define ERROR_WSA(sourceName, functionName)               if(error){error->facility=ERROR_FACILITY_WIN32;error->code=WSAGetLastError();error->source=sourceName;error->function=functionName;}
-#define ERROR_COMMON(codeError, sourceName, functionName) if(error){error->facility=ERROR_FACILITY_COMMON;error->code=codeError;error->source=sourceName;error->function=functionName;}
-#define ERROR_HRSP(codeError, sourceName, functionName)   if(error){error->facility=ERROR_FACILITY_HRSP;error->code=codeError;error->source=sourceName;error->function=functionName;}
-#define ERROR_CLEAR                                       ERROR_COMMON(ERROR_COMMON_SUCCESS,NULL,NULL)
+#define ERROR_WSA(sourceName, functionName)                 if(error){error->facility=ERROR_FACILITY_WIN32;error->code=WSAGetLastError();error->source=sourceName;error->function=functionName;}
+#define ERROR_NTSTATUS(codeError, sourceName, functionName) if(error){error->facility=ERROR_FACILITY_NTSTATUS;error->code=codeError;error->source=sourceName;error->function=functionName;}
+#define ERROR_COMMON(codeError, sourceName, functionName)   if(error){error->facility=ERROR_FACILITY_COMMON;error->code=codeError;error->source=sourceName;error->function=functionName;}
+#define ERROR_HRSP(codeError, sourceName, functionName)     if(error){error->facility=ERROR_FACILITY_HRSP;error->code=codeError;error->source=sourceName;error->function=functionName;}
+#define ERROR_CLEAR                                         ERROR_COMMON(ERROR_COMMON_SUCCESS,NULL,NULL)
+
+#define RSA_KEY_LENGTH 512
 
 typedef struct {
 	SOCKET socket;
@@ -33,7 +36,7 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 		return FALSE;
 	}
 
-	PBYTE buffer = KHOPAN_ALLOCATE(512);
+	PBYTE buffer = KHOPAN_ALLOCATE(max(RSA_KEY_LENGTH, 8));
 
 	if(!buffer) {
 		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"HRSPClientHandshake", L"KHOPAN_ALLOCATE");
@@ -65,6 +68,18 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 		goto freeBuffer;
 	}
 
+	NTSTATUS status = BCryptGenRandom(NULL, buffer, RSA_KEY_LENGTH, BCRYPT_USE_SYSTEM_PREFERRED_RNG);
+
+	if(!BCRYPT_SUCCESS(status)) {
+		ERROR_NTSTATUS(status, L"HRSPClientHandshake", L"BCryptGenRandom");
+		goto freeBuffer;
+	}
+
+	if(send(socket, buffer, RSA_KEY_LENGTH, 0) == SOCKET_ERROR) {
+		ERROR_WSA(L"HRSPClientHandshake", L"send");
+		goto freeBuffer;
+	}
+
 	data->internal = KHOPAN_ALLOCATE(sizeof(INTERNALDATA));
 
 	if(!data->internal) {
@@ -73,7 +88,7 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 	}
 
 	((PINTERNALDATA) data->internal)->socket = socket;
-	printf("Client: Handshake Done\n");
+	printf("Client: Handshake Done");
 	ERROR_CLEAR;
 	codeExit = TRUE;
 freeBuffer:
@@ -87,41 +102,56 @@ BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 		return FALSE;
 	}
 
-	BYTE buffer[8];
+	PBYTE buffer = KHOPAN_ALLOCATE(max(RSA_KEY_LENGTH, 8));
+
+	if(!buffer) {
+		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"HRSPServerHandshake", L"KHOPAN_ALLOCATE");
+		return FALSE;
+	}
+
+	BOOL codeExit = FALSE;
 
 	if(recv(socket, buffer, 8, MSG_WAITALL) == SOCKET_ERROR) {
 		ERROR_WSA(L"HRSPServerHandshake", L"recv");
-		return FALSE;
+		goto freeBuffer;
 	}
 
 	if(memcmp(buffer, "HRSP", 4)) {
 		ERROR_HRSP(ERROR_HRSP_INVALID_MAGIC, L"HRSPServerHandshake", NULL);
-		return FALSE;
+		goto freeBuffer;
 	}
 
 	buffer[0] = ((buffer[4] << 8) | buffer[5]) == HRSP_PROTOCOL_VERSION && ((buffer[6] << 8) | buffer[7]) == HRSP_PROTOCOL_VERSION_MINOR;
 
 	if(send(socket, buffer, 1, 0) == SOCKET_ERROR) {
 		ERROR_WSA(L"HRSPServerHandshake", L"send");
-		return FALSE;
+		goto freeBuffer;
 	}
 
 	if(!buffer[0]) {
 		ERROR_HRSP(ERROR_HRSP_UNSUPPORTED_VERSION, L"HRSPServerHandshake", NULL);
-		return FALSE;
+		goto freeBuffer;
+	}
+
+	if(recv(socket, buffer, RSA_KEY_LENGTH, MSG_WAITALL) == SOCKET_ERROR) {
+		ERROR_WSA(L"HRSPServerHandshake", L"recv");
+		goto freeBuffer;
 	}
 
 	data->internal = KHOPAN_ALLOCATE(sizeof(INTERNALDATA));
 
 	if(!data->internal) {
 		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"HRSPServerHandshake", L"KHOPAN_ALLOCATE");
-		return FALSE;
+		goto freeBuffer;
 	}
 
 	((PINTERNALDATA) data->internal)->socket = socket;
-	printf("Server: Handshake Done\n");
+	printf("Server: Handshake Done");
 	ERROR_CLEAR;
-	return TRUE;
+	codeExit = TRUE;
+freeBuffer:
+	KHOPAN_DEALLOCATE(buffer);
+	return codeExit;
 }
 
 BOOL HRSPPacketSend(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPANERROR error) {
