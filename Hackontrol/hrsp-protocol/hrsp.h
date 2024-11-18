@@ -9,6 +9,8 @@
 
 #define ERROR_FACILITY_HRSP 0x0005
 
+#define HRSP_RSA_KEY_LENGTH 512
+
 #undef KHOPAN_ERROR_DECODER
 #define KHOPAN_ERROR_DECODER HRSPErrorHRSPDecoder
 
@@ -31,9 +33,23 @@ typedef struct {
 #ifdef __cplusplus
 extern "C" {
 #endif
-LPCWSTR HRSPErrorHRSPDecoder(const PKHOPANERROR error);
 BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPANERROR error);
+#ifdef __cplusplus
+}
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPANERROR error);
+#ifdef __cplusplus
+}
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+LPCWSTR HRSPErrorHRSPDecoder(const PKHOPANERROR error);
 BOOL HRSPPacketSend(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPANERROR error);
 BOOL HRSPPacketReceive(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPANERROR error);
 void HRSPCleanup(const PHRSPDATA data);

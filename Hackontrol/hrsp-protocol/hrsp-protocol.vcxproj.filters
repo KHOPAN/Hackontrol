@@ -17,12 +17,18 @@
     <ClInclude Include="hrsp_remote.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="hrsp_internal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="hrsp_packet.c">
+    <ClCompile Include="hrsp.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="hrsp.c">
+    <ClCompile Include="hrsp_client.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="hrsp_server.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

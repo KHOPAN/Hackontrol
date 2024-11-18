@@ -152,11 +152,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="hrsp.h" />
+    <ClInclude Include="hrsp_internal.h" />
     <ClInclude Include="hrsp_remote.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="hrsp.c" />
-    <ClCompile Include="hrsp_packet.c" />
+    <ClCompile Include="hrsp_client.c" />
+    <ClCompile Include="hrsp_server.c" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\library-khopan\library-khopan.vcxproj">
