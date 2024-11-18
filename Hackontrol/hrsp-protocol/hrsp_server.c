@@ -9,6 +9,7 @@
 
 typedef struct {
 	BCRYPT_ALG_HANDLE asymmetricAlgorithm;
+	BCRYPT_KEY_HANDLE asymmetricKey;
 } INTERNALSERVERDATA, *PINTERNALSERVERDATA;
 
 BOOL HRSPServerInitialize(const PHRSPSERVERDATA server, const PKHOPANERROR error) {
@@ -31,8 +32,27 @@ BOOL HRSPServerInitialize(const PHRSPSERVERDATA server, const PKHOPANERROR error
 		goto freeData;
 	}
 
+	status = BCryptGenerateKeyPair(data->asymmetricAlgorithm, &data->asymmetricKey, HRSP_RSA_KEY_LENGTH * 8, 0);
+
+	if(!BCRYPT_SUCCESS(status)) {
+		ERROR_NTSTATUS(status, L"HRSPServerInitialize", L"BCryptGenerateKeyPair");
+		goto closeAsymmetricAlgorithm;
+	}
+
+	status = BCryptFinalizeKeyPair(data->asymmetricKey, 0);
+
+	if(!BCRYPT_SUCCESS(status)) {
+		ERROR_NTSTATUS(status, L"HRSPServerInitialize", L"BCryptFinalizeKeyPair");
+		goto destroyAsymmetricKey;
+	}
+
 	ERROR_CLEAR;
+	*server = (HRSPSERVERDATA) data;
 	return TRUE;
+destroyAsymmetricKey:
+	BCryptDestroyKey(data->asymmetricKey);
+closeAsymmetricAlgorithm:
+	BCryptCloseAlgorithmProvider(data->asymmetricAlgorithm, 0);
 freeData:
 	KHOPAN_DEALLOCATE(data);
 	return FALSE;
@@ -51,39 +71,18 @@ void HRSPServerCleanup(const PHRSPSERVERDATA server) {
 		return;
 	}
 
-	HRSPSERVERDATA data = *server;
+	PINTERNALSERVERDATA data = (PINTERNALSERVERDATA) *server;
 
 	if(!data) {
 		return;
 	}
 
-	KHOPAN_DEALLOCATE((void*) data);
+	BCryptDestroyKey(data->asymmetricKey);
+	BCryptCloseAlgorithmProvider(data->asymmetricAlgorithm, 0);
+	KHOPAN_DEALLOCATE(data);
 }
 
-/*BOOL HRSPServerInitialize(const PHRSPDATA data, const PKHOPANERROR error) {
-	BCRYPT_KEY_HANDLE key;
-	status = BCryptGenerateKeyPair(algorithm, &key, HRSP_RSA_KEY_LENGTH * 8, 0);
-	BOOL codeExit = FALSE;
-
-	if(!BCRYPT_SUCCESS(status)) {
-		ERROR_NTSTATUS(status, L"HRSPClientHandshake", L"BCryptGenerateKeyPair");
-		goto closeAlgorithm;
-	}
-
-	status = BCryptFinalizeKeyPair(key, 0);
-
-	if(!BCRYPT_SUCCESS(status)) {
-		ERROR_NTSTATUS(status, L"HRSPClientHandshake", L"BCryptFinalizeKeyPair");
-		goto destroyKey;
-	}
-
-	return TRUE;
-freeInternal:
-	KHOPAN_DEALLOCATE(data->internal);
-	return FALSE;
-}
-
-BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPANERROR error) {
+/*BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPANERROR error) {
 	if(!socket || !data) {
 		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"HRSPServerHandshake", NULL);
 		return FALSE;
