@@ -4,6 +4,7 @@
 
 extern LINKEDLIST clientList;
 extern HANDLE clientListMutex;
+extern HRSPSERVERDATA serverData;
 
 DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	if(!client) {
@@ -17,13 +18,13 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	//PLINKEDLISTITEM item = NULL;
 	//BOOL freeClient = FALSE;
 
-	if(!HRSPServerHandshake(client->socket, &client->hrsp, &error)) {
+	if(!HRSPServerSessionInitialize(client->socket, &client->hrsp, &serverData, &error)) {
 		KHOPANERRORCONSOLE_KHOPAN(error);
 		goto functionExit;
 	}
 
 	printf("Established\n");
-	HRSPCleanup(&client->hrsp);
+	HRSPServerSessionCleanup(&client->hrsp);
 	/*HRSPPACKET packet;
 
 	if(!HRSPReceivePacket(client->socket, &client->hrsp, &packet, &protocolError)) {

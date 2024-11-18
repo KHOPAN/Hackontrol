@@ -1,6 +1,8 @@
 #include <WS2tcpip.h>
 #include "remote.h"
 
+HRSPSERVERDATA serverData;
+
 extern LINKEDLIST clientList;
 extern HANDLE clientListMutex;
 
@@ -52,6 +54,11 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 		goto freeList;
 	}
 
+	if(!HRSPServerInitialize(&serverData, &error)) {
+		KHOPANERRORMESSAGE_KHOPAN(error);
+		goto freeList;
+	}
+
 	LOG("[Server]: Listening socket started\n");
 	int size;
 	SOCKADDR_IN address;
@@ -70,7 +77,7 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 		client = KHOPAN_ALLOCATE(sizeof(CLIENT));
 
 		if(!client) {
-			KHOPANERRORCONSOLE_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"KHOPAN_ALLOCATE");
+			KHOPANERRORCONSOLE_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"KHOPAN_ALLOCATE");
 			goto closeSocket;
 		}
 
@@ -117,6 +124,7 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 	}
 
 	codeExit = 0;
+	HRSPServerCleanup(&serverData);
 freeList:
 	KHOPANArrayFree(&list, NULL);
 functionExit:
