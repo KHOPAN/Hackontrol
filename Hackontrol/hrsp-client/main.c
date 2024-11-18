@@ -55,7 +55,7 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 
 	HRSPDATA protocolData;
 
-	if(!HRSPClientHandshake(clientSocket, &protocolData, error)) {
+	if(!HRSPClientInitialize(clientSocket, &protocolData, error)) {
 		ERROR_SOURCE(L"HRSPClientConnectToServer");
 		goto closeSocket;
 	}
@@ -63,7 +63,7 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 	printf("Established\n");
 	ERROR_CLEAR;
 	codeExit = TRUE;
-	HRSPCleanup(&protocolData);
+	HRSPClientCleanup(&protocolData);
 closeSocket:
 	closesocket(clientSocket);
 cleanupSocket:

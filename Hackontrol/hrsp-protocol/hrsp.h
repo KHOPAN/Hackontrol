@@ -32,7 +32,8 @@ typedef struct {
 #ifdef __cplusplus
 extern "C" {
 #endif
-BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPANERROR error);
+BOOL HRSPClientInitialize(const SOCKET socket, const PHRSPDATA data, const PKHOPANERROR error);
+void HRSPClientCleanup(const PHRSPDATA data);
 #ifdef __cplusplus
 }
 #endif

@@ -156,44 +156,6 @@ void HRSPServerCleanup(const PHRSPSERVERDATA server) {
 }
 
 /*BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPANERROR error) {
-	if(recv(socket, buffer, 4, MSG_WAITALL) == SOCKET_ERROR) {
-		ERROR_WSA(L"HRSPServerHandshake", L"recv");
-		return FALSE;
-	}
-
-	ULONG publicKeyLength = (buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3];
-	PBYTE publicKey = KHOPAN_ALLOCATE(publicKeyLength);
-
-	if(!publicKey) {
-		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"HRSPServerHandshake", L"KHOPAN_ALLOCATE");
-		return FALSE;
-	}
-
-	if(recv(socket, publicKey, publicKeyLength, MSG_WAITALL) == SOCKET_ERROR) {
-		ERROR_WSA(L"HRSPServerHandshake", L"recv");
-		KHOPAN_DEALLOCATE(publicKey);
-		return FALSE;
-	}
-
-	BCRYPT_ALG_HANDLE algorithm;
-	NTSTATUS status = BCryptOpenAlgorithmProvider(&algorithm, BCRYPT_RSA_ALGORITHM, NULL, 0);
-
-	if(!BCRYPT_SUCCESS(status)) {
-		ERROR_NTSTATUS(status, L"HRSPServerHandshake", L"BCryptOpenAlgorithmProvider");
-		KHOPAN_DEALLOCATE(publicKey);
-		return FALSE;
-	}
-
-	BCRYPT_KEY_HANDLE key;
-	status = BCryptImportKeyPair(algorithm, NULL, BCRYPT_RSAPUBLIC_BLOB, &key, publicKey, publicKeyLength, 0);
-	KHOPAN_DEALLOCATE(publicKey);
-	BOOL codeExit = FALSE;
-
-	if(!BCRYPT_SUCCESS(status)) {
-		ERROR_NTSTATUS(status, L"HRSPServerHandshake", L"BCryptImportKeyPair");
-		goto closeAlgorithm;
-	}
-
 	ULONG keyLength;
 	status = BCryptEncrypt(key, "Hell", 4, NULL, NULL, 0, NULL, 0, &keyLength, BCRYPT_PAD_PKCS1);
 	BCryptDestroyKey(key);
