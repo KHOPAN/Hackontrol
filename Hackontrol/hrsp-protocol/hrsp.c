@@ -122,11 +122,11 @@ BOOL HRSPPacketReceive(const PHRSPDATA data, const PHRSPPACKET packet, const PKH
 }
 
 void HRSPCleanup(const PHRSPDATA data) {
-	if(!data || !data->internal) {
+	/*if(!data || !data->internal) {
 		return;
 	}
 
-	KHOPAN_DEALLOCATE(data->internal);
+	KHOPAN_DEALLOCATE(data->internal);*/
 	printf("Deallocated\n");
 }
 

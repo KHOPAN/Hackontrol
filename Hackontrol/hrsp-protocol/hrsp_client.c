@@ -104,14 +104,14 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 	}
 
 	KHOPAN_DEALLOCATE(publicKey);
-	data->internal = KHOPAN_ALLOCATE(sizeof(INTERNALDATA));
+	/*data->internal = KHOPAN_ALLOCATE(sizeof(INTERNALDATA));
 
 	if(!data->internal) {
 		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"HRSPClientHandshake", L"KHOPAN_ALLOCATE");
 		goto destroyKey;
 	}
 
-	((PINTERNALDATA) data->internal)->socket = socket;
+	((PINTERNALDATA) data->internal)->socket = socket;*/
 	printf("Client: Handshake Done\n");
 	ERROR_CLEAR;
 	codeExit = TRUE;
