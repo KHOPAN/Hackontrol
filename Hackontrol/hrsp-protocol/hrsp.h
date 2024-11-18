@@ -20,9 +20,8 @@ enum ERRORFACLIITYHRSP {
 	ERROR_HRSP_CONNECTION_CLOSED
 };
 
-typedef struct {
-	LPVOID internal;
-} HRSPDATA, *PHRSPDATA;
+typedef unsigned long long HRSPSERVERDATA, *PHRSPSERVERDATA;
+typedef unsigned long long HRSPDATA, *PHRSPDATA;
 
 typedef struct {
 	UINT type;
@@ -41,7 +40,10 @@ BOOL HRSPClientHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 #ifdef __cplusplus
 extern "C" {
 #endif
-BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPANERROR error);
+BOOL HRSPServerInitialize(const PHRSPSERVERDATA server, const PKHOPANERROR error);
+BOOL HRSPServerSessionInitialize(const SOCKET socket, const PHRSPDATA data, const PHRSPSERVERDATA server, const PKHOPANERROR error);
+void HRSPServerSessionCleanup(const PHRSPDATA data);
+void HRSPServerCleanup(const PHRSPSERVERDATA server);
 #ifdef __cplusplus
 }
 #endif

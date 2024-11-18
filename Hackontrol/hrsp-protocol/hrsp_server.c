@@ -1,11 +1,87 @@
 #include <WinSock2.h>
 #include "hrsp_internal.h"
 
-#define ERROR_WSA(sourceName, functionName)                 if(error){error->facility=ERROR_FACILITY_WIN32;error->code=WSAGetLastError();error->source=sourceName;error->function=functionName;}
+//#define ERROR_WSA(sourceName, functionName)                 if(error){error->facility=ERROR_FACILITY_WIN32;error->code=WSAGetLastError();error->source=sourceName;error->function=functionName;}
 #define ERROR_NTSTATUS(codeError, sourceName, functionName) if(error){error->facility=ERROR_FACILITY_NTSTATUS;error->code=codeError;error->source=sourceName;error->function=functionName;}
 #define ERROR_COMMON(codeError, sourceName, functionName)   if(error){error->facility=ERROR_FACILITY_COMMON;error->code=codeError;error->source=sourceName;error->function=functionName;}
-#define ERROR_HRSP(codeError, sourceName, functionName)     if(error){error->facility=ERROR_FACILITY_HRSP;error->code=codeError;error->source=sourceName;error->function=functionName;}
+//#define ERROR_HRSP(codeError, sourceName, functionName)     if(error){error->facility=ERROR_FACILITY_HRSP;error->code=codeError;error->source=sourceName;error->function=functionName;}
 #define ERROR_CLEAR                                         ERROR_COMMON(ERROR_COMMON_SUCCESS,NULL,NULL)
+
+typedef struct {
+	BCRYPT_ALG_HANDLE asymmetricAlgorithm;
+} INTERNALSERVERDATA, *PINTERNALSERVERDATA;
+
+BOOL HRSPServerInitialize(const PHRSPSERVERDATA server, const PKHOPANERROR error) {
+	if(!server) {
+		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"HRSPServerInitialize", NULL);
+		return FALSE;
+	}
+
+	PINTERNALSERVERDATA data = KHOPAN_ALLOCATE(sizeof(INTERNALSERVERDATA));
+
+	if(!data) {
+		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"HRSPServerInitialize", L"KHOPAN_ALLOCATE");
+		return FALSE;
+	}
+
+	NTSTATUS status = BCryptOpenAlgorithmProvider(&data->asymmetricAlgorithm, BCRYPT_RSA_ALGORITHM, NULL, 0);
+
+	if(!BCRYPT_SUCCESS(status)) {
+		ERROR_NTSTATUS(status, L"HRSPServerInitialize", L"BCryptOpenAlgorithmProvider");
+		goto freeData;
+	}
+
+	ERROR_CLEAR;
+	return TRUE;
+freeData:
+	KHOPAN_DEALLOCATE(data);
+	return FALSE;
+}
+
+BOOL HRSPServerSessionInitialize(const SOCKET socket, const PHRSPDATA data, const PHRSPSERVERDATA server, const PKHOPANERROR error) {
+	return TRUE;
+}
+
+void HRSPServerSessionCleanup(const PHRSPDATA data) {
+
+}
+
+void HRSPServerCleanup(const PHRSPSERVERDATA server) {
+	if(!server) {
+		return;
+	}
+
+	HRSPSERVERDATA data = *server;
+
+	if(!data) {
+		return;
+	}
+
+	KHOPAN_DEALLOCATE((void*) data);
+}
+
+/*BOOL HRSPServerInitialize(const PHRSPDATA data, const PKHOPANERROR error) {
+	BCRYPT_KEY_HANDLE key;
+	status = BCryptGenerateKeyPair(algorithm, &key, HRSP_RSA_KEY_LENGTH * 8, 0);
+	BOOL codeExit = FALSE;
+
+	if(!BCRYPT_SUCCESS(status)) {
+		ERROR_NTSTATUS(status, L"HRSPClientHandshake", L"BCryptGenerateKeyPair");
+		goto closeAlgorithm;
+	}
+
+	status = BCryptFinalizeKeyPair(key, 0);
+
+	if(!BCRYPT_SUCCESS(status)) {
+		ERROR_NTSTATUS(status, L"HRSPClientHandshake", L"BCryptFinalizeKeyPair");
+		goto destroyKey;
+	}
+
+	return TRUE;
+freeInternal:
+	KHOPAN_DEALLOCATE(data->internal);
+	return FALSE;
+}
 
 BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPANERROR error) {
 	if(!socket || !data) {
@@ -99,4 +175,4 @@ BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPA
 closeAlgorithm:
 	BCryptCloseAlgorithmProvider(algorithm, 0);
 	return codeExit;
-}
+}*/
