@@ -10,6 +10,8 @@
 typedef struct {
 	BCRYPT_ALG_HANDLE asymmetricAlgorithm;
 	BCRYPT_KEY_HANDLE asymmetricKey;
+	ULONG asymmetricKeyLength;
+	PBYTE asymmetricKeyData;
 } INTERNALSERVERDATA, *PINTERNALSERVERDATA;
 
 BOOL HRSPServerInitialize(const PHRSPSERVERDATA server, const PKHOPANERROR error) {
@@ -21,7 +23,7 @@ BOOL HRSPServerInitialize(const PHRSPSERVERDATA server, const PKHOPANERROR error
 	PINTERNALSERVERDATA data = KHOPAN_ALLOCATE(sizeof(INTERNALSERVERDATA));
 
 	if(!data) {
-		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"HRSPServerInitialize", L"KHOPAN_ALLOCATE");
+		ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"HRSPServerInitialize", L"KHOPAN_ALLOCATE");
 		return FALSE;
 	}
 
@@ -46,9 +48,32 @@ BOOL HRSPServerInitialize(const PHRSPSERVERDATA server, const PKHOPANERROR error
 		goto destroyAsymmetricKey;
 	}
 
+	status = BCryptExportKey(data->asymmetricKey, NULL, BCRYPT_RSAPUBLIC_BLOB, NULL, 0, &data->asymmetricKeyLength, 0);
+
+	if(!BCRYPT_SUCCESS(status)) {
+		ERROR_NTSTATUS(status, L"HRSPServerInitialize", L"BCryptExportKey");
+		goto destroyAsymmetricKey;
+	}
+
+	data->asymmetricKeyData = KHOPAN_ALLOCATE(data->asymmetricKeyLength);
+
+	if(!data->asymmetricKeyData) {
+		ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"HRSPServerInitialize", L"KHOPAN_ALLOCATE");
+		goto destroyAsymmetricKey;
+	}
+
+	status = BCryptExportKey(data->asymmetricKey, NULL, BCRYPT_RSAPUBLIC_BLOB, data->asymmetricKeyData, data->asymmetricKeyLength, &data->asymmetricKeyLength, 0);
+
+	if(!BCRYPT_SUCCESS(status)) {
+		ERROR_NTSTATUS(status, L"HRSPServerInitialize", L"BCryptExportKey");
+		goto freeAsymmetricKeyData;
+	}
+
 	ERROR_CLEAR;
 	*server = (HRSPSERVERDATA) data;
 	return TRUE;
+freeAsymmetricKeyData:
+	KHOPAN_DEALLOCATE(data->asymmetricKeyData);
 destroyAsymmetricKey:
 	BCryptDestroyKey(data->asymmetricKey);
 closeAsymmetricAlgorithm:
@@ -77,9 +102,11 @@ void HRSPServerCleanup(const PHRSPSERVERDATA server) {
 		return;
 	}
 
+	KHOPAN_DEALLOCATE(data->asymmetricKeyData);
 	BCryptDestroyKey(data->asymmetricKey);
 	BCryptCloseAlgorithmProvider(data->asymmetricAlgorithm, 0);
 	KHOPAN_DEALLOCATE(data);
+	*server = 0;
 }
 
 /*BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPANERROR error) {
