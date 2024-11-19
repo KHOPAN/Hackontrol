@@ -8,11 +8,16 @@
 #define ERROR_CLEAR                                         ERROR_COMMON(ERROR_COMMON_SUCCESS,NULL,NULL)
 
 typedef struct {
+	BCRYPT_ALG_HANDLE symmetricAlgorithm;
 	BCRYPT_ALG_HANDLE asymmetricAlgorithm;
 	BCRYPT_KEY_HANDLE asymmetricKey;
 	ULONG publicKeyLength;
 	PBYTE publicKey;
 } INTERNALSERVERDATA, *PINTERNALSERVERDATA;
+
+typedef struct {
+	BCRYPT_KEY_HANDLE symmetricKey;
+} INTERNALDATA, *PINTERNALDATA;
 
 BOOL HRSPServerInitialize(const PHRSPSERVERDATA server, const PKHOPANERROR error) {
 	if(!server) {
@@ -27,11 +32,18 @@ BOOL HRSPServerInitialize(const PHRSPSERVERDATA server, const PKHOPANERROR error
 		return FALSE;
 	}
 
-	NTSTATUS status = BCryptOpenAlgorithmProvider(&data->asymmetricAlgorithm, BCRYPT_RSA_ALGORITHM, NULL, 0);
+	NTSTATUS status = BCryptOpenAlgorithmProvider(&data->symmetricAlgorithm, BCRYPT_AES_ALGORITHM, NULL, 0);
 
 	if(!BCRYPT_SUCCESS(status)) {
 		ERROR_NTSTATUS(status, L"HRSPServerInitialize", L"BCryptOpenAlgorithmProvider");
 		goto freeData;
+	}
+
+	status = BCryptOpenAlgorithmProvider(&data->asymmetricAlgorithm, BCRYPT_RSA_ALGORITHM, NULL, 0);
+
+	if(!BCRYPT_SUCCESS(status)) {
+		ERROR_NTSTATUS(status, L"HRSPServerInitialize", L"BCryptOpenAlgorithmProvider");
+		goto closeSymmetricAlgorithm;
 	}
 
 	status = BCryptGenerateKeyPair(data->asymmetricAlgorithm, &data->asymmetricKey, HRSP_RSA_KEY_LENGTH * 8, 0);
@@ -78,6 +90,8 @@ destroyAsymmetricKey:
 	BCryptDestroyKey(data->asymmetricKey);
 closeAsymmetricAlgorithm:
 	BCryptCloseAlgorithmProvider(data->asymmetricAlgorithm, 0);
+closeSymmetricAlgorithm:
+	BCryptCloseAlgorithmProvider(data->symmetricAlgorithm, 0);
 freeData:
 	KHOPAN_DEALLOCATE(data);
 	return FALSE;
@@ -148,13 +162,69 @@ BOOL HRSPServerSessionInitialize(const SOCKET socket, const PHRSPDATA data, cons
 		return FALSE;
 	}
 
+	ULONG symmetricKeyLength;
+	NTSTATUS status = BCryptDecrypt(internal->asymmetricKey, encryptedBytes, encryptedLength, NULL, NULL, 0, NULL, 0, &symmetricKeyLength, BCRYPT_PAD_PKCS1);
+
+	if(!BCRYPT_SUCCESS(status)) {
+		ERROR_NTSTATUS(status, L"HRSPServerSessionInitialize", L"BCryptDecrypt");
+		KHOPAN_DEALLOCATE(encryptedBytes);
+		return FALSE;
+	}
+
+	PBYTE symmetricKeyBytes = KHOPAN_ALLOCATE(symmetricKeyLength);
+
+	if(!symmetricKeyBytes) {
+		ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"HRSPServerSessionInitialize", L"KHOPAN_ALLOCATE");
+		KHOPAN_DEALLOCATE(encryptedBytes);
+		return FALSE;
+	}
+
+	status = BCryptDecrypt(internal->asymmetricKey, encryptedBytes, encryptedLength, NULL, NULL, 0, symmetricKeyBytes, symmetricKeyLength, &symmetricKeyLength, BCRYPT_PAD_PKCS1);
 	KHOPAN_DEALLOCATE(encryptedBytes);
+
+	if(!BCRYPT_SUCCESS(status)) {
+		ERROR_NTSTATUS(status, L"HRSPServerSessionInitialize", L"BCryptDecrypt");
+		KHOPAN_DEALLOCATE(symmetricKeyBytes);
+		return FALSE;
+	}
+
+	PINTERNALDATA session = KHOPAN_ALLOCATE(sizeof(INTERNALDATA));
+
+	if(!session) {
+		ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"HRSPServerSessionInitialize", L"KHOPAN_ALLOCATE");
+		KHOPAN_DEALLOCATE(symmetricKeyBytes);
+		return FALSE;
+	}
+
+	status = BCryptImportKey(internal->symmetricAlgorithm, NULL, BCRYPT_KEY_DATA_BLOB, &session->symmetricKey, NULL, 0, symmetricKeyBytes, symmetricKeyLength, 0);
+	KHOPAN_DEALLOCATE(symmetricKeyBytes);
+
+	if(!BCRYPT_SUCCESS(status)) {
+		ERROR_NTSTATUS(status, L"HRSPServerSessionInitialize", L"BCryptImportKey");
+		goto freeSession;
+	}
+
+	*data = (HRSPDATA) session;
 	ERROR_CLEAR;
 	return TRUE;
+freeSession:
+	KHOPAN_DEALLOCATE(session);
+	return FALSE;
 }
 
 void HRSPServerSessionCleanup(const PHRSPDATA data) {
+	if(!data) {
+		return;
+	}
 
+	PINTERNALDATA session = (PINTERNALDATA) *data;
+
+	if(session) {
+		BCryptDestroyKey(session->symmetricKey);
+		KHOPAN_DEALLOCATE(session);
+	}
+
+	*data = 0;
 }
 
 void HRSPServerCleanup(const PHRSPSERVERDATA server) {
@@ -168,6 +238,7 @@ void HRSPServerCleanup(const PHRSPSERVERDATA server) {
 		KHOPAN_DEALLOCATE(data->publicKey);
 		BCryptDestroyKey(data->asymmetricKey);
 		BCryptCloseAlgorithmProvider(data->asymmetricAlgorithm, 0);
+		BCryptCloseAlgorithmProvider(data->symmetricAlgorithm, 0);
 		KHOPAN_DEALLOCATE(data);
 	}
 
