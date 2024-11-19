@@ -7,8 +7,13 @@
 #define ERROR_HRSP(codeError, sourceName, functionName)     if(error){error->facility=ERROR_FACILITY_HRSP;error->code=codeError;error->source=sourceName;error->function=functionName;}
 #define ERROR_CLEAR                                         ERROR_COMMON(ERROR_COMMON_SUCCESS,NULL,NULL)
 
-BOOL encryptSessionKey(const PBYTE publicKey, const ULONG publicKeyLength, const PKHOPANERROR error) {
-	BCRYPT_ALG_HANDLE algorithm;
+typedef struct {
+	BCRYPT_ALG_HANDLE symmetricAlgorithm;
+	BCRYPT_KEY_HANDLE symmetricKey;
+} INTERNALDATA, *PINTERNALDATA;
+
+BOOL encryptSymmetricKey(const PBYTE publicKey, const ULONG publicKeyLength, const BCRYPT_KEY_HANDLE symmetricKey, const PKHOPANERROR error) {
+	/*BCRYPT_ALG_HANDLE algorithm;
 	NTSTATUS status = BCryptOpenAlgorithmProvider(&algorithm, BCRYPT_RSA_ALGORITHM, NULL, 0);
 
 	if(!BCRYPT_SUCCESS(status)) {
@@ -29,13 +34,51 @@ BOOL encryptSessionKey(const PBYTE publicKey, const ULONG publicKeyLength, const
 	codeExit = TRUE;
 closeAlgorithm:
 	BCryptCloseAlgorithmProvider(algorithm, 0);
-	return codeExit;
+	return codeExit;*/
+	return TRUE;
 }
 
 BOOL HRSPClientInitialize(const SOCKET socket, const PHRSPDATA data, const PKHOPANERROR error) {
 	if(!socket || !data) {
 		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"HRSPClientInitialize", NULL);
 		return FALSE;
+	}
+
+	PINTERNALDATA internal = KHOPAN_ALLOCATE(sizeof(INTERNALDATA));
+
+	if(!internal) {
+		ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"HRSPClientInitialize", L"KHOPAN_ALLOCATE");
+		return FALSE;
+	}
+
+	NTSTATUS status = BCryptOpenAlgorithmProvider(&internal->symmetricAlgorithm, BCRYPT_AES_ALGORITHM, NULL, 0);
+
+	if(!BCRYPT_SUCCESS(status)) {
+		ERROR_NTSTATUS(status, L"HRSPClientInitialize", L"BCryptOpenAlgorithmProvider");
+		goto freeInternal;
+	}
+
+	PBYTE bytes = KHOPAN_ALLOCATE(HRSP_AES_KEY_LENGTH);
+
+	if(!bytes) {
+		ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"HRSPClientInitialize", L"KHOPAN_ALLOCATE");
+		goto closeSymmetricAlgorithm;
+	}
+
+	status = BCryptGenRandom(NULL, bytes, HRSP_AES_KEY_LENGTH, BCRYPT_USE_SYSTEM_PREFERRED_RNG);
+
+	if(!BCRYPT_SUCCESS(status)) {
+		ERROR_NTSTATUS(status, L"HRSPClientInitialize", L"BCryptGenRandom");
+		KHOPAN_DEALLOCATE(bytes);
+		goto closeSymmetricAlgorithm;
+	}
+
+	status = BCryptGenerateSymmetricKey(internal->symmetricAlgorithm, &internal->symmetricKey, NULL, 0, bytes, HRSP_AES_KEY_LENGTH, 0);
+	KHOPAN_DEALLOCATE(bytes);
+
+	if(!BCRYPT_SUCCESS(status)) {
+		ERROR_NTSTATUS(status, L"HRSPClientInitialize", L"BCryptGenerateSymmetricKey");
+		goto closeSymmetricAlgorithm;
 	}
 
 	BYTE buffer[8];
@@ -50,50 +93,70 @@ BOOL HRSPClientInitialize(const SOCKET socket, const PHRSPDATA data, const PKHOP
 
 	if(send(socket, buffer, 8, 0) == SOCKET_ERROR) {
 		ERROR_WSA(L"HRSPClientInitialize", L"send");
-		return FALSE;
+		goto destroySymmetricKey;
 	}
 
 	if(recv(socket, buffer, 1, MSG_WAITALL) == SOCKET_ERROR) {
 		ERROR_WSA(L"HRSPClientInitialize", L"recv");
-		return FALSE;
+		goto destroySymmetricKey;
 	}
 
 	if(!buffer[0]) {
 		ERROR_HRSP(ERROR_HRSP_UNSUPPORTED_VERSION, L"HRSPClientInitialize", NULL);
-		return FALSE;
+		goto destroySymmetricKey;
 	}
 
 	if(recv(socket, buffer, 4, MSG_WAITALL) == SOCKET_ERROR) {
 		ERROR_WSA(L"HRSPClientInitialize", L"recv");
-		return FALSE;
+		goto destroySymmetricKey;
 	}
 
 	ULONG publicKeyLength = (buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3];
-	PBYTE publicKey = KHOPAN_ALLOCATE(publicKeyLength);
+	bytes = KHOPAN_ALLOCATE(publicKeyLength);
 
-	if(!publicKey) {
+	if(!bytes) {
 		ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"HRSPClientInitialize", L"KHOPAN_ALLOCATE");
-		return FALSE;
+		goto destroySymmetricKey;
 	}
 
-	if(recv(socket, publicKey, publicKeyLength, MSG_WAITALL) == SOCKET_ERROR) {
-		ERROR_WSA(L"HRSPServerHandshake", L"recv");
-		KHOPAN_DEALLOCATE(publicKey);
-		return FALSE;
+	if(recv(socket, bytes, publicKeyLength, MSG_WAITALL) == SOCKET_ERROR) {
+		ERROR_WSA(L"HRSPClientInitialize", L"recv");
+		KHOPAN_DEALLOCATE(bytes);
+		goto destroySymmetricKey;
 	}
 
-	publicKeyLength = encryptSessionKey(publicKey, publicKeyLength, error);
-	KHOPAN_DEALLOCATE(publicKey);
+	buffer[0] = encryptSymmetricKey(bytes, publicKeyLength, internal->symmetricKey, error);
+	KHOPAN_DEALLOCATE(bytes);
 
-	if(!publicKeyLength) {
-		return FALSE;
+	if(!buffer[0]) {
+		goto destroySymmetricKey;
 	}
 
-	return TRUE;
+	*data = (HRSPDATA) internal;
+ 	return TRUE;
+destroySymmetricKey:
+	BCryptDestroyKey(internal->symmetricKey);
+closeSymmetricAlgorithm:
+	BCryptCloseAlgorithmProvider(internal->symmetricAlgorithm, 0);
+freeInternal:
+	KHOPAN_DEALLOCATE(internal);
+	return FALSE;
 }
 
 void HRSPClientCleanup(const PHRSPDATA data) {
+	if(!data) {
+		return;
+	}
 
+	PINTERNALDATA internal = (PINTERNALDATA) *data;
+
+	if(!internal) {
+		return;
+	}
+
+	BCryptDestroyKey(internal->symmetricKey);
+	BCryptCloseAlgorithmProvider(internal->symmetricAlgorithm, 0);
+	KHOPAN_DEALLOCATE(internal);
 }
 
 /*#pragma warning(disable: 6385)

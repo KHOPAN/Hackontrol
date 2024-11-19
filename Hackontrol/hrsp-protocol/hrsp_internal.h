@@ -2,6 +2,5 @@
 
 #include "hrsp.h"
 
-typedef struct {
-	SOCKET socket;
-} INTERNALDATA, *PINTERNALDATA;
+#define HRSP_RSA_KEY_LENGTH 512
+#define HRSP_AES_KEY_LENGTH 32

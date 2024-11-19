@@ -121,15 +121,6 @@ BOOL HRSPPacketReceive(const PHRSPDATA data, const PHRSPPACKET packet, const PKH
 	return TRUE;
 }
 
-void HRSPCleanup(const PHRSPDATA data) {
-	/*if(!data || !data->internal) {
-		return;
-	}
-
-	KHOPAN_DEALLOCATE(data->internal);*/
-	printf("Deallocated\n");
-}
-
 /*#include <WinSock2.h>
 #include "hrsp.h"
 
