@@ -84,7 +84,7 @@ static BOOL symmetricKeyEncrypt(const SOCKET socket, const PBYTE publicKey, cons
 	sizeBuffer[2] = (encryptedLength >> 8) & 0xFF;
 	sizeBuffer[3] = encryptedLength & 0xFF;
 
-	if(send(socket, sizeBuffer, sizeof(sizeBuffer), 0) == SOCKET_ERROR) {
+	if(send(socket, sizeBuffer, 4, 0) == SOCKET_ERROR) {
 		ERROR_WSA(L"HRSPClientInitialize", L"send");
 		goto freeEncryptedBytes;
 	}
@@ -107,14 +107,14 @@ closeAlgorithm:
 BOOL HRSPClientInitialize(const SOCKET socket, const PHRSPDATA data, const PKHOPANERROR error) {
 	if(!socket || !data) {
 		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"HRSPClientInitialize", NULL);
-		goto functionExit;
+		return FALSE;
 	}
 
 	PINTERNALDATA internal = KHOPAN_ALLOCATE(sizeof(INTERNALDATA));
 
 	if(!internal) {
 		ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"HRSPClientInitialize", L"KHOPAN_ALLOCATE");
-		goto functionExit;
+		return FALSE;
 	}
 
 	NTSTATUS status = BCryptOpenAlgorithmProvider(&internal->symmetricAlgorithm, BCRYPT_AES_ALGORITHM, NULL, 0);
@@ -207,8 +207,6 @@ closeSymmetricAlgorithm:
 	BCryptCloseAlgorithmProvider(internal->symmetricAlgorithm, 0);
 freeInternal:
 	KHOPAN_DEALLOCATE(internal);
-functionExit:
-	*data = 0;
 	return FALSE;
 }
 
@@ -219,11 +217,11 @@ void HRSPClientCleanup(const PHRSPDATA data) {
 
 	PINTERNALDATA internal = (PINTERNALDATA) *data;
 
-	if(!internal) {
-		return;
+	if(internal) {
+		BCryptDestroyKey(internal->symmetricKey);
+		BCryptCloseAlgorithmProvider(internal->symmetricAlgorithm, 0);
+		KHOPAN_DEALLOCATE(internal);
 	}
 
-	BCryptDestroyKey(internal->symmetricKey);
-	BCryptCloseAlgorithmProvider(internal->symmetricAlgorithm, 0);
-	KHOPAN_DEALLOCATE(internal);
+	*data = 0;
 }

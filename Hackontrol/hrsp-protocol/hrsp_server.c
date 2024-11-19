@@ -69,8 +69,8 @@ BOOL HRSPServerInitialize(const PHRSPSERVERDATA server, const PKHOPANERROR error
 		goto freePublicKey;
 	}
 
-	ERROR_CLEAR;
 	*server = (HRSPSERVERDATA) data;
+	ERROR_CLEAR;
 	return TRUE;
 freePublicKey:
 	KHOPAN_DEALLOCATE(data->publicKey);
@@ -129,6 +129,13 @@ BOOL HRSPServerSessionInitialize(const SOCKET socket, const PHRSPDATA data, cons
 		return FALSE;
 	}
 
+	if(recv(socket, buffer, 4, MSG_WAITALL) == SOCKET_ERROR) {
+		ERROR_WSA(L"HRSPServerSessionInitialize", L"recv");
+		return FALSE;
+	}
+
+	ULONG encryptedLength = (buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3];
+	printf("Encrypted size: %lu\n", encryptedLength);
 	ERROR_CLEAR;
 	return TRUE;
 }
@@ -144,40 +151,12 @@ void HRSPServerCleanup(const PHRSPSERVERDATA server) {
 
 	PINTERNALSERVERDATA data = (PINTERNALSERVERDATA) *server;
 
-	if(!data) {
-		return;
+	if(data) {
+		KHOPAN_DEALLOCATE(data->publicKey);
+		BCryptDestroyKey(data->asymmetricKey);
+		BCryptCloseAlgorithmProvider(data->asymmetricAlgorithm, 0);
+		KHOPAN_DEALLOCATE(data);
 	}
 
-	KHOPAN_DEALLOCATE(data->publicKey);
-	BCryptDestroyKey(data->asymmetricKey);
-	BCryptCloseAlgorithmProvider(data->asymmetricAlgorithm, 0);
-	KHOPAN_DEALLOCATE(data);
 	*server = 0;
 }
-
-/*BOOL HRSPServerHandshake(const SOCKET socket, const PHRSPDATA data, const PKHOPANERROR error) {
-	ULONG keyLength;
-	status = BCryptEncrypt(key, "Hell", 4, NULL, NULL, 0, NULL, 0, &keyLength, BCRYPT_PAD_PKCS1);
-	BCryptDestroyKey(key);
-
-	if(!BCRYPT_SUCCESS(status)) {
-		ERROR_NTSTATUS(status, L"HRSPServerHandshake", L"BCryptEncrypt");
-		goto closeAlgorithm;
-	}
-
-	printf("Length: %lu\n", keyLength);
-	data->internal = KHOPAN_ALLOCATE(sizeof(INTERNALDATA));
-
-	if(!data->internal) {
-		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"HRSPServerHandshake", L"KHOPAN_ALLOCATE");
-		goto closeAlgorithm;
-	}
-
-	((PINTERNALDATA) data->internal)->socket = socket;
-	printf("Server: Handshake Done\n");
-	ERROR_CLEAR;
-	codeExit = TRUE;
-closeAlgorithm:
-	BCryptCloseAlgorithmProvider(algorithm, 0);
-	return codeExit;
-}*/
