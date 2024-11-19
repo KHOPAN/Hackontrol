@@ -135,7 +135,20 @@ BOOL HRSPServerSessionInitialize(const SOCKET socket, const PHRSPDATA data, cons
 	}
 
 	ULONG encryptedLength = (buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3];
-	printf("Encrypted size: %lu\n", encryptedLength);
+	PBYTE encryptedBytes = KHOPAN_ALLOCATE(encryptedLength);
+
+	if(!encryptedBytes) {
+		ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"HRSPServerSessionInitialize", L"KHOPAN_ALLOCATE");
+		return FALSE;
+	}
+
+	if(recv(socket, encryptedBytes, encryptedLength, MSG_WAITALL) == SOCKET_ERROR) {
+		ERROR_WSA(L"HRSPServerSessionInitialize", L"recv");
+		KHOPAN_DEALLOCATE(encryptedBytes);
+		return FALSE;
+	}
+
+	KHOPAN_DEALLOCATE(encryptedBytes);
 	ERROR_CLEAR;
 	return TRUE;
 }
