@@ -24,6 +24,17 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	}
 
 	printf("Established\n");
+	BYTE bytes[16];
+	memset(bytes, 88, sizeof(bytes));
+	HRSPPACKET packet = {0};
+	packet.type = 91579;
+	packet.size = sizeof(bytes);
+	packet.data = bytes;
+
+	if(!HRSPPacketSend(&client->hrsp, &packet, &error)) {
+		KHOPANERRORCONSOLE_KHOPAN(error);
+	}
+
 	HRSPServerSessionCleanup(&client->hrsp);
 	/*HRSPPACKET packet;
 

@@ -6,6 +6,13 @@
 #define ERROR_HRSP(codeError, sourceName, functionName)     if(error){error->facility=ERROR_FACILITY_HRSP;error->code=codeError;error->source=sourceName;error->function=functionName;}
 #define ERROR_CLEAR                                         ERROR_COMMON(ERROR_COMMON_SUCCESS,NULL,NULL)
 
+typedef struct {
+	SOCKET socket;
+	BCRYPT_KEY_HANDLE symmetricKey;
+	PBYTE buffer;
+	size_t bufferSize;
+} INTERNALDATA, *PINTERNALDATA;
+
 LPCWSTR HRSPErrorHRSPDecoder(const PKHOPANERROR error) {
 	if(!error) {
 		return NULL;
@@ -24,20 +31,63 @@ LPCWSTR HRSPErrorHRSPDecoder(const PKHOPANERROR error) {
 }
 
 BOOL HRSPPacketSend(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPANERROR error) {
-	/*if(!data || !packet) {
+	if(!data || !*data || !packet) {
 		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"HRSPPacketSend", NULL);
 		return FALSE;
 	}
 
-	BYTE buffer[13];
-	buffer[0] = packet->size > 0;
-	buffer[1] = (packet->type >> 24) & 0xFF;
-	buffer[2] = (packet->type >> 16) & 0xFF;
-	buffer[3] = (packet->type >> 8) & 0xFF;
-	buffer[4] = packet->type & 0xFF;
+	BYTE buffer[12];
+	buffer[0] = (packet->type >> 24) & 0xFF;
+	buffer[1] = (packet->type >> 16) & 0xFF;
+	buffer[2] = (packet->type >> 8) & 0xFF;
+	buffer[3] = packet->type & 0xFF;
 
-	if(!buffer[0]) {
-		if(send(data->socket, buffer, 5, 0) == SOCKET_ERROR) {
+	if(packet->size > 0) {
+		buffer[4] = (packet->size >> 56) & 0xFF;
+		buffer[5] = (packet->size >> 48) & 0xFF;
+		buffer[6] = (packet->size >> 40) & 0xFF;
+		buffer[7] = (packet->size >> 32) & 0xFF;
+		buffer[8] = (packet->size >> 24) & 0xFF;
+		buffer[9] = (packet->size >> 16) & 0xFF;
+		buffer[10] = (packet->size >> 8) & 0xFF;
+		buffer[11] = packet->size & 0xFF;
+	}
+
+	PINTERNALDATA internal = (PINTERNALDATA) *data;
+	ULONG size;
+	NTSTATUS status = BCryptEncrypt(internal->symmetricKey, buffer, packet->size > 0 ? 12 : 4, NULL, NULL, 0, NULL, 0, &size, BCRYPT_BLOCK_PADDING);
+
+	if(!BCRYPT_SUCCESS(status)) {
+		ERROR_NTSTATUS(status, L"HRSPPacketSend", L"BCryptEncrypt");
+		return FALSE;
+	}
+
+	if(!internal->buffer || internal->bufferSize < size) {
+		PBYTE temporary = KHOPAN_ALLOCATE(size);
+
+		if(!temporary) {
+			ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"HRSPPacketSend", L"KHOPAN_ALLOCATE");
+			return FALSE;
+		}
+
+		if(internal->buffer) {
+			KHOPAN_DEALLOCATE(internal->buffer);
+		}
+
+		internal->buffer = temporary;
+	}
+
+	status = BCryptEncrypt(internal->symmetricKey, buffer, packet->size > 0 ? 12 : 4, NULL, NULL, 0, internal->buffer, size, &size, BCRYPT_BLOCK_PADDING);
+
+	if(!BCRYPT_SUCCESS(status)) {
+		ERROR_NTSTATUS(status, L"HRSPPacketSend", L"BCryptEncrypt");
+		return FALSE;
+	}
+
+	printf("Header size: %lu\n", size);
+	return TRUE;
+	/*if(!buffer[0]) {
+		if(send(internal->socket, buffer, 5, 0) == SOCKET_ERROR) {
 			ERROR_WSA(L"HRSPPacketSend", L"send");
 			return FALSE;
 		}
@@ -74,8 +124,8 @@ BOOL HRSPPacketSend(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPA
 		pointer += sent;
 	}
 
-	ERROR_CLEAR;*/
-	return TRUE;
+	ERROR_CLEAR;
+	return TRUE;*/
 }
 
 BOOL HRSPPacketReceive(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPANERROR error) {

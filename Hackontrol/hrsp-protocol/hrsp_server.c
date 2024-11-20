@@ -16,7 +16,10 @@ typedef struct {
 } INTERNALSERVERDATA, *PINTERNALSERVERDATA;
 
 typedef struct {
+	SOCKET socket;
 	BCRYPT_KEY_HANDLE symmetricKey;
+	PBYTE buffer;
+	size_t bufferSize;
 } INTERNALDATA, *PINTERNALDATA;
 
 BOOL HRSPServerInitialize(const PHRSPSERVERDATA server, const PKHOPANERROR error) {
@@ -196,6 +199,9 @@ BOOL HRSPServerSessionInitialize(const SOCKET socket, const PHRSPDATA data, cons
 		return FALSE;
 	}
 
+	session->socket = socket;
+	session->buffer = NULL;
+	session->bufferSize = 0;
 	status = BCryptImportKey(internal->symmetricAlgorithm, NULL, BCRYPT_KEY_DATA_BLOB, &session->symmetricKey, NULL, 0, symmetricKeyBytes, symmetricKeyLength, 0);
 	KHOPAN_DEALLOCATE(symmetricKeyBytes);
 
@@ -220,6 +226,10 @@ void HRSPServerSessionCleanup(const PHRSPDATA data) {
 	PINTERNALDATA session = (PINTERNALDATA) *data;
 
 	if(session) {
+		if(session->buffer) {
+			KHOPAN_DEALLOCATE(session->buffer);
+		}
+
 		BCryptDestroyKey(session->symmetricKey);
 		KHOPAN_DEALLOCATE(session);
 	}

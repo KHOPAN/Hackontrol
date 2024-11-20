@@ -8,8 +8,11 @@
 #define ERROR_CLEAR                                         ERROR_COMMON(ERROR_COMMON_SUCCESS,NULL,NULL)
 
 typedef struct {
-	BCRYPT_ALG_HANDLE symmetricAlgorithm;
+	SOCKET socket;
 	BCRYPT_KEY_HANDLE symmetricKey;
+	PBYTE buffer;
+	size_t bufferSize;
+	BCRYPT_ALG_HANDLE symmetricAlgorithm;
 } INTERNALDATA, *PINTERNALDATA;
 
 static BOOL symmetricKeyEncrypt(const SOCKET socket, const PBYTE publicKey, const ULONG publicKeyLength, const BCRYPT_KEY_HANDLE symmetricKey, const PKHOPANERROR error) {
@@ -117,6 +120,9 @@ BOOL HRSPClientInitialize(const SOCKET socket, const PHRSPDATA data, const PKHOP
 		return FALSE;
 	}
 
+	internal->socket = socket;
+	internal->buffer = NULL;
+	internal->bufferSize = 0;
 	NTSTATUS status = BCryptOpenAlgorithmProvider(&internal->symmetricAlgorithm, BCRYPT_AES_ALGORITHM, NULL, 0);
 
 	if(!BCRYPT_SUCCESS(status)) {
@@ -218,6 +224,10 @@ void HRSPClientCleanup(const PHRSPDATA data) {
 	PINTERNALDATA internal = (PINTERNALDATA) *data;
 
 	if(internal) {
+		if(internal->buffer) {
+			KHOPAN_DEALLOCATE(internal->buffer);
+		}
+
 		BCryptDestroyKey(internal->symmetricKey);
 		BCryptCloseAlgorithmProvider(internal->symmetricAlgorithm, 0);
 		KHOPAN_DEALLOCATE(internal);
