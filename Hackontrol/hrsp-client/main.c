@@ -61,6 +61,13 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 	}
 
 	printf("Established\n");
+	HRSPPACKET packet;
+
+	if(!HRSPPacketReceive(&protocolData, &packet, error)) {
+		ERROR_SOURCE(L"HRSPClientConnectToServer");
+		goto closeSocket;
+	}
+
 	ERROR_CLEAR;
 	codeExit = TRUE;
 	HRSPClientCleanup(&protocolData);

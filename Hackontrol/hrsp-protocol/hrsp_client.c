@@ -12,6 +12,8 @@ typedef struct {
 	BCRYPT_KEY_HANDLE symmetricKey;
 	PBYTE buffer;
 	size_t bufferSize;
+	PBYTE temporaryBuffer;
+	size_t temporaryBufferSize;
 	BCRYPT_ALG_HANDLE symmetricAlgorithm;
 } INTERNALDATA, *PINTERNALDATA;
 
@@ -123,6 +125,8 @@ BOOL HRSPClientInitialize(const SOCKET socket, const PHRSPDATA data, const PKHOP
 	internal->socket = socket;
 	internal->buffer = NULL;
 	internal->bufferSize = 0;
+	internal->temporaryBuffer = NULL;
+	internal->temporaryBufferSize = 0;
 	NTSTATUS status = BCryptOpenAlgorithmProvider(&internal->symmetricAlgorithm, BCRYPT_AES_ALGORITHM, NULL, 0);
 
 	if(!BCRYPT_SUCCESS(status)) {
@@ -224,6 +228,10 @@ void HRSPClientCleanup(const PHRSPDATA data) {
 	PINTERNALDATA internal = (PINTERNALDATA) *data;
 
 	if(internal) {
+		if(internal->temporaryBuffer) {
+			KHOPAN_DEALLOCATE(internal->temporaryBuffer);
+		}
+
 		if(internal->buffer) {
 			KHOPAN_DEALLOCATE(internal->buffer);
 		}

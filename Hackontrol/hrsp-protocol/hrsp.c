@@ -12,6 +12,8 @@ typedef struct {
 	BCRYPT_KEY_HANDLE symmetricKey;
 	PBYTE buffer;
 	size_t bufferSize;
+	PBYTE temporaryBuffer;
+	size_t temporaryBufferSize;
 } INTERNALDATA, *PINTERNALDATA;
 
 LPCWSTR HRSPErrorHRSPDecoder(const PKHOPANERROR error) {
@@ -76,6 +78,7 @@ BOOL HRSPPacketSend(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPA
 		}
 
 		internal->buffer = temporary;
+		internal->bufferSize = size;
 	}
 
 	status = BCryptEncrypt(internal->symmetricKey, buffer, packet->size > 0 ? 12 : 4, NULL, NULL, 0, internal->buffer, size, &size, BCRYPT_BLOCK_PADDING);
@@ -164,9 +167,10 @@ BOOL HRSPPacketReceive(const PHRSPDATA data, const PHRSPPACKET packet, const PKH
 	}
 
 	ULONG size = ((buffer[0] & 0xFF) << 24) | ((buffer[1] & 0xFF) << 16) | ((buffer[2] & 0xFF) << 8) | (buffer[3] & 0xFF);
+	PBYTE temporary;
 
 	if(!internal->buffer || internal->bufferSize < size) {
-		PBYTE temporary = KHOPAN_ALLOCATE(size);
+		temporary = KHOPAN_ALLOCATE(size);
 
 		if(!temporary) {
 			ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"HRSPPacketReceive", L"KHOPAN_ALLOCATE");
@@ -178,6 +182,7 @@ BOOL HRSPPacketReceive(const PHRSPDATA data, const PHRSPPACKET packet, const PKH
 		}
 
 		internal->buffer = temporary;
+		internal->bufferSize = size;
 	}
 
 	if(recv(internal->socket, internal->buffer, size, MSG_WAITALL) == SOCKET_ERROR) {
@@ -185,7 +190,31 @@ BOOL HRSPPacketReceive(const PHRSPDATA data, const PHRSPPACKET packet, const PKH
 		return FALSE;
 	}
 
-	printf("Header size: %lu\n", size);
+	ULONG headerSize;
+	status = BCryptDecrypt(internal->symmetricKey, internal->buffer, size, NULL, NULL, 0, NULL, 0, &headerSize, BCRYPT_BLOCK_PADDING);
+
+	if(!BCRYPT_SUCCESS(status)) {
+		ERROR_NTSTATUS(status, L"HRSPPacketReceive", L"BCryptDecrypt");
+		return FALSE;
+	}
+
+	if(!internal->temporaryBuffer || internal->temporaryBufferSize < headerSize) {
+		temporary = KHOPAN_ALLOCATE(headerSize);
+
+		if(!temporary) {
+			ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"HRSPPacketReceive", L"KHOPAN_ALLOCATE");
+			return FALSE;
+		}
+
+		if(internal->temporaryBuffer) {
+			KHOPAN_DEALLOCATE(internal->temporaryBuffer);
+		}
+
+		internal->temporaryBuffer = temporary;
+		internal->temporaryBufferSize = headerSize;
+	}
+
+	printf("Header size: %lu\n", headerSize);
 	/*if(!buffer[0]) {
 		packet->type = ((buffer[1] & 0xFF) << 24) | ((buffer[2] & 0xFF) << 16) | ((buffer[3] & 0xFF) << 8) | (buffer[4] & 0xFF);
 		packet->size = 0;
