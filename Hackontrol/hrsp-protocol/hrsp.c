@@ -1,3 +1,4 @@
+#include <WinSock2.h>
 #include "hrsp.h"
 
 #define ERROR_WSA(sourceName, functionName)                 if(error){error->facility=ERROR_FACILITY_WIN32;error->code=WSAGetLastError();error->source=sourceName;error->function=functionName;}
@@ -84,6 +85,16 @@ BOOL HRSPPacketSend(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPA
 		return FALSE;
 	}
 
+	buffer[0] = (size >> 24) & 0xFF;
+	buffer[1] = (size >> 16) & 0xFF;
+	buffer[2] = (size >> 8) & 0xFF;
+	buffer[3] = size & 0xFF;
+
+	if(send(internal->socket, buffer, 4, 0) == SOCKET_ERROR) {
+		ERROR_WSA(L"HRSPPacketSend", L"send");
+		return FALSE;
+	}
+
 	if(send(internal->socket, internal->buffer, size, 0) == SOCKET_ERROR) {
 		ERROR_WSA(L"HRSPPacketSend", L"send");
 		return FALSE;
@@ -133,13 +144,14 @@ BOOL HRSPPacketSend(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPA
 }
 
 BOOL HRSPPacketReceive(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPANERROR error) {
-	/*if(!data || !packet) {
+	if(!data || !*data || !packet) {
 		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"HRSPPacketReceive", NULL);
 		return FALSE;
 	}
 
-	BYTE buffer[5];
-	int status = recv(data->socket, buffer, sizeof(buffer), MSG_WAITALL);
+	BYTE buffer[4];
+	PINTERNALDATA internal = (PINTERNALDATA) *data;
+	int status = recv(internal->socket, buffer, 4, MSG_WAITALL);
 
 	if(status == SOCKET_ERROR) {
 		ERROR_WSA(L"HRSPPacketReceive", L"recv");
@@ -151,7 +163,30 @@ BOOL HRSPPacketReceive(const PHRSPDATA data, const PHRSPPACKET packet, const PKH
 		return FALSE;
 	}
 
-	if(!buffer[0]) {
+	ULONG size = ((buffer[0] & 0xFF) << 24) | ((buffer[1] & 0xFF) << 16) | ((buffer[2] & 0xFF) << 8) | (buffer[3] & 0xFF);
+
+	if(!internal->buffer || internal->bufferSize < size) {
+		PBYTE temporary = KHOPAN_ALLOCATE(size);
+
+		if(!temporary) {
+			ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"HRSPPacketReceive", L"KHOPAN_ALLOCATE");
+			return FALSE;
+		}
+
+		if(internal->buffer) {
+			KHOPAN_DEALLOCATE(internal->buffer);
+		}
+
+		internal->buffer = temporary;
+	}
+
+	if(recv(internal->socket, internal->buffer, size, MSG_WAITALL) == SOCKET_ERROR) {
+		ERROR_WSA(L"HRSPPacketReceive", L"recv");
+		return FALSE;
+	}
+
+	printf("Header size: %lu\n", size);
+	/*if(!buffer[0]) {
 		packet->type = ((buffer[1] & 0xFF) << 24) | ((buffer[2] & 0xFF) << 16) | ((buffer[3] & 0xFF) << 8) | (buffer[4] & 0xFF);
 		packet->size = 0;
 		packet->data = NULL;
