@@ -84,7 +84,11 @@ BOOL HRSPPacketSend(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPA
 		return FALSE;
 	}
 
-	printf("Header size: %lu\n", size);
+	if(send(internal->socket, internal->buffer, size, 0) == SOCKET_ERROR) {
+		ERROR_WSA(L"HRSPPacketSend", L"send");
+		return FALSE;
+	}
+
 	return TRUE;
 	/*if(!buffer[0]) {
 		if(send(internal->socket, buffer, 5, 0) == SOCKET_ERROR) {
