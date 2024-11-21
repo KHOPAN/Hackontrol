@@ -20,8 +20,6 @@ typedef struct {
 	BCRYPT_KEY_HANDLE symmetricKey;
 	PBYTE buffer;
 	size_t bufferSize;
-	PBYTE temporaryBuffer;
-	size_t temporaryBufferSize;
 } INTERNALDATA, *PINTERNALDATA;
 
 BOOL HRSPServerInitialize(const PHRSPSERVERDATA server, const PKHOPANERROR error) {
@@ -204,22 +202,18 @@ BOOL HRSPServerSessionInitialize(const SOCKET socket, const PHRSPDATA data, cons
 	session->socket = socket;
 	session->buffer = NULL;
 	session->bufferSize = 0;
-	session->temporaryBuffer = NULL;
-	session->temporaryBufferSize = 0;
 	status = BCryptImportKey(internal->symmetricAlgorithm, NULL, BCRYPT_KEY_DATA_BLOB, &session->symmetricKey, NULL, 0, symmetricKeyBytes, symmetricKeyLength, 0);
 	KHOPAN_DEALLOCATE(symmetricKeyBytes);
 
 	if(!BCRYPT_SUCCESS(status)) {
 		ERROR_NTSTATUS(status, L"HRSPServerSessionInitialize", L"BCryptImportKey");
-		goto freeSession;
+		KHOPAN_DEALLOCATE(session);
+		return FALSE;
 	}
 
 	*data = (HRSPDATA) session;
 	ERROR_CLEAR;
 	return TRUE;
-freeSession:
-	KHOPAN_DEALLOCATE(session);
-	return FALSE;
 }
 
 void HRSPServerSessionCleanup(const PHRSPDATA data) {
@@ -230,10 +224,6 @@ void HRSPServerSessionCleanup(const PHRSPDATA data) {
 	PINTERNALDATA session = (PINTERNALDATA) *data;
 
 	if(session) {
-		if(session->temporaryBuffer) {
-			KHOPAN_DEALLOCATE(session->temporaryBuffer);
-		}
-
 		if(session->buffer) {
 			KHOPAN_DEALLOCATE(session->buffer);
 		}
