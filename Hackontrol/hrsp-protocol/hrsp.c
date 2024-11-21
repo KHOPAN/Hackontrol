@@ -12,8 +12,6 @@ typedef struct {
 	BCRYPT_KEY_HANDLE symmetricKey;
 	PBYTE buffer;
 	size_t bufferSize;
-	PBYTE temporaryBuffer;
-	size_t temporaryBufferSize;
 } INTERNALDATA, *PINTERNALDATA;
 
 LPCWSTR HRSPErrorHRSPDecoder(const PKHOPANERROR error) {
@@ -29,6 +27,7 @@ LPCWSTR HRSPErrorHRSPDecoder(const PKHOPANERROR error) {
 	case ERROR_HRSP_INVALID_MAGIC:       return L"Invalid HRSP magic number";
 	case ERROR_HRSP_UNSUPPORTED_VERSION: return L"Incompatible client and server version";
 	case ERROR_HRSP_CONNECTION_CLOSED:   return L"The connection was already closed";
+	case ERROR_HRSP_INVALID_HEADER_SIZE: return L"Invalid packet header size";
 	default:                             return L"Unknown error code";
 	}
 }
@@ -154,7 +153,7 @@ BOOL HRSPPacketReceive(const PHRSPDATA data, const PHRSPPACKET packet, const PKH
 
 	BYTE buffer[4];
 	PINTERNALDATA internal = (PINTERNALDATA) *data;
-	int status = recv(internal->socket, buffer, 4, MSG_WAITALL);
+	NTSTATUS status = recv(internal->socket, buffer, 4, MSG_WAITALL);
 
 	if(status == SOCKET_ERROR) {
 		ERROR_WSA(L"HRSPPacketReceive", L"recv");
@@ -167,10 +166,9 @@ BOOL HRSPPacketReceive(const PHRSPDATA data, const PHRSPPACKET packet, const PKH
 	}
 
 	ULONG size = ((buffer[0] & 0xFF) << 24) | ((buffer[1] & 0xFF) << 16) | ((buffer[2] & 0xFF) << 8) | (buffer[3] & 0xFF);
-	PBYTE temporary;
 
 	if(!internal->buffer || internal->bufferSize < size) {
-		temporary = KHOPAN_ALLOCATE(size);
+		PBYTE temporary = KHOPAN_ALLOCATE(size);
 
 		if(!temporary) {
 			ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"HRSPPacketReceive", L"KHOPAN_ALLOCATE");
@@ -190,31 +188,30 @@ BOOL HRSPPacketReceive(const PHRSPDATA data, const PHRSPPACKET packet, const PKH
 		return FALSE;
 	}
 
-	ULONG headerSize;
-	status = BCryptDecrypt(internal->symmetricKey, internal->buffer, size, NULL, NULL, 0, NULL, 0, &headerSize, BCRYPT_BLOCK_PADDING);
+	status = BCryptDecrypt(internal->symmetricKey, internal->buffer, size, NULL, NULL, 0, internal->buffer, size, &size, BCRYPT_BLOCK_PADDING);
 
 	if(!BCRYPT_SUCCESS(status)) {
 		ERROR_NTSTATUS(status, L"HRSPPacketReceive", L"BCryptDecrypt");
 		return FALSE;
 	}
 
-	if(!internal->temporaryBuffer || internal->temporaryBufferSize < headerSize) {
-		temporary = KHOPAN_ALLOCATE(headerSize);
-
-		if(!temporary) {
-			ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"HRSPPacketReceive", L"KHOPAN_ALLOCATE");
-			return FALSE;
-		}
-
-		if(internal->temporaryBuffer) {
-			KHOPAN_DEALLOCATE(internal->temporaryBuffer);
-		}
-
-		internal->temporaryBuffer = temporary;
-		internal->temporaryBufferSize = headerSize;
+	if(size != 4 && size != 12) {
+		ERROR_HRSP(ERROR_HRSP_INVALID_HEADER_SIZE, L"HRSPPacketReceive", L"KHOPAN_ALLOCATE");
+		return FALSE;
 	}
 
-	printf("Header size: %lu\n", headerSize);
+	if(size == 4) {
+		packet->type = ((internal->buffer[0] & 0xFF) << 24) | ((internal->buffer[1] & 0xFF) << 16) | ((internal->buffer[2] & 0xFF) << 8) | (internal->buffer[3] & 0xFF);
+		packet->size = 0;
+		packet->data = NULL;
+		ERROR_CLEAR;
+		return TRUE;
+	}
+
+	LARGE_INTEGER integer;
+	integer.HighPart = ((internal->buffer[4] & 0xFF) << 24) | ((internal->buffer[5] & 0xFF) << 16) | ((internal->buffer[6] & 0xFF) << 8) | (internal->buffer[7] & 0xFF);
+	integer.LowPart = ((internal->buffer[8] & 0xFF) << 24) | ((internal->buffer[9] & 0xFF) << 16) | ((internal->buffer[10] & 0xFF) << 8) | (internal->buffer[11] & 0xFF);
+	printf("Size: %llu\n", integer.QuadPart);
 	/*if(!buffer[0]) {
 		packet->type = ((buffer[1] & 0xFF) << 24) | ((buffer[2] & 0xFF) << 16) | ((buffer[3] & 0xFF) << 8) | (buffer[4] & 0xFF);
 		packet->size = 0;
