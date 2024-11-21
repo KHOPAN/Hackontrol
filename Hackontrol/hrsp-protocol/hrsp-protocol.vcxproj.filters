@@ -17,9 +17,6 @@
     <ClInclude Include="hrsp_remote.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="hrsp_internal.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="hrsp.c">
