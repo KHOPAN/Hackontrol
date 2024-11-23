@@ -24,8 +24,8 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	}
 
 	printf("Established\n");
-	BYTE bytes[23];
-	memset(bytes, 88, sizeof(bytes));
+	BYTE bytes[123];
+	memset(bytes, 55, sizeof(bytes));
 	HRSPPACKET packet = {0};
 	packet.type = 91579;
 	packet.size = sizeof(bytes);

@@ -5,7 +5,7 @@
 #define ERROR_WSA(sourceName, functionName)               if(error){error->facility=ERROR_FACILITY_WIN32;error->code=WSAGetLastError();error->source=sourceName;error->function=functionName;}
 #define ERROR_COMMON(codeError, sourceName, functionName) if(error){error->facility=ERROR_FACILITY_COMMON;error->code=codeError;error->source=sourceName;error->function=functionName;}
 #define ERROR_CLEAR                                       ERROR_COMMON(ERROR_COMMON_SUCCESS,NULL,NULL)
-#define ERROR_SOURCE(sourceName)                          if(error){error->source=sourceName;}
+#define ERROR_SOURCE(sourceName)                          if(error){error->function=error->source;error->source=sourceName;}
 
 BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const PHRSPCLIENTINPUT input, const PKHOPANERROR error) {
 	WSADATA data;
@@ -61,15 +61,32 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 	}
 
 	printf("Established\n");
-	HRSPPACKET packet;
 
-	if(!HRSPPacketReceive(&protocolData, &packet, error)) {
-		ERROR_SOURCE(L"HRSPClientConnectToServer");
-		goto closeSocket;
+	while(TRUE) {
+		HRSPPACKET packet;
+
+		if(!HRSPPacketReceive(&protocolData, &packet, error)) {
+			ERROR_SOURCE(L"HRSPClientConnectToServer");
+			goto cleanupProtocol;
+		}
+
+		if(!packet.data) {
+			continue;
+		}
+
+		printf("0x");
+
+		for(size_t i = 0; i < packet.size; i++) {
+			printf("%02X", ((PBYTE) packet.data)[i]);
+		}
+
+		printf("\n");
+		KHOPAN_DEALLOCATE(packet.data);
 	}
 
 	ERROR_CLEAR;
 	codeExit = TRUE;
+cleanupProtocol:
 	HRSPClientCleanup(&protocolData);
 closeSocket:
 	closesocket(clientSocket);
