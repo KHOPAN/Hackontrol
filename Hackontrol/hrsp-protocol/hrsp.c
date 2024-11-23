@@ -87,7 +87,6 @@ BOOL HRSPPacketSend(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPA
 
 	PINTERNALDATA internal = (PINTERNALDATA) *data;
 	ULONG size;
-	printData(buffer, packet->size > 0 ? 12 : 4);
 	NTSTATUS status = BCryptEncrypt(internal->symmetricKey, buffer, packet->size > 0 ? 12 : 4, NULL, NULL, 0, NULL, 0, &size, BCRYPT_BLOCK_PADDING);
 
 	if(!BCRYPT_SUCCESS(status)) {
@@ -263,35 +262,24 @@ BOOL HRSPPacketReceive(const PHRSPDATA data, const PHRSPPACKET packet, const PKH
 	}
 
 	if(size == 4) {
-		packet->type = ((internal->buffer[0] & 0xFF) << 24) | ((internal->buffer[1] & 0xFF) << 16) | ((internal->buffer[2] & 0xFF) << 8) | (internal->buffer[3] & 0xFF);
+		packet->type = (internal->buffer[0] << 24) | (internal->buffer[1] << 16) | (internal->buffer[2] << 8) | internal->buffer[3];
 		packet->size = 0;
 		packet->data = NULL;
 		ERROR_CLEAR;
 		return TRUE;
 	}
 
-	printData(internal->buffer, size);
-	ERROR_CLEAR;
-	return TRUE;
-	/*size = ((internal->buffer[0] & 0xFF) << 24) | ((internal->buffer[1] & 0xFF) << 16) | ((internal->buffer[2] & 0xFF) << 8) | (internal->buffer[3] & 0xFF);
-	LARGE_INTEGER integer;
-	integer.HighPart = ((internal->buffer[4] & 0xFF) << 24) | ((internal->buffer[5] & 0xFF) << 16) | ((internal->buffer[6] & 0xFF) << 8) | (internal->buffer[7] & 0xFF);
-	integer.LowPart = ((internal->buffer[8] & 0xFF) << 24) | ((internal->buffer[9] & 0xFF) << 16) | ((internal->buffer[10] & 0xFF) << 8) | (internal->buffer[11] & 0xFF);
+	size = (internal->buffer[0] << 24) | (internal->buffer[1] << 16) | (internal->buffer[2] << 8) | internal->buffer[3];
+	size_t dataSize = (((size_t) internal->buffer[4]) << 56) | (((size_t) internal->buffer[5]) << 48) | (((size_t) internal->buffer[6]) << 40) | (((size_t) internal->buffer[7]) << 32) | (((size_t) internal->buffer[8]) << 24) | (((size_t) internal->buffer[9]) << 16) | (((size_t) internal->buffer[10]) << 8) | ((size_t) internal->buffer[11]);
 
-	if(internal->bufferSize < (ULONGLONG) integer.QuadPart) {
-		temporary = KHOPAN_ALLOCATE(integer.QuadPart);
-
-		if(!temporary) {
-			ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"HRSPPacketReceive", L"KHOPAN_ALLOCATE");
-			return FALSE;
-		}
-
-		KHOPAN_DEALLOCATE(internal->buffer);
-		internal->buffer = temporary;
-		internal->bufferSize = integer.QuadPart;
+	if(!expandBuffer(internal, dataSize)) {
+		ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"HRSPPacketReceive", L"KHOPAN_ALLOCATE");
+		return FALSE;
 	}
 
-	printf("Size: %llu\n", integer.QuadPart);
+	ERROR_CLEAR;
+	return TRUE;
+	/*printf("Size: %llu\n", integer.QuadPart);
 
 	if(!buffer[0]) {
 		packet->type = ((buffer[1] & 0xFF) << 24) | ((buffer[2] & 0xFF) << 16) | ((buffer[3] & 0xFF) << 8) | (buffer[4] & 0xFF);
