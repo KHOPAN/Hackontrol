@@ -58,7 +58,7 @@ static BOOL sendDataChunk(const SOCKET socket, const PBYTE data, const ULONG siz
 
 	while(pointer < size) {
 		ULONG available = size - pointer;
-		int sent = send(socket, data + pointer, (int) min(available, INT_MAX), 0);
+		int sent = send(socket, data + pointer, (int) min(available, /*INT_MAX*/3), 0);
 		printf("Subchunk size: %d\n", sent);
 
 		if(sent == SOCKET_ERROR) {
@@ -134,7 +134,7 @@ BOOL HRSPPacketSend(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPA
 
 	while(pointer < packet->size) {
 		size_t available = packet->size - pointer;
-		size = (ULONG) min(available, ULONG_MAX);
+		size = (ULONG) min(available, 13);
 		ULONG requiredSize;
 		status = BCryptEncrypt(internal->symmetricKey, ((PBYTE) packet->data) + pointer, size, NULL, NULL, 0, NULL, 0, &requiredSize, BCRYPT_BLOCK_PADDING);
 
@@ -273,7 +273,7 @@ BOOL HRSPPacketReceive(const PHRSPDATA data, const PHRSPPACKET packet, const PKH
 			return FALSE;
 		}
 
-		pointer += available;
+		pointer += chunkSize;
 	}
 
 	packet->type = size;
