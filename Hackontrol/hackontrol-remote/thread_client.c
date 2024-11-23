@@ -23,11 +23,24 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 		goto functionExit;
 	}
 
-	printf("Established\n");
+	HRSPPACKET packet;
+
+	if(!HRSPPacketReceive(&client->hrsp, &packet, &error)) {
+		KHOPANERRORCONSOLE_KHOPAN(error);
+		goto functionExit;
+	}
+
+	if(packet.type != HRSP_REMOTE_CLIENT_USERNAME) {
+		LOG("[Client %ws]: Invalid first packet type: %u\n", client->address, packet.type);
+		if(packet.size) KHOPAN_DEALLOCATE(packet.data);
+		goto functionExit;
+	}
+
+	client->name = packet.data;
+	LOG("[Client %ws]: Username: '%ws'\n", client->address, client->name);
 	//BYTE bytes[123];
 	//memset(bytes, 55, sizeof(bytes));
 	LPSTR text = "Hello, this is a sample text for testing the packet transfer. (parentheses) 1 + 2 * 3 / 4 = ?";
-	HRSPPACKET packet = {0};
 	packet.type = 91579;
 	packet.size = strlen(text);
 	packet.data = text;
@@ -37,24 +50,7 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	}
 
 	HRSPServerSessionCleanup(&client->hrsp);
-	/*HRSPPACKET packet;
-
-	if(!HRSPReceivePacket(client->socket, &client->hrsp, &packet, &protocolError)) {
-		ERROR_HRSP(L"HRSPReceivePacket");
-		goto functionExit;
-	}
-
-	if(packet.type != HRSP_REMOTE_CLIENT_INFORMATION_PACKET) {
-		LOG("[Client %ws]: Invalid first packet type: %u\n", client->address, packet.type);
-		HRSPFreePacket(&packet, NULL);
-		goto functionExit;
-	}
-
-	client->name = KHOPANFormatMessage(L"%S", packet.data);
-	HRSPFreePacket(&packet, NULL);
-	LOG("[Client %ws]: Username: '%ws'\n", client->address, client->name);
-
-	if(!WindowMainAdd(&client, &item)) {
+	/*if(!WindowMainAdd(&client, &item)) {
 		freeClient = TRUE;
 		goto freeName;
 	}

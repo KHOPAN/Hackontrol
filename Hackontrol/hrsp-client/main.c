@@ -1,5 +1,7 @@
 #include <WS2tcpip.h>
+#include <lmcons.h>
 #include "hrsp_client.h"
+#include "hrsp_remote.h"
 
 #define ERROR_WIN32(codeError, sourceName, functionName)  if(error){error->facility=ERROR_FACILITY_WIN32;error->code=codeError;error->source=sourceName;error->function=functionName;}
 #define ERROR_WSA(sourceName, functionName)               if(error){error->facility=ERROR_FACILITY_WIN32;error->code=WSAGetLastError();error->source=sourceName;error->function=functionName;}
@@ -60,15 +62,37 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 		goto closeSocket;
 	}
 
-	printf("Established\n");
+	DWORD size = UNLEN + 1;
+	PBYTE buffer = KHOPAN_ALLOCATE(size * sizeof(WCHAR));
 
-	while(TRUE) {
-		HRSPPACKET packet;
+	if(!buffer) {
+		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"HRSPClientConnectToServer", L"KHOPAN_ALLOCATE");
+		goto cleanupProtocol;
+	}
 
-		if(!HRSPPacketReceive(&protocolData, &packet, error)) {
-			break;
-		}
+	if(!GetUserNameW((LPWSTR) buffer, &size)) {
+		ERROR_WIN32(GetLastError(), L"HRSPClientConnectToServer", L"GetUserNameW");
+		KHOPAN_DEALLOCATE(buffer);
+		goto cleanupProtocol;
+	}
 
+	HRSPPACKET packet;
+	packet.type = HRSP_REMOTE_CLIENT_USERNAME;
+	packet.size = size * sizeof(WCHAR);
+	packet.data = buffer;
+	size = HRSPPacketSend(&protocolData, &packet, error);
+	KHOPAN_DEALLOCATE(buffer);
+
+	if(!size) {
+		ERROR_SOURCE(L"HRSPClientConnectToServer");
+		goto cleanupProtocol;
+	}
+
+	if(input && input->callbackConnected) {
+		input->callbackConnected(input->parameter);
+	}
+
+	while(HRSPPacketReceive(&protocolData, &packet, error)) {
 		if(packet.data) {
 			printf("Packet: %.*s\n", (unsigned int) packet.size, (LPCSTR) packet.data);
 			KHOPAN_DEALLOCATE(packet.data);
@@ -99,9 +123,6 @@ cleanupSocket:
 #include <hrsp_remote.h>
 #include "hrsp_client_internal.h"
 
-#define ERROR_HRSP if(error){error->type=protocolError.win32?HRSP_CLIENT_ERROR_TYPE_WIN32:HRSP_CLIENT_ERROR_TYPE_HRSP;error->code=protocolError.code;error->function=protocolError.function;}
-#define ERROR_WIN32(errorCode, functionName) if(error){error->type=HRSP_CLIENT_ERROR_TYPE_WIN32;error->code=errorCode;error->function=functionName;}
-
 static void audioCapture(const PHRSPPACKET packet, const DWORD audioThreadIdentifier) {
 	if(!packet->size) {
 		return;
@@ -123,119 +144,6 @@ static void audioCapture(const PHRSPPACKET packet, const DWORD audioThreadIdenti
 }
 
 BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const PHRSPCLIENTINPUT input, const PHRSPCLIENTERROR error, const LPCSTR username) {
-	PHRSPCLIENTPARAMETER parameter = KHOPAN_ALLOCATE(sizeof(HRSPCLIENTPARAMETER));
-
-	if(KHOPAN_ALLOCATE_FAILED(parameter)) {
-		ERROR_WIN32(KHOPAN_ALLOCATE_ERROR, KHOPAN_ALLOCATE_FUNCTION);
-		return FALSE;
-	}
-
-	for(size_t i = 0; i < sizeof(HRSPCLIENTPARAMETER); i++) {
-		((PBYTE) parameter)[i] = 0;
-	}
-
-	parameter->mutex = CreateMutexExW(NULL, NULL, 0, SYNCHRONIZE | DELETE);
-	BOOL codeExit = FALSE;
-
-	if(!parameter->mutex) {
-		ERROR_WIN32(GetLastError(), L"CreateMutexExW");
-		goto streamDeallocate;
-	}
-
-	WSADATA data;
-	int status = WSAStartup(MAKEWORD(2, 2), &data);
-
-	if(status) {
-		ERROR_WIN32(status, L"WSAStartup");
-		goto closeMutex;
-	}
-
-	ADDRINFOW hints = {0};
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_protocol = IPPROTO_TCP;
-	PADDRINFOW result;
-	status = GetAddrInfoW(address ? address : L"localhost", port ? port : HRSP_PROTOCOL_PORT_STRING, &hints, &result);
-
-	if(status) {
-		ERROR_WIN32(status, L"GetAddrInfoW");
-		goto cleanupSocket;
-	}
-
-	parameter->socket = INVALID_SOCKET;
-
-	for(PADDRINFOW pointer = result; pointer != NULL; pointer = pointer->ai_next) {
-		parameter->socket = socket(pointer->ai_family, pointer->ai_socktype, pointer->ai_protocol);
-
-		if(parameter->socket == INVALID_SOCKET) {
-			ERROR_WIN32(WSAGetLastError(), L"socket");
-			FreeAddrInfoW(result);
-			goto cleanupSocket;
-		}
-
-		if(connect(parameter->socket, pointer->ai_addr, (int) pointer->ai_addrlen) != SOCKET_ERROR) {
-			break;
-		}
-
-		if(closesocket(parameter->socket) == SOCKET_ERROR) {
-			ERROR_WIN32(WSAGetLastError(), L"closesocket");
-			goto cleanupSocket;
-		}
-
-		parameter->socket = INVALID_SOCKET;
-	}
-
-	FreeAddrInfoW(result);
-
-	if(parameter->socket == INVALID_SOCKET) {
-		if(error) {
-			error->type = HRSP_CLIENT_ERROR_TYPE_CLIENT;
-			error->function = L"HRSPClientConnectToServer";
-			error->code = HRSP_CLIENT_ERROR_CANNOT_CONNECT_SERVER;
-		}
-
-		goto cleanupSocket;
-	}
-
-	HRSPERROR protocolError;
-
-	if(!HRSPClientHandshake(parameter->socket, &parameter->data, &protocolError)) {
-		ERROR_HRSP;
-		goto closeSocket;
-	}
-
-	/*DWORD size = UNLEN + 1;
-	PBYTE buffer = KHOPAN_ALLOCATE(size);
-
-	if(KHOPAN_ALLOCATE_FAILED(buffer)) {
-		ERROR_WIN32(KHOPAN_ALLOCATE_ERROR, KHOPAN_ALLOCATE_FUNCTION);
-		goto closeSocket;
-	}
-
-	if(!GetUserNameA(buffer, &size)) {
-		ERROR_WIN32(GetLastError(), L"GetUserNameA");
-		KHOPAN_DEALLOCATE(buffer);
-		goto closeSocket;
-	}
-
-	HRSPPACKET packet;
-	//packet.size = size;
-	packet.size = (int) strlen(username);
-	packet.type = HRSP_REMOTE_CLIENT_INFORMATION_PACKET;
-	//packet.data = buffer;
-	packet.data = (PBYTE) username;
-	status = HRSPSendPacket(parameter->socket, &parameter->data, &packet, &protocolError);
-	//KHOPAN_DEALLOCATE(buffer);
-
-	if(!status) {
-		ERROR_HRSP;
-		goto closeSocket;
-	}
-
-	if(input && input->callbackConnected) {
-		input->callbackConnected(input->parameter);
-	}
-
 	parameter->stream.running = TRUE;
 	HANDLE streamThread = CreateThread(NULL, 0, HRSPClientStreamThread, parameter, 0, NULL);
 
