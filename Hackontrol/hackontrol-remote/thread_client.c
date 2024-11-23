@@ -24,12 +24,13 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	}
 
 	printf("Established\n");
-	BYTE bytes[123];
-	memset(bytes, 55, sizeof(bytes));
+	//BYTE bytes[123];
+	//memset(bytes, 55, sizeof(bytes));
+	LPSTR text = "Hello, this is a sample text for testing the packet transfer. (parentheses) 1 + 2 * 3 / 4 = ?";
 	HRSPPACKET packet = {0};
 	packet.type = 91579;
-	packet.size = sizeof(bytes);
-	packet.data = bytes;
+	packet.size = strlen(text);
+	packet.data = text;
 
 	if(!HRSPPacketSend(&client->hrsp, &packet, &error)) {
 		KHOPANERRORCONSOLE_KHOPAN(error);

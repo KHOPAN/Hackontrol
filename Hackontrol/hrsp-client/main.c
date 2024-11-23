@@ -74,13 +74,7 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 			continue;
 		}
 
-		printf("0x");
-
-		for(size_t i = 0; i < packet.size; i++) {
-			printf("%02X", ((PBYTE) packet.data)[i]);
-		}
-
-		printf("\n");
+		printf("Packet: %.*s\n", (unsigned int) packet.size, (LPCSTR) packet.data);
 		KHOPAN_DEALLOCATE(packet.data);
 	}
 
