@@ -27,10 +27,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "remote-client", "remote-cli
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hrsp-protocol", "hrsp-protocol\hrsp-protocol.vcxproj", "{35A58C18-31D7-4DD8-84A8-C309A445D0C1}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test-hrsp-client", "test-hrsp-client\test-hrsp-client.vcxproj", "{AEEF3559-9D19-4C86-90CB-1629FDA93E3B}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test-hrsp-server", "test-hrsp-server\test-hrsp-server.vcxproj", "{34354D74-F9EC-471F-832B-0B1B7AEAF62C}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -135,22 +131,6 @@ Global
 		{35A58C18-31D7-4DD8-84A8-C309A445D0C1}.Release|x64.Build.0 = Release|x64
 		{35A58C18-31D7-4DD8-84A8-C309A445D0C1}.Release|x86.ActiveCfg = Release|Win32
 		{35A58C18-31D7-4DD8-84A8-C309A445D0C1}.Release|x86.Build.0 = Release|Win32
-		{AEEF3559-9D19-4C86-90CB-1629FDA93E3B}.Debug|x64.ActiveCfg = Debug|x64
-		{AEEF3559-9D19-4C86-90CB-1629FDA93E3B}.Debug|x64.Build.0 = Debug|x64
-		{AEEF3559-9D19-4C86-90CB-1629FDA93E3B}.Debug|x86.ActiveCfg = Debug|Win32
-		{AEEF3559-9D19-4C86-90CB-1629FDA93E3B}.Debug|x86.Build.0 = Debug|Win32
-		{AEEF3559-9D19-4C86-90CB-1629FDA93E3B}.Release|x64.ActiveCfg = Release|x64
-		{AEEF3559-9D19-4C86-90CB-1629FDA93E3B}.Release|x64.Build.0 = Release|x64
-		{AEEF3559-9D19-4C86-90CB-1629FDA93E3B}.Release|x86.ActiveCfg = Release|Win32
-		{AEEF3559-9D19-4C86-90CB-1629FDA93E3B}.Release|x86.Build.0 = Release|Win32
-		{34354D74-F9EC-471F-832B-0B1B7AEAF62C}.Debug|x64.ActiveCfg = Debug|x64
-		{34354D74-F9EC-471F-832B-0B1B7AEAF62C}.Debug|x64.Build.0 = Debug|x64
-		{34354D74-F9EC-471F-832B-0B1B7AEAF62C}.Debug|x86.ActiveCfg = Debug|Win32
-		{34354D74-F9EC-471F-832B-0B1B7AEAF62C}.Debug|x86.Build.0 = Debug|Win32
-		{34354D74-F9EC-471F-832B-0B1B7AEAF62C}.Release|x64.ActiveCfg = Release|x64
-		{34354D74-F9EC-471F-832B-0B1B7AEAF62C}.Release|x64.Build.0 = Release|x64
-		{34354D74-F9EC-471F-832B-0B1B7AEAF62C}.Release|x86.ActiveCfg = Release|Win32
-		{34354D74-F9EC-471F-832B-0B1B7AEAF62C}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

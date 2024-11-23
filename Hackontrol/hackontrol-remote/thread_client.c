@@ -27,29 +27,18 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 
 	if(!HRSPPacketReceive(&client->hrsp, &packet, &error)) {
 		KHOPANERRORCONSOLE_KHOPAN(error);
-		goto functionExit;
+		goto cleanupProtocol;
 	}
 
 	if(packet.type != HRSP_REMOTE_CLIENT_USERNAME) {
 		LOG("[Client %ws]: Invalid first packet type: %u\n", client->address, packet.type);
 		if(packet.size) KHOPAN_DEALLOCATE(packet.data);
-		goto functionExit;
+		goto cleanupProtocol;
 	}
 
 	client->name = packet.data;
 	LOG("[Client %ws]: Username: '%ws'\n", client->address, client->name);
-	//BYTE bytes[123];
-	//memset(bytes, 55, sizeof(bytes));
-	LPSTR text = "Hello, this is a sample text for testing the packet transfer. (parentheses) 1 + 2 * 3 / 4 = ?";
-	packet.type = 91579;
-	packet.size = strlen(text);
-	packet.data = text;
 
-	if(!HRSPPacketSend(&client->hrsp, &packet, &error)) {
-		KHOPANERRORCONSOLE_KHOPAN(error);
-	}
-
-	HRSPServerSessionCleanup(&client->hrsp);
 	/*if(!WindowMainAdd(&client, &item)) {
 		freeClient = TRUE;
 		goto freeName;
@@ -80,6 +69,8 @@ freeName:
 	}*/
 
 	codeExit = 0;
+cleanupProtocol:
+	HRSPServerSessionCleanup(&client->hrsp);
 functionExit:
 	LOG("[Client %ws]: Exit with code: %d\n", client->address, codeExit);
 	closesocket(client->socket);
