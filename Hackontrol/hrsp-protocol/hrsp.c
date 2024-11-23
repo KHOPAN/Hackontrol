@@ -121,22 +121,33 @@ BOOL HRSPPacketSend(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPA
 		return FALSE;
 	}
 
-	ERROR_CLEAR;
-	return TRUE;
-	/*size_t pointer = 0;
+	size_t pointer = 0;
 
 	while(pointer < packet->size) {
 		size_t available = packet->size - pointer;
-		size = (ULONG) min(available, INT_MAX);
-		ULONG required;
-		status = BCryptEncrypt(internal->symmetricKey, ((PBYTE) packet->data) + pointer, size, NULL, NULL, 0, NULL, 0, &required, BCRYPT_BLOCK_PADDING);
+		size = (ULONG) min(available, ULONG_MAX);
+		ULONG requiredSize;
+		status = BCryptEncrypt(internal->symmetricKey, ((PBYTE) packet->data) + pointer, size, NULL, NULL, 0, NULL, 0, &requiredSize, BCRYPT_BLOCK_PADDING);
 
 		if(!BCRYPT_SUCCESS(status)) {
 			ERROR_NTSTATUS(status, L"HRSPPacketSend", L"BCryptEncrypt");
 			return FALSE;
 		}
 
-		buffer[0] = (required >> 24) & 0xFF;
+		if(!expandBuffer(internal, requiredSize)) {
+			ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"HRSPPacketSend", L"KHOPAN_ALLOCATE");
+			return FALSE;
+		}
+
+		status = BCryptEncrypt(internal->symmetricKey, ((PBYTE) packet->data) + pointer, size, NULL, NULL, 0, internal->buffer, requiredSize, &requiredSize, BCRYPT_BLOCK_PADDING);
+
+		if(!BCRYPT_SUCCESS(status)) {
+			ERROR_NTSTATUS(status, L"HRSPPacketSend", L"BCryptEncrypt");
+			return FALSE;
+		}
+
+		printf("Required size: %lu\n", requiredSize);
+		/*buffer[0] = (required >> 24) & 0xFF;
 		buffer[1] = (required >> 16) & 0xFF;
 		buffer[2] = (required >> 8) & 0xFF;
 		buffer[3] = required & 0xFF;
@@ -175,10 +186,13 @@ BOOL HRSPPacketSend(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPA
 			return FALSE;
 		}
 
-		pointer += size;
+		pointer += size;*/
+		break;
 	}
 
-	if(!buffer[0]) {
+	ERROR_CLEAR;
+	return TRUE;
+	/*if(!buffer[0]) {
 		if(send(internal->socket, buffer, 5, 0) == SOCKET_ERROR) {
 			ERROR_WSA(L"HRSPPacketSend", L"send");
 			return FALSE;
