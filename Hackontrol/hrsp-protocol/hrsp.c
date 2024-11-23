@@ -62,6 +62,25 @@ static BOOL expandBuffer(const PINTERNALDATA data, const size_t size) {
 	return TRUE;
 }
 
+static BOOL sendDataChunk(const SOCKET socket, const PBYTE data, const ULONG size) {
+	printf("Chunk size: %lu\n", size);
+	ULONG pointer = 0;
+
+	while(pointer < size) {
+		ULONG available = size - pointer;
+		int sent = send(socket, data + pointer, (int) min(available, INT_MAX), 0);
+		printf("Subchunk size: %d\n", sent);
+
+		if(sent == SOCKET_ERROR) {
+			return FALSE;
+		}
+
+		pointer += sent;
+	}
+
+	return TRUE;
+}
+
 BOOL HRSPPacketSend(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPANERROR error) {
 	if(!data || !*data || !packet) {
 		ERROR_COMMON(ERROR_COMMON_INVALID_PARAMETER, L"HRSPPacketSend", NULL);
@@ -146,7 +165,12 @@ BOOL HRSPPacketSend(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPA
 			return FALSE;
 		}
 
-		printf("Required size: %lu\n", requiredSize);
+		if(!sendDataChunk(internal->socket, internal->buffer, requiredSize)) {
+			ERROR_WSA(L"HRSPPacketSend", L"send");
+			return FALSE;
+		}
+
+		pointer += size;
 		/*buffer[0] = (required >> 24) & 0xFF;
 		buffer[1] = (required >> 16) & 0xFF;
 		buffer[2] = (required >> 8) & 0xFF;
