@@ -66,20 +66,22 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 		HRSPPACKET packet;
 
 		if(!HRSPPacketReceive(&protocolData, &packet, error)) {
-			ERROR_SOURCE(L"HRSPClientConnectToServer");
-			goto cleanupProtocol;
+			break;
 		}
 
-		if(!packet.data) {
-			continue;
+		if(packet.data) {
+			printf("Packet: %.*s\n", (unsigned int) packet.size, (LPCSTR) packet.data);
+			KHOPAN_DEALLOCATE(packet.data);
 		}
-
-		printf("Packet: %.*s\n", (unsigned int) packet.size, (LPCSTR) packet.data);
-		KHOPAN_DEALLOCATE(packet.data);
 	}
 
-	ERROR_CLEAR;
+	if(error->facility != ERROR_FACILITY_HRSP || error->code != ERROR_HRSP_CONNECTION_CLOSED) {
+		ERROR_SOURCE(L"HRSPClientConnectToServer");
+		goto cleanupProtocol;
+	}
+
 	codeExit = TRUE;
+	ERROR_CLEAR;
 cleanupProtocol:
 	HRSPClientCleanup(&protocolData);
 closeSocket:
