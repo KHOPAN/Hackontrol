@@ -165,94 +165,26 @@ BOOL HRSPPacketSend(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPA
 			return FALSE;
 		}
 
+		buffer[0] = (requiredSize >> 24) & 0xFF;
+		buffer[1] = (requiredSize >> 16) & 0xFF;
+		buffer[2] = (requiredSize >> 8) & 0xFF;
+		buffer[3] = requiredSize & 0xFF;
+
+		if(send(internal->socket, buffer, 4, 0) == SOCKET_ERROR) {
+			ERROR_WSA(L"HRSPPacketSend", L"send");
+			return FALSE;
+		}
+
 		if(!sendDataChunk(internal->socket, internal->buffer, requiredSize)) {
 			ERROR_WSA(L"HRSPPacketSend", L"send");
 			return FALSE;
 		}
 
 		pointer += size;
-		/*buffer[0] = (required >> 24) & 0xFF;
-		buffer[1] = (required >> 16) & 0xFF;
-		buffer[2] = (required >> 8) & 0xFF;
-		buffer[3] = required & 0xFF;
-		buffer[4] = (size >> 24) & 0xFF;
-		buffer[5] = (size >> 16) & 0xFF;
-		buffer[6] = (size >> 8) & 0xFF;
-		buffer[7] = size & 0xFF;
-
-		if(send(internal->socket, buffer, 8, 0) == SOCKET_ERROR) {
-			ERROR_WSA(L"HRSPPacketSend", L"send");
-			return FALSE;
-		}
-
-		if(internal->bufferSize < required) {
-			temporary = KHOPAN_ALLOCATE(required);
-
-			if(!temporary) {
-				ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"HRSPPacketSend", L"KHOPAN_ALLOCATE");
-				return FALSE;
-			}
-
-			KHOPAN_DEALLOCATE(internal->buffer);
-			internal->buffer = temporary;
-			internal->bufferSize = required;
-		}
-
-		status = BCryptEncrypt(internal->symmetricKey, ((PBYTE) packet->data) + pointer, size, NULL, NULL, 0, internal->buffer, required, &required, BCRYPT_BLOCK_PADDING);
-
-		if(!BCRYPT_SUCCESS(status)) {
-			ERROR_NTSTATUS(status, L"HRSPPacketSend", L"BCryptEncrypt");
-			return FALSE;
-		}
-
-		if(send(internal->socket, internal->buffer, required, 0) == SOCKET_ERROR) {
-			ERROR_WSA(L"HRSPPacketSend", L"send");
-			return FALSE;
-		}
-
-		pointer += size;*/
-		break;
 	}
 
 	ERROR_CLEAR;
 	return TRUE;
-	/*if(!buffer[0]) {
-		if(send(internal->socket, buffer, 5, 0) == SOCKET_ERROR) {
-			ERROR_WSA(L"HRSPPacketSend", L"send");
-			return FALSE;
-		}
-
-		ERROR_CLEAR;
-		return TRUE;
-	}
-
-	buffer[5] = (packet->size >> 56) & 0xFF;
-	buffer[6] = (packet->size >> 48) & 0xFF;
-	buffer[7] = (packet->size >> 40) & 0xFF;
-	buffer[8] = (packet->size >> 32) & 0xFF;
-	buffer[9] = (packet->size >> 24) & 0xFF;
-	buffer[10] = (packet->size >> 16) & 0xFF;
-	buffer[11] = (packet->size >> 8) & 0xFF;
-	buffer[12] = packet->size & 0xFF;
-
-	if(send(data->socket, buffer, sizeof(buffer), 0) == SOCKET_ERROR) {
-		ERROR_WSA(L"HRSPPacketSend", L"send");
-		return FALSE;
-	}
-
-	size_t pointer = 0;
-
-	while(pointer < packet->size) {
-		size_t size = packet->size - pointer;
-		int sent = send(data->socket, ((PBYTE) packet->data) + pointer, (int) min(size, INT_MAX), 0);
-
-		if(sent == SOCKET_ERROR) {
-			ERROR_WSA(L"HRSPPacketSend", L"send");
-			return FALSE;
-		}
-
-		pointer += sent;
-	}*/
 }
 
 BOOL HRSPPacketReceive(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPANERROR error) {
@@ -315,6 +247,13 @@ BOOL HRSPPacketReceive(const PHRSPDATA data, const PHRSPPACKET packet, const PKH
 		return FALSE;
 	}
 
+	if(recv(internal->socket, buffer, 4, MSG_WAITALL) == SOCKET_ERROR) {
+		ERROR_WSA(L"HRSPPacketReceive", L"recv");
+		return FALSE;
+	}
+
+	ULONG chunkSize = (buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3];
+	printf("Chunk size: %lu\n", chunkSize);
 	ERROR_CLEAR;
 	return TRUE;
 	/*printf("Size: %llu\n", integer.QuadPart);
