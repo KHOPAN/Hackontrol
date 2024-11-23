@@ -53,13 +53,11 @@ static BOOL expandBuffer(const PINTERNALDATA data, const size_t size) {
 }
 
 static BOOL sendDataChunk(const SOCKET socket, const PBYTE data, const ULONG size) {
-	printf("Chunk size: %lu\n", size);
 	ULONG pointer = 0;
 
 	while(pointer < size) {
 		ULONG available = size - pointer;
-		int sent = send(socket, data + pointer, (int) min(available, /*INT_MAX*/3), 0);
-		printf("Subchunk size: %d\n", sent);
+		int sent = send(socket, data + pointer, (int) min(available, INT_MAX), 0);
 
 		if(sent == SOCKET_ERROR) {
 			return FALSE;
@@ -134,7 +132,7 @@ BOOL HRSPPacketSend(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPA
 
 	while(pointer < packet->size) {
 		size_t available = packet->size - pointer;
-		size = (ULONG) min(available, 13);
+		size = (ULONG) min(available, ULONG_MAX);
 		ULONG requiredSize;
 		status = BCryptEncrypt(internal->symmetricKey, ((PBYTE) packet->data) + pointer, size, NULL, NULL, 0, NULL, 0, &requiredSize, BCRYPT_BLOCK_PADDING);
 
@@ -173,7 +171,6 @@ BOOL HRSPPacketSend(const PHRSPDATA data, const PHRSPPACKET packet, const PKHOPA
 		pointer += size;
 	}
 
-	printf("Data size: %llu\n", packet->size);
 	ERROR_CLEAR;
 	return TRUE;
 }
@@ -249,7 +246,6 @@ BOOL HRSPPacketReceive(const PHRSPDATA data, const PHRSPPACKET packet, const PKH
 		}
 
 		ULONG chunkSize = (buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3];
-		printf("Chunk size: %lu\n", chunkSize);
 
 		if(!expandBuffer(internal, chunkSize)) {
 			ERROR_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"HRSPPacketReceive", L"KHOPAN_ALLOCATE");
@@ -279,7 +275,6 @@ BOOL HRSPPacketReceive(const PHRSPDATA data, const PHRSPPACKET packet, const PKH
 	packet->type = size;
 	packet->size = dataSize;
 	packet->data = packetBuffer;
-	printf("Data size: %llu\n", packet->size);
 	ERROR_CLEAR;
 	return TRUE;
 }
