@@ -1,6 +1,11 @@
 #include "remote.h"
 #include <CommCtrl.h>
 
+typedef struct {
+	BYTE username : 1;
+	BYTE ascending : 1;
+} SORTPARAMETER;
+
 extern HINSTANCE instance;
 extern HFONT font;
 extern LINKEDLIST clientList;
@@ -9,8 +14,7 @@ extern HANDLE clientListMutex;
 static HWND window;
 static HWND border;
 static HWND listView;
-static BOOL sortUsername;
-static BOOL sortAscending;
+static SORTPARAMETER sort;
 
 static LRESULT CALLBACK procedure(HWND inputWindow, UINT message, WPARAM wparam, LPARAM lparam) {
 	RECT bounds;
@@ -223,7 +227,7 @@ static int CALLBACK compareList(PCLIENT first, PCLIENT second, LPARAM parameter)
 
 	int compareUsername = wcscmp(first->name, second->name);
 	int compareAddress = wcscmp(first->name, second->name);
-	return (sortUsername ? compareUsername ? compareUsername : compareAddress : compareAddress ? compareAddress : compareUsername) * (sortAscending ? 1 : -1);
+	return (sort.username ? compareUsername ? compareUsername : compareAddress : compareAddress ? compareAddress : compareUsername) * (sort.ascending ? 1 : -1);
 }
 
 static BOOL insertInternal(const PCLIENT client) {
