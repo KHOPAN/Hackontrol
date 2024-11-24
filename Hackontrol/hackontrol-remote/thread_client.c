@@ -43,9 +43,9 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	}
 
 	while(HRSPPacketReceive(&client->hrsp, &packet, &error)) {
-		/*if(!WindowSessionHandlePacket(client, &packet)) {
+		if(!WindowSessionHandlePacket(client, &packet)) {
 			LOG("[Client %ws]: Unknown packet type: %u\n", client->address, packet.type);
-		}*/
+		}
 
 		if(packet.size) {
 			KHOPAN_DEALLOCATE(packet.data);
@@ -60,7 +60,7 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	KHOPANERRORCONSOLE_KHOPAN(error);
 closeSession:
 	if(client->session.thread) {
-		//WindowSessionClose(client);
+		WindowSessionClose(client);
 		WaitForSingleObject(client->session.thread, INFINITE);
 	}
 freeName:
@@ -86,7 +86,7 @@ functionExit:
 }
 
 void ThreadClientOpen(const PCLIENT client) {
-	/*if(client->session.thread) {
+	if(client->session.thread) {
 		WindowSessionClose(client);
 		WaitForSingleObject(client->session.thread, INFINITE);
 	}
@@ -95,7 +95,7 @@ void ThreadClientOpen(const PCLIENT client) {
 
 	if(!client->session.thread) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateThread");
-	}*/
+	}
 }
 
 void ThreadClientDisconnect(const PCLIENT client) {

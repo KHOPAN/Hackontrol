@@ -8,6 +8,8 @@
 #define IDM_REMOTE_ALWAYS_ON_TOP 0xE004
 #define IDM_REMOTE_EXIT          0xE005
 
+#define CLASS_NAME L"HackontrolRemote"
+
 typedef struct {
 	BYTE username : 1;
 	BYTE ascending : 1;
@@ -261,7 +263,7 @@ BOOL WindowMainInitialize() {
 	windowClass.hInstance = instance;
 	windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
 	windowClass.hbrBackground = (HBRUSH) (COLOR_MENU + 1);
-	windowClass.lpszClassName = CLASS_REMOTE;
+	windowClass.lpszClassName = CLASS_NAME;
 
 	if(!RegisterClassExW(&windowClass)) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"RegisterClassExW");
@@ -272,7 +274,7 @@ BOOL WindowMainInitialize() {
 	double screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	double width = screenWidth * 0.292825769;
 	double height = screenHeight * 0.78125;
-	window = CreateWindowExW(WS_EX_TOPMOST, CLASS_REMOTE, L"Remote", WS_OVERLAPPEDWINDOW, (int) ((screenWidth - width) / 2.0), (int) ((screenHeight - height) / 2.0), (int) width, (int) height, NULL, NULL, instance, NULL);
+	window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME, L"Remote", WS_OVERLAPPEDWINDOW, (int) ((screenWidth - width) / 2.0), (int) ((screenHeight - height) / 2.0), (int) width, (int) height, NULL, NULL, instance, NULL);
 
 	if(!window) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"CreateWindowExW");
@@ -318,7 +320,7 @@ BOOL WindowMainInitialize() {
 destroyWindow:
 	DestroyWindow(window);
 unregisterClass:
-	UnregisterClassW(CLASS_REMOTE, instance);
+	UnregisterClassW(CLASS_NAME, instance);
 	return FALSE;
 }
 
@@ -402,5 +404,5 @@ void WindowMainExit() {
 
 void WindowMainDestroy() {
 	DestroyWindow(window);
-	UnregisterClassW(CLASS_REMOTE, instance);
+	UnregisterClassW(CLASS_NAME, instance);
 }

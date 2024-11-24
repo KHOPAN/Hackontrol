@@ -72,9 +72,9 @@ int WINAPI WinMain(_In_ HINSTANCE programInstance, _In_opt_ HINSTANCE previousIn
 		goto closeClientListMutex;
 	}
 
-	/*if(!WindowSessionInitialize()) {
+	if(!WindowSessionInitialize()) {
 		goto destroyMainWindow;
-	}*/
+	}
 
 	WSADATA data;
 	int status = WSAStartup(MAKEWORD(2, 2), &data);
@@ -105,7 +105,7 @@ int WINAPI WinMain(_In_ HINSTANCE programInstance, _In_opt_ HINSTANCE previousIn
 cleanupSocket:
 	WSACleanup();
 cleanupSession:
-	//WindowSessionCleanup();
+	WindowSessionCleanup();
 destroyMainWindow:
 	WindowMainDestroy();
 closeClientListMutex:

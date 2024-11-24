@@ -1,3 +1,27 @@
+#include "remote.h"
+
+#define CLASS_NAME L"HackontrolRemoteSession"
+
+BOOL WindowSessionInitialize() {
+	return TRUE;
+}
+
+DWORD WINAPI WindowSession(_In_ PCLIENT client) {
+	return 0;
+}
+
+BOOL WindowSessionHandlePacket(const PCLIENT client, const PHRSPPACKET packet) {
+	return FALSE;
+}
+
+void WindowSessionClose(const PCLIENT client) {
+
+}
+
+void WindowSessionCleanup() {
+
+}
+
 /*#include "window_session_tabs.h"
 #include <CommCtrl.h>
 
