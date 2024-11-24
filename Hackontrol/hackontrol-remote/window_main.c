@@ -141,7 +141,7 @@ static BOOLEAN openClient(const int index) {
 	return FALSE;
 }
 
-static LRESULT CALLBACK procedure(HWND inputWindow, UINT message, WPARAM wparam, LPARAM lparam) {
+static LRESULT CALLBACK procedure(_In_ HWND inputWindow, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	RECT bounds;
 	LVHITTESTINFO information = {0};
 	HWND header;
@@ -150,7 +150,7 @@ static LRESULT CALLBACK procedure(HWND inputWindow, UINT message, WPARAM wparam,
 	PCLIENT client = NULL;
 	HMENU menu;
 	BOOLEAN topMost;
-	BOOLEAN status;
+	int status;
 	PLINKEDLISTITEM listItem;
 
 	switch(message) {

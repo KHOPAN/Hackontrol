@@ -25,6 +25,66 @@ typedef struct {
 
 static PTABDATA tabData;
 
+static void resizeTab(const PCLIENT client) {
+	if(!client->session.selectedTab) {
+		return;
+	}
+
+	RECT bounds;
+	GetClientRect(client->session.tab, &bounds);
+	SendMessageW(client->session.tab, TCM_ADJUSTRECT, FALSE, (LPARAM) &bounds);
+	SetWindowPos(client->session.selectedTab, HWND_TOP, bounds.left + TAB_OFFSET, bounds.top + TAB_OFFSET, bounds.right - bounds.left, bounds.bottom - bounds.top, 0);
+}
+
+static void selectTab(const PCLIENT client) {
+	size_t index = SendMessageW(client->session.tab, TCM_GETCURSEL, 0, 0);
+
+	if(((LONGLONG) index) == -1) {
+		return;
+	}
+
+	client->session.selectedTab = client->session.tabs[index].tab;
+
+	for(size_t i = 0; i < sizeof(sessionTabs) / sizeof(sessionTabs[0]); i++) {
+		if(client->session.tabs[i].tab) {
+			ShowWindow(client->session.tabs[i].tab, index == i ? SW_SHOW : SW_HIDE);
+		}
+	}
+
+	resizeTab(client);
+}
+
+static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
+	USERDATA(PCLIENT, client, window, message, wparam, lparam);
+	RECT bounds;
+
+	switch(message) {
+	case WM_CLOSE:
+		DestroyWindow(window);
+		return 0;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+	case WM_NOTIFY:
+		switch(((LPNMHDR) lparam)->code) {
+		case TCN_SELCHANGE:
+			selectTab(client);
+			return FALSE;
+		case TCN_SELCHANGING:
+			return FALSE;
+		}
+
+		break;
+	case WM_SIZE:
+		GetClientRect(window, &bounds);
+		SetWindowPos(client->session.tab, HWND_TOP, 0, 0, bounds.right - bounds.left - TAB_OFFSET * 2, bounds.bottom - bounds.top - TAB_OFFSET * 2, SWP_NOMOVE);
+		resizeTab(client);
+		return 0;
+	}
+
+	return DefWindowProcW(window, message, wparam, lparam);
+}
+
 BOOLEAN WindowSessionInitialize() {
 	tabData = KHOPAN_ALLOCATE(sizeof(sessionTabs) / sizeof(sessionTabs[0]) * sizeof(TABDATA));
 
@@ -35,7 +95,7 @@ BOOLEAN WindowSessionInitialize() {
 
 	TABINITIALIZER initializer = {0};
 	initializer.windowClass.cbSize = sizeof(WNDCLASSEXW);
-	initializer.windowClass.lpfnWndProc = DefWindowProcW;
+	initializer.windowClass.lpfnWndProc = procedure;
 	initializer.windowClass.hInstance = instance;
 	initializer.windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
 	initializer.windowClass.hbrBackground = (HBRUSH) (COLOR_MENU + 1);
@@ -81,35 +141,6 @@ BOOLEAN WindowSessionInitialize() {
 	}
 
 	return TRUE;
-}
-
-static void resizeTab(const PCLIENT client) {
-	if(!client->session.selectedTab) {
-		return;
-	}
-
-	RECT bounds;
-	GetClientRect(client->session.tab, &bounds);
-	SendMessageW(client->session.tab, TCM_ADJUSTRECT, FALSE, (LPARAM) &bounds);
-	SetWindowPos(client->session.selectedTab, HWND_TOP, bounds.left + TAB_OFFSET, bounds.top + TAB_OFFSET, bounds.right - bounds.left, bounds.bottom - bounds.top, 0);
-}
-
-static void selectTab(const PCLIENT client) {
-	size_t index = SendMessageW(client->session.tab, TCM_GETCURSEL, 0, 0);
-
-	if(((LONGLONG) index) == -1) {
-		return;
-	}
-
-	client->session.selectedTab = client->session.tabs[index].tab;
-
-	for(size_t i = 0; i < sizeof(sessionTabs) / sizeof(sessionTabs[0]); i++) {
-		if(client->session.tabs[i].tab) {
-			ShowWindow(client->session.tabs[i].tab, index == i ? SW_SHOW : SW_HIDE);
-		}
-	}
-
-	resizeTab(client);
 }
 
 DWORD WINAPI WindowSession(_In_ PCLIENT client) {
@@ -234,38 +265,7 @@ void WindowSessionCleanup() {
 	KHOPAN_DEALLOCATE(tabData);
 }
 
-/*static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
-	USERDATA(PCLIENT, client, window, message, wparam, lparam);
-	RECT bounds;
-
-	switch(message) {
-	case WM_CLOSE:
-		DestroyWindow(window);
-		return 0;
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		return 0;
-	case WM_NOTIFY:
-		switch(((LPNMHDR) lparam)->code) {
-		case TCN_SELCHANGE:
-			selectTab(client);
-			return FALSE;
-		case TCN_SELCHANGING:
-			return FALSE;
-		}
-
-		break;
-	case WM_SIZE:
-		GetClientRect(window, &bounds);
-		SetWindowPos(client->session.tab, HWND_TOP, 0, 0, bounds.right - bounds.left - TAB_OFFSET * 2, bounds.bottom - bounds.top - TAB_OFFSET * 2, SWP_NOMOVE);
-		resizeTab(client);
-		return 0;
-	}
-
-	return DefWindowProcW(window, message, wparam, lparam);
-}
-
-BOOL WindowSessionHandlePacket(const PCLIENT client, const PHRSPPACKET packet) {
+/*BOOL WindowSessionHandlePacket(const PCLIENT client, const PHRSPPACKET packet) {
 	for(size_t i = 0; i < SIZEOFARRAY(sessionTabs); i++) {
 		if(!tabData[i].packetHandler) {
 			continue;
