@@ -47,7 +47,9 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 			LOG("[Client %ws]: Unknown packet type: %u\n", client->address, packet.type);
 		}*/
 
-		if(packet.size) KHOPAN_DEALLOCATE(packet.data);
+		if(packet.size) {
+			KHOPAN_DEALLOCATE(packet.data);
+		}
 	}
 
 	if((error.facility == ERROR_FACILITY_HRSP && error.code == ERROR_HRSP_CONNECTION_CLOSED) || (error.facility == ERROR_FACILITY_WIN32 && (error.code == WSAECONNABORTED || error.code == WSAECONNRESET || error.code == WSAEINTR || error.code == WSAENOTSOCK))) {

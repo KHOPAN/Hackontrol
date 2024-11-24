@@ -1,5 +1,12 @@
+#include <windowsx.h>
 #include "remote.h"
 #include <CommCtrl.h>
+
+#define IDM_REMOTE_OPEN          0xE001
+#define IDM_REMOTE_DISCONNECT    0xE002
+#define IDM_REMOTE_REFRESH       0xE003
+#define IDM_REMOTE_ALWAYS_ON_TOP 0xE004
+#define IDM_REMOTE_EXIT          0xE005
 
 typedef struct {
 	BYTE username : 1;
@@ -16,9 +23,57 @@ static HWND border;
 static HWND listView;
 static SORTPARAMETER sort;
 
+static int CALLBACK compareList(PCLIENT first, PCLIENT second, LPARAM parameter) {
+	if(!first || !second) {
+		return 0;
+	}
+
+	int compareUsername = wcscmp(first->name, second->name);
+	int compareAddress = wcscmp(first->name, second->name);
+	return (sort.username ? compareUsername ? compareUsername : compareAddress : compareAddress ? compareAddress : compareUsername) * (sort.ascending ? 1 : -1);
+}
+
+static BOOL insertInternal(const PCLIENT client) {
+	LVITEMW listItem = {0};
+	listItem.mask = LVIF_PARAM;
+	int size = (int) SendMessageW(listView, LVM_GETITEMCOUNT, 0, 0);
+	int index;
+
+	for(index = 0; index < size; index++) {
+		listItem.iItem = size - index - 1;
+
+		if(SendMessageW(listView, LVM_GETITEM, 0, (LPARAM) &listItem) && compareList(client, (PCLIENT) listItem.lParam, 0) > 0) {
+			listItem.iItem++;
+			break;
+		}
+	}
+
+	listItem.mask = LVIF_PARAM | LVIF_TEXT;
+	listItem.pszText = client->name ? client->name : L"(Missing name)";
+	listItem.lParam = (LPARAM) client;
+	index = (int) SendMessageW(listView, LVM_INSERTITEM, 0, (LPARAM) &listItem);
+
+	if(index == -1) {
+		KHOPANERRORCONSOLE_WIN32(ERROR_FUNCTION_FAILED, L"ListView_InsertItem");
+		return FALSE;
+	}
+
+	listItem.mask = LVIF_TEXT;
+	listItem.iSubItem = 1;
+	listItem.pszText = client->address ? client->address : L"(Missing address)";
+
+	if(!SendMessageW(listView, LVM_SETITEM, 0, (LPARAM) &listItem)) {
+		KHOPANERRORCONSOLE_WIN32(ERROR_FUNCTION_FAILED, L"ListView_SetItem");
+		SendMessageW(listView, LVM_DELETEITEM, index, 0);
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
 static LRESULT CALLBACK procedure(HWND inputWindow, UINT message, WPARAM wparam, LPARAM lparam) {
 	RECT bounds;
-	/*LVHITTESTINFO information = {0};
+	LVHITTESTINFO information = {0};
 	HWND header;
 	BOOL showItem = TRUE;
 	LVITEMW item = {0};
@@ -26,13 +81,13 @@ static LRESULT CALLBACK procedure(HWND inputWindow, UINT message, WPARAM wparam,
 	HMENU menu;
 	BOOL topMost;
 	BOOL status;
-	PLINKEDLISTITEM listItem;*/
+	PLINKEDLISTITEM listItem;
 
 	switch(message) {
 	case WM_CLOSE:
 		DestroyWindow(window);
 		return 0;
-	/*case WM_CONTEXTMENU:
+	case WM_CONTEXTMENU:
 		GetClientRect(listView, &bounds);
 		information.pt.x = GET_X_LPARAM(lparam);
 		information.pt.y = GET_Y_LPARAM(lparam);
@@ -88,11 +143,7 @@ static LRESULT CALLBACK procedure(HWND inputWindow, UINT message, WPARAM wparam,
 		case IDM_REMOTE_REFRESH:
 			if(WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) return 0;
 			SendMessageW(listView, LVM_DELETEALLITEMS, 0, 0);
-
-			KHOPAN_LINKED_LIST_ITERATE(listItem, &clientList) {
-				if(listItem->data) insertInternal((PCLIENT) listItem->data);
-			}
-
+			KHOPAN_LINKED_LIST_ITERATE_FORWARD(listItem, &clientList) if(listItem->data) insertInternal((PCLIENT) listItem->data);
 			ReleaseMutex(clientListMutex);
 			return 0;
 		case IDM_REMOTE_ALWAYS_ON_TOP:
@@ -103,7 +154,7 @@ static LRESULT CALLBACK procedure(HWND inputWindow, UINT message, WPARAM wparam,
 			return 0;
 		}
 
-		break;*/
+		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
@@ -220,54 +271,6 @@ void WindowMain() {
 	}
 }
 
-static int CALLBACK compareList(PCLIENT first, PCLIENT second, LPARAM parameter) {
-	if(!first || !second) {
-		return 0;
-	}
-
-	int compareUsername = wcscmp(first->name, second->name);
-	int compareAddress = wcscmp(first->name, second->name);
-	return (sort.username ? compareUsername ? compareUsername : compareAddress : compareAddress ? compareAddress : compareUsername) * (sort.ascending ? 1 : -1);
-}
-
-static BOOL insertInternal(const PCLIENT client) {
-	LVITEMW listItem = {0};
-	listItem.mask = LVIF_PARAM;
-	int size = (int) SendMessageW(listView, LVM_GETITEMCOUNT, 0, 0);
-	int index;
-
-	for(index = 0; index < size; index++) {
-		listItem.iItem = size - index - 1;
-
-		if(SendMessageW(listView, LVM_GETITEM, 0, (LPARAM) &listItem) && compareList(client, (PCLIENT) listItem.lParam, 0) > 0) {
-			listItem.iItem++;
-			break;
-		}
-	}
-
-	listItem.mask = LVIF_PARAM | LVIF_TEXT;
-	listItem.pszText = client->name ? client->name : L"(Missing name)";
-	listItem.lParam = (LPARAM) client;
-	index = (int) SendMessageW(listView, LVM_INSERTITEM, 0, (LPARAM) &listItem);
-
-	if(index == -1) {
-		KHOPANERRORCONSOLE_WIN32(ERROR_FUNCTION_FAILED, L"ListView_InsertItem");
-		return FALSE;
-	}
-
-	listItem.mask = LVIF_TEXT;
-	listItem.iSubItem = 1;
-	listItem.pszText = client->address ? client->address : L"(Missing address)";
-
-	if(!SendMessageW(listView, LVM_SETITEM, 0, (LPARAM) &listItem)) {
-		KHOPANERRORCONSOLE_WIN32(ERROR_FUNCTION_FAILED, L"ListView_SetItem");
-		SendMessageW(listView, LVM_DELETEITEM, index, 0);
-		return FALSE;
-	}
-
-	return TRUE;
-}
-
 BOOL WindowMainAdd(const PPCLIENT inputClient, const PPLINKEDLISTITEM inputItem) {
 	if(WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"WaitForSingleObject");
@@ -334,15 +337,7 @@ void WindowMainDestroy() {
 	UnregisterClassW(CLASS_REMOTE, instance);
 }
 
-/*#include <windowsx.h>
-
-#define IDM_REMOTE_OPEN          0xE001
-#define IDM_REMOTE_DISCONNECT    0xE002
-#define IDM_REMOTE_REFRESH       0xE003
-#define IDM_REMOTE_ALWAYS_ON_TOP 0xE004
-#define IDM_REMOTE_EXIT          0xE005
-
-#pragma warning(disable: 26454)
+/*#pragma warning(disable: 26454)
 
 static void clickHeader(const int index) {
 	if(index < 0 || WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
