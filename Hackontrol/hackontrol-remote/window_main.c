@@ -8,11 +8,129 @@ static HWND window;
 static HWND border;
 static HWND listView;
 
+static LRESULT CALLBACK procedure(HWND inputWindow, UINT message, WPARAM wparam, LPARAM lparam) {
+	RECT bounds;
+	/*LVHITTESTINFO information = {0};
+	HWND header;
+	BOOL showItem = TRUE;
+	LVITEMW item = {0};
+	PCLIENT client = NULL;
+	HMENU menu;
+	BOOL topMost;
+	BOOL status;
+	PLINKEDLISTITEM listItem;*/
+
+	switch(message) {
+	case WM_CLOSE:
+		DestroyWindow(window);
+		return 0;
+	/*case WM_CONTEXTMENU:
+		GetClientRect(listView, &bounds);
+		information.pt.x = GET_X_LPARAM(lparam);
+		information.pt.y = GET_Y_LPARAM(lparam);
+		ScreenToClient(listView, &information.pt);
+
+		if(information.pt.x < bounds.left || information.pt.x > bounds.right || information.pt.y < bounds.top || information.pt.y > bounds.bottom) {
+			break;
+		}
+
+		if(header = (HWND) SendMessageW(listView, LVM_GETHEADER, 0, 0)) {
+			GetClientRect(header, &bounds);
+			if(information.pt.x >= bounds.left && information.pt.x <= bounds.right && information.pt.y >= bounds.top && information.pt.y <= bounds.bottom) showItem = FALSE;
+		}
+
+		if(showItem && WaitForSingleObject(clientListMutex, INFINITE) != WAIT_FAILED) {
+			if(SendMessageW(listView, LVM_HITTEST, 0, (LPARAM) &information) != -1) {
+				item.mask = LVIF_PARAM;
+				item.iItem = information.iItem;
+				if(SendMessageW(listView, LVM_GETITEM, 0, (LPARAM) &item)) client = (PCLIENT) item.lParam;
+			}
+
+			ReleaseMutex(clientListMutex);
+		}
+
+		menu = CreatePopupMenu();
+
+		if(!menu) {
+			break;
+		}
+
+		if(client) {
+			AppendMenuW(menu, MF_STRING, IDM_REMOTE_OPEN, L"Open");
+			AppendMenuW(menu, MF_STRING, IDM_REMOTE_DISCONNECT, L"Disconnect");
+			AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
+		}
+
+		AppendMenuW(menu, MF_STRING, IDM_REMOTE_REFRESH, L"Refresh");
+		AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
+		topMost = GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST;
+		AppendMenuW(menu, MF_STRING | (topMost ? MF_CHECKED : MF_UNCHECKED), IDM_REMOTE_ALWAYS_ON_TOP, L"Always On Top");
+		AppendMenuW(menu, MF_STRING, IDM_REMOTE_EXIT, L"Exit");
+		SetForegroundWindow(window);
+		status = TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_TOPALIGN, GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam), window, NULL);
+		DestroyMenu(menu);
+
+		switch(status) {
+		case IDM_REMOTE_OPEN:
+			ThreadClientOpen(client);
+			return 0;
+		case IDM_REMOTE_DISCONNECT:
+			ThreadClientDisconnect(client);
+			return 0;
+		case IDM_REMOTE_REFRESH:
+			if(WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) return 0;
+			SendMessageW(listView, LVM_DELETEALLITEMS, 0, 0);
+
+			KHOPAN_LINKED_LIST_ITERATE(listItem, &clientList) {
+				if(listItem->data) insertInternal((PCLIENT) listItem->data);
+			}
+
+			ReleaseMutex(clientListMutex);
+			return 0;
+		case IDM_REMOTE_ALWAYS_ON_TOP:
+			SetWindowPos(window, topMost ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+			return 0;
+		case IDM_REMOTE_EXIT:
+			WindowMainExit();
+			return 0;
+		}
+
+		break;*/
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+	/*case WM_NOTIFY:
+		if(!lparam) {
+			break;
+		}
+
+		switch(((LPNMHDR) lparam)->code) {
+		case LVN_COLUMNCLICK:
+			clickHeader((UINT) ((LPNMLISTVIEW) lparam)->iSubItem);
+			return 0;
+		case NM_DBLCLK:
+			openClient(((LPNMITEMACTIVATE) lparam)->iItem);
+			return 0;
+		}
+
+		break;*/
+	case WM_SIZE:
+		GetClientRect(window, &bounds);
+		bounds.right -= bounds.left;
+		bounds.bottom -= bounds.top;
+		SetWindowPos(border, HWND_TOP, 0, 0, bounds.right - 10, bounds.bottom - 4, SWP_NOMOVE);
+		SetWindowPos(listView, HWND_TOP, 0, 0, bounds.right - 18, bounds.bottom - 26, SWP_NOMOVE);
+		return 0;
+	}
+
+	return DefWindowProcW(inputWindow, message, wparam, lparam);
+}
+
 BOOL WindowMainInitialize() {
 	LOG("[Main Window]: Initializing\n");
 	WNDCLASSEXW windowClass = {0};
 	windowClass.cbSize = sizeof(WNDCLASSEXW);
-	windowClass.lpfnWndProc = DefWindowProcW;
+	windowClass.lpfnWndProc = procedure;
 	windowClass.hInstance = instance;
 	windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
 	windowClass.hbrBackground = (HBRUSH) (COLOR_MENU + 1);
@@ -229,124 +347,6 @@ static BOOL insertInternal(const PCLIENT client) {
 	}
 
 	return TRUE;
-}
-
-static LRESULT CALLBACK procedure(HWND inputWindow, UINT message, WPARAM wparam, LPARAM lparam) {
-	RECT bounds;
-	LVHITTESTINFO information = {0};
-	HWND header;
-	BOOL showItem = TRUE;
-	LVITEMW item = {0};
-	PCLIENT client = NULL;
-	HMENU menu;
-	BOOL topMost;
-	BOOL status;
-	PLINKEDLISTITEM listItem;
-
-	switch(message) {
-	case WM_CLOSE:
-		DestroyWindow(window);
-		return 0;
-	case WM_CONTEXTMENU:
-		GetClientRect(listView, &bounds);
-		information.pt.x = GET_X_LPARAM(lparam);
-		information.pt.y = GET_Y_LPARAM(lparam);
-		ScreenToClient(listView, &information.pt);
-
-		if(information.pt.x < bounds.left || information.pt.x > bounds.right || information.pt.y < bounds.top || information.pt.y > bounds.bottom) {
-			break;
-		}
-
-		if(header = (HWND) SendMessageW(listView, LVM_GETHEADER, 0, 0)) {
-			GetClientRect(header, &bounds);
-			if(information.pt.x >= bounds.left && information.pt.x <= bounds.right && information.pt.y >= bounds.top && information.pt.y <= bounds.bottom) showItem = FALSE;
-		}
-
-		if(showItem && WaitForSingleObject(clientListMutex, INFINITE) != WAIT_FAILED) {
-			if(SendMessageW(listView, LVM_HITTEST, 0, (LPARAM) &information) != -1) {
-				item.mask = LVIF_PARAM;
-				item.iItem = information.iItem;
-				if(SendMessageW(listView, LVM_GETITEM, 0, (LPARAM) &item)) client = (PCLIENT) item.lParam;
-			}
-
-			ReleaseMutex(clientListMutex);
-		}
-
-		menu = CreatePopupMenu();
-
-		if(!menu) {
-			break;
-		}
-
-		if(client) {
-			AppendMenuW(menu, MF_STRING, IDM_REMOTE_OPEN, L"Open");
-			AppendMenuW(menu, MF_STRING, IDM_REMOTE_DISCONNECT, L"Disconnect");
-			AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
-		}
-
-		AppendMenuW(menu, MF_STRING, IDM_REMOTE_REFRESH, L"Refresh");
-		AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
-		topMost = GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST;
-		AppendMenuW(menu, MF_STRING | (topMost ? MF_CHECKED : MF_UNCHECKED), IDM_REMOTE_ALWAYS_ON_TOP, L"Always On Top");
-		AppendMenuW(menu, MF_STRING, IDM_REMOTE_EXIT, L"Exit");
-		SetForegroundWindow(window);
-		status = TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_TOPALIGN, GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam), window, NULL);
-		DestroyMenu(menu);
-
-		switch(status) {
-		case IDM_REMOTE_OPEN:
-			ThreadClientOpen(client);
-			return 0;
-		case IDM_REMOTE_DISCONNECT:
-			ThreadClientDisconnect(client);
-			return 0;
-		case IDM_REMOTE_REFRESH:
-			if(WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) return 0;
-			SendMessageW(listView, LVM_DELETEALLITEMS, 0, 0);
-
-			KHOPAN_LINKED_LIST_ITERATE(listItem, &clientList) {
-				if(listItem->data) insertInternal((PCLIENT) listItem->data);
-			}
-
-			ReleaseMutex(clientListMutex);
-			return 0;
-		case IDM_REMOTE_ALWAYS_ON_TOP:
-			SetWindowPos(window, topMost ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
-			return 0;
-		case IDM_REMOTE_EXIT:
-			WindowMainExit();
-			return 0;
-		}
-
-		break;
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		return 0;
-	case WM_NOTIFY:
-		if(!lparam) {
-			break;
-		}
-
-		switch(((LPNMHDR) lparam)->code) {
-		case LVN_COLUMNCLICK:
-			clickHeader((UINT) ((LPNMLISTVIEW) lparam)->iSubItem);
-			return 0;
-		case NM_DBLCLK:
-			openClient(((LPNMITEMACTIVATE) lparam)->iItem);
-			return 0;
-		}
-
-		break;
-	case WM_SIZE:
-		GetClientRect(window, &bounds);
-		bounds.right -= bounds.left;
-		bounds.bottom -= bounds.top;
-		SetWindowPos(border, HWND_TOP, 0, 0, bounds.right - 10, bounds.bottom - 4, SWP_NOMOVE);
-		SetWindowPos(listView, HWND_TOP, 0, 0, bounds.right - 18, bounds.bottom - 26, SWP_NOMOVE);
-		return 0;
-	}
-
-	return DefWindowProcW(inputWindow, message, wparam, lparam);
 }
 
 BOOL WindowMainAdd(const PPCLIENT inputClient, const PPLINKEDLISTITEM inputItem) {
