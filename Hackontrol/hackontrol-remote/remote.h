@@ -12,7 +12,6 @@
 #endif
 
 #define USERDATA(type, name, window, message, wparam, lparam) type name=NULL;if(message==WM_CREATE){name=(type)(((CREATESTRUCT*)lparam)->lpCreateParams);SetWindowLongPtrW(window,GWLP_USERDATA,(LONG_PTR)(name));}else{name=(type)(GetWindowLongPtrW(window,GWLP_USERDATA));}if(!(name))return DefWindowProcW(window,message,wparam,lparam)
-#define ARRAY_SIZE(x) (sizeof(x)/sizeof((x)[0]))
 
 typedef struct {
 	HWND tab;

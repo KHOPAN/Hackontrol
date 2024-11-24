@@ -30,7 +30,7 @@ int WINAPI WinMain(_In_ HINSTANCE programInstance, _In_opt_ HINSTANCE previousIn
 	INITCOMMONCONTROLSEX controls;
 	controls.dwSize = sizeof(INITCOMMONCONTROLSEX);
 
-	for(size_t i = 0; i < ARRAY_SIZE(controlList); i++) {
+	for(size_t i = 0; i < sizeof(controlList) / sizeof(controlList[0]); i++) {
 		controls.dwICC = controlList[i];
 
 		if(!InitCommonControlsEx(&controls)) {
