@@ -7,38 +7,6 @@ extern HINSTANCE instance;
 extern HFONT font;
 
 typedef struct {
-	HANDLE thread;
-	///int minimumWidth;
-	//int minimumHeight;
-	HWND window;
-	/*LONGLONG lastTime;
-	LONGLONG lastUpdate;
-	ULONGLONG totalTime;
-	ULONGLONG totalTimes;
-	BOOL stream;
-	SENDMETHOD method;
-	BOOL fullscreen;
-	BOOL limitToScreen;
-	BOOL lockFrame;
-	BOOL matchAspectRatio;
-	LONG_PTR windowStyle;
-	WINDOWPLACEMENT windowPlacement;
-	UINT targetWidth;
-	UINT targetHeight;
-	PBYTE pixels;
-	UINT renderWidth;
-	UINT renderHeight;
-	UINT renderX;
-	UINT renderY;
-	BOOL cursorNorth;
-	BOOL cursorEast;
-	BOOL cursorSouth;
-	BOOL cursorWest;
-	RECT pressedBounds;
-	POINT pressedLocation;*/
-} STREAMTHREADDATA, *PSTREAMTHREADDATA;
-
-typedef struct {
 	PCLIENT client;
 	HANDLE mutex;
 	int buttonWidth;
@@ -46,7 +14,38 @@ typedef struct {
 	int activationDistance;
 	int minimumSize;
 	HWND button;
-	STREAMTHREADDATA stream;
+
+	struct {
+		HANDLE thread;
+		///int minimumWidth;
+		//int minimumHeight;
+		HWND window;
+		/*LONGLONG lastTime;
+		LONGLONG lastUpdate;
+		ULONGLONG totalTime;
+		ULONGLONG totalTimes;
+		BOOL stream;
+		SENDMETHOD method;
+		BOOL fullscreen;
+		BOOL limitToScreen;
+		BOOL lockFrame;
+		BOOL matchAspectRatio;
+		LONG_PTR windowStyle;
+		WINDOWPLACEMENT windowPlacement;
+		UINT targetWidth;
+		UINT targetHeight;
+		PBYTE pixels;
+		UINT renderWidth;
+		UINT renderHeight;
+		UINT renderX;
+		UINT renderY;
+		BOOL cursorNorth;
+		BOOL cursorEast;
+		BOOL cursorSouth;
+		BOOL cursorWest;
+		RECT pressedBounds;
+		POINT pressedLocation;*/
+	} stream;
 } TABSTREAMDATA, *PTABSTREAMDATA;
 
 static void __stdcall uninitialize(const PULONGLONG data) {
@@ -133,7 +132,7 @@ functionExit:
 	ReleaseMutex(data->mutex);
 	CloseHandle(data->stream.thread);
 
-	for(size_t i = 0; i < sizeof(STREAMTHREADDATA); i++) {
+	for(size_t i = 0; i < sizeof(data->stream); i++) {
 		((PBYTE) &data->stream)[i] = 0;
 	}
 
