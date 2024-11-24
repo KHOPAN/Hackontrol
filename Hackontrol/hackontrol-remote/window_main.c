@@ -71,6 +71,74 @@ static BOOL insertInternal(const PCLIENT client) {
 	return TRUE;
 }
 
+static void clickHeader(const int index) {
+	if(index < 0 || WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
+		return;
+	}
+
+	HWND header = (HWND) SendMessageW(listView, LVM_GETHEADER, 0, 0);
+
+	if(!header) {
+		ReleaseMutex(clientListMutex);
+		return;
+	}
+
+	int count = (int) SendMessageW(header, HDM_GETITEMCOUNT, 0, 0);
+
+	if(count < 1) {
+		ReleaseMutex(clientListMutex);
+		return;
+	}
+
+	HDITEMW item = {0};
+
+	for(int i = 0; i < count; i++) {
+		item.mask = HDI_FORMAT;
+		item.fmt = 0;
+		SendMessageW(header, HDM_GETITEM, i, (LPARAM) &item);
+
+		if(i != index) {
+			item.fmt &= ~(HDF_SORTUP | HDF_SORTDOWN);
+			goto setItem;
+		}
+
+		if(item.fmt & HDF_SORTUP) {
+			item.fmt = (item.fmt & ~HDF_SORTUP) | HDF_SORTDOWN;
+		} else if(item.fmt & HDF_SORTDOWN) {
+			item.fmt = (item.fmt & ~HDF_SORTDOWN) | HDF_SORTUP;
+		} else {
+			item.fmt |= HDF_SORTUP;
+		}
+
+		sort.ascending = item.fmt & HDF_SORTUP;
+	setItem:
+		SendMessageW(header, HDM_SETITEM, i, (LPARAM) &item);
+	}
+
+	sort.username = index == 0;
+	SendMessageW(listView, LVM_SORTITEMS, 0, (LPARAM) compareList);
+	ReleaseMutex(clientListMutex);
+}
+
+static BOOL openClient(const int index) {
+	if(index < 0 && WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
+		return FALSE;
+	}
+
+	LVITEMW listItem = {0};
+	listItem.mask = LVIF_PARAM;
+	listItem.iItem = index;
+
+	if(SendMessageW(listView, LVM_GETITEM, 0, (LPARAM) &listItem)) {
+		ReleaseMutex(clientListMutex);
+		ThreadClientOpen((PCLIENT) listItem.lParam);
+		return TRUE;
+	}
+
+	ReleaseMutex(clientListMutex);
+	return FALSE;
+}
+
 static LRESULT CALLBACK procedure(HWND inputWindow, UINT message, WPARAM wparam, LPARAM lparam) {
 	RECT bounds;
 	LVHITTESTINFO information = {0};
@@ -158,7 +226,7 @@ static LRESULT CALLBACK procedure(HWND inputWindow, UINT message, WPARAM wparam,
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
-	/*case WM_NOTIFY:
+	case WM_NOTIFY:
 		if(!lparam) {
 			break;
 		}
@@ -172,7 +240,7 @@ static LRESULT CALLBACK procedure(HWND inputWindow, UINT message, WPARAM wparam,
 			return 0;
 		}
 
-		break;*/
+		break;
 	case WM_SIZE:
 		GetClientRect(window, &bounds);
 		bounds.right -= bounds.left;
@@ -245,7 +313,7 @@ BOOL WindowMainInitialize() {
 		goto destroyWindow;
 	}
 
-	//clickHeader(0);
+	clickHeader(0);
 	return TRUE;
 destroyWindow:
 	DestroyWindow(window);
@@ -260,9 +328,9 @@ void WindowMain() {
 	MSG message;
 
 	while(GetMessageW(&message, NULL, 0, 0)) {
-		/*if(message.message == WM_KEYDOWN && (message.wParam == VK_RETURN || message.wParam == VK_SPACE) && openClient((int) SendMessageW(listView, LVM_GETNEXTITEM, -1, LVNI_SELECTED))) {
+		if(message.message == WM_KEYDOWN && (message.wParam == VK_RETURN || message.wParam == VK_SPACE) && openClient((int) SendMessageW(listView, LVM_GETNEXTITEM, -1, LVNI_SELECTED))) {
 			continue;
-		}*/
+		}
 
 		if(!IsDialogMessageW(window, &message)) {
 			TranslateMessage(&message);
@@ -336,73 +404,3 @@ void WindowMainDestroy() {
 	DestroyWindow(window);
 	UnregisterClassW(CLASS_REMOTE, instance);
 }
-
-/*#pragma warning(disable: 26454)
-
-static void clickHeader(const int index) {
-	if(index < 0 || WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
-		return;
-	}
-
-	HWND header = (HWND) SendMessageW(listView, LVM_GETHEADER, 0, 0);
-
-	if(!header) {
-		ReleaseMutex(clientListMutex);
-		return;
-	}
-
-	int count = (int) SendMessageW(header, HDM_GETITEMCOUNT, 0, 0);
-
-	if(count < 1) {
-		ReleaseMutex(clientListMutex);
-		return;
-	}
-
-	HDITEMW item = {0};
-
-	for(int i = 0; i < count; i++) {
-		item.mask = HDI_FORMAT;
-		item.fmt = 0;
-		SendMessageW(header, HDM_GETITEM, i, (LPARAM) &item);
-
-		if(i != index) {
-			item.fmt &= ~(HDF_SORTUP | HDF_SORTDOWN);
-			goto setItem;
-		}
-
-		if(item.fmt & HDF_SORTUP) {
-			item.fmt = (item.fmt & ~HDF_SORTUP) | HDF_SORTDOWN;
-		} else if(item.fmt & HDF_SORTDOWN) {
-			item.fmt = (item.fmt & ~HDF_SORTDOWN) | HDF_SORTUP;
-		} else {
-			item.fmt |= HDF_SORTUP;
-		}
-
-		sortAscending = item.fmt & HDF_SORTUP;
-	setItem:
-		SendMessageW(header, HDM_SETITEM, i, (LPARAM) &item);
-	}
-
-	sortUsername = index == 0;
-	SendMessageW(listView, LVM_SORTITEMS, 0, (LPARAM) compareList);
-	ReleaseMutex(clientListMutex);
-}
-
-static BOOL openClient(const int index) {
-	if(index < 0 && WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
-		return FALSE;
-	}
-
-	LVITEMW listItem = {0};
-	listItem.mask = LVIF_PARAM;
-	listItem.iItem = index;
-
-	if(SendMessageW(listView, LVM_GETITEM, 0, (LPARAM) &listItem)) {
-		ReleaseMutex(clientListMutex);
-		ThreadClientOpen((PCLIENT) listItem.lParam);
-		return TRUE;
-	}
-
-	ReleaseMutex(clientListMutex);
-	return FALSE;
-}*/
