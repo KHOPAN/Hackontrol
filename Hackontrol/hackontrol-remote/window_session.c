@@ -1,4 +1,5 @@
 #include "window_session.h"
+#include <CommCtrl.h>
 
 static void(__stdcall* sessionTabs[]) (const PTABINITIALIZER tab) = {
 	WindowSessionTabStream,
@@ -6,6 +7,7 @@ static void(__stdcall* sessionTabs[]) (const PTABINITIALIZER tab) = {
 };
 
 #define CLASS_NAME L"HackontrolRemoteSession"
+#define TAB_OFFSET 5
 
 extern HINSTANCE instance;
 extern HFONT font;
@@ -81,37 +83,6 @@ BOOLEAN WindowSessionInitialize() {
 	return TRUE;
 }
 
-DWORD WINAPI WindowSession(_In_ PCLIENT client) {
-	return 0;
-}
-
-BOOLEAN WindowSessionHandlePacket(const PCLIENT client, const PHRSPPACKET packet) {
-	return FALSE;
-}
-
-void WindowSessionClose(const PCLIENT client) {
-
-}
-
-void WindowSessionCleanup() {
-	for(size_t i = 0; i < sizeof(sessionTabs) / sizeof(sessionTabs[0]); i++) {
-		if(tabData[i].className) {
-			UnregisterClassW(tabData[i].className, instance);
-		}
-
-		if(tabData[i].uninitialize) {
-			tabData[i].uninitialize(&tabData[i].data);
-		}
-	}
-
-	UnregisterClassW(CLASS_NAME, instance);
-	KHOPAN_DEALLOCATE(tabData);
-}
-
-/*#include <CommCtrl.h>
-
-#define TAB_OFFSET 5
-
 static void resizeTab(const PCLIENT client) {
 	if(!client->session.selectedTab) {
 		return;
@@ -132,7 +103,7 @@ static void selectTab(const PCLIENT client) {
 
 	client->session.selectedTab = client->session.tabs[index].tab;
 
-	for(size_t i = 0; i < SIZEOFARRAY(sessionTabs); i++) {
+	for(size_t i = 0; i < sizeof(sessionTabs) / sizeof(sessionTabs[0]); i++) {
 		if(client->session.tabs[i].tab) {
 			ShowWindow(client->session.tabs[i].tab, index == i ? SW_SHOW : SW_HIDE);
 		}
@@ -141,7 +112,129 @@ static void selectTab(const PCLIENT client) {
 	resizeTab(client);
 }
 
-static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
+DWORD WINAPI WindowSession(_In_ PCLIENT client) {
+	if(!client) {
+		LOG("[Session]: Empty thread parameter\n");
+		return 1;
+	}
+
+	client->session.tabs = KHOPAN_ALLOCATE(sizeof(sessionTabs) / sizeof(sessionTabs[0]) * sizeof(TABSTORE));
+	DWORD codeExit = 1;
+	size_t index;
+
+	if(!client->session.tabs) {
+		KHOPANERRORCONSOLE_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"KHOPAN_ALLOCATE");
+		goto functionExit;
+	}
+
+	double screenWidth = GetSystemMetrics(SM_CXSCREEN);
+	double screenHeight = GetSystemMetrics(SM_CYSCREEN);
+	double width = screenWidth * 0.219619327;
+	double height = screenHeight * 0.5859375;
+	LPWSTR title = KHOPANFormatMessage(L"%ws [%ws]", client->address, client->name);
+	client->session.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME, title ? title : L"Session", WS_OVERLAPPEDWINDOW, (int) ((screenWidth - width) / 2.0), (int) ((screenHeight - height) / 2.0), (int) width, (int) height, NULL, NULL, instance, client);
+
+	if(title) {
+		KHOPAN_DEALLOCATE(title);
+	}
+
+	if(!client->session.window) {
+		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
+		goto freeTabs;
+	}
+
+	for(index = 0; index < sizeof(sessionTabs) / sizeof(sessionTabs[0]); index++) {
+		if(tabData[index].clientInitialize) {
+			client->session.tabs[index].data = 0;
+			HWND window = tabData[index].clientInitialize(client, &client->session.tabs[index].data, client->session.window);
+			client->session.tabs[index].tab = window ? window : NULL;
+		}
+	}
+
+	client->session.tab = CreateWindowExW(WS_EX_COMPOSITED, WC_TABCONTROL, L"", WS_CHILD | WS_TABSTOP | WS_VISIBLE, TAB_OFFSET, TAB_OFFSET, 0, 0, client->session.window, NULL, NULL, NULL);
+
+	if(!client->session.tab) {
+		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
+
+		for(index = 0; index < sizeof(sessionTabs) / sizeof(sessionTabs[0]); index++) {
+			if(tabData[index].clientUninitialize && client->session.tabs[index].tab) tabData[index].clientUninitialize(client, &client->session.tabs[index].data);
+		}
+
+		goto destroyWindow;
+	}
+
+	TCITEMW item = {0};
+	item.mask = TCIF_TEXT;
+
+	for(index = 0; index < sizeof(sessionTabs) / sizeof(sessionTabs[0]); index++) {
+		item.pszText = (LPWSTR) tabData[index].name;
+		SendMessageW(client->session.tab, TCM_INSERTITEM, index, (LPARAM) &item);
+	}
+
+	SendMessageW(client->session.tab, WM_SETFONT, (WPARAM) font, TRUE);
+	selectTab(client);
+	ShowWindow(client->session.window, SW_NORMAL);
+	MSG message;
+
+	while(GetMessageW(&message, NULL, 0, 0)) {
+		if(!IsDialogMessageW(client->session.window, &message)) {
+			TranslateMessage(&message);
+			DispatchMessageW(&message);
+		}
+	}
+
+	for(index = 0; index < sizeof(sessionTabs) / sizeof(sessionTabs[0]); index++) {
+		if(tabData[index].clientUninitialize && client->session.tabs[index].tab) {
+			tabData[index].clientUninitialize(client, &client->session.tabs[index].data);
+		}
+	}
+
+	codeExit = 0;
+	goto freeTabs;
+destroyWindow:
+	DestroyWindow(client->session.window);
+freeTabs:
+	KHOPAN_DEALLOCATE(client->session.tabs);
+functionExit:
+	if(codeExit != 0) {
+		LOG("[Session %ws]: Exit with code: %d\n", client->address, codeExit);
+	}
+
+	CloseHandle(client->session.thread);
+
+	for(index = 0; index < sizeof(SESSION); index++) {
+		((PBYTE) &client->session)[index] = 0;
+	}
+
+	return codeExit;
+}
+
+BOOLEAN WindowSessionHandlePacket(const PCLIENT client, const PHRSPPACKET packet) {
+	return FALSE;
+}
+
+void WindowSessionClose(const PCLIENT client) {
+	if(client->session.window) {
+		PostMessageW(client->session.window, WM_CLOSE, 0, 0);
+	}
+}
+
+void WindowSessionCleanup() {
+	for(size_t i = 0; i < sizeof(sessionTabs) / sizeof(sessionTabs[0]); i++) {
+		if(tabData[i].className) {
+			UnregisterClassW(tabData[i].className, instance);
+		}
+
+		if(tabData[i].uninitialize) {
+			tabData[i].uninitialize(&tabData[i].data);
+		}
+	}
+
+	UnregisterClassW(CLASS_NAME, instance);
+	KHOPAN_DEALLOCATE(tabData);
+}
+
+/*static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	USERDATA(PCLIENT, client, window, message, wparam, lparam);
 	RECT bounds;
 
@@ -172,103 +265,6 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 	return DefWindowProcW(window, message, wparam, lparam);
 }
 
-DWORD WINAPI WindowSession(_In_ PCLIENT client) {
-	if(!client) {
-		LOG("[Session]: Empty thread parameter\n");
-		return 1;
-	}
-
-	client->session.tabs = KHOPAN_ALLOCATE(sizeof(TABSTORE) * SIZEOFARRAY(sessionTabs));
-	DWORD codeExit = 1;
-	size_t index;
-
-	if(KHOPAN_ALLOCATE_FAILED(client->session.tabs)) {
-		KHOPANERRORCONSOLE_WIN32(KHOPAN_ALLOCATE_ERROR, KHOPAN_ALLOCATE_FUNCTION);
-		goto functionExit;
-	}
-
-	double screenWidth = GetSystemMetrics(SM_CXSCREEN);
-	double screenHeight = GetSystemMetrics(SM_CYSCREEN);
-	double width = screenWidth * 0.219619327;
-	double height = screenHeight * 0.5859375;
-	LPWSTR title = KHOPANFormatMessage(L"%ws [%ws]", client->address, client->name);
-	client->session.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_REMOTE_SESSION, title ? title : L"Session", WS_OVERLAPPEDWINDOW, (int) ((screenWidth - width) / 2.0), (int) ((screenHeight - height) / 2.0), (int) width, (int) height, NULL, NULL, instance, client);
-
-	if(title) {
-		LocalFree(title);
-	}
-
-	if(!client->session.window) {
-		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
-		goto freeTabs;
-	}
-
-	for(index = 0; index < SIZEOFARRAY(sessionTabs); index++) {
-		if(tabData[index].clientInitialize) {
-			client->session.tabs[index].data = 0;
-			HWND window = tabData[index].clientInitialize(client, &client->session.tabs[index].data, client->session.window);
-			client->session.tabs[index].tab = window ? window : NULL;
-		}
-	}
-
-	client->session.tab = CreateWindowExW(WS_EX_COMPOSITED, WC_TABCONTROL, L"", WS_CHILD | WS_TABSTOP | WS_VISIBLE, TAB_OFFSET, TAB_OFFSET, 0, 0, client->session.window, NULL, NULL, NULL);
-
-	if(!client->session.tab) {
-		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
-
-		for(index = 0; index < SIZEOFARRAY(sessionTabs); index++) {
-			if(tabData[index].clientUninitialize && client->session.tabs[index].tab) tabData[index].clientUninitialize(client, &client->session.tabs[index].data);
-		}
-
-		goto destroyWindow;
-	}
-
-	TCITEMW item = {0};
-	item.mask = TCIF_TEXT;
-
-	for(index = 0; index < SIZEOFARRAY(sessionTabs); index++) {
-		item.pszText = (LPWSTR) tabData[index].name;
-		SendMessageW(client->session.tab, TCM_INSERTITEM, index, (LPARAM) &item);
-	}
-
-	SendMessageW(client->session.tab, WM_SETFONT, (WPARAM) font, TRUE);
-	selectTab(client);
-	ShowWindow(client->session.window, SW_NORMAL);
-	MSG message;
-
-	while(GetMessageW(&message, NULL, 0, 0)) {
-		if(!IsDialogMessageW(client->session.window, &message)) {
-			TranslateMessage(&message);
-			DispatchMessageW(&message);
-		}
-	}
-
-	for(index = 0; index < SIZEOFARRAY(sessionTabs); index++) {
-		if(tabData[index].clientUninitialize && client->session.tabs[index].tab) {
-			tabData[index].clientUninitialize(client, &client->session.tabs[index].data);
-		}
-	}
-
-	codeExit = 0;
-	goto freeTabs;
-destroyWindow:
-	DestroyWindow(client->session.window);
-freeTabs:
-	KHOPAN_DEALLOCATE(client->session.tabs);
-functionExit:
-	if(codeExit != 0) {
-		LOG("[Session %ws]: Exit with code: %d\n", client->address, codeExit);
-	}
-
-	CloseHandle(client->session.thread);
-
-	for(index = 0; index < sizeof(SESSION); index++) {
-		((PBYTE) &client->session)[index] = 0;
-	}
-
-	return codeExit;
-}
-
 BOOL WindowSessionHandlePacket(const PCLIENT client, const PHRSPPACKET packet) {
 	for(size_t i = 0; i < SIZEOFARRAY(sessionTabs); i++) {
 		if(!tabData[i].packetHandler) {
@@ -288,10 +284,4 @@ BOOL WindowSessionHandlePacket(const PCLIENT client, const PHRSPPACKET packet) {
 	}
 
 	return FALSE;
-}
-
-void WindowSessionClose(const PCLIENT client) {
-	if(client->session.window) {
-		PostMessageW(client->session.window, WM_CLOSE, 0, 0);
-	}
 }*/
