@@ -241,6 +241,23 @@ functionExit:
 }
 
 BOOLEAN WindowSessionHandlePacket(const PCLIENT client, const PHRSPPACKET packet) {
+	for(size_t i = 0; i < sizeof(sessionTabs) / sizeof(sessionTabs[0]); i++) {
+		if(!tabData[i].packetHandler) {
+			continue;
+		}
+
+		PULONGLONG data = client->session.tabs ? &client->session.tabs[i].data : NULL;
+
+		if(tabData[i].alwaysProcessPacket) {
+			if(tabData[i].packetHandler(client, data, packet)) return TRUE;
+			continue;
+		}
+
+		if(client->session.tabs && client->session.tabs[i].tab && tabData[i].packetHandler(client, data, packet)) {
+			return TRUE;
+		}
+	}
+
 	return FALSE;
 }
 
@@ -264,24 +281,3 @@ void WindowSessionCleanup() {
 	UnregisterClassW(CLASS_NAME, instance);
 	KHOPAN_DEALLOCATE(tabData);
 }
-
-/*BOOL WindowSessionHandlePacket(const PCLIENT client, const PHRSPPACKET packet) {
-	for(size_t i = 0; i < SIZEOFARRAY(sessionTabs); i++) {
-		if(!tabData[i].packetHandler) {
-			continue;
-		}
-
-		PULONGLONG data = client->session.tabs ? &client->session.tabs[i].data : NULL;
-
-		if(tabData[i].alwaysProcessPacket) {
-			if(tabData[i].packetHandler(client, data, packet)) return TRUE;
-			continue;
-		}
-
-		if(client->session.tabs && client->session.tabs[i].tab && tabData[i].packetHandler(client, data, packet)) {
-			return TRUE;
-		}
-	}
-
-	return FALSE;
-}*/
