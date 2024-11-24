@@ -20,5 +20,5 @@ typedef struct {
 	ULONGLONG data;
 } TABINITIALIZER, *PTABINITIALIZER;
 
-//void __stdcall WindowSessionTabStream(const PTABINITIALIZER tab);
+void __stdcall WindowSessionTabStream(const PTABINITIALIZER tab);
 //void __stdcall WindowSessionTabAudio(const PTABINITIALIZER tab);

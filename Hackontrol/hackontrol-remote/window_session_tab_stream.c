@@ -1,5 +1,10 @@
-/*#include "window_session_tabs.h"
-#include <windowsx.h>
+#include "window_session.h"
+
+void __stdcall WindowSessionTabStream(const PTABINITIALIZER tab) {
+
+}
+
+/*#include <windowsx.h>
 #include <hrsp_remote.h>
 
 #define CLASS_NAME        L"HackontrolRemoteSessionTabStream"

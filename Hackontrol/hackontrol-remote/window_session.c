@@ -1,28 +1,43 @@
-#include "remote.h"
+#include "window_session.h"
+
+static void(__stdcall* sessionTabs[]) (const PTABINITIALIZER tab) = {
+	WindowSessionTabStream,
+	//WindowSessionTabAudio
+};
 
 #define CLASS_NAME L"HackontrolRemoteSession"
 
+extern HINSTANCE instance;
+extern HFONT font;
+
+typedef struct {
+	LPCWSTR name;
+	TABUNINITIALIZE uninitialize;
+	TABCLIENTINITIALIZE clientInitialize;
+	TABCLIENTUNINITIALIZE clientUninitialize;
+	TABPACKETHANDLER packetHandler;
+	BOOL alwaysProcessPacket;
+	ULONGLONG data;
+	LPCWSTR className;
+} TABDATA, *PTABDATA;
+
+static PTABDATA tabData;
+
 BOOLEAN WindowSessionInitialize() {
-	/*tabData = KHOPAN_ALLOCATE(sizeof(TABDATA) * SIZEOFARRAY(sessionTabs));
+	tabData = KHOPAN_ALLOCATE(sizeof(sessionTabs) / sizeof(sessionTabs[0]) * sizeof(TABDATA));
 
-	if(KHOPAN_ALLOCATE_FAILED(tabData)) {
-		KHOPANERRORMESSAGE_WIN32(KHOPAN_ALLOCATE_ERROR, KHOPAN_ALLOCATE_FUNCTION);
+	if(!tabData) {
+		KHOPANERRORMESSAGE_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"KHOPAN_ALLOCATE");
 		return FALSE;
-	}
-
-	size_t index;
-
-	for(index = 0; index < sizeof(TABDATA) * SIZEOFARRAY(sessionTabs); index++) {
-		((PBYTE) tabData)[index] = 0;
 	}
 
 	TABINITIALIZER initializer = {0};
 	initializer.windowClass.cbSize = sizeof(WNDCLASSEXW);
-	initializer.windowClass.lpfnWndProc = procedure;
+	initializer.windowClass.lpfnWndProc = DefWindowProcW;
 	initializer.windowClass.hInstance = instance;
 	initializer.windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
 	initializer.windowClass.hbrBackground = (HBRUSH) (COLOR_MENU + 1);
-	initializer.windowClass.lpszClassName = CLASS_REMOTE_SESSION;
+	initializer.windowClass.lpszClassName = CLASS_NAME;
 
 	if(!RegisterClassExW(&initializer.windowClass)) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"RegisterClassExW");
@@ -32,11 +47,7 @@ BOOLEAN WindowSessionInitialize() {
 
 	size_t counter;
 
-	for(index = 0; index < SIZEOFARRAY(sessionTabs); index++) {
-		if(!sessionTabs[index]) {
-			continue;
-		}
-
+	for(size_t index = 0; index < sizeof(sessionTabs) / sizeof(sessionTabs[0]); index++) {
 		for(counter = 0; counter < sizeof(TABINITIALIZER); counter++) {
 			((PBYTE) &initializer)[counter] = 0;
 		}
@@ -48,6 +59,7 @@ BOOLEAN WindowSessionInitialize() {
 		initializer.windowClass.hbrBackground = brush;
 		sessionTabs[index](&initializer);
 		tabData[index].name = initializer.name;
+		tabData[index].uninitialize = initializer.uninitialize;
 		tabData[index].clientInitialize = initializer.clientInitialize;
 		tabData[index].clientUninitialize = initializer.clientUninitialize;
 		tabData[index].packetHandler = initializer.packetHandler;
@@ -64,9 +76,7 @@ BOOLEAN WindowSessionInitialize() {
 		if(initializer.initialize) {
 			initializer.initialize(&tabData[index].data);
 		}
-
-		tabData[index].uninitialize = initializer.uninitialize;
-	}*/
+	}
 
 	return TRUE;
 }
@@ -84,34 +94,23 @@ void WindowSessionClose(const PCLIENT client) {
 }
 
 void WindowSessionCleanup() {
+	for(size_t i = 0; i < sizeof(sessionTabs) / sizeof(sessionTabs[0]); i++) {
+		if(tabData[i].className) {
+			UnregisterClassW(tabData[i].className, instance);
+		}
 
+		if(tabData[i].uninitialize) {
+			tabData[i].uninitialize(&tabData[i].data);
+		}
+	}
+
+	UnregisterClassW(CLASS_NAME, instance);
+	KHOPAN_DEALLOCATE(tabData);
 }
 
-/*#include "window_session_tabs.h"
-#include <CommCtrl.h>
+/*#include <CommCtrl.h>
 
 #define TAB_OFFSET 5
-
-static void(__stdcall* sessionTabs[]) (const PTABINITIALIZER tab) = {
-	WindowSessionTabStream,
-	WindowSessionTabAudio
-};
-
-extern HINSTANCE instance;
-extern HFONT font;
-
-typedef struct {
-	LPCWSTR name;
-	TABCLIENTINITIALIZE clientInitialize;
-	TABCLIENTUNINITIALIZE clientUninitialize;
-	TABPACKETHANDLER packetHandler;
-	BOOL alwaysProcessPacket;
-	ULONGLONG data;
-	LPCWSTR className;
-	TABUNINITIALIZE uninitialize;
-} TABDATA, *PTABDATA;
-
-static PTABDATA tabData;
 
 static void resizeTab(const PCLIENT client) {
 	if(!client->session.selectedTab) {
@@ -295,19 +294,4 @@ void WindowSessionClose(const PCLIENT client) {
 	if(client->session.window) {
 		PostMessageW(client->session.window, WM_CLOSE, 0, 0);
 	}
-}
-
-void WindowSessionCleanup() {
-	for(size_t i = 0; i < SIZEOFARRAY(sessionTabs); i++) {
-		if(tabData[i].className) {
-			UnregisterClassW(tabData[i].className, instance);
-		}
-
-		if(tabData[i].uninitialize) {
-			tabData[i].uninitialize(&tabData[i].data);
-		}
-	}
-
-	UnregisterClassW(CLASS_REMOTE_SESSION, instance);
-	KHOPAN_DEALLOCATE(tabData);
 }*/
