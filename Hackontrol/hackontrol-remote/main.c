@@ -68,11 +68,11 @@ int WINAPI WinMain(_In_ HINSTANCE programInstance, _In_opt_ HINSTANCE previousIn
 		goto freeClientList;
 	}
 
-	/*if(!WindowMainInitialize()) {
+	if(!WindowMainInitialize()) {
 		goto closeClientListMutex;
 	}
 
-	if(!WindowSessionInitialize()) {
+	/*if(!WindowSessionInitialize()) {
 		goto destroyMainWindow;
 	}*/
 
@@ -92,7 +92,7 @@ int WINAPI WinMain(_In_ HINSTANCE programInstance, _In_opt_ HINSTANCE previousIn
 		goto cleanupSocket;
 	}
 
-	//WindowMain();
+	WindowMain();
 
 	if(socketListen != INVALID_SOCKET) {
 		closesocket(socketListen);
@@ -107,7 +107,7 @@ cleanupSocket:
 cleanupSession:
 	//WindowSessionCleanup();
 destroyMainWindow:
-	//WindowMainDestroy();
+	WindowMainDestroy();
 closeClientListMutex:
 	WaitForSingleObject(clientListMutex, INFINITE);
 	CloseHandle(clientListMutex);
