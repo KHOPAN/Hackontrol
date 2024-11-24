@@ -3,10 +3,14 @@
 
 extern HINSTANCE instance;
 extern HFONT font;
+extern LINKEDLIST clientList;
+extern HANDLE clientListMutex;
 
 static HWND window;
 static HWND border;
 static HWND listView;
+static BOOL sortUsername;
+static BOOL sortAscending;
 
 static LRESULT CALLBACK procedure(HWND inputWindow, UINT message, WPARAM wparam, LPARAM lparam) {
 	RECT bounds;
@@ -212,6 +216,111 @@ void WindowMain() {
 	}
 }
 
+static int CALLBACK compareList(PCLIENT first, PCLIENT second, LPARAM parameter) {
+	if(!first || !second) {
+		return 0;
+	}
+
+	int compareUsername = wcscmp(first->name, second->name);
+	int compareAddress = wcscmp(first->name, second->name);
+	return (sortUsername ? compareUsername ? compareUsername : compareAddress : compareAddress ? compareAddress : compareUsername) * (sortAscending ? 1 : -1);
+}
+
+static BOOL insertInternal(const PCLIENT client) {
+	LVITEMW listItem = {0};
+	listItem.mask = LVIF_PARAM;
+	int size = (int) SendMessageW(listView, LVM_GETITEMCOUNT, 0, 0);
+	int index;
+
+	for(index = 0; index < size; index++) {
+		listItem.iItem = size - index - 1;
+
+		if(SendMessageW(listView, LVM_GETITEM, 0, (LPARAM) &listItem) && compareList(client, (PCLIENT) listItem.lParam, 0) > 0) {
+			listItem.iItem++;
+			break;
+		}
+	}
+
+	listItem.mask = LVIF_PARAM | LVIF_TEXT;
+	listItem.pszText = client->name ? client->name : L"(Missing name)";
+	listItem.lParam = (LPARAM) client;
+	index = (int) SendMessageW(listView, LVM_INSERTITEM, 0, (LPARAM) &listItem);
+
+	if(index == -1) {
+		KHOPANERRORCONSOLE_WIN32(ERROR_FUNCTION_FAILED, L"ListView_InsertItem");
+		return FALSE;
+	}
+
+	listItem.mask = LVIF_TEXT;
+	listItem.iSubItem = 1;
+	listItem.pszText = client->address ? client->address : L"(Missing address)";
+
+	if(!SendMessageW(listView, LVM_SETITEM, 0, (LPARAM) &listItem)) {
+		KHOPANERRORCONSOLE_WIN32(ERROR_FUNCTION_FAILED, L"ListView_SetItem");
+		SendMessageW(listView, LVM_DELETEITEM, index, 0);
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+BOOL WindowMainAdd(const PPCLIENT inputClient, const PPLINKEDLISTITEM inputItem) {
+	if(WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
+		KHOPANLASTERRORCONSOLE_WIN32(L"WaitForSingleObject");
+		return FALSE;
+	}
+
+	PLINKEDLISTITEM item;
+	KHOPANERROR error;
+
+	if(!KHOPANLinkedAdd(&clientList, (PBYTE) *inputClient, &item, &error)) {
+		KHOPANERRORCONSOLE_KHOPAN(error);
+		goto releaseMutex;
+	}
+
+	PCLIENT client = (PCLIENT) item->data;
+
+	if(!client || !insertInternal(client)) {
+		KHOPANLinkedRemove(item, NULL);
+		goto releaseMutex;
+	}
+
+	KHOPAN_DEALLOCATE(*inputClient);
+	*inputClient = client;
+	*inputItem = item;
+	ReleaseMutex(clientListMutex);
+	return TRUE;
+releaseMutex:
+	ReleaseMutex(clientListMutex);
+	return FALSE;
+}
+
+BOOL WindowMainRemove(const PLINKEDLISTITEM item) {
+	if(WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
+		KHOPANLASTERRORCONSOLE_WIN32(L"WaitForSingleObject");
+		return FALSE;
+	}
+
+	LVFINDINFOW information = {0};
+	information.flags = LVFI_PARAM;
+	information.lParam = (LPARAM) item->data;
+	int index = (int) SendMessageW(listView, LVM_FINDITEM, -1, (LPARAM) &information);
+
+	if(index >= 0) {
+		SendMessageW(listView, LVM_DELETEITEM, index, 0);
+	}
+
+	KHOPANERROR error;
+	index = KHOPANLinkedRemove(item, &error);
+	ReleaseMutex(clientListMutex);
+
+	if(!index) {
+		KHOPANERRORCONSOLE_KHOPAN(error);
+	}
+
+	return index;
+}
+
 void WindowMainExit() {
 	PostMessageW(window, WM_CLOSE, 0, 0);
 }
@@ -230,22 +339,6 @@ void WindowMainDestroy() {
 #define IDM_REMOTE_EXIT          0xE005
 
 #pragma warning(disable: 26454)
-
-extern LINKEDLIST clientList;
-extern HANDLE clientListMutex;
-
-static BOOL sortUsername;
-static BOOL sortAscending;
-
-static int CALLBACK compareList(PCLIENT first, PCLIENT second, LPARAM parameter) {
-	if(!first || !second) {
-		return 0;
-	}
-
-	int compareUsername = wcscmp(first->name, second->name);
-	int compareAddress = wcscmp(first->name, second->name);
-	return (sortUsername ? compareUsername ? compareUsername : compareAddress : compareAddress ? compareAddress : compareUsername) * (sortAscending ? 1 : -1);
-}
 
 static void clickHeader(const int index) {
 	if(index < 0 || WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
@@ -313,97 +406,4 @@ static BOOL openClient(const int index) {
 
 	ReleaseMutex(clientListMutex);
 	return FALSE;
-}
-
-static BOOL insertInternal(const PCLIENT client) {
-	LVITEMW listItem = {0};
-	listItem.mask = LVIF_PARAM;
-	int size = (int) SendMessageW(listView, LVM_GETITEMCOUNT, 0, 0);
-	int index;
-
-	for(index = 0; index < size; index++) {
-		listItem.iItem = size - index - 1;
-
-		if(SendMessageW(listView, LVM_GETITEM, 0, (LPARAM) &listItem) && compareList(client, (PCLIENT) listItem.lParam, 0) > 0) {
-			listItem.iItem++;
-			break;
-		}
-	}
-
-	listItem.mask = LVIF_PARAM | LVIF_TEXT;
-	listItem.pszText = client->name ? client->name : L"(Missing name)";
-	listItem.lParam = (LPARAM) client;
-	index = (int) SendMessageW(listView, LVM_INSERTITEM, 0, (LPARAM) &listItem);
-
-	if(index == -1) {
-		KHOPANERRORCONSOLE_WIN32(ERROR_FUNCTION_FAILED, L"ListView_InsertItem");
-		return FALSE;
-	}
-
-	listItem.mask = LVIF_TEXT;
-	listItem.iSubItem = 1;
-	listItem.pszText = client->address ? client->address : L"(Missing address)";
-
-	if(!SendMessageW(listView, LVM_SETITEM, 0, (LPARAM) &listItem)) {
-		KHOPANERRORCONSOLE_WIN32(ERROR_FUNCTION_FAILED, L"ListView_SetItem");
-		SendMessageW(listView, LVM_DELETEITEM, index, 0);
-		return FALSE;
-	}
-
-	return TRUE;
-}
-
-BOOL WindowMainAdd(const PPCLIENT inputClient, const PPLINKEDLISTITEM inputItem) {
-	if(WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
-		KHOPANLASTERRORCONSOLE_WIN32(L"WaitForSingleObject");
-		return FALSE;
-	}
-
-	PLINKEDLISTITEM item;
-
-	if(!KHOPANLinkedAdd(&clientList, (PBYTE) *inputClient, &item)) {
-		KHOPANLASTERRORCONSOLE_WIN32(L"KHOPANLinkedAdd");
-		goto releaseMutex;
-	}
-
-	PCLIENT client = (PCLIENT) item->data;
-
-	if(!client || !insertInternal(client)) {
-		KHOPANLinkedRemove(item);
-		goto releaseMutex;
-	}
-
-	KHOPAN_DEALLOCATE(*inputClient);
-	*inputClient = client;
-	*inputItem = item;
-	ReleaseMutex(clientListMutex);
-	return TRUE;
-releaseMutex:
-	ReleaseMutex(clientListMutex);
-	return FALSE;
-}
-
-BOOL WindowMainRemove(const PLINKEDLISTITEM item) {
-	if(WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
-		KHOPANLASTERRORCONSOLE_WIN32(L"WaitForSingleObject");
-		return FALSE;
-	}
-
-	LVFINDINFOW information = {0};
-	information.flags = LVFI_PARAM;
-	information.lParam = (LPARAM) item->data;
-	int index = (int) SendMessageW(listView, LVM_FINDITEM, -1, (LPARAM) &information);
-
-	if(index >= 0) {
-		SendMessageW(listView, LVM_DELETEITEM, index, 0);
-	}
-
-	index = KHOPANLinkedRemove(item);
-	ReleaseMutex(clientListMutex);
-
-	if(!index) {
-		KHOPANLASTERRORCONSOLE_WIN32(L"KHOPANLinkedRemove");
-	}
-
-	return index;
 }*/

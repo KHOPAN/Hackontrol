@@ -15,8 +15,7 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	LOG("[Client %ws]: Initializing\n", client->address);
 	KHOPANERROR error;
 	DWORD codeExit = 1;
-	//PLINKEDLISTITEM item = NULL;
-	//BOOL freeClient = FALSE;
+	PLINKEDLISTITEM item = NULL;
 
 	if(!HRSPServerSessionInitialize(client->socket, &client->hrsp, &serverData, &error)) {
 		KHOPANERRORCONSOLE_KHOPAN(error);
@@ -39,12 +38,11 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	client->name = packet.data;
 	LOG("[Client %ws]: Username: '%ws'\n", client->address, client->name);
 
-	/*if(!WindowMainAdd(&client, &item)) {
-		freeClient = TRUE;
+	if(!WindowMainAdd(&client, &item)) {
 		goto freeName;
 	}
 
-	while(HRSPReceivePacket(client->socket, &client->hrsp, &packet, &protocolError)) {
+	/*while(HRSPReceivePacket(client->socket, &client->hrsp, &packet, &protocolError)) {
 		if(!WindowSessionHandlePacket(client, &packet)) {
 			LOG("[Client %ws]: Unknown packet type: %u\n", client->address, packet.type);
 		}
@@ -62,13 +60,13 @@ closeSession:
 	if(client->session.thread) {
 		WindowSessionClose(client);
 		WaitForSingleObject(client->session.thread, INFINITE);
-	}
-freeName:
-	if(client->name) {
-		LocalFree(client->name);
 	}*/
 
 	codeExit = 0;
+freeName:
+	if(client->name) {
+		KHOPAN_DEALLOCATE(client->name);
+	}
 cleanupProtocol:
 	HRSPServerSessionCleanup(&client->hrsp);
 functionExit:
@@ -76,11 +74,13 @@ functionExit:
 	closesocket(client->socket);
 	CloseHandle(client->thread);
 
-	//if(freeClient) {
+	if(item) {
+		if(!WindowMainRemove(item)) {
+			codeExit = 1;
+		}
+	} else {
 		KHOPAN_DEALLOCATE(client);
-	//} else if(item && !WindowMainRemove(item)) {
-	//	codeExit = 1;
-	//}
+	}
 
 	return codeExit;
 }
