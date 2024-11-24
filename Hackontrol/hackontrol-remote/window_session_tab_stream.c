@@ -1,14 +1,137 @@
 #include "window_session.h"
 
-void __stdcall WindowSessionTabStream(const PTABINITIALIZER tab) {
+#define CLASS_NAME        L"HackontrolRemoteSessionTabStream"
+//#define CLASS_NAME_STREAM L"HackontrolRemoteSessionStream"
 
+//extern HINSTANCE instance;
+extern HFONT font;
+
+typedef struct {
+	PCLIENT client;
+	HANDLE mutex;
+	int buttonWidth;
+	int buttonHeight;
+	int activationDistance;
+	int minimumSize;
+	HWND button;
+	//STREAMTHREADDATA stream;
+} TABSTREAMDATA, *PTABSTREAMDATA;
+
+static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG customData, const HWND parent) {
+	PTABSTREAMDATA data = KHOPAN_ALLOCATE(sizeof(TABSTREAMDATA));
+
+	if(!data) {
+		KHOPANERRORCONSOLE_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"KHOPAN_ALLOCATE");
+		return NULL;
+	}
+
+	data->client = client;
+	data->mutex = CreateMutexExW(NULL, NULL, 0, SYNCHRONIZE | DELETE);
+
+	if(!data->mutex) {
+		KHOPANLASTERRORCONSOLE_WIN32(L"CreateMutexExW");
+		KHOPAN_DEALLOCATE(data);
+		return NULL;
+	}
+
+	HWND window = CreateWindowExW(WS_EX_CONTROLPARENT, CLASS_NAME, L"", WS_CHILD, 0, 0, 0, 0, parent, NULL, NULL, data);
+
+	if(!window) {
+		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
+		CloseHandle(data->mutex);
+		KHOPAN_DEALLOCATE(data);
+		return NULL;
+	}
+
+	double width = GetSystemMetrics(SM_CXSCREEN);
+	data->buttonWidth = (int) (width * 0.0732064422);
+	data->buttonHeight = (int) (((double) GetSystemMetrics(SM_CYSCREEN)) * 0.0325520833);
+	data->activationDistance = (int) (width * 0.00878477306);
+	data->minimumSize = (int) (width * 0.0263543192);
+	data->button = CreateWindowExW(0L, L"Button", L"Open Stream", WS_TABSTOP | WS_CHILD | WS_VISIBLE, 0, 0, data->buttonWidth, data->buttonHeight, window, NULL, NULL, NULL);
+
+	if(!data->button) {
+		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
+		DestroyWindow(window);
+		CloseHandle(data->mutex);
+		KHOPAN_DEALLOCATE(data);
+		return NULL;
+	}
+
+	SendMessageW(data->button, WM_SETFONT, (WPARAM) font, TRUE);
+	*customData = (ULONGLONG) data;
+	return window;
+}
+
+static LRESULT CALLBACK tabProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
+	USERDATA(PTABSTREAMDATA, data, window, message, wparam, lparam);
+	RECT bounds;
+
+	switch(message) {
+	/*case WM_COMMAND:
+		if(HIWORD(wparam) != BN_CLICKED) {
+			break;
+		}
+
+		if(data->stream.thread) {
+			PostMessageW(data->stream.window, WM_CLOSE, 0, 0);
+			WaitForSingleObject(data->stream.thread, INFINITE);
+		}
+
+		WaitForSingleObject(data->mutex, INFINITE);
+		ReleaseMutex(data->mutex);
+		data->stream.thread = CreateThread(NULL, 0, threadStream, data, 0, NULL);
+
+		if(!data->stream.thread) {
+			KHOPANLASTERRORCONSOLE_WIN32(L"CreateMutexExW");
+			break;
+		}
+
+		return 0;*/
+	case WM_CTLCOLORBTN:
+		SetDCBrushColor((HDC) wparam, 0xF9F9F9);
+		return (LRESULT) GetStockObject(DC_BRUSH);
+	case WM_DESTROY:
+		/*if(data->stream.thread) {
+			PostMessageW(data->stream.window, WM_CLOSE, 0, 0);
+			WaitForSingleObject(data->stream.thread, INFINITE);
+		}*/
+
+		WaitForSingleObject(data->mutex, INFINITE);
+		CloseHandle(data->mutex);
+		KHOPAN_DEALLOCATE(data);
+		return 0;
+	case WM_SIZE:
+		GetClientRect(window, &bounds);
+		SetWindowPos(data->button, NULL, (int) ((((double) bounds.right) - ((double) bounds.left) - ((double) data->buttonWidth)) / 2.0), (int) ((((double) bounds.bottom) - ((double) bounds.top) - ((double) data->buttonHeight)) / 2.0), 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+		return 0;
+	}
+
+	return DefWindowProcW(window, message, wparam, lparam);
+}
+
+void __stdcall WindowSessionTabStream(const PTABINITIALIZER tab) {
+	tab->name = L"Stream";
+	//tab->uninitialize = uninitialize;
+	tab->clientInitialize = clientInitialize;
+	//tab->packetHandler = packetHandler;
+	//tab->alwaysProcessPacket = TRUE;
+	tab->windowClass.lpfnWndProc = tabProcedure;
+	tab->windowClass.lpszClassName = CLASS_NAME;
+	/*QueryPerformanceFrequency((PLARGE_INTEGER) &performanceFrequency);
+	WNDCLASSEXW windowClass = {0};
+	windowClass.cbSize = sizeof(WNDCLASSEXW);
+	windowClass.style = CS_HREDRAW | CS_VREDRAW;
+	windowClass.lpfnWndProc = streamProcedure;
+	windowClass.hInstance = instance;
+	windowClass.hCursor = NULL;
+	windowClass.hbrBackground = (HBRUSH) (COLOR_MENU + 1);
+	windowClass.lpszClassName = CLASS_NAME_STREAM;
+	tab->data = RegisterClassExW(&windowClass);*/
 }
 
 /*#include <windowsx.h>
 #include <hrsp_remote.h>
-
-#define CLASS_NAME        L"HackontrolRemoteSessionTabStream"
-#define CLASS_NAME_STREAM L"HackontrolRemoteSessionStream"
 
 #define IDM_STREAM_ENABLE            0xE001
 #define IDM_SEND_METHOD_FULL         0xE002
@@ -29,9 +152,6 @@ void __stdcall WindowSessionTabStream(const PTABINITIALIZER tab) {
 #define QOI_OP_LUMA  0b10000000
 #define QOI_OP_RUN   0b11000000
 #define OP_MASK      0b11000000
-
-extern HINSTANCE instance;
-extern HFONT font;
 
 typedef enum {
 	SEND_METHOD_FULL = 0,
@@ -72,69 +192,10 @@ typedef struct {
 	POINT pressedLocation;
 } STREAMTHREADDATA, *PSTREAMTHREADDATA;
 
-typedef struct {
-	PCLIENT client;
-	HANDLE mutex;
-	UINT buttonWidth;
-	UINT buttonHeight;
-	int activationDistance;
-	int minimumSize;
-	HWND button;
-	STREAMTHREADDATA stream;
-} TABSTREAMDATA, *PTABSTREAMDATA;
-
-static LONGLONG performanceFrequency;
-
 static void __stdcall uninitialize(const PULONGLONG data) {
 	if(*data) {
 		UnregisterClassW(CLASS_NAME_STREAM, instance);
 	}
-}
-
-static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG customData, const HWND parent) {
-	PTABSTREAMDATA data = KHOPAN_ALLOCATE(sizeof(TABSTREAMDATA));
-
-	if(KHOPAN_ALLOCATE_FAILED(data)) {
-		KHOPANERRORCONSOLE_WIN32(KHOPAN_ALLOCATE_ERROR, KHOPAN_ALLOCATE_FUNCTION);
-		return NULL;
-	}
-
-	data->client = client;
-	data->mutex = CreateMutexExW(NULL, NULL, 0, SYNCHRONIZE | DELETE);
-
-	if(!data->mutex) {
-		KHOPANLASTERRORCONSOLE_WIN32(L"CreateMutexExW");
-		KHOPAN_DEALLOCATE(data);
-		return NULL;
-	}
-
-	HWND window = CreateWindowExW(WS_EX_CONTROLPARENT, CLASS_NAME, L"", WS_CHILD, 0, 0, 0, 0, parent, NULL, NULL, data);
-
-	if(!window) {
-		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
-		CloseHandle(data->mutex);
-		KHOPAN_DEALLOCATE(data);
-		return NULL;
-	}
-
-	double width = GetSystemMetrics(SM_CXSCREEN);
-	data->buttonWidth = (UINT) (width * 0.0732064422);
-	data->buttonHeight = (UINT) (((double) GetSystemMetrics(SM_CYSCREEN)) * 0.0325520833);
-	data->activationDistance = (UINT) (width * 0.00878477306);
-	data->minimumSize = (UINT) (width * 0.0263543192);
-	data->button = CreateWindowExW(0L, L"Button", L"Open Stream", WS_TABSTOP | WS_CHILD | WS_VISIBLE, 0, 0, data->buttonWidth, data->buttonHeight, window, NULL, NULL, NULL);
-
-	if(!data->button) {
-		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
-		DestroyWindow(window);
-		CloseHandle(data->mutex);
-		KHOPAN_DEALLOCATE(data);
-		return NULL;
-	}
-
-	SendMessageW(data->button, WM_SETFONT, (WPARAM) font, TRUE);
-	*customData = (ULONGLONG) data;
-	return window;
 }
 
 static void updateTitle(const PTABSTREAMDATA data) {
@@ -407,53 +468,6 @@ functionExit:
 	}
 
 	return codeExit;
-}
-
-static LRESULT CALLBACK tabProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
-	USERDATA(PTABSTREAMDATA, data, window, message, wparam, lparam);
-	RECT bounds;
-
-	switch(message) {
-	case WM_COMMAND:
-		if(HIWORD(wparam) != BN_CLICKED) {
-			break;
-		}
-
-		if(data->stream.thread) {
-			PostMessageW(data->stream.window, WM_CLOSE, 0, 0);
-			WaitForSingleObject(data->stream.thread, INFINITE);
-		}
-
-		WaitForSingleObject(data->mutex, INFINITE);
-		ReleaseMutex(data->mutex);
-		data->stream.thread = CreateThread(NULL, 0, threadStream, data, 0, NULL);
-
-		if(!data->stream.thread) {
-			KHOPANLASTERRORCONSOLE_WIN32(L"CreateMutexExW");
-			break;
-		}
-
-		return 0;
-	case WM_CTLCOLORBTN:
-		SetDCBrushColor((HDC) wparam, 0xF9F9F9);
-		return (LRESULT) GetStockObject(DC_BRUSH);
-	case WM_DESTROY:
-		if(data->stream.thread) {
-			PostMessageW(data->stream.window, WM_CLOSE, 0, 0);
-			WaitForSingleObject(data->stream.thread, INFINITE);
-		}
-
-		WaitForSingleObject(data->mutex, INFINITE);
-		CloseHandle(data->mutex);
-		KHOPAN_DEALLOCATE(data);
-		return 0;
-	case WM_SIZE:
-		GetClientRect(window, &bounds);
-		SetWindowPos(data->button, NULL, (int) ((((double) bounds.right) - ((double) bounds.left) - ((double) data->buttonWidth)) / 2.0), (int) ((((double) bounds.bottom) - ((double) bounds.top) - ((double) data->buttonHeight)) / 2.0), 0, 0, SWP_NOSIZE | SWP_NOZORDER);
-		return 0;
-	}
-
-	return DefWindowProcW(window, message, wparam, lparam);
 }
 
 static void limitToScreen(const PTABSTREAMDATA data, const int screenWidth, const int screenHeight, int left, int top, int right, int bottom) {
@@ -730,24 +744,4 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
-}
-
-void __stdcall WindowSessionTabStream(const PTABINITIALIZER tab) {
-	tab->name = L"Stream";
-	tab->uninitialize = uninitialize;
-	tab->clientInitialize = clientInitialize;
-	tab->packetHandler = packetHandler;
-	tab->alwaysProcessPacket = TRUE;
-	tab->windowClass.lpfnWndProc = tabProcedure;
-	tab->windowClass.lpszClassName = CLASS_NAME;
-	QueryPerformanceFrequency((PLARGE_INTEGER) &performanceFrequency);
-	WNDCLASSEXW windowClass = {0};
-	windowClass.cbSize = sizeof(WNDCLASSEXW);
-	windowClass.style = CS_HREDRAW | CS_VREDRAW;
-	windowClass.lpfnWndProc = streamProcedure;
-	windowClass.hInstance = instance;
-	windowClass.hCursor = NULL;
-	windowClass.hbrBackground = (HBRUSH) (COLOR_MENU + 1);
-	windowClass.lpszClassName = CLASS_NAME_STREAM;
-	tab->data = RegisterClassExW(&windowClass);
 }*/

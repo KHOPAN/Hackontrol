@@ -18,7 +18,7 @@ typedef struct {
 	TABCLIENTINITIALIZE clientInitialize;
 	TABCLIENTUNINITIALIZE clientUninitialize;
 	TABPACKETHANDLER packetHandler;
-	BOOL alwaysProcessPacket;
+	BOOLEAN alwaysProcessPacket;
 	ULONGLONG data;
 	LPCWSTR className;
 } TABDATA, *PTABDATA;
