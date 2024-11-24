@@ -40,7 +40,7 @@
     <ClInclude Include="remote.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="window_session_tabs.h">
+    <ClInclude Include="window_session.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

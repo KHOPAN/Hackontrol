@@ -2,7 +2,72 @@
 
 #define CLASS_NAME L"HackontrolRemoteSession"
 
-BOOL WindowSessionInitialize() {
+BOOLEAN WindowSessionInitialize() {
+	/*tabData = KHOPAN_ALLOCATE(sizeof(TABDATA) * SIZEOFARRAY(sessionTabs));
+
+	if(KHOPAN_ALLOCATE_FAILED(tabData)) {
+		KHOPANERRORMESSAGE_WIN32(KHOPAN_ALLOCATE_ERROR, KHOPAN_ALLOCATE_FUNCTION);
+		return FALSE;
+	}
+
+	size_t index;
+
+	for(index = 0; index < sizeof(TABDATA) * SIZEOFARRAY(sessionTabs); index++) {
+		((PBYTE) tabData)[index] = 0;
+	}
+
+	TABINITIALIZER initializer = {0};
+	initializer.windowClass.cbSize = sizeof(WNDCLASSEXW);
+	initializer.windowClass.lpfnWndProc = procedure;
+	initializer.windowClass.hInstance = instance;
+	initializer.windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
+	initializer.windowClass.hbrBackground = (HBRUSH) (COLOR_MENU + 1);
+	initializer.windowClass.lpszClassName = CLASS_REMOTE_SESSION;
+
+	if(!RegisterClassExW(&initializer.windowClass)) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"RegisterClassExW");
+		KHOPAN_DEALLOCATE(tabData);
+		return FALSE;
+	}
+
+	size_t counter;
+
+	for(index = 0; index < SIZEOFARRAY(sessionTabs); index++) {
+		if(!sessionTabs[index]) {
+			continue;
+		}
+
+		for(counter = 0; counter < sizeof(TABINITIALIZER); counter++) {
+			((PBYTE) &initializer)[counter] = 0;
+		}
+
+		HBRUSH brush = CreateSolidBrush(0xF9F9F9);
+		initializer.windowClass.cbSize = sizeof(WNDCLASSEXW);
+		initializer.windowClass.hInstance = instance;
+		initializer.windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
+		initializer.windowClass.hbrBackground = brush;
+		sessionTabs[index](&initializer);
+		tabData[index].name = initializer.name;
+		tabData[index].clientInitialize = initializer.clientInitialize;
+		tabData[index].clientUninitialize = initializer.clientUninitialize;
+		tabData[index].packetHandler = initializer.packetHandler;
+		tabData[index].alwaysProcessPacket = initializer.alwaysProcessPacket;
+		tabData[index].data = initializer.data;
+
+		if(initializer.windowClass.lpszClassName) {
+			if(!initializer.windowClass.lpfnWndProc) initializer.windowClass.lpfnWndProc = DefWindowProcW;
+			counter = RegisterClassExW(&initializer.windowClass);
+			if(counter) tabData[index].className = initializer.windowClass.lpszClassName;
+			if(!counter) DeleteObject(brush);
+		}
+
+		if(initializer.initialize) {
+			initializer.initialize(&tabData[index].data);
+		}
+
+		tabData[index].uninitialize = initializer.uninitialize;
+	}*/
+
 	return TRUE;
 }
 
@@ -10,7 +75,7 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 	return 0;
 }
 
-BOOL WindowSessionHandlePacket(const PCLIENT client, const PHRSPPACKET packet) {
+BOOLEAN WindowSessionHandlePacket(const PCLIENT client, const PHRSPPACKET packet) {
 	return FALSE;
 }
 
@@ -106,75 +171,6 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
-}
-
-BOOL WindowSessionInitialize() {
-	tabData = KHOPAN_ALLOCATE(sizeof(TABDATA) * SIZEOFARRAY(sessionTabs));
-
-	if(KHOPAN_ALLOCATE_FAILED(tabData)) {
-		KHOPANERRORMESSAGE_WIN32(KHOPAN_ALLOCATE_ERROR, KHOPAN_ALLOCATE_FUNCTION);
-		return FALSE;
-	}
-
-	size_t index;
-
-	for(index = 0; index < sizeof(TABDATA) * SIZEOFARRAY(sessionTabs); index++) {
-		((PBYTE) tabData)[index] = 0;
-	}
-
-	TABINITIALIZER initializer = {0};
-	initializer.windowClass.cbSize = sizeof(WNDCLASSEXW);
-	initializer.windowClass.lpfnWndProc = procedure;
-	initializer.windowClass.hInstance = instance;
-	initializer.windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
-	initializer.windowClass.hbrBackground = (HBRUSH) (COLOR_MENU + 1);
-	initializer.windowClass.lpszClassName = CLASS_REMOTE_SESSION;
-
-	if(!RegisterClassExW(&initializer.windowClass)) {
-		KHOPANLASTERRORMESSAGE_WIN32(L"RegisterClassExW");
-		KHOPAN_DEALLOCATE(tabData);
-		return FALSE;
-	}
-
-	size_t counter;
-
-	for(index = 0; index < SIZEOFARRAY(sessionTabs); index++) {
-		if(!sessionTabs[index]) {
-			continue;
-		}
-
-		for(counter = 0; counter < sizeof(TABINITIALIZER); counter++) {
-			((PBYTE) &initializer)[counter] = 0;
-		}
-
-		HBRUSH brush = CreateSolidBrush(0xF9F9F9);
-		initializer.windowClass.cbSize = sizeof(WNDCLASSEXW);
-		initializer.windowClass.hInstance = instance;
-		initializer.windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
-		initializer.windowClass.hbrBackground = brush;
-		sessionTabs[index](&initializer);
-		tabData[index].name = initializer.name;
-		tabData[index].clientInitialize = initializer.clientInitialize;
-		tabData[index].clientUninitialize = initializer.clientUninitialize;
-		tabData[index].packetHandler = initializer.packetHandler;
-		tabData[index].alwaysProcessPacket = initializer.alwaysProcessPacket;
-		tabData[index].data = initializer.data;
-
-		if(initializer.windowClass.lpszClassName) {
-			if(!initializer.windowClass.lpfnWndProc) initializer.windowClass.lpfnWndProc = DefWindowProcW;
-			counter = RegisterClassExW(&initializer.windowClass);
-			if(counter) tabData[index].className = initializer.windowClass.lpszClassName;
-			if(!counter) DeleteObject(brush);
-		}
-
-		if(initializer.initialize) {
-			initializer.initialize(&tabData[index].data);
-		}
-
-		tabData[index].uninitialize = initializer.uninitialize;
-	}
-
-	return TRUE;
 }
 
 DWORD WINAPI WindowSession(_In_ PCLIENT client) {

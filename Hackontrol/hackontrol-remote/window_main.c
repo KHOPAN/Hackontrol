@@ -11,8 +11,8 @@
 #define CLASS_NAME L"HackontrolRemote"
 
 typedef struct {
-	BYTE username : 1;
-	BYTE ascending : 1;
+	BOOLEAN username : 1;
+	BOOLEAN ascending : 1;
 } SORTPARAMETER;
 
 extern HINSTANCE instance;
@@ -35,7 +35,7 @@ static int CALLBACK compareList(PCLIENT first, PCLIENT second, LPARAM parameter)
 	return (sort.username ? compareUsername ? compareUsername : compareAddress : compareAddress ? compareAddress : compareUsername) * (sort.ascending ? 1 : -1);
 }
 
-static BOOL insertInternal(const PCLIENT client) {
+static BOOLEAN insertInternal(const PCLIENT client) {
 	LVITEMW listItem = {0};
 	listItem.mask = LVIF_PARAM;
 	int size = (int) SendMessageW(listView, LVM_GETITEMCOUNT, 0, 0);
@@ -122,7 +122,7 @@ static void clickHeader(const int index) {
 	ReleaseMutex(clientListMutex);
 }
 
-static BOOL openClient(const int index) {
+static BOOLEAN openClient(const int index) {
 	if(index < 0 && WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
 		return FALSE;
 	}
@@ -145,12 +145,12 @@ static LRESULT CALLBACK procedure(HWND inputWindow, UINT message, WPARAM wparam,
 	RECT bounds;
 	LVHITTESTINFO information = {0};
 	HWND header;
-	BOOL showItem = TRUE;
+	BOOLEAN showItem = TRUE;
 	LVITEMW item = {0};
 	PCLIENT client = NULL;
 	HMENU menu;
-	BOOL topMost;
-	BOOL status;
+	BOOLEAN topMost;
+	BOOLEAN status;
 	PLINKEDLISTITEM listItem;
 
 	switch(message) {
@@ -255,7 +255,7 @@ static LRESULT CALLBACK procedure(HWND inputWindow, UINT message, WPARAM wparam,
 	return DefWindowProcW(inputWindow, message, wparam, lparam);
 }
 
-BOOL WindowMainInitialize() {
+BOOLEAN WindowMainInitialize() {
 	LOG("[Main Window]: Initializing\n");
 	WNDCLASSEXW windowClass = {0};
 	windowClass.cbSize = sizeof(WNDCLASSEXW);
@@ -341,7 +341,7 @@ void WindowMain() {
 	}
 }
 
-BOOL WindowMainAdd(const PPCLIENT inputClient, const PPLINKEDLISTITEM inputItem) {
+BOOLEAN WindowMainAdd(const PPCLIENT inputClient, const PPLINKEDLISTITEM inputItem) {
 	if(WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"WaitForSingleObject");
 		return FALSE;
@@ -372,7 +372,7 @@ releaseMutex:
 	return FALSE;
 }
 
-BOOL WindowMainRemove(const PLINKEDLISTITEM item) {
+BOOLEAN WindowMainRemove(const PLINKEDLISTITEM item) {
 	if(WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"WaitForSingleObject");
 		return FALSE;

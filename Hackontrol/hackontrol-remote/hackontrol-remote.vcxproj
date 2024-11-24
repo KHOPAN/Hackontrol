@@ -160,7 +160,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="remote.h" />
-    <ClInclude Include="window_session_tabs.h" />
+    <ClInclude Include="window_session.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\hrsp-protocol\hrsp-protocol.vcxproj">
