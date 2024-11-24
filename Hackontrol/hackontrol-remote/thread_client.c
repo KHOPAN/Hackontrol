@@ -42,27 +42,25 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 		goto freeName;
 	}
 
-	/*while(HRSPReceivePacket(client->socket, &client->hrsp, &packet, &protocolError)) {
-		if(!WindowSessionHandlePacket(client, &packet)) {
+	while(HRSPPacketReceive(&client->hrsp, &packet, &error)) {
+		/*if(!WindowSessionHandlePacket(client, &packet)) {
 			LOG("[Client %ws]: Unknown packet type: %u\n", client->address, packet.type);
-		}
+		}*/
 
-		HRSPFreePacket(&packet, NULL);
+		if(packet.size) KHOPAN_DEALLOCATE(packet.data);
 	}
 
-	if(!protocolError.code || (!protocolError.win32 && protocolError.code == HRSP_ERROR_CONNECTION_CLOSED) || (protocolError.win32 && (protocolError.code == WSAEINTR || protocolError.code == WSAECONNABORTED || protocolError.code == WSAECONNRESET || protocolError.code == WSAENOTSOCK))) {
+	if((error.facility == ERROR_FACILITY_HRSP && error.code == ERROR_HRSP_CONNECTION_CLOSED) || (error.facility == ERROR_FACILITY_WIN32 && (error.code == WSAECONNABORTED || error.code == WSAECONNRESET || error.code == WSAEINTR || error.code == WSAENOTSOCK))) {
 		codeExit = 0;
 		goto closeSession;
 	}
 
-	ERROR_HRSP(L"HRSPReceivePacket");
+	KHOPANERRORCONSOLE_KHOPAN(error);
 closeSession:
 	if(client->session.thread) {
-		WindowSessionClose(client);
+		//WindowSessionClose(client);
 		WaitForSingleObject(client->session.thread, INFINITE);
-	}*/
-
-	codeExit = 0;
+	}
 freeName:
 	if(client->name) {
 		KHOPAN_DEALLOCATE(client->name);
