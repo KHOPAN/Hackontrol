@@ -7,6 +7,38 @@
 extern HFONT font;
 
 typedef struct {
+	HANDLE thread;
+	/*int minimumWidth;
+	int minimumHeight;
+	HWND window;
+	LONGLONG lastTime;
+	LONGLONG lastUpdate;
+	ULONGLONG totalTime;
+	ULONGLONG totalTimes;
+	BOOL stream;
+	SENDMETHOD method;
+	BOOL fullscreen;
+	BOOL limitToScreen;
+	BOOL lockFrame;
+	BOOL matchAspectRatio;
+	LONG_PTR windowStyle;
+	WINDOWPLACEMENT windowPlacement;
+	UINT targetWidth;
+	UINT targetHeight;
+	PBYTE pixels;
+	UINT renderWidth;
+	UINT renderHeight;
+	UINT renderX;
+	UINT renderY;
+	BOOL cursorNorth;
+	BOOL cursorEast;
+	BOOL cursorSouth;
+	BOOL cursorWest;
+	RECT pressedBounds;
+	POINT pressedLocation;*/
+} STREAMTHREADDATA, *PSTREAMTHREADDATA;
+
+typedef struct {
 	PCLIENT client;
 	HANDLE mutex;
 	int buttonWidth;
@@ -14,7 +46,7 @@ typedef struct {
 	int activationDistance;
 	int minimumSize;
 	HWND button;
-	//STREAMTHREADDATA stream;
+	STREAMTHREADDATA stream;
 } TABSTREAMDATA, *PTABSTREAMDATA;
 
 static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG customData, const HWND parent) {
@@ -63,18 +95,59 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 	return window;
 }
 
+static DWORD WINAPI threadStream(_In_ PTABSTREAMDATA data) {
+	if(!data) {
+		return 1;
+	}
+
+	/*data->stream.minimumWidth = data->minimumSize;
+	data->stream.minimumHeight = data->minimumSize;
+	data->stream.limitToScreen = TRUE;
+	data->stream.matchAspectRatio = TRUE;
+	data->stream.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME_STREAM, NULL, WS_POPUP | WS_VISIBLE, 0, 0, (int) (((double) GetSystemMetrics(SM_CXSCREEN)) * 0.32942899), (int) (((double) GetSystemMetrics(SM_CYSCREEN)) * 0.390625), NULL, NULL, instance, data);
+	DWORD codeExit = 1;
+
+	if(!data->stream.window) {
+		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
+		goto functionExit;
+	}
+
+	updateTitle(data);
+	MSG message;
+
+	while(GetMessageW(&message, NULL, 0, 0)) {
+		TranslateMessage(&message);
+		DispatchMessageW(&message);
+	}
+
+	data->stream.stream = FALSE;
+	sendFrameCode(data);
+	codeExit = 0;
+functionExit:
+	WaitForSingleObject(data->mutex, INFINITE);
+	ReleaseMutex(data->mutex);
+	CloseHandle(data->stream.thread);
+
+	for(size_t i = 0; i < sizeof(STREAMTHREADDATA); i++) {
+		((PBYTE) &data->stream)[i] = 0;
+	}
+
+	return codeExit;*/
+	return 0;
+}
+
 static LRESULT CALLBACK tabProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	USERDATA(PTABSTREAMDATA, data, window, message, wparam, lparam);
 	RECT bounds;
 
 	switch(message) {
-	/*case WM_COMMAND:
+	case WM_COMMAND:
 		if(HIWORD(wparam) != BN_CLICKED) {
 			break;
 		}
 
 		if(data->stream.thread) {
-			PostMessageW(data->stream.window, WM_CLOSE, 0, 0);
+			//PostMessageW(data->stream.window, WM_CLOSE, 0, 0);
 			WaitForSingleObject(data->stream.thread, INFINITE);
 		}
 
@@ -87,15 +160,15 @@ static LRESULT CALLBACK tabProcedure(_In_ HWND window, _In_ UINT message, _In_ W
 			break;
 		}
 
-		return 0;*/
+		return 0;
 	case WM_CTLCOLORBTN:
 		SetDCBrushColor((HDC) wparam, 0xF9F9F9);
 		return (LRESULT) GetStockObject(DC_BRUSH);
 	case WM_DESTROY:
-		/*if(data->stream.thread) {
-			PostMessageW(data->stream.window, WM_CLOSE, 0, 0);
+		if(data->stream.thread) {
+			//PostMessageW(data->stream.window, WM_CLOSE, 0, 0);
 			WaitForSingleObject(data->stream.thread, INFINITE);
-		}*/
+		}
 
 		WaitForSingleObject(data->mutex, INFINITE);
 		CloseHandle(data->mutex);
@@ -159,38 +232,6 @@ typedef enum {
 	SEND_METHOD_COLOR,
 	SEND_METHOD_UNCOMPRESSED,
 } SENDMETHOD;
-
-typedef struct {
-	HANDLE thread;
-	int minimumWidth;
-	int minimumHeight;
-	HWND window;
-	LONGLONG lastTime;
-	LONGLONG lastUpdate;
-	ULONGLONG totalTime;
-	ULONGLONG totalTimes;
-	BOOL stream;
-	SENDMETHOD method;
-	BOOL fullscreen;
-	BOOL limitToScreen;
-	BOOL lockFrame;
-	BOOL matchAspectRatio;
-	LONG_PTR windowStyle;
-	WINDOWPLACEMENT windowPlacement;
-	UINT targetWidth;
-	UINT targetHeight;
-	PBYTE pixels;
-	UINT renderWidth;
-	UINT renderHeight;
-	UINT renderX;
-	UINT renderY;
-	BOOL cursorNorth;
-	BOOL cursorEast;
-	BOOL cursorSouth;
-	BOOL cursorWest;
-	RECT pressedBounds;
-	POINT pressedLocation;
-} STREAMTHREADDATA, *PSTREAMTHREADDATA;
 
 static void __stdcall uninitialize(const PULONGLONG data) {
 	if(*data) {
@@ -428,46 +469,6 @@ static void sendFrameCode(const PTABSTREAMDATA data) {
 	packet.type = HRSP_REMOTE_SERVER_STREAM_CODE_PACKET;
 	packet.data = &byte;
 	HRSPSendPacket(data->client->socket, &data->client->hrsp, &packet, NULL);
-}
-
-static DWORD WINAPI threadStream(_In_ PTABSTREAMDATA data) {
-	if(!data) {
-		return 1;
-	}
-
-	data->stream.minimumWidth = data->minimumSize;
-	data->stream.minimumHeight = data->minimumSize;
-	data->stream.limitToScreen = TRUE;
-	data->stream.matchAspectRatio = TRUE;
-	data->stream.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME_STREAM, NULL, WS_POPUP | WS_VISIBLE, 0, 0, (int) (((double) GetSystemMetrics(SM_CXSCREEN)) * 0.32942899), (int) (((double) GetSystemMetrics(SM_CYSCREEN)) * 0.390625), NULL, NULL, instance, data);
-	DWORD codeExit = 1;
-
-	if(!data->stream.window) {
-		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
-		goto functionExit;
-	}
-
-	updateTitle(data);
-	MSG message;
-
-	while(GetMessageW(&message, NULL, 0, 0)) {
-		TranslateMessage(&message);
-		DispatchMessageW(&message);
-	}
-
-	data->stream.stream = FALSE;
-	sendFrameCode(data);
-	codeExit = 0;
-functionExit:
-	WaitForSingleObject(data->mutex, INFINITE);
-	ReleaseMutex(data->mutex);
-	CloseHandle(data->stream.thread);
-
-	for(size_t i = 0; i < sizeof(STREAMTHREADDATA); i++) {
-		((PBYTE) &data->stream)[i] = 0;
-	}
-
-	return codeExit;
 }
 
 static void limitToScreen(const PTABSTREAMDATA data, const int screenWidth, const int screenHeight, int left, int top, int right, int bottom) {
