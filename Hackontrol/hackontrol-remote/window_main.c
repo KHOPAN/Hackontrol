@@ -212,6 +212,10 @@ void WindowMain() {
 	}
 }
 
+void WindowMainExit() {
+	PostMessageW(window, WM_CLOSE, 0, 0);
+}
+
 void WindowMainDestroy() {
 	DestroyWindow(window);
 	UnregisterClassW(CLASS_REMOTE, instance);
@@ -402,8 +406,4 @@ BOOL WindowMainRemove(const PLINKEDLISTITEM item) {
 	}
 
 	return index;
-}
-
-void WindowMainExit() {
-	PostMessageW(window, WM_CLOSE, 0, 0);
 }*/

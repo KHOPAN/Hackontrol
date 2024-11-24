@@ -47,7 +47,7 @@ BOOL WindowMainInitialize();
 void WindowMain();
 //BOOL WindowMainAdd(const PPCLIENT client, const PPLINKEDLISTITEM item);
 //BOOL WindowMainRemove(const PLINKEDLISTITEM item);
-//void WindowMainExit();
+void WindowMainExit();
 void WindowMainDestroy();
 /*BOOL WindowSessionInitialize();
 DWORD WINAPI WindowSession(_In_ PCLIENT client);

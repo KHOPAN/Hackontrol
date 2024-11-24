@@ -128,7 +128,7 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 freeList:
 	KHOPANArrayFree(&list, NULL);
 functionExit:
-	//WindowMainExit();
+	WindowMainExit();
 	LOG("[Server]: Exit with code: %d\n", codeExit);
 	return codeExit;
 }
