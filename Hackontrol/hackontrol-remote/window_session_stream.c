@@ -1,4 +1,5 @@
 #include "window_session.h"
+#include "hrsp_remote.h"
 
 #define CLASS_NAME        L"HackontrolRemoteSessionTabStream"
 #define CLASS_NAME_STREAM L"HackontrolRemoteSessionStream"
@@ -117,6 +118,9 @@ static DWORD WINAPI threadStream(_In_ PTABSTREAMDATA data) {
 		goto functionExit;
 	}
 
+	HRSPPACKET packet = {0};
+	packet.type = HRSP_REMOTE_SERVER_STREAM_REQUEST;
+	HRSPPacketSend(&data->client->hrsp, &packet, NULL);
 	MSG message;
 
 	while(GetMessageW(&message, NULL, 0, 0)) {
