@@ -1,7 +1,7 @@
 #include <WS2tcpip.h>
 #include <lmcons.h>
+#include <hrsp_remote.h>
 #include "hrsp_client.h"
-#include "hrsp_remote.h"
 
 #define ERROR_WIN32(codeError, sourceName, functionName)  if(error){error->facility=ERROR_FACILITY_WIN32;error->code=codeError;error->source=sourceName;error->function=functionName;}
 #define ERROR_WSA(sourceName, functionName)               if(error){error->facility=ERROR_FACILITY_WIN32;error->code=WSAGetLastError();error->source=sourceName;error->function=functionName;}
@@ -123,10 +123,8 @@ cleanupSocket:
 
 /*#include <WS2tcpip.h>
 #include <libkhopan.h>
-#include <lmcons.h>
 #include <hrsp_handshake.h>
 #include <hrsp_packet.h>
-#include <hrsp_remote.h>
 #include "hrsp_client_internal.h"
 
 static void audioCapture(const PHRSPPACKET packet, const DWORD audioThreadIdentifier) {
