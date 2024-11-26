@@ -93,6 +93,12 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 	}
 
 	while(HRSPPacketReceive(&protocolData, &packet, error)) {
+		switch(packet.type) {
+		case HRSP_REMOTE_SERVER_STREAM_REQUEST:
+			printf("Stream Request\n");
+			break;
+		}
+
 		if(packet.data) {
 			printf("Packet: %.*s\n", (unsigned int) packet.size, (LPCSTR) packet.data);
 			KHOPAN_DEALLOCATE(packet.data);
