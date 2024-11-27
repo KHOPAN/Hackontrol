@@ -1,4 +1,4 @@
-//#include <Windows.Graphics.Capture.Interop.h>
+#include <winrt/Windows.Foundation.h>
 
 #include <winrt/Windows.Graphics.Capture.h>
 #include <windows.graphics.capture.interop.h>
@@ -10,6 +10,8 @@
 
 #include <winrt/windows.graphics.directx.direct3d11.h>
 #include <windows.graphics.directx.direct3d11.interop.h>
+
+#include <winrt/impl/windows.graphics.capture.2.h>
 
 inline auto CreateD3D11Device(D3D_DRIVER_TYPE const type, UINT flags, winrt::com_ptr<ID3D11Device>& device) {
     WINRT_ASSERT(!device);
@@ -35,6 +37,13 @@ inline auto CreateDirect3DDevice(IDXGIDevice* dxgi_device) {
     return d3d_device.as<winrt::Windows::Graphics::DirectX::Direct3D11::IDirect3DDevice>();
 }
 
+class TestReceiver {
+public:
+    void OnFrameArrived(winrt::Windows::Graphics::Capture::Direct3D11CaptureFramePool const& sender, winrt::Windows::Foundation::IInspectable const&) {
+        printf("Frame arrived!\n");
+    }
+};
+
 extern "C" {
     void capture() {
         auto d3dDevice = CreateD3D11Device();
@@ -45,7 +54,14 @@ extern "C" {
         auto interop_factory = winrt::get_activation_factory<winrt::Windows::Graphics::Capture::GraphicsCaptureItem, IGraphicsCaptureItemInterop>();
         winrt::Windows::Graphics::Capture::GraphicsCaptureItem item = {nullptr};
         winrt::check_hresult(interop_factory->CreateForMonitor(monitor, winrt::guid_of<ABI::Windows::Graphics::Capture::IGraphicsCaptureItem>(), winrt::put_abi(item)));
-        //return item;
-        printf("Got item!\n");
+
+        winrt::Windows::Graphics::Capture::Direct3D11CaptureFramePool pool = winrt::Windows::Graphics::Capture::Direct3D11CaptureFramePool::Create(device, winrt::Windows::Graphics::DirectX::DirectXPixelFormat::B8G8R8A8UIntNormalized, 2, item.Size());
+        winrt::Windows::Graphics::Capture::GraphicsCaptureSession session = pool.CreateCaptureSession(item);
+
+        TestReceiver receiver;
+        pool.FrameArrived({&receiver, &TestReceiver::OnFrameArrived});
+        session.StartCapture();
+        printf("Capture started!\n");
+        Sleep(5000);
     }
 }
