@@ -85,6 +85,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib />
+    <Lib>
+      <AdditionalDependencies>D3D11.lib</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -105,6 +108,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib />
+    <Lib>
+      <AdditionalDependencies>D3D11.lib</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -121,6 +127,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib />
+    <Lib>
+      <AdditionalDependencies>D3D11.lib</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -141,6 +150,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib />
+    <Lib>
+      <AdditionalDependencies>D3D11.lib</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="capture.cpp" />
