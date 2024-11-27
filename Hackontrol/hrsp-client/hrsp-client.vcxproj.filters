@@ -20,6 +20,9 @@
     <ClCompile Include="thread_audio.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="capture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="hrsp_client.h">

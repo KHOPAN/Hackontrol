@@ -9,6 +9,8 @@
 #define ERROR_CLEAR                                       ERROR_COMMON(ERROR_COMMON_SUCCESS,NULL,NULL)
 #define ERROR_SOURCE(sourceName)                          if(error){error->function=error->source;error->source=sourceName;}
 
+void capture();
+
 BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const PHRSPCLIENTINPUT input, const PKHOPANERROR error) {
 	WSADATA data;
 	int status = WSAStartup(MAKEWORD(2, 2), &data);
@@ -91,6 +93,8 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 	if(input && input->callbackConnected) {
 		input->callbackConnected(input->parameter);
 	}
+
+	capture();
 
 	while(HRSPPacketReceive(&protocolData, &packet, error)) {
 		switch(packet.type) {
