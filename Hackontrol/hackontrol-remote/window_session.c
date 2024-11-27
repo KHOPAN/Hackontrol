@@ -3,7 +3,7 @@
 
 static void(__stdcall* sessionTabs[]) (const PTABINITIALIZER tab) = {
 	WindowSessionTabStream,
-	//WindowSessionTabAudio
+	WindowSessionTabAudio
 };
 
 #define CLASS_NAME L"HackontrolRemoteSession"

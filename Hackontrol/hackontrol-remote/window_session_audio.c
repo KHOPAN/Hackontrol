@@ -1,8 +1,17 @@
-/*#include "window_session_tabs.h"
-#include <CommCtrl.h>
-#include <hrsp_remote.h>
+#include "window_session.h"
 
 #define CLASS_NAME L"HackontrolRemoteSessionTabAudio"
+
+void __stdcall WindowSessionTabAudio(const PTABINITIALIZER tab) {
+	tab->name = L"Audio";
+	//tab->clientInitialize = clientInitialize;
+	//tab->packetHandler = packetHandler;
+	//tab->windowClass.lpfnWndProc = procedure;
+	tab->windowClass.lpszClassName = CLASS_NAME;
+}
+
+/*#include <CommCtrl.h>
+#include <hrsp_remote.h>
 
 #define VOLUME_OFFSET 2
 
@@ -476,12 +485,4 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
-}
-
-void __stdcall WindowSessionTabAudio(const PTABINITIALIZER tab) {
-	tab->name = L"Audio";
-	tab->clientInitialize = clientInitialize;
-	//tab->packetHandler = packetHandler;
-	tab->windowClass.lpfnWndProc = procedure;
-	tab->windowClass.lpszClassName = CLASS_NAME;
 }*/
