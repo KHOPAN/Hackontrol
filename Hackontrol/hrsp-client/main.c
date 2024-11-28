@@ -11,6 +11,10 @@
 
 void capture();
 
+static void packetRequestStream(const PHRSPREMOTESTREAMREQUEST request) {
+
+}
+
 BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const PHRSPCLIENTINPUT input, const PKHOPANERROR error) {
 	WSADATA data;
 	int status = WSAStartup(MAKEWORD(2, 2), &data);
@@ -99,7 +103,8 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 	while(HRSPPacketReceive(&protocolData, &packet, error)) {
 		switch(packet.type) {
 		case HRSP_REMOTE_SERVER_STREAM_REQUEST:
-			printf("Stream Request\n");
+			if(!packet.data || packet.size != sizeof(HRSPREMOTESTREAMREQUEST)) break;
+			packetRequestStream(packet.data);
 			break;
 		}
 
