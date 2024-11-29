@@ -22,6 +22,18 @@ BOOLEAN PopupStreamInitialize() {
 	return TRUE;
 }
 
+BOOLEAN PopupStreamSessionInitialize(const PPOPUPSTREAMSESSION session) {
+	if(!session) {
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+void PopupStreamSessionCleanup(const PPOPUPSTREAMSESSION session) {
+
+}
+
 void PopupStreamCleanup() {
 	UnregisterClassW(CLASS_NAME, instance);
 }
