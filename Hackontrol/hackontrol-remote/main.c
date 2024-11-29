@@ -1,5 +1,6 @@
 #include "remote.h"
 #include <CommCtrl.h>
+#include "popup_stream.h"
 
 HINSTANCE instance;
 HFONT font;
@@ -76,12 +77,16 @@ int WINAPI WinMain(_In_ HINSTANCE programInstance, _In_opt_ HINSTANCE previousIn
 		goto destroyMainWindow;
 	}
 
+	if(!PopupStreamInitialize()) {
+		goto cleanupSession;
+	}
+
 	WSADATA data;
 	int status = WSAStartup(MAKEWORD(2, 2), &data);
 
 	if(status) {
 		KHOPANERRORMESSAGE_WIN32(status, L"WSAStartup");
-		goto cleanupSession;
+		goto cleanupPopupStream;
 	}
 
 	SOCKET socketListen = INVALID_SOCKET;
@@ -104,6 +109,8 @@ int WINAPI WinMain(_In_ HINSTANCE programInstance, _In_opt_ HINSTANCE previousIn
 	codeExit = 0;
 cleanupSocket:
 	WSACleanup();
+cleanupPopupStream:
+	PopupStreamCleanup();
 cleanupSession:
 	WindowSessionCleanup();
 destroyMainWindow:
