@@ -10,12 +10,50 @@ typedef struct {
 } POPUPSTREAMDATA, *PPOPUPSTREAMDATA;
 
 static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
+	PAINTSTRUCT paintStruct;
+	HDC context;
+	HDC memoryContext;
+	RECT bounds;
+	HBITMAP bitmap;
+	HBITMAP oldBitmap;
+	HBRUSH brush;
+
 	switch(message) {
 	case WM_CLOSE:
 		DestroyWindow(window);
 		return 0;
 	case WM_DESTROY:
 		PostQuitMessage(0);
+		return 0;
+	case WM_MOUSEMOVE:
+		SetCursor(LoadCursorW(NULL, IDC_ARROW));
+		return 0;
+	case WM_PAINT:
+		context = BeginPaint(window, &paintStruct);
+		memoryContext = CreateCompatibleDC(context);
+		GetClientRect(window, &bounds);
+		bitmap = CreateCompatibleBitmap(context, bounds.right, bounds.bottom);
+		oldBitmap = SelectObject(memoryContext, bitmap);
+		brush = GetStockObject(DC_BRUSH);
+		SetDCBrushColor(memoryContext, 0x000000);
+		FillRect(memoryContext, &bounds, brush);
+
+		/*if(data->stream.pixels && WaitForSingleObject(data->mutex, INFINITE) != WAIT_FAILED) {
+			information.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+			information.bmiHeader.biWidth = data->stream.targetWidth;
+			information.bmiHeader.biHeight = data->stream.targetHeight;
+			information.bmiHeader.biPlanes = 1;
+			information.bmiHeader.biBitCount = 32;
+			SetStretchBltMode(memoryContext, HALFTONE);
+			StretchDIBits(memoryContext, data->stream.matchAspectRatio && !data->stream.fullscreen ? bounds.left : data->stream.renderX, data->stream.matchAspectRatio && !data->stream.fullscreen ? bounds.top : data->stream.renderY, data->stream.matchAspectRatio && !data->stream.fullscreen ? bounds.right - bounds.left : data->stream.renderWidth, data->stream.matchAspectRatio && !data->stream.fullscreen ? bounds.bottom - bounds.top : data->stream.renderHeight, 0, 0, data->stream.targetWidth, data->stream.targetHeight, data->stream.pixels, &information, DIB_RGB_COLORS, SRCCOPY);
+			ReleaseMutex(data->mutex);
+		}*/
+
+		BitBlt(context, 0, 0, bounds.right, bounds.bottom, memoryContext, 0, 0, SRCCOPY);
+		SelectObject(memoryContext, oldBitmap);
+		DeleteObject(bitmap);
+		DeleteDC(memoryContext);
+		EndPaint(window, &paintStruct);
 		return 0;
 	}
 
