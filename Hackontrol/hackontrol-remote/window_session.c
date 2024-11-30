@@ -6,8 +6,8 @@ static void(__stdcall* sessionTabs[]) (const PTABINITIALIZER tab) = {
 	WindowSessionTabAudio
 };
 
-#define CLASS_NAME L"HackontrolRemoteSession"
 #define TAB_OFFSET 5
+#define CLASS_NAME L"HackontrolRemoteSession"
 
 extern HINSTANCE instance;
 extern HFONT font;

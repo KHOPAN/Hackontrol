@@ -10,15 +10,15 @@
 
 #define CLASS_NAME L"HackontrolRemote"
 
-typedef struct {
-	BOOLEAN username : 1;
-	BOOLEAN ascending : 1;
-} SORTPARAMETER;
-
 extern HINSTANCE instance;
 extern HFONT font;
 extern LINKEDLIST clientList;
 extern HANDLE clientListMutex;
+
+typedef struct {
+	BOOLEAN username : 1;
+	BOOLEAN ascending : 1;
+} SORTPARAMETER;
 
 static HWND window;
 static HWND border;
@@ -26,13 +26,24 @@ static HWND listView;
 static SORTPARAMETER sort;
 
 static int CALLBACK compareList(PCLIENT first, PCLIENT second, LPARAM parameter) {
-	if(!first || !second) {
-		return 0;
+	if(!first) {
+		return second ? -1 : 0;
+	} else if(!second) {
+		return 1;
 	}
 
-	int compareUsername = wcscmp(first->name, second->name);
-	int compareAddress = wcscmp(first->name, second->name);
-	return (sort.username ? compareUsername ? compareUsername : compareAddress : compareAddress ? compareAddress : compareUsername) * (sort.ascending ? 1 : -1);
+	char compare;
+	char result;
+
+	if(sort.username) {
+		compare = wcscmp(first->name, second->name);
+		return compare ? compare : wcscmp(first->address, second->address);
+	} else {
+		compare = wcscmp(first->address, second->address);
+		return compare ? compare : wcscmp(first->name, second->name);
+	}
+
+	return sort.ascending ? result : -result;
 }
 
 static BOOLEAN insertInternal(const PCLIENT client) {
@@ -300,7 +311,7 @@ BOOLEAN WindowMainInitialize() {
 	LVCOLUMNW column = {0};
 	column.mask = LVCF_FMT | LVCF_TEXT | LVCF_WIDTH;
 	column.fmt = LVCFMT_LEFT;
-	column.cx = (int) (screenWidth * 0.133);
+	column.cx = (int) (screenWidth * 0.133235724);
 	column.pszText = L"Username";
 
 	if(SendMessageW(listView, LVM_INSERTCOLUMN, 0, (LPARAM) &column) == -1) {
