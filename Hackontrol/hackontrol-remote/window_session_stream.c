@@ -1,8 +1,9 @@
 #include "window_session.h"
+#include "popup_stream.h"
 #include "hrsp_remote.h"
 
 #define CLASS_NAME        L"HackontrolRemoteSessionTabStream"
-#define CLASS_NAME_STREAM L"HackontrolRemoteSessionStream"
+//#define CLASS_NAME_STREAM L"HackontrolRemoteSessionStream"
 
 extern HINSTANCE instance;
 extern HFONT font;
@@ -15,13 +16,14 @@ typedef struct {
 	int activationDistance;
 	int minimumSize;
 	HWND button;
+	POPUPSTREAMSESSION popup;
 
-	struct {
+	/*struct {
 		HANDLE thread;
-		///int minimumWidth;
-		//int minimumHeight;
+		int minimumWidth;
+		int minimumHeight;
 		HWND window;
-		/*LONGLONG lastTime;
+		LONGLONG lastTime;
 		LONGLONG lastUpdate;
 		ULONGLONG totalTime;
 		ULONGLONG totalTimes;
@@ -45,15 +47,15 @@ typedef struct {
 		BOOL cursorSouth;
 		BOOL cursorWest;
 		RECT pressedBounds;
-		POINT pressedLocation;*/
-	} stream;
+		POINT pressedLocation;
+	} stream;*/
 } TABSTREAMDATA, *PTABSTREAMDATA;
 
-static void __stdcall uninitialize(const PULONGLONG data) {
+/*static void __stdcall uninitialize(const PULONGLONG data) {
 	if(*data) {
 		UnregisterClassW(CLASS_NAME_STREAM, instance);
 	}
-}
+}*/
 
 static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG customData, const HWND parent) {
 	PTABSTREAMDATA data = KHOPAN_ALLOCATE(sizeof(TABSTREAMDATA));
@@ -101,15 +103,15 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 	return window;
 }
 
-static DWORD WINAPI threadStream(_In_ PTABSTREAMDATA data) {
+/*static DWORD WINAPI threadStream(_In_ PTABSTREAMDATA data) {
 	if(!data) {
 		return 1;
 	}
 
-	/*data->stream.minimumWidth = data->minimumSize;
+	data->stream.minimumWidth = data->minimumSize;
 	data->stream.minimumHeight = data->minimumSize;
 	data->stream.limitToScreen = TRUE;
-	data->stream.matchAspectRatio = TRUE;*/
+	data->stream.matchAspectRatio = TRUE;
 	data->stream.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME_STREAM, NULL, WS_POPUP | WS_VISIBLE, 0, 0, (int) (((double) GetSystemMetrics(SM_CXSCREEN)) * 0.32942899), (int) (((double) GetSystemMetrics(SM_CYSCREEN)) * 0.390625), NULL, NULL, instance, data);
 	DWORD codeExit = 1;
 
@@ -141,7 +143,7 @@ functionExit:
 	}
 
 	return codeExit;
-}
+}*/
 
 static LRESULT CALLBACK tabProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	USERDATA(PTABSTREAMDATA, data, window, message, wparam, lparam);
@@ -153,7 +155,7 @@ static LRESULT CALLBACK tabProcedure(_In_ HWND window, _In_ UINT message, _In_ W
 			break;
 		}
 
-		if(data->stream.thread) {
+		/*if(data->stream.thread) {
 			PostMessageW(data->stream.window, WM_CLOSE, 0, 0);
 			WaitForSingleObject(data->stream.thread, INFINITE);
 		}
@@ -163,22 +165,24 @@ static LRESULT CALLBACK tabProcedure(_In_ HWND window, _In_ UINT message, _In_ W
 		data->stream.thread = CreateThread(NULL, 0, threadStream, data, 0, NULL);
 
 		if(!data->stream.thread) {
-			KHOPANLASTERRORCONSOLE_WIN32(L"CreateMutexExW");
+			KHOPANLASTERRORCONSOLE_WIN32(L"CreateThread");
 			break;
-		}
+		}*/
 
+		PopupStreamSessionInitialize(&data->popup);
 		return 0;
 	case WM_CTLCOLORBTN:
 		SetDCBrushColor((HDC) wparam, 0xF9F9F9);
 		return (LRESULT) GetStockObject(DC_BRUSH);
 	case WM_DESTROY:
-		if(data->stream.thread) {
+		/*if(data->stream.thread) {
 			PostMessageW(data->stream.window, WM_CLOSE, 0, 0);
 			WaitForSingleObject(data->stream.thread, INFINITE);
 		}
 
 		WaitForSingleObject(data->mutex, INFINITE);
-		CloseHandle(data->mutex);
+		CloseHandle(data->mutex);*/
+		PopupStreamSessionCleanup(&data->popup);
 		KHOPAN_DEALLOCATE(data);
 		return 0;
 	case WM_SIZE:
@@ -190,9 +194,9 @@ static LRESULT CALLBACK tabProcedure(_In_ HWND window, _In_ UINT message, _In_ W
 	return DefWindowProcW(window, message, wparam, lparam);
 }
 
-static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
+/*static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	USERDATA(PTABSTREAMDATA, data, window, message, wparam, lparam);
-	/*RECT bounds;
+	RECT bounds;
 	PAINTSTRUCT paintStruct = {0};
 	HDC context;
 	HDC memoryContext;
@@ -205,13 +209,13 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 	POINT location;
 	int screenWidth;
 	int screenHeight;
-	int temporary;*/
+	int temporary;
 
 	switch(message) {
 	case WM_CLOSE:
 		DestroyWindow(window);
 		return 0;
-	/*case WM_COMMAND:
+	case WM_COMMAND:
 		switch(LOWORD(wparam)) {
 		case IDM_STREAM_ENABLE:
 			data->stream.stream = !data->stream.stream;
@@ -290,13 +294,13 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 		SetForegroundWindow(window);
 		TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON, LOWORD(lparam), HIWORD(lparam), window, NULL);
 		DestroyMenu(menu);
-		return 0;*/
+		return 0;
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
 	case WM_ERASEBKGND:
 		return 1;
-	/*case WM_LBUTTONDOWN:
+	case WM_LBUTTONDOWN:
 		GetWindowRect(window, &data->stream.pressedBounds);
 		GetCursorPos(&data->stream.pressedLocation);
 		SetCapture(window);
@@ -434,21 +438,21 @@ static LRESULT CALLBACK streamProcedure(_In_ HWND window, _In_ UINT message, _In
 		data->stream.renderX = temporary ? (UINT) ((((double) bounds.right) - ((double) data->stream.renderWidth)) / 2.0) : 0;
 		data->stream.renderY = temporary ? 0 : (UINT) ((((double) bounds.bottom) - ((double) data->stream.renderHeight)) / 2.0);
 		ReleaseMutex(data->mutex);
-		return 0;*/
+		return 0;
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
-}
+}*/
 
 void __stdcall WindowSessionTabStream(const PTABINITIALIZER tab) {
 	tab->name = L"Stream";
-	tab->uninitialize = uninitialize;
+	//tab->uninitialize = uninitialize;
 	tab->clientInitialize = clientInitialize;
 	//tab->packetHandler = packetHandler;
 	//tab->alwaysProcessPacket = TRUE;
 	tab->windowClass.lpfnWndProc = tabProcedure;
 	tab->windowClass.lpszClassName = CLASS_NAME;
-	//QueryPerformanceFrequency((PLARGE_INTEGER) &performanceFrequency);
+	/*QueryPerformanceFrequency((PLARGE_INTEGER) &performanceFrequency);
 	WNDCLASSEXW windowClass = {0};
 	windowClass.cbSize = sizeof(WNDCLASSEXW);
 	windowClass.style = CS_HREDRAW | CS_VREDRAW;
@@ -457,7 +461,7 @@ void __stdcall WindowSessionTabStream(const PTABINITIALIZER tab) {
 	windowClass.hCursor = NULL;
 	windowClass.hbrBackground = (HBRUSH) (COLOR_MENU + 1);
 	windowClass.lpszClassName = CLASS_NAME_STREAM;
-	tab->data = RegisterClassExW(&windowClass);
+	tab->data = RegisterClassExW(&windowClass);*/
 }
 
 /*#include <windowsx.h>
