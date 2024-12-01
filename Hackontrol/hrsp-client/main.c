@@ -15,6 +15,11 @@ typedef struct {
 	WCHAR name[CCHDEVICENAME];
 } MONITORENTRY, *PMONITORENTRY;
 
+typedef struct {
+	BOOLEAN isMonitor;
+	WCHAR name[sizeof(((PDISPLAY_DEVICEW) NULL)->DeviceString) / sizeof(WCHAR)];
+} DEVICEENTRY, *PDEVICEENTRY;
+
 void capture();
 
 static BOOL __stdcall procedureMonitor(HMONITOR monitor, HDC context, LPRECT bounds, LPARAM parameter) {
@@ -35,19 +40,23 @@ static BOOL __stdcall procedureMonitor(HMONITOR monitor, HDC context, LPRECT bou
 	return KHOPANArrayAdd((PARRAYLIST) parameter, &entry, NULL);
 }
 
-static void checkName(const PARRAYLIST list, const LPWSTR deviceName) {
+static BOOLEAN checkName(const PARRAYLIST list, const PARRAYLIST deviceList, const LPWSTR deviceName, const LPWSTR deviceString) {
 	for(size_t i = 0; i < list->count; i++) {
 		PMONITORENTRY entry;
 
 		if(!KHOPANArrayGet(list, i, &entry, NULL)) {
-			KHOPANArrayFree(list, NULL);
-			return;
+			return FALSE;
 		}
 
 		if(!wcscmp(deviceName, entry->name)) {
-			printf("Monitor: %ws\n", entry->name);
+			DEVICEENTRY device;
+			device.isMonitor = TRUE;
+			for(BYTE index = 0; index < sizeof(device.name) / sizeof(WCHAR); index++) device.name[index] = deviceString[index];
+			return KHOPANArrayAdd(deviceList, &device, NULL);
 		}
 	}
+
+	return FALSE;
 }
 
 static void packetRequestStream() {
@@ -62,6 +71,13 @@ static void packetRequestStream() {
 		return;
 	}
 
+	ARRAYLIST deviceList;
+
+	if(!KHOPANArrayInitialize(&deviceList, sizeof(DEVICEENTRY), NULL)) {
+		KHOPANArrayFree(&list, NULL);
+		return;
+	}
+
 	DWORD deviceIndex = 0;
 	DISPLAY_DEVICEW device = {0};
 	device.cb = sizeof(DISPLAY_DEVICEW);
@@ -72,7 +88,7 @@ static void packetRequestStream() {
 		monitor.cb = sizeof(DISPLAY_DEVICEW);
 
 		while(EnumDisplayDevicesW(device.DeviceName, monitorIndex, &monitor, 0)) {
-			checkName(&list, device.DeviceName);
+			if(!checkName(&list, &deviceList, device.DeviceName, monitor.DeviceString)) goto freeDeviceList;
 			monitorIndex++;
 		}
 
@@ -80,6 +96,18 @@ static void packetRequestStream() {
 	}
 
 	KHOPANArrayFree(&list, NULL);
+
+	for(size_t i = 0; i < deviceList.count; i++) {
+		PDEVICEENTRY entry;
+
+		if(!KHOPANArrayGet(&deviceList, i, &entry, NULL)) {
+			goto freeDeviceList;
+		}
+
+		printf("Entry: %ws\n", entry->name);
+	}
+freeDeviceList:
+	KHOPANArrayFree(&deviceList, NULL);
 }
 
 BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const PHRSPCLIENTINPUT input, const PKHOPANERROR error) {
