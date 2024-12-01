@@ -1,9 +1,10 @@
 #pragma once
 
-#include <hrsp.h>
 #include "hrsp_client.h"
 
-#define AM_EXIT                WM_USER
+void StreamRequestDevice(const SOCKET socket);
+
+/*#define AM_EXIT                WM_USER
 #define AM_QUERY_AUDIO_DEVICE  (WM_USER + 1)
 #define AM_QUERY_AUDIO_CAPTURE (WM_USER + 2)
 
@@ -21,4 +22,4 @@ typedef struct {
 } HRSPCLIENTPARAMETER, *PHRSPCLIENTPARAMETER;
 
 DWORD WINAPI HRSPClientStreamThread(_In_ PHRSPCLIENTPARAMETER parameter);
-DWORD WINAPI HRSPClientAudioThread(_In_ PHRSPCLIENTPARAMETER parameter);
+DWORD WINAPI HRSPClientAudioThread(_In_ PHRSPCLIENTPARAMETER parameter);*/

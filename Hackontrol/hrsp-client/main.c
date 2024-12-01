@@ -1,8 +1,8 @@
 #include <WS2tcpip.h>
 #include <lmcons.h>
-#include <libkhopanlist.h>
+//#include <libkhopanlist.h>
 #include <hrsp_remote.h>
-#include "hrsp_client.h"
+#include "hrsp_client_internal.h"
 
 #define ERROR_WIN32(codeError, sourceName, functionName)  if(error){error->facility=ERROR_FACILITY_WIN32;error->code=codeError;error->source=sourceName;error->function=functionName;}
 #define ERROR_WSA(sourceName, functionName)               if(error){error->facility=ERROR_FACILITY_WIN32;error->code=WSAGetLastError();error->source=sourceName;error->function=functionName;}
@@ -10,7 +10,7 @@
 #define ERROR_CLEAR                                       ERROR_COMMON(ERROR_COMMON_SUCCESS,NULL,NULL)
 #define ERROR_SOURCE(sourceName)                          if(error){error->function=error->source;error->source=sourceName;}
 
-typedef struct {
+/*typedef struct {
 	HMONITOR monitor;
 	WCHAR name[CCHDEVICENAME];
 } MONITORENTRY, *PMONITORENTRY;
@@ -108,7 +108,7 @@ static void packetRequestStream() {
 	}
 freeDeviceList:
 	KHOPANArrayFree(&deviceList, NULL);
-}
+}*/
 
 BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const PHRSPCLIENTINPUT input, const PKHOPANERROR error) {
 	WSADATA data;
@@ -193,12 +193,13 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 		input->callbackConnected(input->parameter);
 	}
 
-	packetRequestStream();
+	//packetRequestStream();
+	StreamRequestDevice(clientSocket);
 
 	while(HRSPPacketReceive(&protocolData, &packet, error)) {
 		switch(packet.type) {
-		case HRSP_REMOTE_SERVER_STREAM_REQUEST:
-			packetRequestStream();
+		case HRSP_REMOTE_SERVER_STREAM_DEVICE_REQUEST:
+			//packetRequestStream();
 			break;
 		}
 

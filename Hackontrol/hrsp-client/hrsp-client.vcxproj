@@ -157,6 +157,7 @@
   <ItemGroup>
     <ClCompile Include="capture.cpp" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="stream.c" />
     <ClCompile Include="thread_audio.c" />
     <ClCompile Include="thread_stream.c" />
   </ItemGroup>
