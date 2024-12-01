@@ -11,8 +11,13 @@
 
 void capture();
 
-static void packetRequestStream(const PHRSPREMOTESTREAMREQUEST request) {
+BOOL __stdcall procedureMonitor(HMONITOR monitor, HDC context, LPRECT bounds, LPARAM parameter) {
+	printf("Monitor found: %p\n", monitor);
+	return TRUE;
+}
 
+static void packetRequestStream() {
+	EnumDisplayMonitors(NULL, NULL, procedureMonitor, 0);
 }
 
 BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const PHRSPCLIENTINPUT input, const PKHOPANERROR error) {
@@ -98,16 +103,13 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 		input->callbackConnected(input->parameter);
 	}
 
-	POINT point = {0};
-	HMONITOR monitor = MonitorFromPoint(point, MONITOR_DEFAULTTOPRIMARY);
-	printf("Monitor: %p\n", monitor);
-	capture();
+	//capture();
+	packetRequestStream();
 
 	while(HRSPPacketReceive(&protocolData, &packet, error)) {
 		switch(packet.type) {
 		case HRSP_REMOTE_SERVER_STREAM_REQUEST:
-			if(!packet.data || packet.size != sizeof(HRSPREMOTESTREAMREQUEST)) break;
-			packetRequestStream(packet.data);
+			packetRequestStream();
 			break;
 		}
 
