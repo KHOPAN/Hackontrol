@@ -1,5 +1,6 @@
 #include <WS2tcpip.h>
 #include <lmcons.h>
+#include <libkhopanlist.h>
 #include <hrsp_remote.h>
 #include "hrsp_client.h"
 
@@ -9,9 +10,58 @@
 #define ERROR_CLEAR                                       ERROR_COMMON(ERROR_COMMON_SUCCESS,NULL,NULL)
 #define ERROR_SOURCE(sourceName)                          if(error){error->function=error->source;error->source=sourceName;}
 
+typedef struct {
+	HMONITOR monitor;
+	WCHAR name[CCHDEVICENAME];
+} MONITORENTRY, *PMONITORENTRY;
+
 void capture();
 
+static BOOL __stdcall procedureMonitor(HMONITOR monitor, HDC context, LPRECT bounds, LPARAM parameter) {
+	MONITORINFOEXW information;
+	information.cbSize = sizeof(MONITORINFOEXW);
+
+	if(!GetMonitorInfoW(monitor, (LPMONITORINFO) &information)) {
+		return FALSE;
+	}
+
+	MONITORENTRY entry;
+	entry.monitor = monitor;
+
+	for(BYTE i = 0; i < CCHDEVICENAME; i++) {
+		entry.name[i] = information.szDevice[i];
+	}
+
+	return KHOPANArrayAdd((PARRAYLIST) parameter, &entry, NULL);
+}
+
+static void checkName(const PARRAYLIST list, const LPWSTR deviceName) {
+	for(size_t i = 0; i < list->count; i++) {
+		PMONITORENTRY entry;
+
+		if(!KHOPANArrayGet(list, i, &entry, NULL)) {
+			KHOPANArrayFree(list, NULL);
+			return;
+		}
+
+		if(!wcscmp(deviceName, entry->name)) {
+			printf("Monitor: %ws\n", entry->name);
+		}
+	}
+}
+
 static void packetRequestStream() {
+	ARRAYLIST list;
+
+	if(!KHOPANArrayInitialize(&list, sizeof(MONITORENTRY), NULL)) {
+		return;
+	}
+
+	if(!EnumDisplayMonitors(NULL, NULL, procedureMonitor, (LPARAM) &list)) {
+		KHOPANArrayFree(&list, NULL);
+		return;
+	}
+
 	DWORD deviceIndex = 0;
 	DISPLAY_DEVICEW device = {0};
 	device.cb = sizeof(DISPLAY_DEVICEW);
@@ -22,12 +72,14 @@ static void packetRequestStream() {
 		monitor.cb = sizeof(DISPLAY_DEVICEW);
 
 		while(EnumDisplayDevicesW(device.DeviceName, monitorIndex, &monitor, 0)) {
-			printf("Name: %ws\nString: %ws\nFlags: %lu\nId: %ws\nKey: %ws\n\n", monitor.DeviceName, monitor.DeviceString, monitor.StateFlags, monitor.DeviceID, monitor.DeviceKey);
+			checkName(&list, device.DeviceName);
 			monitorIndex++;
 		}
 
 		deviceIndex++;
 	}
+
+	KHOPANArrayFree(&list, NULL);
 }
 
 BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const PHRSPCLIENTINPUT input, const PKHOPANERROR error) {
@@ -113,7 +165,6 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 		input->callbackConnected(input->parameter);
 	}
 
-	//capture();
 	packetRequestStream();
 
 	while(HRSPPacketReceive(&protocolData, &packet, error)) {
