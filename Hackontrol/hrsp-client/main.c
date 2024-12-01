@@ -98,6 +98,9 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 		input->callbackConnected(input->parameter);
 	}
 
+	POINT point = {0};
+	HMONITOR monitor = MonitorFromPoint(point, MONITOR_DEFAULTTOPRIMARY);
+	printf("Monitor: %p\n", monitor);
 	capture();
 
 	while(HRSPPacketReceive(&protocolData, &packet, error)) {
