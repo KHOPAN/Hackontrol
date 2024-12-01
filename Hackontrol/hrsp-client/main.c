@@ -11,13 +11,23 @@
 
 void capture();
 
-BOOL __stdcall procedureMonitor(HMONITOR monitor, HDC context, LPRECT bounds, LPARAM parameter) {
-	printf("Monitor found: %p\n", monitor);
-	return TRUE;
-}
-
 static void packetRequestStream() {
-	EnumDisplayMonitors(NULL, NULL, procedureMonitor, 0);
+	DWORD deviceIndex = 0;
+	DISPLAY_DEVICEW device = {0};
+	device.cb = sizeof(DISPLAY_DEVICEW);
+
+	while(EnumDisplayDevicesW(NULL, deviceIndex, &device, 0)) {
+		DWORD monitorIndex = 0;
+		DISPLAY_DEVICEW monitor = {0};
+		monitor.cb = sizeof(DISPLAY_DEVICEW);
+
+		while(EnumDisplayDevicesW(device.DeviceName, monitorIndex, &monitor, 0)) {
+			printf("Name: %ws\nString: %ws\nFlags: %lu\nId: %ws\nKey: %ws\n\n", monitor.DeviceName, monitor.DeviceString, monitor.StateFlags, monitor.DeviceID, monitor.DeviceKey);
+			monitorIndex++;
+		}
+
+		deviceIndex++;
+	}
 }
 
 BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const PHRSPCLIENTINPUT input, const PKHOPANERROR error) {
