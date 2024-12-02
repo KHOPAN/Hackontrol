@@ -86,7 +86,7 @@
     </Link>
     <Lib />
     <Lib>
-      <AdditionalDependencies>D3D11.lib</AdditionalDependencies>
+      <AdditionalDependencies>Mf.lib;Mfplat.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -109,7 +109,7 @@
     </Link>
     <Lib />
     <Lib>
-      <AdditionalDependencies>D3D11.lib</AdditionalDependencies>
+      <AdditionalDependencies>Mf.lib;Mfplat.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -128,7 +128,7 @@
     </Link>
     <Lib />
     <Lib>
-      <AdditionalDependencies>D3D11.lib</AdditionalDependencies>
+      <AdditionalDependencies>Mf.lib;Mfplat.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -151,7 +151,7 @@
     </Link>
     <Lib />
     <Lib>
-      <AdditionalDependencies>D3D11.lib</AdditionalDependencies>
+      <AdditionalDependencies>Mf.lib;Mfplat.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
