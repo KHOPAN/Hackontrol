@@ -1,6 +1,5 @@
 #include <WS2tcpip.h>
 #include <lmcons.h>
-//#include <libkhopanlist.h>
 #include <hrsp_remote.h>
 #include "hrsp_client_internal.h"
 
@@ -9,106 +8,6 @@
 #define ERROR_COMMON(codeError, sourceName, functionName) if(error){error->facility=ERROR_FACILITY_COMMON;error->code=codeError;error->source=sourceName;error->function=functionName;}
 #define ERROR_CLEAR                                       ERROR_COMMON(ERROR_COMMON_SUCCESS,NULL,NULL)
 #define ERROR_SOURCE(sourceName)                          if(error){error->function=error->source;error->source=sourceName;}
-
-/*typedef struct {
-	HMONITOR monitor;
-	WCHAR name[CCHDEVICENAME];
-} MONITORENTRY, *PMONITORENTRY;
-
-typedef struct {
-	BOOLEAN isMonitor;
-	WCHAR name[sizeof(((PDISPLAY_DEVICEW) NULL)->DeviceString) / sizeof(WCHAR)];
-} DEVICEENTRY, *PDEVICEENTRY;
-
-void capture();
-
-static BOOL __stdcall procedureMonitor(HMONITOR monitor, HDC context, LPRECT bounds, LPARAM parameter) {
-	MONITORINFOEXW information;
-	information.cbSize = sizeof(MONITORINFOEXW);
-
-	if(!GetMonitorInfoW(monitor, (LPMONITORINFO) &information)) {
-		return FALSE;
-	}
-
-	MONITORENTRY entry;
-	entry.monitor = monitor;
-
-	for(BYTE i = 0; i < CCHDEVICENAME; i++) {
-		entry.name[i] = information.szDevice[i];
-	}
-
-	return KHOPANArrayAdd((PARRAYLIST) parameter, &entry, NULL);
-}
-
-static BOOLEAN checkName(const PARRAYLIST list, const PARRAYLIST deviceList, const LPWSTR deviceName, const LPWSTR deviceString) {
-	for(size_t i = 0; i < list->count; i++) {
-		PMONITORENTRY entry;
-
-		if(!KHOPANArrayGet(list, i, &entry, NULL)) {
-			return FALSE;
-		}
-
-		if(!wcscmp(deviceName, entry->name)) {
-			DEVICEENTRY device;
-			device.isMonitor = TRUE;
-			for(BYTE index = 0; index < sizeof(device.name) / sizeof(WCHAR); index++) device.name[index] = deviceString[index];
-			return KHOPANArrayAdd(deviceList, &device, NULL);
-		}
-	}
-
-	return FALSE;
-}
-
-static void packetRequestStream() {
-	ARRAYLIST list;
-
-	if(!KHOPANArrayInitialize(&list, sizeof(MONITORENTRY), NULL)) {
-		return;
-	}
-
-	if(!EnumDisplayMonitors(NULL, NULL, procedureMonitor, (LPARAM) &list)) {
-		KHOPANArrayFree(&list, NULL);
-		return;
-	}
-
-	ARRAYLIST deviceList;
-
-	if(!KHOPANArrayInitialize(&deviceList, sizeof(DEVICEENTRY), NULL)) {
-		KHOPANArrayFree(&list, NULL);
-		return;
-	}
-
-	DWORD deviceIndex = 0;
-	DISPLAY_DEVICEW device = {0};
-	device.cb = sizeof(DISPLAY_DEVICEW);
-
-	while(EnumDisplayDevicesW(NULL, deviceIndex, &device, 0)) {
-		DWORD monitorIndex = 0;
-		DISPLAY_DEVICEW monitor = {0};
-		monitor.cb = sizeof(DISPLAY_DEVICEW);
-
-		while(EnumDisplayDevicesW(device.DeviceName, monitorIndex, &monitor, 0)) {
-			if(!checkName(&list, &deviceList, device.DeviceName, monitor.DeviceString)) goto freeDeviceList;
-			monitorIndex++;
-		}
-
-		deviceIndex++;
-	}
-
-	KHOPANArrayFree(&list, NULL);
-
-	for(size_t i = 0; i < deviceList.count; i++) {
-		PDEVICEENTRY entry;
-
-		if(!KHOPANArrayGet(&deviceList, i, &entry, NULL)) {
-			goto freeDeviceList;
-		}
-
-		printf("Entry: %ws\n", entry->name);
-	}
-freeDeviceList:
-	KHOPANArrayFree(&deviceList, NULL);
-}*/
 
 BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const PHRSPCLIENTINPUT input, const PKHOPANERROR error) {
 	WSADATA data;
@@ -193,18 +92,15 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 		input->callbackConnected(input->parameter);
 	}
 
-	//packetRequestStream();
 	StreamRequestDevice(clientSocket);
 
 	while(HRSPPacketReceive(&protocolData, &packet, error)) {
 		switch(packet.type) {
 		case HRSP_REMOTE_SERVER_STREAM_DEVICE_REQUEST:
-			//packetRequestStream();
 			break;
 		}
 
 		if(packet.data) {
-			printf("Packet: %.*s\n", (unsigned int) packet.size, (LPCSTR) packet.data);
 			KHOPAN_DEALLOCATE(packet.data);
 		}
 	}
@@ -224,98 +120,3 @@ cleanupSocket:
 	WSACleanup();
 	return codeExit;
 }
-
-/*#include <WS2tcpip.h>
-#include <libkhopan.h>
-#include <hrsp_handshake.h>
-#include <hrsp_packet.h>
-#include "hrsp_client_internal.h"
-
-static void audioCapture(const PHRSPPACKET packet, const DWORD audioThreadIdentifier) {
-	if(!packet->size) {
-		return;
-	}
-
-	PBYTE buffer = KHOPAN_ALLOCATE(packet->size + sizeof(WCHAR));
-
-	if(KHOPAN_ALLOCATE_FAILED(buffer)) {
-		return;
-	}
-
-	for(int i = 0; i < packet->size; i++) {
-		buffer[i] = packet->data[i];
-	}
-
-	buffer[packet->size] = 0;
-	buffer[packet->size + 1] = 0;
-	PostThreadMessageW(audioThreadIdentifier, AM_QUERY_AUDIO_CAPTURE, 0, (LPARAM) buffer);
-}
-
-BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const PHRSPCLIENTINPUT input, const PHRSPCLIENTERROR error, const LPCSTR username) {
-	parameter->stream.running = TRUE;
-	HANDLE streamThread = CreateThread(NULL, 0, HRSPClientStreamThread, parameter, 0, NULL);
-
-	if(!streamThread) {
-		ERROR_WIN32(GetLastError(), L"CreateThread");
-		goto closeSocket;
-	}
-
-	DWORD audioThreadIdentifier;
-	HANDLE audioThread = CreateThread(NULL, 0, HRSPClientAudioThread, parameter, 0, &audioThreadIdentifier);
-
-	if(!audioThread) {
-		ERROR_WIN32(GetLastError(), L"CreateThread");
-		goto closeStreamThread;
-	}
-
-	while(HRSPReceivePacket(parameter->socket, &parameter->data, &packet, &protocolError)) {
-		switch(packet.type) {
-		case HRSP_REMOTE_SERVER_STREAM_CODE_PACKET:
-			if(WaitForSingleObject(parameter->mutex, INFINITE) == WAIT_FAILED) break;
-			parameter->stream.flags = *packet.data;
-			ReleaseMutex(parameter->mutex);
-			break;
-		case HRSP_REMOTE_SERVER_AUDIO_QUERY_DEVICE:
-			PostThreadMessageW(audioThreadIdentifier, AM_QUERY_AUDIO_DEVICE, 0, 0);
-			break;
-		case HRSP_REMOTE_SERVER_AUDIO_CAPTURE:
-			audioCapture(&packet, audioThreadIdentifier);
-			break;
-		}
-
-		HRSPFreePacket(&packet, &protocolError);
-	}
-
-	if(parameter->hasError) {
-		if(error) {
-			*error = parameter->error;
-		}
-
-		goto closeAudioThread;
-	}
-
-	if(!protocolError.code || (!protocolError.win32 && protocolError.code == HRSP_ERROR_CONNECTION_CLOSED) || (protocolError.win32 && protocolError.code == WSAECONNRESET)) {
-		codeExit = TRUE;
-		goto closeAudioThread;
-	}
-
-	ERROR_HRSP;
-closeAudioThread:
-	PostThreadMessageW(audioThreadIdentifier, AM_EXIT, 0, 0);
-	WaitForSingleObject(audioThread, INFINITE);
-	CloseHandle(audioThread);
-closeStreamThread:
-	parameter->stream.running = FALSE;
-	WaitForSingleObject(streamThread, INFINITE);
-	CloseHandle(streamThread);
-closeSocket:
-	closesocket(parameter->socket);
-cleanupSocket:
-	WSACleanup();
-closeMutex:
-	WaitForSingleObject(parameter->mutex, INFINITE);
-	CloseHandle(parameter->mutex);
-streamDeallocate:
-	KHOPAN_DEALLOCATE(parameter);
-	return codeExit;
-}*/
