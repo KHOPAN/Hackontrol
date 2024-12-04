@@ -9,6 +9,28 @@ static BOOLEAN requestMonitors(const PDATASTREAM stream) {
 }
 
 static BOOLEAN requestCameras(const PDATASTREAM stream) {
+	IMFAttributes* attributes;
+
+	if(FAILED(MFCreateAttributes(&attributes, 1))) {
+		return FALSE;
+	}
+
+	if(FAILED(attributes->lpVtbl->SetGUID(attributes, &MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE, &MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID))) {
+		attributes->lpVtbl->Release(attributes);
+		return FALSE;
+	}
+
+	IMFActivate** activates;
+	UINT32 count;
+	HRESULT result = MFEnumDeviceSources(attributes, &activates, &count);
+	attributes->lpVtbl->Release(attributes);
+
+	if(FAILED(result)) {
+		return FALSE;
+	}
+
+	printf("Count: %lu\n", count);
+	CoTaskMemFree(activates);
 	return TRUE;
 }
 
@@ -41,26 +63,4 @@ functionExit:
 	byte = 1;
 	packet.data = &byte;
 	HRSPPacketSend(data, &packet, NULL);
-	/*IMFAttributes* attributes;
-
-	if(FAILED(MFCreateAttributes(&attributes, 1))) {
-		return;
-	}
-
-	if(FAILED(attributes->lpVtbl->SetGUID(attributes, &MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE, &MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID))) {
-		attributes->lpVtbl->Release(attributes);
-		return;
-	}
-
-	IMFActivate** activates;
-	UINT32 count;
-	HRESULT result = MFEnumDeviceSources(attributes, &activates, &count);
-	attributes->lpVtbl->Release(attributes);
-
-	if(FAILED(result)) {
-		return;
-	}
-
-	printf("Count: %lu\n", count);
-	CoTaskMemFree(activates);*/
 }
