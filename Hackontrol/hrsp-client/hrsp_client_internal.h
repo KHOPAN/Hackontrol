@@ -2,7 +2,7 @@
 
 #include "hrsp_client.h"
 
-void StreamRequestDevice(const SOCKET socket);
+void StreamRequestDevice(const SOCKET socket, const PHRSPDATA data);
 
 /*#define AM_EXIT                WM_USER
 #define AM_QUERY_AUDIO_DEVICE  (WM_USER + 1)
