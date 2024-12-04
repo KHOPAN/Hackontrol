@@ -10,7 +10,7 @@ static BOOLEAN requestMonitors(const PDATASTREAM stream) {
 
 static BOOLEAN addCamera(const PDATASTREAM stream, IMFActivate* activate) {
 	BYTE bytes[4];
-	bytes[0] = 0;
+	bytes[0] = 1;
 
 	if(!KHOPANStreamAdd(stream, bytes, 1, NULL)) {
 		return FALSE;

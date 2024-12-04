@@ -44,7 +44,7 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 
 	while(HRSPPacketReceive(&client->hrsp, &packet, &error)) {
 		if(!WindowSessionHandlePacket(client, &packet)) {
-			LOG("[Client %ws]: Unknown packet type: %u\nData:", client->address, packet.type);
+			LOG("[Client %ws]: Unknown packet type: %u\nSize: %llu\nData:", client->address, packet.type, packet.size);
 			for(size_t i = 0; i < packet.size; i++) LOG(" 0x%02X", ((PBYTE) packet.data)[i]);
 			LOG("\n");
 		}
