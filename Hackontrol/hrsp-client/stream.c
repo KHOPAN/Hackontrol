@@ -9,18 +9,22 @@ static BOOLEAN requestMonitors(const PDATASTREAM stream) {
 }
 
 static BOOLEAN addCamera(const PDATASTREAM stream, IMFActivate* activate) {
+	if(!activate) {
+		return TRUE;
+	}
+
 	BYTE bytes[4];
 	bytes[0] = 1;
 
 	if(!KHOPANStreamAdd(stream, bytes, 1, NULL)) {
-		return FALSE;
+		goto functionExit;
 	}
 
 	LPWSTR string;
 	UINT32 stringLength;
 
 	if(FAILED(activate->lpVtbl->GetAllocatedString(activate, &MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME, &string, &stringLength))) {
-		return FALSE;
+		goto functionExit;
 	}
 
 	stringLength *= sizeof(WCHAR);
@@ -31,14 +35,14 @@ static BOOLEAN addCamera(const PDATASTREAM stream, IMFActivate* activate) {
 
 	if(!KHOPANStreamAdd(stream, &bytes, 4, NULL)) {
 		CoTaskMemFree(string);
-		return FALSE;
+		goto functionExit;
 	}
 
 	BOOLEAN result = KHOPANStreamAdd(stream, string, stringLength, NULL);
 	CoTaskMemFree(string);
 
 	if(!result || FAILED(activate->lpVtbl->GetAllocatedString(activate, &MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK, &string, &stringLength))) {
-		return FALSE;
+		goto functionExit;
 	}
 
 	stringLength *= sizeof(WCHAR);
@@ -49,12 +53,16 @@ static BOOLEAN addCamera(const PDATASTREAM stream, IMFActivate* activate) {
 
 	if(!KHOPANStreamAdd(stream, &bytes, 4, NULL)) {
 		CoTaskMemFree(string);
-		return FALSE;
+		goto functionExit;
 	}
 
 	result = KHOPANStreamAdd(stream, string, stringLength, NULL);
 	CoTaskMemFree(string);
+	activate->lpVtbl->Release(activate);
 	return result;
+functionExit:
+	activate->lpVtbl->Release(activate);
+	return FALSE;
 }
 
 static BOOLEAN requestCameras(const PDATASTREAM stream) {
@@ -78,16 +86,16 @@ static BOOLEAN requestCameras(const PDATASTREAM stream) {
 		return FALSE;
 	}
 
-	BOOLEAN failed = FALSE;
+	BOOLEAN success = TRUE;
 
 	for(UINT32 i = 0; i < count; i++) {
-		IMFActivate* activate = activates[i];
-		if(!addCamera(stream, activate)) failed = TRUE;
-		activate->lpVtbl->Release(activate);
+		if(!addCamera(stream, activates[i])) {
+			success = FALSE;
+		}
 	}
 
 	CoTaskMemFree(activates);
-	return !failed;
+	return success;
 }
 
 void StreamRequestDevice(const SOCKET socket, const PHRSPDATA data) {
