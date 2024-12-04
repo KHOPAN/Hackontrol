@@ -8,6 +8,55 @@ static BOOLEAN requestMonitors(const PDATASTREAM stream) {
 	return TRUE;
 }
 
+static BOOLEAN addCamera(const PDATASTREAM stream, IMFActivate* activate) {
+	BYTE bytes[4];
+	bytes[0] = 0;
+
+	if(!KHOPANStreamAdd(stream, bytes, 1, NULL)) {
+		return FALSE;
+	}
+
+	LPWSTR string;
+	UINT32 stringLength;
+
+	if(FAILED(activate->lpVtbl->GetAllocatedString(activate, &MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME, &string, &stringLength))) {
+		return FALSE;
+	}
+
+	stringLength *= sizeof(WCHAR);
+	bytes[0] = (stringLength & 0xFF) << 24;
+	bytes[1] = (stringLength & 0xFF) << 16;
+	bytes[2] = (stringLength & 0xFF) << 8;
+	bytes[3] = stringLength & 0xFF;
+
+	if(!KHOPANStreamAdd(stream, &bytes, 4, NULL)) {
+		CoTaskMemFree(string);
+		return FALSE;
+	}
+
+	BOOLEAN result = KHOPANStreamAdd(stream, string, stringLength, NULL);
+	CoTaskMemFree(string);
+
+	if(!result || FAILED(activate->lpVtbl->GetAllocatedString(activate, &MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK, &string, &stringLength))) {
+		return FALSE;
+	}
+
+	stringLength *= sizeof(WCHAR);
+	bytes[0] = (stringLength & 0xFF) << 24;
+	bytes[1] = (stringLength & 0xFF) << 16;
+	bytes[2] = (stringLength & 0xFF) << 8;
+	bytes[3] = stringLength & 0xFF;
+
+	if(!KHOPANStreamAdd(stream, &bytes, 4, NULL)) {
+		CoTaskMemFree(string);
+		return FALSE;
+	}
+
+	result = KHOPANStreamAdd(stream, string, stringLength, NULL);
+	CoTaskMemFree(string);
+	return result;
+}
+
 static BOOLEAN requestCameras(const PDATASTREAM stream) {
 	IMFAttributes* attributes;
 
@@ -29,9 +78,16 @@ static BOOLEAN requestCameras(const PDATASTREAM stream) {
 		return FALSE;
 	}
 
-	printf("Count: %lu\n", count);
+	BOOLEAN failed = FALSE;
+
+	for(UINT32 i = 0; i < count; i++) {
+		IMFActivate* activate = activates[i];
+		if(!addCamera(stream, activate)) failed = TRUE;
+		activate->lpVtbl->Release(activate);
+	}
+
 	CoTaskMemFree(activates);
-	return TRUE;
+	return !failed;
 }
 
 void StreamRequestDevice(const SOCKET socket, const PHRSPDATA data) {
