@@ -243,9 +243,9 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 		SetDCBrushColor((HDC) wparam, 0xF9F9F9);
 		return (LRESULT) GetStockObject(DC_BRUSH);
 	case WM_DESTROY:
-		for(int i = 0; i < SendMessageW(data->list, LVM_GETITEMCOUNT, 0, 0); i++) {
+		for(option = 0; option < SendMessageW(data->list, LVM_GETITEMCOUNT, 0, 0); option++) {
 			item.mask = LVIF_PARAM;
-			item.iItem = i;
+			item.iItem = option;
 			if(!SendMessageW(data->list, LVM_GETITEM, 0, (LPARAM) &item) || !item.lParam) continue;
 			KHOPAN_DEALLOCATE(((PSTREAMDEVICEDATA) item.lParam)->name);
 			KHOPAN_DEALLOCATE(((PSTREAMDEVICEDATA) item.lParam)->identifier);
