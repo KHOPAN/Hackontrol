@@ -4,9 +4,37 @@
 #include <hrsp_remote.h>
 #include "hrsp_client_internal.h"
 
-static BOOL iterateMonitor(const HMONITOR monitor, const HDC context, const LPRECT bounds, const PDATASTREAM stream) {
-	printf("Monitor: %p\n", monitor);
-	return TRUE;
+static BOOL iterateMonitor(HMONITOR monitor, const HDC context, const LPRECT bounds, const PDATASTREAM stream) {
+	BYTE bytes[4];
+	bytes[0] = 0;
+
+	if(!KHOPANStreamAdd(stream, bytes, 1, NULL)) {
+		return FALSE;
+	}
+
+	MONITORINFOEXW information;
+	information.cbSize = sizeof(MONITORINFOEXW);
+
+	if(!GetMonitorInfoW(monitor, (LPMONITORINFO) &information)) {
+		return FALSE;
+	}
+
+	size_t length = wcslen(information.szDevice) * sizeof(WCHAR);
+	bytes[0] = (length & 0xFF) << 24;
+	bytes[1] = (length & 0xFF) << 16;
+	bytes[2] = (length & 0xFF) << 8;
+	bytes[3] = length & 0xFF;
+
+	if(!KHOPANStreamAdd(stream, &bytes, 4, NULL) || !KHOPANStreamAdd(stream, information.szDevice, length, NULL)) {
+		return FALSE;
+	}
+
+	length = sizeof(HMONITOR);
+	bytes[0] = (length & 0xFF) << 24;
+	bytes[1] = (length & 0xFF) << 16;
+	bytes[2] = (length & 0xFF) << 8;
+	bytes[3] = length & 0xFF;
+	return KHOPANStreamAdd(stream, &bytes, 4, NULL) && KHOPANStreamAdd(stream, &monitor, sizeof(HMONITOR), NULL);
 }
 
 static BOOLEAN addCamera(const PDATASTREAM stream, IMFActivate* activate) {
