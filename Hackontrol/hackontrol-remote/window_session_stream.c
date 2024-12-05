@@ -87,6 +87,30 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG data, const 
 		return FALSE;
 	}
 
+	if(((PBYTE) packet->data)[0]) {
+		return TRUE;
+	}
+
+	size_t index = 1;
+
+	while(index < packet->size) {
+		if(index + 5 > packet->size) {
+			return FALSE;
+		}
+
+		index += ((((PBYTE) packet->data)[index + 1] << 24) | (((PBYTE) packet->data)[index + 2] << 16) | (((PBYTE) packet->data)[index + 3] << 8) | ((PBYTE) packet->data)[index + 4]) + 5;
+
+		if(index + 4 > packet->size) {
+			return FALSE;
+		}
+
+		index += ((((PBYTE) packet->data)[index] << 24) | (((PBYTE) packet->data)[index + 1] << 16) | (((PBYTE) packet->data)[index + 2] << 8) | ((PBYTE) packet->data)[index + 3]) +4;
+
+		if(index > packet->size) {
+			return FALSE;
+		}
+	}
+
 	return TRUE;
 }
 
