@@ -1,3 +1,4 @@
+#include <hrsp_remote.h>
 #include "window_session.h"
 #include <CommCtrl.h>
 
@@ -62,13 +63,16 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 		goto destroyWindow;
 	}
 
-	LVITEMW item = {0};
+	/*LVITEMW item = {0};
 	item.mask = LVIF_TEXT;
 	item.pszText = L"DISPLAY1";
 	SendMessageW(data->list, LVM_INSERTITEM, 0, (LPARAM) &item);
 	item.iSubItem = 1;
 	item.pszText = L"Monitor (Primary)";
-	SendMessageW(data->list, LVM_SETITEM, 0, (LPARAM) &item);
+	SendMessageW(data->list, LVM_SETITEM, 0, (LPARAM) &item);*/
+	HRSPPACKET packet = {0};
+	packet.type = HRSP_REMOTE_SERVER_REQUEST_STREAM_DEVICE;
+	HRSPPacketSend(&data->client->hrsp, &packet, NULL);
 	*customData = (ULONGLONG) data;
 	return window;
 destroyWindow:
@@ -76,6 +80,14 @@ destroyWindow:
 freeData:
 	KHOPAN_DEALLOCATE(data);
 	return NULL;
+}
+
+static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG data, const PHRSPPACKET packet) {
+	if(packet->type != HRSP_REMOTE_CLIENT_RESPONSE_STREAM_DEVICE || packet->size < 1) {
+		return FALSE;
+	}
+
+	return TRUE;
 }
 
 static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
@@ -102,6 +114,7 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 void __stdcall WindowSessionTabStream(const PTABINITIALIZER tab) {
 	tab->name = L"Stream";
 	tab->clientInitialize = clientInitialize;
+	tab->packetHandler = packetHandler;
 	tab->windowClass.lpfnWndProc = procedure;
 	tab->windowClass.lpszClassName = CLASS_NAME;
 }

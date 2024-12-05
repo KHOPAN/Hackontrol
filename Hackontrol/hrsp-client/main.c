@@ -92,11 +92,10 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 		input->callbackConnected(input->parameter);
 	}
 
-	StreamRequestDevice(clientSocket, &protocolData);
-
 	while(HRSPPacketReceive(&protocolData, &packet, error)) {
 		switch(packet.type) {
 		case HRSP_REMOTE_SERVER_REQUEST_STREAM_DEVICE:
+			StreamRequestDevice(clientSocket, &protocolData);
 			break;
 		}
 
