@@ -4,7 +4,8 @@
 #include <hrsp_remote.h>
 #include "hrsp_client_internal.h"
 
-static BOOLEAN requestMonitors(const PDATASTREAM stream) {
+static BOOL iterateMonitor(const HMONITOR monitor, const HDC context, const LPRECT bounds, const PDATASTREAM stream) {
+	printf("Monitor: %p\n", monitor);
 	return TRUE;
 }
 
@@ -108,7 +109,7 @@ void StreamRequestDevice(const SOCKET socket, const PHRSPDATA data) {
 		goto functionExit;
 	}
 
-	if(!requestMonitors(&stream)) {
+	if(!EnumDisplayMonitors(NULL, NULL, (MONITORENUMPROC) iterateMonitor, (LPARAM) &stream)) {
 		goto functionExit;
 	}
 
