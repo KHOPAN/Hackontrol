@@ -4,6 +4,8 @@
 
 #define CLASS_NAME L"HackontrolRemoteSessionTabAudio"
 
+#define IDM_STREAM_REFRESH 0xE001
+
 extern HFONT font;
 
 typedef struct {
@@ -190,19 +192,61 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, 
 
 static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	USERDATA(PTABSTREAMDATA, data, window, message, wparam, lparam);
+	LVHITTESTINFO information = {0};
 	RECT bounds;
-	LVITEMW item;
+	LVITEMW item = {0};
+	HMENU menu;
+	BOOL option;
+	HRSPPACKET packet = {0};
 
 	switch(message) {
+	case WM_CONTEXTMENU:
+		GetCursorPos(&information.pt);
+		ScreenToClient(data->list, &information.pt);
+		GetClientRect(window, &bounds);
+
+		if(information.pt.x < bounds.left || information.pt.x > bounds.right || information.pt.y < bounds.top || information.pt.y > bounds.bottom) {
+			break;
+		}
+
+		if(SendMessageW(data->list, LVM_HITTEST, 0, (LPARAM) &information) != -1) {
+			item.mask = LVIF_PARAM;
+			item.iItem = information.iItem;
+			SendMessageW(data->list, LVM_GETITEM, 0, (LPARAM) &item);
+		}
+
+		menu = CreatePopupMenu();
+
+		if(!menu) {
+			break;
+		}
+
+		/*if(item.lParam) {
+			AppendMenuW(menu, MF_STRING, IDM_AUDIO_CAPTURE, L"Capture");
+			AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
+		}*/
+
+		AppendMenuW(menu, MF_STRING, IDM_STREAM_REFRESH, L"Refresh");
+		SetForegroundWindow(window);
+		option = TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_TOPALIGN, LOWORD(lparam), HIWORD(lparam), window, NULL);
+		DestroyMenu(menu);
+
+		switch(option) {
+		case IDM_STREAM_REFRESH:
+			packet.type = HRSP_REMOTE_SERVER_REQUEST_STREAM_DEVICE;
+			HRSPPacketSend(&data->client->hrsp, &packet, NULL);
+			return 0;
+		}
+
+		break;
 	case WM_CTLCOLORSTATIC:
 		SetDCBrushColor((HDC) wparam, 0xF9F9F9);
 		return (LRESULT) GetStockObject(DC_BRUSH);
 	case WM_DESTROY:
-		item.mask = LVIF_PARAM;
-
 		for(int i = 0; i < SendMessageW(data->list, LVM_GETITEMCOUNT, 0, 0); i++) {
+			item.mask = LVIF_PARAM;
 			item.iItem = i;
-			if(!SendMessageW(data->list, LVM_GETITEM, 0, (LPARAM) &item)) continue;
+			if(!SendMessageW(data->list, LVM_GETITEM, 0, (LPARAM) &item) || !item.lParam) continue;
 			KHOPAN_DEALLOCATE(((PSTREAMDEVICEDATA) item.lParam)->name);
 			KHOPAN_DEALLOCATE(((PSTREAMDEVICEDATA) item.lParam)->identifier);
 			KHOPAN_DEALLOCATE((LPVOID) item.lParam);
