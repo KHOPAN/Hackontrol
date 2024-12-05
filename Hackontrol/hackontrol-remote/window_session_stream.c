@@ -12,6 +12,12 @@ typedef struct {
 	HWND list;
 } TABSTREAMDATA, *PTABSTREAMDATA;
 
+typedef struct {
+	LPWSTR name;
+	UINT32 identifierLength;
+	PBYTE identifier;
+} STREAMDEVICEDATA, *PSTREAMDEVICEDATA;
+
 static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG customData, const HWND parent) {
 	PTABSTREAMDATA data = KHOPAN_ALLOCATE(sizeof(TABSTREAMDATA));
 
@@ -82,12 +88,14 @@ freeData:
 	return NULL;
 }
 
-static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG data, const PHRSPPACKET packet) {
+static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, const PHRSPPACKET packet) {
 	if(packet->type != HRSP_REMOTE_CLIENT_RESPONSE_STREAM_DEVICE || packet->size < 1) {
 		return FALSE;
 	}
 
-	if(((PBYTE) packet->data)[0]) {
+	PTABSTREAMDATA data = (PTABSTREAMDATA) *customData;
+
+	if(!data || ((PBYTE) packet->data)[0]) {
 		return TRUE;
 	}
 
@@ -104,11 +112,77 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG data, const 
 			return FALSE;
 		}
 
-		index += ((((PBYTE) packet->data)[index] << 24) | (((PBYTE) packet->data)[index + 1] << 16) | (((PBYTE) packet->data)[index + 2] << 8) | ((PBYTE) packet->data)[index + 3]) +4;
+		index += ((((PBYTE) packet->data)[index] << 24) | (((PBYTE) packet->data)[index + 1] << 16) | (((PBYTE) packet->data)[index + 2] << 8) | ((PBYTE) packet->data)[index + 3]) + 4;
 
 		if(index > packet->size) {
 			return FALSE;
 		}
+	}
+
+	index = 1;
+
+	while(index < packet->size) {
+		UINT32 size = (((PBYTE) packet->data)[index + 1] << 24) | (((PBYTE) packet->data)[index + 2] << 16) | (((PBYTE) packet->data)[index + 3] << 8) | ((PBYTE) packet->data)[index + 4];
+		index += 5;
+		LPWSTR bufferName = KHOPAN_ALLOCATE(size + sizeof(WCHAR));
+
+		if(!bufferName) {
+			index += size;
+			index += (((PBYTE) packet->data)[index] << 24) | (((PBYTE) packet->data)[index + 1] << 16) | (((PBYTE) packet->data)[index + 2] << 8) | ((PBYTE) packet->data)[index + 3] + 4;
+			continue;
+		}
+
+		UINT32 i;
+
+		for(i = 0; i < size; i++) {
+			((PBYTE) bufferName)[i] = ((PBYTE) packet->data)[index + i];
+		}
+
+		((PBYTE) bufferName)[size] = 0;
+		((PBYTE) bufferName)[size + 1] = 0;
+		index += size;
+		size = (((PBYTE) packet->data)[index] << 24) | (((PBYTE) packet->data)[index + 1] << 16) | (((PBYTE) packet->data)[index + 2] << 8) | ((PBYTE) packet->data)[index + 3];
+		index += 4;
+		PBYTE bufferIdentifier = KHOPAN_ALLOCATE(size);
+
+		if(!bufferIdentifier) {
+			KHOPAN_DEALLOCATE(bufferName);
+			index += size;
+			continue;
+		}
+
+		for(i = 0; i < size; i++) {
+			bufferIdentifier[i] = ((PBYTE) packet->data)[index + i];
+		}
+
+		index += size;
+		PSTREAMDEVICEDATA deviceData = KHOPAN_ALLOCATE(sizeof(STREAMDEVICEDATA));
+
+		if(!deviceData) {
+			KHOPAN_DEALLOCATE(bufferIdentifier);
+			KHOPAN_DEALLOCATE(bufferName);
+			continue;
+		}
+
+		deviceData->name = bufferName;
+		deviceData->identifierLength = size;
+		deviceData->identifier = bufferIdentifier;
+		LVITEMW item = {0};
+		item.mask = LVIF_PARAM | LVIF_TEXT;
+		item.pszText = bufferName;
+		item.lParam = (LPARAM) deviceData;
+
+		if(SendMessageW(data->list, LVM_INSERTITEM, 0, (LPARAM) &item) == -1) {
+			KHOPAN_DEALLOCATE(deviceData);
+			KHOPAN_DEALLOCATE(bufferIdentifier);
+			KHOPAN_DEALLOCATE(bufferName);
+			continue;
+		}
+
+		item.mask = LVIF_TEXT;
+		item.iSubItem = 1;
+		item.pszText = L"Monitor (Primary)";
+		SendMessageW(data->list, LVM_SETITEM, 0, (LPARAM) &item);
 	}
 
 	return TRUE;
@@ -117,12 +191,23 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG data, const 
 static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	USERDATA(PTABSTREAMDATA, data, window, message, wparam, lparam);
 	RECT bounds;
+	LVITEMW item;
 
 	switch(message) {
 	case WM_CTLCOLORSTATIC:
 		SetDCBrushColor((HDC) wparam, 0xF9F9F9);
 		return (LRESULT) GetStockObject(DC_BRUSH);
 	case WM_DESTROY:
+		item.mask = LVIF_PARAM;
+
+		for(int i = 0; i < SendMessageW(data->list, LVM_GETITEMCOUNT, 0, 0); i++) {
+			item.iItem = i;
+			if(!SendMessageW(data->list, LVM_GETITEM, 0, (LPARAM) &item)) continue;
+			KHOPAN_DEALLOCATE(((PSTREAMDEVICEDATA) item.lParam)->name);
+			KHOPAN_DEALLOCATE(((PSTREAMDEVICEDATA) item.lParam)->identifier);
+			KHOPAN_DEALLOCATE((LPVOID) item.lParam);
+		}
+
 		KHOPAN_DEALLOCATE(data);
 		return 0;
 	case WM_SIZE:
