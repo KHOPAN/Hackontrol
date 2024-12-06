@@ -91,7 +91,7 @@ freeData:
 }
 
 static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, const PHRSPPACKET packet) {
-	if(packet->type != HRSP_REMOTE_CLIENT_RESPONSE_STREAM_DEVICE || packet->size < 1) {
+	/*if(packet->type != HRSP_REMOTE_CLIENT_RESPONSE_STREAM_DEVICE || packet->size < 1) {
 		return FALSE;
 	}
 
@@ -185,7 +185,7 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, 
 		item.iSubItem = 1;
 		item.pszText = L"Monitor (Primary)";
 		SendMessageW(data->list, LVM_SETITEM, 0, (LPARAM) &item);
-	}
+	}*/
 
 	return TRUE;
 }
