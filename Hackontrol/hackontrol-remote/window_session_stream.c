@@ -84,7 +84,7 @@ freeData:
 }
 
 static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, const PHRSPPACKET packet) {
-	/*if(packet->type != HRSP_REMOTE_CLIENT_RESPONSE_STREAM_DEVICE || packet->size < 1) {
+	if(packet->type != HRSP_REMOTE_CLIENT_RESPONSE_STREAM_DEVICE || packet->size < 1) {
 		return FALSE;
 	}
 
@@ -114,7 +114,7 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, 
 		}
 	}
 
-	index = 1;
+	/*index = 1;
 
 	while(index < packet->size) {
 		UINT32 size = (((PBYTE) packet->data)[index + 1] << 24) | (((PBYTE) packet->data)[index + 2] << 16) | (((PBYTE) packet->data)[index + 3] << 8) | ((PBYTE) packet->data)[index + 4];
