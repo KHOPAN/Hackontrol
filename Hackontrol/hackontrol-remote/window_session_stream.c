@@ -18,7 +18,7 @@ typedef struct {
 	LPWSTR name;
 	UINT32 identifierLength;
 	PBYTE identifier;
-} STREAMDEVICEDATA, *PSTREAMDEVICEDATA;
+} DEVICEENTRY, *PDEVICEENTRY;
 
 static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG customData, const HWND parent) {
 	PTABSTREAMDATA data = KHOPAN_ALLOCATE(sizeof(TABSTREAMDATA));
@@ -83,14 +83,18 @@ freeData:
 	return NULL;
 }
 
+static BOOLEAN checkForDelete(const PDEVICEENTRY entry, const PHRSPPACKET packet) {
+	return FALSE;
+}
+
 static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, const PHRSPPACKET packet) {
-	if(packet->type != HRSP_REMOTE_CLIENT_RESPONSE_STREAM_DEVICE || packet->size < 1) {
+	PTABSTREAMDATA data;
+
+	if(packet->type != HRSP_REMOTE_CLIENT_RESPONSE_STREAM_DEVICE || packet->size < 1 || !customData || !(data = (PTABSTREAMDATA) *customData)) {
 		return FALSE;
 	}
 
-	PTABSTREAMDATA data = (PTABSTREAMDATA) *customData;
-
-	if(!data || ((PBYTE) packet->data)[0]) {
+	if(((PBYTE) packet->data)[0]) {
 		return TRUE;
 	}
 
@@ -112,6 +116,29 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, 
 		if(index > packet->size) {
 			return FALSE;
 		}
+	}
+
+	int count = (int) SendMessageW(data->list, LVM_GETITEMCOUNT, 0, 0);
+
+	for(int i = count - 1; i >= 0; i--) {
+		LVITEMW item;
+		item.mask = LVIF_PARAM;
+		item.iItem = i;
+		PDEVICEENTRY entry;
+
+		if(!SendMessageW(data->list, LVM_GETITEM, 0, (LPARAM) &item) || !(entry = (PDEVICEENTRY) item.lParam)) {
+			SendMessageW(data->list, LVM_DELETEITEM, i, 0);
+			continue;
+		}
+
+		if(!checkForDelete(entry, packet)) {
+			continue;
+		}
+
+		KHOPAN_DEALLOCATE(entry->name);
+		KHOPAN_DEALLOCATE(entry->identifier);
+		KHOPAN_DEALLOCATE(entry);
+		SendMessageW(data->list, LVM_DELETEITEM, i, 0);
 	}
 
 	/*index = 1;
@@ -240,8 +267,8 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 			item.mask = LVIF_PARAM;
 			item.iItem = option;
 			if(!SendMessageW(data->list, LVM_GETITEM, 0, (LPARAM) &item) || !item.lParam) continue;
-			KHOPAN_DEALLOCATE(((PSTREAMDEVICEDATA) item.lParam)->name);
-			KHOPAN_DEALLOCATE(((PSTREAMDEVICEDATA) item.lParam)->identifier);
+			KHOPAN_DEALLOCATE(((PDEVICEENTRY) item.lParam)->name);
+			KHOPAN_DEALLOCATE(((PDEVICEENTRY) item.lParam)->identifier);
 			KHOPAN_DEALLOCATE((LPVOID) item.lParam);
 		}
 
