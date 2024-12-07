@@ -71,13 +71,6 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 		goto destroyWindow;
 	}
 
-	/*LVITEMW item = {0};
-	item.mask = LVIF_TEXT;
-	item.pszText = L"DISPLAY1";
-	SendMessageW(data->list, LVM_INSERTITEM, 0, (LPARAM) &item);
-	item.iSubItem = 1;
-	item.pszText = L"Monitor (Primary)";
-	SendMessageW(data->list, LVM_SETITEM, 0, (LPARAM) &item);*/
 	HRSPPACKET packet = {0};
 	packet.type = HRSP_REMOTE_SERVER_REQUEST_STREAM_DEVICE;
 	HRSPPacketSend(&data->client->hrsp, &packet, NULL);
