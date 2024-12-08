@@ -84,7 +84,23 @@ freeData:
 }
 
 static BOOLEAN checkForDelete(const PDEVICEENTRY entry, const PHRSPPACKET packet) {
-	return FALSE;
+	size_t index = 1;
+
+	while(index < packet->size) {
+		index += ((((PBYTE) packet->data)[index + 1] << 24) | (((PBYTE) packet->data)[index + 2] << 16) | (((PBYTE) packet->data)[index + 3] << 8) | ((PBYTE) packet->data)[index + 4]) + 9;
+		UINT32 size = (((PBYTE) packet->data)[index - 4] << 24) | (((PBYTE) packet->data)[index - 3] << 16) | (((PBYTE) packet->data)[index - 2] << 8) | ((PBYTE) packet->data)[index - 1];
+		index += size;
+
+		if(entry->identifierLength != size) {
+			continue;
+		}
+
+		if(!memcmp(((PBYTE) packet->data) + index - size, entry->identifier, size)) {
+			return FALSE;
+		}
+	}
+
+	return TRUE;
 }
 
 static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, const PHRSPPACKET packet) {
