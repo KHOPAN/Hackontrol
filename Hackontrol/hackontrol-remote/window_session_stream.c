@@ -83,26 +83,6 @@ freeData:
 	return NULL;
 }
 
-static BOOLEAN checkForDelete(const PDEVICEENTRY entry, const PHRSPPACKET packet) {
-	size_t index = 1;
-
-	while(index < packet->size) {
-		index += ((((PBYTE) packet->data)[index + 1] << 24) | (((PBYTE) packet->data)[index + 2] << 16) | (((PBYTE) packet->data)[index + 3] << 8) | ((PBYTE) packet->data)[index + 4]) + 9;
-		UINT32 size = (((PBYTE) packet->data)[index - 4] << 24) | (((PBYTE) packet->data)[index - 3] << 16) | (((PBYTE) packet->data)[index - 2] << 8) | ((PBYTE) packet->data)[index - 1];
-		index += size;
-
-		if(entry->identifierLength != size) {
-			continue;
-		}
-
-		if(!memcmp(((PBYTE) packet->data) + index - size, entry->identifier, size)) {
-			return FALSE;
-		}
-	}
-
-	return TRUE;
-}
-
 static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, const PHRSPPACKET packet) {
 	PTABSTREAMDATA data;
 
@@ -147,14 +127,22 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, 
 			continue;
 		}
 
-		if(!checkForDelete(entry, packet)) {
-			continue;
+		index = 1;
+
+		while(index < packet->size) {
+			index += ((((PBYTE) packet->data)[index + 1] << 24) | (((PBYTE) packet->data)[index + 2] << 16) | (((PBYTE) packet->data)[index + 3] << 8) | ((PBYTE) packet->data)[index + 4]) + 9;
+			UINT32 size = (((PBYTE) packet->data)[index - 4] << 24) | (((PBYTE) packet->data)[index - 3] << 16) | (((PBYTE) packet->data)[index - 2] << 8) | ((PBYTE) packet->data)[index - 1];
+			index += size;
+			if(entry->identifierLength != size) continue;
+			if(!memcmp(((PBYTE) packet->data) + index - size, entry->identifier, size)) goto pass;
 		}
 
 		KHOPAN_DEALLOCATE(entry->name);
 		KHOPAN_DEALLOCATE(entry->identifier);
 		KHOPAN_DEALLOCATE(entry);
 		SendMessageW(data->list, LVM_DELETEITEM, i, 0);
+	pass:
+		continue;
 	}
 
 	/*index = 1;
