@@ -11,12 +11,23 @@
 
 #define BACKGROUND_WINDOW_CLASS L"HRSPClientBackground"
 
+#define USERDATA(type, name, window, message, wparam, lparam) type name=NULL;if(message==WM_CREATE){name=(type)(((CREATESTRUCT*)lparam)->lpCreateParams);SetWindowLongPtrW(window,GWLP_USERDATA,(LONG_PTR)(name));}else{name=(type)(GetWindowLongPtrW(window,GWLP_USERDATA));}if(!(name))return DefWindowProcW(window,message,wparam,lparam)
+
 typedef struct {
+	SOCKET socket;
+	PHRSPDATA data;
 	HWND window;
 } BACKGROUNDTHREAD, *PBACKGROUNDTHREAD;
 
-static LRESULT CALLBACK backgroundProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
-	printf("Message: %u\n", message);
+static LRESULT CALLBACK backgroundProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {	
+	USERDATA(PBACKGROUNDTHREAD, background, window, message, wparam, lparam);
+
+	switch(message) {
+	case WM_DEVICECHANGE:
+		StreamRequestDevice(background->socket, background->data);
+		return TRUE;
+	}
+
 	return DefWindowProcW(window, message, wparam, lparam);
 }
 
@@ -35,7 +46,7 @@ static DWORD WINAPI backgroundThread(_In_ PBACKGROUNDTHREAD background) {
 		return 1;
 	}
 
-	background->window = CreateWindowExW(0, BACKGROUND_WINDOW_CLASS, NULL, 0, 0, 0, 0, 0, NULL, NULL, instance, NULL);
+	background->window = CreateWindowExW(0, BACKGROUND_WINDOW_CLASS, NULL, 0, 0, 0, 0, 0, NULL, NULL, instance, background);
 
 	if(!background->window) {
 		UnregisterClassW(BACKGROUND_WINDOW_CLASS, instance);
@@ -139,6 +150,8 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 		goto cleanupProtocol;
 	}
 
+	((PBACKGROUNDTHREAD) buffer)->socket = clientSocket;
+	((PBACKGROUNDTHREAD) buffer)->data = &protocolData;
 	HANDLE thread = CreateThread(NULL, 0, backgroundThread, buffer, 0, NULL);
 
 	if(!thread) {
