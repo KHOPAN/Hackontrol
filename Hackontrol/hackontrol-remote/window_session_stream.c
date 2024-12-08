@@ -115,12 +115,14 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, 
 	}
 
 	int count = (int) SendMessageW(data->list, LVM_GETITEMCOUNT, 0, 0);
+	int i;
+	LVITEMW item;
+	PDEVICEENTRY entry;
+	UINT32 size;
 
-	for(int i = count - 1; i >= 0; i--) {
-		LVITEMW item;
+	for(i = count - 1; i >= 0; i--) {
 		item.mask = LVIF_PARAM;
 		item.iItem = i;
-		PDEVICEENTRY entry;
 
 		if(!SendMessageW(data->list, LVM_GETITEM, 0, (LPARAM) &item) || !(entry = (PDEVICEENTRY) item.lParam)) {
 			SendMessageW(data->list, LVM_DELETEITEM, i, 0);
@@ -131,7 +133,7 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, 
 
 		while(index < packet->size) {
 			index += ((((PBYTE) packet->data)[index + 1] << 24) | (((PBYTE) packet->data)[index + 2] << 16) | (((PBYTE) packet->data)[index + 3] << 8) | ((PBYTE) packet->data)[index + 4]) + 9;
-			UINT32 size = (((PBYTE) packet->data)[index - 4] << 24) | (((PBYTE) packet->data)[index - 3] << 16) | (((PBYTE) packet->data)[index - 2] << 8) | ((PBYTE) packet->data)[index - 1];
+			size = (((PBYTE) packet->data)[index - 4] << 24) | (((PBYTE) packet->data)[index - 3] << 16) | (((PBYTE) packet->data)[index - 2] << 8) | ((PBYTE) packet->data)[index - 1];
 			index += size;
 			if(entry->identifierLength != size) continue;
 			if(!memcmp(((PBYTE) packet->data) + index - size, entry->identifier, size)) goto pass;
@@ -145,63 +147,67 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, 
 		continue;
 	}
 
-	/*index = 1;
+	index = 1;
 
 	while(index < packet->size) {
-		UINT32 size = (((PBYTE) packet->data)[index + 1] << 24) | (((PBYTE) packet->data)[index + 2] << 16) | (((PBYTE) packet->data)[index + 3] << 8) | ((PBYTE) packet->data)[index + 4];
-		index += 5;
-		LPWSTR bufferName = KHOPAN_ALLOCATE(size + sizeof(WCHAR));
-
-		if(!bufferName) {
-			index += size;
-			index += (((PBYTE) packet->data)[index] << 24) | (((PBYTE) packet->data)[index + 1] << 16) | (((PBYTE) packet->data)[index + 2] << 8) | ((PBYTE) packet->data)[index + 3] + 4;
-			continue;
-		}
-
-		UINT32 i;
-
-		for(i = 0; i < size; i++) {
-			((PBYTE) bufferName)[i] = ((PBYTE) packet->data)[index + i];
-		}
-
-		((PBYTE) bufferName)[size] = 0;
-		((PBYTE) bufferName)[size + 1] = 0;
+		UINT32 nameLength = (((PBYTE) packet->data)[index + 1] << 24) | (((PBYTE) packet->data)[index + 2] << 16) | (((PBYTE) packet->data)[index + 3] << 8) | ((PBYTE) packet->data)[index + 4];
+		PBYTE pointerName = ((PBYTE) packet->data) + index + 5;
+		index += nameLength + 9;
+		size = (((PBYTE) packet->data)[index - 4] << 24) | (((PBYTE) packet->data)[index - 3] << 16) | (((PBYTE) packet->data)[index - 2] << 8) | ((PBYTE) packet->data)[index - 1];
 		index += size;
-		size = (((PBYTE) packet->data)[index] << 24) | (((PBYTE) packet->data)[index + 1] << 16) | (((PBYTE) packet->data)[index + 2] << 8) | ((PBYTE) packet->data)[index + 3];
-		index += 4;
-		PBYTE bufferIdentifier = KHOPAN_ALLOCATE(size);
+		count = (int) SendMessageW(data->list, LVM_GETITEMCOUNT, 0, 0);
 
-		if(!bufferIdentifier) {
-			KHOPAN_DEALLOCATE(bufferName);
-			index += size;
+		for(i = count - 1; i >= 0; i--) {
+			item.mask = LVIF_PARAM;
+			item.iItem = i;
+			if(!SendMessageW(data->list, LVM_GETITEM, 0, (LPARAM) &item) || !(entry = (PDEVICEENTRY) item.lParam) || entry->identifierLength != size) continue;
+			if(!memcmp(((PBYTE) packet->data) + index - size, entry->identifier, size)) goto skip;
+		}
+
+		entry = KHOPAN_ALLOCATE(sizeof(DEVICEENTRY));
+
+		if(!entry) {
 			continue;
 		}
 
-		for(i = 0; i < size; i++) {
-			bufferIdentifier[i] = ((PBYTE) packet->data)[index + i];
-		}
+		entry->name = KHOPAN_ALLOCATE(nameLength + sizeof(WCHAR));
 
-		index += size;
-		PSTREAMDEVICEDATA deviceData = KHOPAN_ALLOCATE(sizeof(STREAMDEVICEDATA));
-
-		if(!deviceData) {
-			KHOPAN_DEALLOCATE(bufferIdentifier);
-			KHOPAN_DEALLOCATE(bufferName);
+		if(!entry->name) {
+			KHOPAN_DEALLOCATE(entry);
 			continue;
 		}
 
-		deviceData->name = bufferName;
-		deviceData->identifierLength = size;
-		deviceData->identifier = bufferIdentifier;
-		LVITEMW item = {0};
+		entry->identifierLength = size;
+		entry->identifier = KHOPAN_ALLOCATE(size);
+
+		if(!entry->identifier) {
+			KHOPAN_DEALLOCATE(entry->name);
+			KHOPAN_DEALLOCATE(entry);
+			continue;
+		}
+
+		UINT32 x;
+
+		for(x = 0; x < nameLength; x++) {
+			((PBYTE) entry->name)[x] = pointerName[x];
+		}
+
+		((PBYTE) entry->name)[nameLength] = ((PBYTE) entry->name)[nameLength + 1] = 0;
+
+		for(x = 0; x < size; x++) {
+			entry->identifier[x] = ((PBYTE) packet->data)[index - size + x];
+		}
+
 		item.mask = LVIF_PARAM | LVIF_TEXT;
-		item.pszText = bufferName;
-		item.lParam = (LPARAM) deviceData;
+		item.iItem = 0;
+		item.iSubItem = 0;
+		item.pszText = entry->name;
+		item.lParam = (LPARAM) entry;
 
 		if(SendMessageW(data->list, LVM_INSERTITEM, 0, (LPARAM) &item) == -1) {
-			KHOPAN_DEALLOCATE(deviceData);
-			KHOPAN_DEALLOCATE(bufferIdentifier);
-			KHOPAN_DEALLOCATE(bufferName);
+			KHOPAN_DEALLOCATE(entry->identifier);
+			KHOPAN_DEALLOCATE(entry->name);
+			KHOPAN_DEALLOCATE(entry);
 			continue;
 		}
 
@@ -209,7 +215,9 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, 
 		item.iSubItem = 1;
 		item.pszText = L"Monitor (Primary)";
 		SendMessageW(data->list, LVM_SETITEM, 0, (LPARAM) &item);
-	}*/
+	skip:
+		continue;
+	}
 
 	return TRUE;
 }
