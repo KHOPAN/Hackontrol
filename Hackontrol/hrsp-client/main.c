@@ -9,6 +9,50 @@
 #define ERROR_CLEAR                                       ERROR_COMMON(ERROR_COMMON_SUCCESS,NULL,NULL)
 #define ERROR_SOURCE(sourceName)                          if(error){error->function=error->source;error->source=sourceName;}
 
+#define BACKGROUND_WINDOW_CLASS L"HRSPClientBackground"
+
+typedef struct {
+	HWND window;
+} BACKGROUNDTHREAD, *PBACKGROUNDTHREAD;
+
+static LRESULT CALLBACK backgroundProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
+	printf("Message: %u\n", message);
+	return DefWindowProcW(window, message, wparam, lparam);
+}
+
+static DWORD WINAPI backgroundThread(_In_ PBACKGROUNDTHREAD background) {
+	if(!background) {
+		return 1;
+	}
+
+	HINSTANCE instance = GetModuleHandleW(NULL);
+	WNDCLASSW windowClass = {0};
+	windowClass.lpfnWndProc = backgroundProcedure;
+	windowClass.hInstance = instance;
+	windowClass.lpszClassName = BACKGROUND_WINDOW_CLASS;
+
+	if(!RegisterClassW(&windowClass)) {
+		return 1;
+	}
+
+	background->window = CreateWindowExW(0, BACKGROUND_WINDOW_CLASS, NULL, 0, 0, 0, 0, 0, NULL, NULL, instance, NULL);
+
+	if(!background->window) {
+		UnregisterClassW(BACKGROUND_WINDOW_CLASS, instance);
+		return 1;
+	}
+
+	MSG message;
+
+	while(GetMessageW(&message, NULL, 0, 0)) {
+		TranslateMessage(&message);
+		DispatchMessageW(&message);
+	}
+
+	UnregisterClassW(BACKGROUND_WINDOW_CLASS, instance);
+	return 0;
+}
+
 BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const PHRSPCLIENTINPUT input, const PKHOPANERROR error) {
 	WSADATA data;
 	int status = WSAStartup(MAKEWORD(2, 2), &data);
@@ -88,6 +132,21 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 		goto cleanupProtocol;
 	}
 
+	buffer = KHOPAN_ALLOCATE(sizeof(BACKGROUNDTHREAD));
+
+	if(!buffer) {
+		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"HRSPClientConnectToServer", L"KHOPAN_ALLOCATE");
+		goto cleanupProtocol;
+	}
+
+	HANDLE thread = CreateThread(NULL, 0, backgroundThread, buffer, 0, NULL);
+
+	if(!thread) {
+		ERROR_WIN32(GetLastError(), L"HRSPClientConnectToServer", L"CreateThread");
+		KHOPAN_DEALLOCATE(buffer);
+		goto cleanupProtocol;
+	}
+
 	if(input && input->callbackConnected) {
 		input->callbackConnected(input->parameter);
 	}
@@ -103,6 +162,10 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 			KHOPAN_DEALLOCATE(packet.data);
 		}
 	}
+
+	PostMessageW(((PBACKGROUNDTHREAD) buffer)->window, WM_CLOSE, 0, 0);
+	CloseHandle(thread);
+	KHOPAN_DEALLOCATE(buffer);
 
 	if(error->facility != ERROR_FACILITY_HRSP || error->code != ERROR_HRSP_CONNECTION_CLOSED) {
 		ERROR_SOURCE(L"HRSPClientConnectToServer");
