@@ -2,9 +2,9 @@
 #include "window_session.h"
 #include <CommCtrl.h>
 
-#define CLASS_NAME L"HackontrolRemoteSessionTabAudio"
-
 #define IDM_STREAM_REFRESH 0xE001
+
+#define CLASS_NAME L"HackontrolRemoteSessionTabAudio"
 
 extern HFONT font;
 
