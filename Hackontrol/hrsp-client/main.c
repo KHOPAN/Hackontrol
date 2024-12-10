@@ -17,6 +17,7 @@ typedef struct {
 	SOCKET socket;
 	PHRSPDATA data;
 	HWND window;
+	BOOLEAN status;
 } BACKGROUNDTHREAD, *PBACKGROUNDTHREAD;
 
 static LRESULT CALLBACK backgroundProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {	
@@ -24,7 +25,10 @@ static LRESULT CALLBACK backgroundProcedure(_In_ HWND window, _In_ UINT message,
 
 	switch(message) {
 	case WM_DEVICECHANGE:
-		StreamRequestDevice(background->socket, background->data);
+		if(background->status) {
+			StreamRequestDevice(background->socket, background->data);
+		}
+
 		return TRUE;
 	}
 
@@ -166,6 +170,10 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 
 	while(HRSPPacketReceive(&protocolData, &packet, error)) {
 		switch(packet.type) {
+		case HRSP_REMOTE_SERVER_STATUS:
+			if(packet.size < 1) break;
+			((PBACKGROUNDTHREAD) buffer)->status = ((PBYTE) packet.data)[0] ? TRUE : FALSE;
+			break;
 		case HRSP_REMOTE_SERVER_REQUEST_STREAM_DEVICE:
 			StreamRequestDevice(clientSocket, &protocolData);
 			break;

@@ -1,3 +1,4 @@
+#include <hrsp_remote.h>
 #include "window_session.h"
 #include <CommCtrl.h>
 
@@ -174,6 +175,14 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 		goto freeTabs;
 	}
 
+	BYTE byte = 1;
+	HRSPPACKET packet;
+	packet.type = HRSP_REMOTE_SERVER_STATUS;
+	packet.size = 1;
+	packet.data = &byte;
+	HRSPPacketSend(&client->hrsp, &packet, NULL);
+	byte = 0;
+
 	for(index = 0; index < sizeof(sessionTabs) / sizeof(sessionTabs[0]); index++) {
 		if(tabData[index].clientInitialize) {
 			client->session.tabs[index].data = 0;
@@ -186,6 +195,7 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 
 	if(!client->session.tab) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
+		HRSPPacketSend(&client->hrsp, &packet, NULL);
 
 		for(index = 0; index < sizeof(sessionTabs) / sizeof(sessionTabs[0]); index++) {
 			if(tabData[index].clientUninitialize && client->session.tabs[index].tab) tabData[index].clientUninitialize(client, &client->session.tabs[index].data);
@@ -213,6 +223,8 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 			DispatchMessageW(&message);
 		}
 	}
+
+	HRSPPacketSend(&client->hrsp, &packet, NULL);
 
 	for(index = 0; index < sizeof(sessionTabs) / sizeof(sessionTabs[0]); index++) {
 		if(tabData[index].clientUninitialize && client->session.tabs[index].tab) {
