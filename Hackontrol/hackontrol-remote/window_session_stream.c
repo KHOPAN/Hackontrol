@@ -150,11 +150,17 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, 
 	index = 1;
 
 	while(index < packet->size) {
+		BYTE type = ((PBYTE) packet->data)[index];
 		UINT32 nameLength = (((PBYTE) packet->data)[index + 1] << 24) | (((PBYTE) packet->data)[index + 2] << 16) | (((PBYTE) packet->data)[index + 3] << 8) | ((PBYTE) packet->data)[index + 4];
 		PBYTE pointerName = ((PBYTE) packet->data) + index + 5;
 		index += nameLength + 9;
 		size = (((PBYTE) packet->data)[index - 4] << 24) | (((PBYTE) packet->data)[index - 3] << 16) | (((PBYTE) packet->data)[index - 2] << 8) | ((PBYTE) packet->data)[index - 1];
 		index += size;
+
+		if(type != 1) {
+			continue;
+		}
+
 		count = (int) SendMessageW(data->list, LVM_GETITEMCOUNT, 0, 0);
 
 		for(i = count - 1; i >= 0; i--) {
