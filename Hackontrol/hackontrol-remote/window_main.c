@@ -47,35 +47,35 @@ static int CALLBACK compareList(PCLIENT first, PCLIENT second, LPARAM parameter)
 }
 
 static BOOLEAN insertInternal(const PCLIENT client) {
-	LVITEMW listItem = {0};
-	listItem.mask = LVIF_PARAM;
+	LVITEMW item = {0};
 	int size = (int) SendMessageW(listView, LVM_GETITEMCOUNT, 0, 0);
 	int index;
 
 	for(index = 0; index < size; index++) {
-		listItem.iItem = size - index - 1;
+		item.mask = LVIF_PARAM;
+		item.iItem = size - index - 1;
 
-		if(SendMessageW(listView, LVM_GETITEM, 0, (LPARAM) &listItem) && compareList(client, (PCLIENT) listItem.lParam, 0) > 0) {
-			listItem.iItem++;
+		if(SendMessageW(listView, LVM_GETITEM, 0, (LPARAM) &item) && compareList(client, (PCLIENT) item.lParam, 0) > 0) {
+			item.iItem++;
 			break;
 		}
 	}
 
-	listItem.mask = LVIF_PARAM | LVIF_TEXT;
-	listItem.pszText = client->name ? client->name : L"(Missing name)";
-	listItem.lParam = (LPARAM) client;
-	index = (int) SendMessageW(listView, LVM_INSERTITEM, 0, (LPARAM) &listItem);
+	item.mask = LVIF_PARAM | LVIF_TEXT;
+	item.pszText = client->name ? client->name : L"(Missing name)";
+	item.lParam = (LPARAM) client;
+	index = (int) SendMessageW(listView, LVM_INSERTITEM, 0, (LPARAM) &item);
 
 	if(index == -1) {
 		KHOPANERRORCONSOLE_WIN32(ERROR_FUNCTION_FAILED, L"ListView_InsertItem");
 		return FALSE;
 	}
 
-	listItem.mask = LVIF_TEXT;
-	listItem.iSubItem = 1;
-	listItem.pszText = client->address ? client->address : L"(Missing address)";
+	item.mask = LVIF_TEXT;
+	item.iSubItem = 1;
+	item.pszText = client->address ? client->address : L"(Missing address)";
 
-	if(!SendMessageW(listView, LVM_SETITEM, 0, (LPARAM) &listItem)) {
+	if(!SendMessageW(listView, LVM_SETITEM, 0, (LPARAM) &item)) {
 		KHOPANERRORCONSOLE_WIN32(ERROR_FUNCTION_FAILED, L"ListView_SetItem");
 		SendMessageW(listView, LVM_DELETEITEM, index, 0);
 		return FALSE;
@@ -138,13 +138,13 @@ static BOOLEAN openClient(const int index) {
 		return FALSE;
 	}
 
-	LVITEMW listItem = {0};
-	listItem.mask = LVIF_PARAM;
-	listItem.iItem = index;
+	LVITEMW item = {0};
+	item.mask = LVIF_PARAM;
+	item.iItem = index;
 
-	if(SendMessageW(listView, LVM_GETITEM, 0, (LPARAM) &listItem)) {
+	if(SendMessageW(listView, LVM_GETITEM, 0, (LPARAM) &item)) {
 		ReleaseMutex(clientListMutex);
-		ThreadClientOpen((PCLIENT) listItem.lParam);
+		ThreadClientOpen((PCLIENT) item.lParam);
 		return TRUE;
 	}
 

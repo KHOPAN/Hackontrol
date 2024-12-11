@@ -116,7 +116,7 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, 
 
 	int count = (int) SendMessageW(data->list, LVM_GETITEMCOUNT, 0, 0);
 	int i;
-	LVITEMW item;
+	LVITEMW item = {0};
 	PDEVICEENTRY entry;
 	UINT32 size;
 
