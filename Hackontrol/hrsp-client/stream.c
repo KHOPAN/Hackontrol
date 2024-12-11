@@ -5,17 +5,17 @@
 #include "hrsp_client_internal.h"
 
 static BOOL iterateMonitor(HMONITOR monitor, const HDC context, const LPRECT bounds, const PDATASTREAM stream) {
-	BYTE bytes[4];
-	bytes[0] = 0;
-
-	if(!KHOPANStreamAdd(stream, bytes, 1, NULL)) {
-		return FALSE;
-	}
-
 	MONITORINFOEXW information;
 	information.cbSize = sizeof(MONITORINFOEXW);
 
 	if(!GetMonitorInfoW(monitor, (LPMONITORINFO) &information)) {
+		return FALSE;
+	}
+
+	BYTE bytes[4];
+	bytes[0] = information.dwFlags & MONITORINFOF_PRIMARY ? HRSP_REMOTE_STREAM_DEVICE_PRIMARY_MONITOR : HRSP_REMOTE_STREAM_DEVICE_MONITOR;
+
+	if(!KHOPANStreamAdd(stream, bytes, 1, NULL)) {
 		return FALSE;
 	}
 
@@ -43,7 +43,7 @@ static BOOLEAN addCamera(const PDATASTREAM stream, IMFActivate* activate) {
 	}
 
 	BYTE bytes[4];
-	bytes[0] = 1;
+	bytes[0] = HRSP_REMOTE_STREAM_DEVICE_CAMERA;
 
 	if(!KHOPANStreamAdd(stream, bytes, 1, NULL)) {
 		goto functionExit;
