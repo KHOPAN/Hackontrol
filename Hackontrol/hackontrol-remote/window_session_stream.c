@@ -219,7 +219,7 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, 
 
 		item.mask = LVIF_TEXT;
 		item.iSubItem = 1;
-		item.pszText = L"Monitor (Primary)";
+		item.pszText = type == HRSP_REMOTE_STREAM_DEVICE_MONITOR ? L"Monitor" : type == HRSP_REMOTE_STREAM_DEVICE_PRIMARY_MONITOR ? L"Monitor (Primary)" : L"Camera";
 		SendMessageW(data->list, LVM_SETITEM, 0, (LPARAM) &item);
 	skip:
 		continue;
