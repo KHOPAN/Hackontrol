@@ -101,13 +101,17 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, 
 			return FALSE;
 		}
 
-		index += ((((PBYTE) packet->data)[index + 1] << 24) | (((PBYTE) packet->data)[index + 2] << 16) | (((PBYTE) packet->data)[index + 3] << 8) | ((PBYTE) packet->data)[index + 4]) + 5;
+		UINT32 whatSize = (((PBYTE) packet->data)[index + 1] << 24) | (((PBYTE) packet->data)[index + 2] << 16) | (((PBYTE) packet->data)[index + 3] << 8) | ((PBYTE) packet->data)[index + 4];
+		index += (whatSize) + 5;
+		printf("Size: %lu\n", whatSize);
 
 		if(index + 4 > packet->size) {
 			return FALSE;
 		}
 
-		index += ((((PBYTE) packet->data)[index] << 24) | (((PBYTE) packet->data)[index + 1] << 16) | (((PBYTE) packet->data)[index + 2] << 8) | ((PBYTE) packet->data)[index + 3]) + 4;
+		whatSize = (((PBYTE) packet->data)[index] << 24) | (((PBYTE) packet->data)[index + 1] << 16) | (((PBYTE) packet->data)[index + 2] << 8) | ((PBYTE) packet->data)[index + 3];
+		index += (whatSize) + 4;
+		printf("Second size: %lu\n", whatSize);
 
 		if(index > packet->size) {
 			return FALSE;

@@ -25,7 +25,7 @@ static BOOL iterateMonitor(HMONITOR monitor, const HDC context, const LPRECT bou
 	bytes[2] = (length & 0xFF) << 8;
 	bytes[3] = length & 0xFF;
 
-	if(!KHOPANStreamAdd(stream, &bytes, 4, NULL) || !KHOPANStreamAdd(stream, information.szDevice, length, NULL)) {
+	if(!KHOPANStreamAdd(stream, bytes, 4, NULL) || !KHOPANStreamAdd(stream, information.szDevice, length, NULL)) {
 		return FALSE;
 	}
 
@@ -34,7 +34,7 @@ static BOOL iterateMonitor(HMONITOR monitor, const HDC context, const LPRECT bou
 	bytes[1] = (length & 0xFF) << 16;
 	bytes[2] = (length & 0xFF) << 8;
 	bytes[3] = length & 0xFF;
-	return KHOPANStreamAdd(stream, &bytes, 4, NULL) && KHOPANStreamAdd(stream, &monitor, sizeof(HMONITOR), NULL);
+	return KHOPANStreamAdd(stream, bytes, 4, NULL) && KHOPANStreamAdd(stream, &monitor, sizeof(HMONITOR), NULL);
 }
 
 static BOOLEAN addCamera(const PDATASTREAM stream, IMFActivate* activate) {
@@ -62,11 +62,12 @@ static BOOLEAN addCamera(const PDATASTREAM stream, IMFActivate* activate) {
 	bytes[2] = (stringLength & 0xFF) << 8;
 	bytes[3] = stringLength & 0xFF;
 
-	if(!KHOPANStreamAdd(stream, &bytes, 4, NULL)) {
+	if(!KHOPANStreamAdd(stream, bytes, 4, NULL)) {
 		CoTaskMemFree(string);
 		goto functionExit;
 	}
 
+	printf("Camera: %ws Length: %lu\n", string, stringLength);
 	BOOLEAN result = KHOPANStreamAdd(stream, string, stringLength, NULL);
 	CoTaskMemFree(string);
 
@@ -74,17 +75,23 @@ static BOOLEAN addCamera(const PDATASTREAM stream, IMFActivate* activate) {
 		goto functionExit;
 	}
 
+	//stringLength *= sizeof(WCHAR);
+	printf("Original: %lu\n", stringLength);
 	stringLength *= sizeof(WCHAR);
-	bytes[0] = (stringLength & 0xFF) << 24;
-	bytes[1] = (stringLength & 0xFF) << 16;
-	bytes[2] = (stringLength & 0xFF) << 8;
+	printf("After: %lu\n", stringLength);
+	//bytes[0] = (stringLength & 0xFF) << 24; <-- The stupidest error of mankind...
+	bytes[0] = (stringLength >> 24) & 0xFF;
+	bytes[1] = (stringLength >> 16) & 0xFF;
+	bytes[2] = (stringLength >> 8) & 0xFF;
 	bytes[3] = stringLength & 0xFF;
 
-	if(!KHOPANStreamAdd(stream, &bytes, 4, NULL)) {
+	if(!KHOPANStreamAdd(stream, bytes, 4, NULL)) {
 		CoTaskMemFree(string);
 		goto functionExit;
 	}
 
+	UINT32 whatSize = (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3];
+	printf("Length: %lu\nIdentifier: %.*ws\nExpected: %lu\n", stringLength, (int) stringLength, string, whatSize);
 	result = KHOPANStreamAdd(stream, string, stringLength, NULL);
 	CoTaskMemFree(string);
 	activate->lpVtbl->Release(activate);
