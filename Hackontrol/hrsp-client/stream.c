@@ -20,9 +20,9 @@ static BOOL iterateMonitor(HMONITOR monitor, const HDC context, const LPRECT bou
 	}
 
 	size_t length = wcslen(information.szDevice) * sizeof(WCHAR);
-	bytes[0] = (length & 0xFF) << 24;
-	bytes[1] = (length & 0xFF) << 16;
-	bytes[2] = (length & 0xFF) << 8;
+	bytes[0] = (length >> 24) & 0xFF;
+	bytes[1] = (length >> 16) & 0xFF;
+	bytes[2] = (length >> 8) & 0xFF;
 	bytes[3] = length & 0xFF;
 
 	if(!KHOPANStreamAdd(stream, bytes, 4, NULL) || !KHOPANStreamAdd(stream, information.szDevice, length, NULL)) {
@@ -30,9 +30,9 @@ static BOOL iterateMonitor(HMONITOR monitor, const HDC context, const LPRECT bou
 	}
 
 	length = sizeof(HMONITOR);
-	bytes[0] = (length & 0xFF) << 24;
-	bytes[1] = (length & 0xFF) << 16;
-	bytes[2] = (length & 0xFF) << 8;
+	bytes[0] = (length >> 24) & 0xFF;
+	bytes[1] = (length >> 16) & 0xFF;
+	bytes[2] = (length >> 8) & 0xFF;
 	bytes[3] = length & 0xFF;
 	return KHOPANStreamAdd(stream, bytes, 4, NULL) && KHOPANStreamAdd(stream, &monitor, sizeof(HMONITOR), NULL);
 }
@@ -57,29 +57,6 @@ static BOOLEAN addCamera(const PDATASTREAM stream, IMFActivate* activate) {
 	}
 
 	stringLength *= sizeof(WCHAR);
-	bytes[0] = (stringLength & 0xFF) << 24;
-	bytes[1] = (stringLength & 0xFF) << 16;
-	bytes[2] = (stringLength & 0xFF) << 8;
-	bytes[3] = stringLength & 0xFF;
-
-	if(!KHOPANStreamAdd(stream, bytes, 4, NULL)) {
-		CoTaskMemFree(string);
-		goto functionExit;
-	}
-
-	printf("Camera: %ws Length: %lu\n", string, stringLength);
-	BOOLEAN result = KHOPANStreamAdd(stream, string, stringLength, NULL);
-	CoTaskMemFree(string);
-
-	if(!result || FAILED(activate->lpVtbl->GetAllocatedString(activate, &MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK, &string, &stringLength))) {
-		goto functionExit;
-	}
-
-	//stringLength *= sizeof(WCHAR);
-	printf("Original: %lu\n", stringLength);
-	stringLength *= sizeof(WCHAR);
-	printf("After: %lu\n", stringLength);
-	//bytes[0] = (stringLength & 0xFF) << 24; <-- The stupidest error of mankind...
 	bytes[0] = (stringLength >> 24) & 0xFF;
 	bytes[1] = (stringLength >> 16) & 0xFF;
 	bytes[2] = (stringLength >> 8) & 0xFF;
@@ -90,8 +67,24 @@ static BOOLEAN addCamera(const PDATASTREAM stream, IMFActivate* activate) {
 		goto functionExit;
 	}
 
-	UINT32 whatSize = (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3];
-	printf("Length: %lu\nIdentifier: %.*ws\nExpected: %lu\n", stringLength, (int) stringLength, string, whatSize);
+	BOOLEAN result = KHOPANStreamAdd(stream, string, stringLength, NULL);
+	CoTaskMemFree(string);
+
+	if(!result || FAILED(activate->lpVtbl->GetAllocatedString(activate, &MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK, &string, &stringLength))) {
+		goto functionExit;
+	}
+
+	stringLength *= sizeof(WCHAR);
+	bytes[0] = (stringLength >> 24) & 0xFF;
+	bytes[1] = (stringLength >> 16) & 0xFF;
+	bytes[2] = (stringLength >> 8) & 0xFF;
+	bytes[3] = stringLength & 0xFF;
+
+	if(!KHOPANStreamAdd(stream, bytes, 4, NULL)) {
+		CoTaskMemFree(string);
+		goto functionExit;
+	}
+
 	result = KHOPANStreamAdd(stream, string, stringLength, NULL);
 	CoTaskMemFree(string);
 	activate->lpVtbl->Release(activate);
