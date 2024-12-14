@@ -83,6 +83,16 @@ freeData:
 	return NULL;
 }
 
+static int CALLBACK compareList(PDEVICEENTRY first, PDEVICEENTRY second, LPARAM parameter) {
+	if(!first) {
+		return second ? -1 : 0;
+	} else if(!second) {
+		return 1;
+	}
+
+	return wcscmp(first->name, second->name);
+}
+
 static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, const PHRSPPACKET packet) {
 	PTABSTREAMDATA data;
 
