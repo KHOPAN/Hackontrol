@@ -313,6 +313,19 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 
 		KHOPAN_DEALLOCATE(data);
 		return 0;
+	case WM_NOTIFY:
+		if(!lparam) {
+			break;
+		}
+
+		switch(((LPNMHDR) lparam)->code) {
+		case LVN_COLUMNCLICK:
+			printf("Column Click\n");
+			return 0;
+		}
+
+		(UINT) ((LPNMLISTVIEW) lparam)->iSubItem;
+		break;
 	case WM_SIZE:
 		GetClientRect(window, &bounds);
 		SetWindowPos(data->border, HWND_TOP, 0, 0, bounds.right - bounds.left - 2, bounds.bottom - bounds.top, SWP_NOMOVE);
