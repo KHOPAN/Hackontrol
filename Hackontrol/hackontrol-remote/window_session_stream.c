@@ -9,9 +9,15 @@
 extern HFONT font;
 
 typedef struct {
+	BOOLEAN name : 1;
+	BOOLEAN descending : 1;
+} SORTPARAMETER, *PSORTPARAMETER;
+
+typedef struct {
 	PCLIENT client;
 	HWND border;
 	HWND list;
+	SORTPARAMETER sort;
 } TABSTREAMDATA, *PTABSTREAMDATA;
 
 typedef struct {
@@ -20,11 +26,6 @@ typedef struct {
 	PBYTE identifier;
 	HRSPREMOTESTREAMDEVICETYPE type;
 } DEVICEENTRY, *PDEVICEENTRY;
-
-typedef struct {
-	BOOLEAN name : 1;
-	BOOLEAN descending : 1;
-} SORTPARAMETER, *PSORTPARAMETER;
 
 static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG customData, const HWND parent) {
 	PTABSTREAMDATA data = KHOPAN_ALLOCATE(sizeof(TABSTREAMDATA));
@@ -234,7 +235,7 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, 
 		for(i = count - 1; i >= 0; i--) {
 			item.mask = LVIF_PARAM;
 			item.iItem = i;
-			if(!SendMessageW(data->list, LVM_GETITEM, 0, (LPARAM) &item) || compareList(entry, (PDEVICEENTRY) item.lParam, 0) <= 0) continue;
+			if(!SendMessageW(data->list, LVM_GETITEM, 0, (LPARAM) &item) || compareList(entry, (PDEVICEENTRY) item.lParam, &data->sort) <= 0) continue;
 			item.iItem++;
 			break;
 		}
@@ -266,12 +267,12 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, 
 	return TRUE;
 }
 
-static void clickHeader(const int index, const HWND listView) {
-	if(index < 0) {
+static void clickHeader(const int index, const PTABSTREAMDATA data) {
+	if(index < 0 || !data) {
 		return;
 	}
 
-	HWND header = (HWND) SendMessageW(listView, LVM_GETHEADER, 0, 0);
+	HWND header = (HWND) SendMessageW(data->list, LVM_GETHEADER, 0, 0);
 
 	if(!header) {
 		return;
@@ -284,7 +285,6 @@ static void clickHeader(const int index, const HWND listView) {
 	}
 
 	HDITEMW item = {0};
-	LPARAM parameter = 0;
 
 	for(int i = 0; i < count; i++) {
 		item.mask = HDI_FORMAT;
@@ -304,15 +304,13 @@ static void clickHeader(const int index, const HWND listView) {
 			item.fmt |= HDF_SORTUP;
 		}
 
-		//sort.ascending = item.fmt & HDF_SORTUP;
-		parameter |= item.fmt & HDF_SORTUP ? 0b10 : 0b00;
+		data->sort.descending = item.fmt & HDF_SORTDOWN;
 	setItem:
 		SendMessageW(header, HDM_SETITEM, i, (LPARAM) &item);
 	}
 
-	//sort.username = index == 0;
-	parameter |= index == 0 ? 0b01 : 0b00;
-	SendMessageW(listView, LVM_SORTITEMS, parameter, (LPARAM) compareList);
+	data->sort.name = index == 0;
+	SendMessageW(data->list, LVM_SORTITEMS, (WPARAM) &data->sort, (LPARAM) compareList);
 }
 
 static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
@@ -386,7 +384,7 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 
 		switch(((LPNMHDR) lparam)->code) {
 		case LVN_COLUMNCLICK:
-			clickHeader((UINT) ((LPNMLISTVIEW) lparam)->iSubItem, data->list);
+			clickHeader((UINT) ((LPNMLISTVIEW) lparam)->iSubItem, data);
 			return 0;
 		}
 
