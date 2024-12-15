@@ -249,6 +249,52 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, 
 	return TRUE;
 }
 
+static void clickHeader(const int index, const HWND listView) {
+	if(index < 0) {
+		return;
+	}
+
+	HWND header = (HWND) SendMessageW(listView, LVM_GETHEADER, 0, 0);
+
+	if(!header) {
+		return;
+	}
+
+	int count = (int) SendMessageW(header, HDM_GETITEMCOUNT, 0, 0);
+
+	if(count < 1) {
+		return;
+	}
+
+	HDITEMW item = {0};
+
+	for(int i = 0; i < count; i++) {
+		item.mask = HDI_FORMAT;
+		item.fmt = 0;
+		SendMessageW(header, HDM_GETITEM, i, (LPARAM) &item);
+
+		if(i != index) {
+			item.fmt &= ~(HDF_SORTUP | HDF_SORTDOWN);
+			goto setItem;
+		}
+
+		if(item.fmt & HDF_SORTUP) {
+			item.fmt = (item.fmt & ~HDF_SORTUP) | HDF_SORTDOWN;
+		} else if(item.fmt & HDF_SORTDOWN) {
+			item.fmt = (item.fmt & ~HDF_SORTDOWN) | HDF_SORTUP;
+		} else {
+			item.fmt |= HDF_SORTUP;
+		}
+
+		//sort.ascending = item.fmt & HDF_SORTUP;
+	setItem:
+		SendMessageW(header, HDM_SETITEM, i, (LPARAM) &item);
+	}
+
+	//sort.username = index == 0;
+	SendMessageW(listView, LVM_SORTITEMS, 0, (LPARAM) compareList);
+}
+
 static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	USERDATA(PTABSTREAMDATA, data, window, message, wparam, lparam);
 	LVHITTESTINFO information = {0};
@@ -320,11 +366,10 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 
 		switch(((LPNMHDR) lparam)->code) {
 		case LVN_COLUMNCLICK:
-			printf("Column Click\n");
+			clickHeader((UINT) ((LPNMLISTVIEW) lparam)->iSubItem, data->list);
 			return 0;
 		}
 
-		(UINT) ((LPNMLISTVIEW) lparam)->iSubItem;
 		break;
 	case WM_SIZE:
 		GetClientRect(window, &bounds);
