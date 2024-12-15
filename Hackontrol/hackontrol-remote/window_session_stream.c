@@ -21,6 +21,11 @@ typedef struct {
 	HRSPREMOTESTREAMDEVICETYPE type;
 } DEVICEENTRY, *PDEVICEENTRY;
 
+typedef struct {
+	BOOLEAN name : 1;
+	BOOLEAN descending : 1;
+} SORTPARAMETER, *PSORTPARAMETER;
+
 static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG customData, const HWND parent) {
 	PTABSTREAMDATA data = KHOPAN_ALLOCATE(sizeof(TABSTREAMDATA));
 
@@ -84,22 +89,24 @@ freeData:
 	return NULL;
 }
 
-static int CALLBACK compareList(PDEVICEENTRY first, PDEVICEENTRY second, LPARAM parameter) {
+static int CALLBACK compareList(PDEVICEENTRY first, PDEVICEENTRY second, PSORTPARAMETER parameter) {
 	if(!first) {
 		return second ? -1 : 0;
 	} else if(!second) {
 		return 1;
+	} else if(!parameter) {
+		return 0;
 	}
 
 	char result;
 
-	if(parameter & 0b01) {
+	if(parameter->name) {
 		result = wcscmp(first->name, second->name);
 	} else {
 		result = first->type > second->type ? 1 : first->type == second->type ? 0 : -1;
 	}
 
-	return parameter & 0b10 ? -result : result;
+	return parameter->descending ? -result : result;
 }
 
 static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, const PHRSPPACKET packet) {
