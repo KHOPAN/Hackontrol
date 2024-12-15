@@ -18,6 +18,7 @@ typedef struct {
 	LPWSTR name;
 	UINT32 identifierLength;
 	PBYTE identifier;
+	HRSPREMOTESTREAMDEVICETYPE type;
 } DEVICEENTRY, *PDEVICEENTRY;
 
 static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG customData, const HWND parent) {
@@ -90,7 +91,15 @@ static int CALLBACK compareList(PDEVICEENTRY first, PDEVICEENTRY second, LPARAM 
 		return 1;
 	}
 
-	return wcscmp(first->name, second->name);
+	char result;
+
+	if(parameter & 0b01) {
+		result = wcscmp(first->name, second->name);
+	} else {
+		result = first->type > second->type ? 1 : first->type == second->type ? 0 : -1;
+	}
+
+	return parameter & 0b10 ? -result : result;
 }
 
 static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, const PHRSPPACKET packet) {
@@ -186,6 +195,7 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, 
 			continue;
 		}
 
+		entry->type = type;
 		entry->name = KHOPAN_ALLOCATE(nameLength + sizeof(WCHAR));
 
 		if(!entry->name) {
@@ -267,6 +277,7 @@ static void clickHeader(const int index, const HWND listView) {
 	}
 
 	HDITEMW item = {0};
+	LPARAM parameter = 0;
 
 	for(int i = 0; i < count; i++) {
 		item.mask = HDI_FORMAT;
@@ -287,12 +298,14 @@ static void clickHeader(const int index, const HWND listView) {
 		}
 
 		//sort.ascending = item.fmt & HDF_SORTUP;
+		parameter |= item.fmt & HDF_SORTUP ? 0b10 : 0b00;
 	setItem:
 		SendMessageW(header, HDM_SETITEM, i, (LPARAM) &item);
 	}
 
 	//sort.username = index == 0;
-	SendMessageW(listView, LVM_SORTITEMS, 0, (LPARAM) compareList);
+	parameter |= index == 0 ? 0b01 : 0b00;
+	SendMessageW(listView, LVM_SORTITEMS, parameter, (LPARAM) compareList);
 }
 
 static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
