@@ -51,9 +51,9 @@ static BOOLEAN insertInternal(const PCLIENT client) {
 	int size = (int) SendMessageW(listView, LVM_GETITEMCOUNT, 0, 0);
 	int index;
 
-	for(index = 0; index < size; index++) {
+	for(index = size - 1; index >= 0; index--) {
 		item.mask = LVIF_PARAM;
-		item.iItem = size - index - 1;
+		item.iItem = index;
 
 		if(SendMessageW(listView, LVM_GETITEM, 0, (LPARAM) &item) && compareList(client, (PCLIENT) item.lParam, 0) > 0) {
 			item.iItem++;

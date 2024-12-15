@@ -214,13 +214,21 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, 
 			entry->identifier[x] = ((PBYTE) packet->data)[index - size + x];
 		}
 
+		for(i = count - 1; i >= 0; i--) {
+			item.mask = LVIF_PARAM;
+			item.iItem = i;
+			if(!SendMessageW(data->list, LVM_GETITEM, 0, (LPARAM) &item) || compareList(entry, (PDEVICEENTRY) item.lParam, 0) <= 0) continue;
+			item.iItem++;
+			break;
+		}
+
 		item.mask = LVIF_PARAM | LVIF_TEXT;
-		item.iItem = 0;
 		item.iSubItem = 0;
 		item.pszText = entry->name;
 		item.lParam = (LPARAM) entry;
+		i = (int) SendMessageW(data->list, LVM_INSERTITEM, 0, (LPARAM) &item);
 
-		if(SendMessageW(data->list, LVM_INSERTITEM, 0, (LPARAM) &item) == -1) {
+		if(i == -1) {
 			KHOPAN_DEALLOCATE(entry->identifier);
 			KHOPAN_DEALLOCATE(entry->name);
 			KHOPAN_DEALLOCATE(entry);
@@ -230,7 +238,10 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, 
 		item.mask = LVIF_TEXT;
 		item.iSubItem = 1;
 		item.pszText = type == HRSP_REMOTE_STREAM_DEVICE_MONITOR ? L"Monitor" : type == HRSP_REMOTE_STREAM_DEVICE_PRIMARY_MONITOR ? L"Monitor (Primary)" : L"Camera";
-		SendMessageW(data->list, LVM_SETITEM, 0, (LPARAM) &item);
+
+		if(!SendMessageW(data->list, LVM_SETITEM, 0, (LPARAM) &item)) {
+			SendMessageW(data->list, LVM_DELETEITEM, i, 0);
+		}
 	skip:
 		continue;
 	}
