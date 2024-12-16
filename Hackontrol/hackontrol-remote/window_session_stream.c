@@ -10,7 +10,7 @@ extern HFONT font;
 
 typedef struct {
 	BOOLEAN name : 1;
-	BOOLEAN descending : 1;
+	BOOLEAN ascending : 1;
 } SORTPARAMETER, *PSORTPARAMETER;
 
 typedef struct {
@@ -95,19 +95,20 @@ static int CALLBACK compareList(PDEVICEENTRY first, PDEVICEENTRY second, PSORTPA
 		return second ? -1 : 0;
 	} else if(!second) {
 		return 1;
-	} else if(!parameter) {
-		return 0;
-	}
+	}// else if(!parameter) {
+	//	return 0;
+	//}
 
 	char result;
 
-	if(parameter->name) {
+	//if(parameter->name) {
+	//	printf("Comparing '%ws' and '%ws'\n", first->name, second->name);
 		result = wcscmp(first->name, second->name);
-	} else {
-		result = first->type > second->type ? 1 : first->type == second->type ? 0 : -1;
-	}
+	//} else {
+	//	result = first->type > second->type ? 1 : first->type == second->type ? 0 : -1;
+	//}
 
-	return parameter->descending ? -result : result;
+	return result;// parameter->descending ? -result : result;
 }
 
 static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, const PHRSPPACKET packet) {
@@ -304,13 +305,13 @@ static void clickHeader(const int index, const PTABSTREAMDATA data) {
 			item.fmt |= HDF_SORTUP;
 		}
 
-		data->sort.descending = item.fmt & HDF_SORTDOWN;
+		data->sort.ascending = item.fmt & HDF_SORTUP;
 	setItem:
 		SendMessageW(header, HDM_SETITEM, i, (LPARAM) &item);
 	}
 
-	data->sort.name = index == 0;
-	SendMessageW(data->list, LVM_SORTITEMS, (WPARAM) &data->sort, (LPARAM) compareList);
+	data->sort.name = index == 0;//(WPARAM) &data->sort
+	SendMessageW(data->list, LVM_SORTITEMS, 0, (LPARAM) compareList);
 }
 
 static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
