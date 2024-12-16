@@ -148,7 +148,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.c" />
-    <ClCompile Include="popup_stream.c" />
     <ClCompile Include="thread_client.c" />
     <ClCompile Include="thread_server.c" />
     <ClCompile Include="window_main.c" />
@@ -160,7 +159,6 @@
     <Manifest Include="hackontrol-remote.exe.manifest" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="popup_stream.h" />
     <ClInclude Include="remote.h" />
     <ClInclude Include="window_session.h" />
   </ItemGroup>
