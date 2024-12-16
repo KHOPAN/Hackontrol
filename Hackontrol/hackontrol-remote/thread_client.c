@@ -29,9 +29,14 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 		goto cleanupProtocol;
 	}
 
+	if(!packet.size) {
+		LOG("[Client %ws]: Empty first packet\n", client->address);
+		goto cleanupProtocol;
+	}
+
 	if(packet.type != HRSP_REMOTE_CLIENT_USERNAME) {
 		LOG("[Client %ws]: Invalid first packet type: %u\n", client->address, packet.type);
-		if(packet.size) KHOPAN_DEALLOCATE(packet.data);
+		KHOPAN_DEALLOCATE(packet.data);
 		goto cleanupProtocol;
 	}
 
@@ -66,9 +71,7 @@ closeSession:
 		WaitForSingleObject(client->session.thread, INFINITE);
 	}
 freeName:
-	if(client->name) {
-		KHOPAN_DEALLOCATE(client->name);
-	}
+	KHOPAN_DEALLOCATE(client->name);
 cleanupProtocol:
 	HRSPServerSessionCleanup(&client->hrsp);
 functionExit:
