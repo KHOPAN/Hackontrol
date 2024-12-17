@@ -323,6 +323,20 @@ BOOLEAN WindowMainInitialize() {
 	}
 
 	listHeader(0);
+	LPCWSTR names[] = {L"First", L"Second", L"Third", L"Forth", L"Fifth"};
+	LPCWSTR addresses[] = {L"Airst", L"Cecond", L"Bhird", L"Dorth", L"Fifth"};
+
+	for(size_t i = 0; i < sizeof(names) / sizeof(names[0]); i++) {
+		PCLIENT client = KHOPAN_ALLOCATE(sizeof(CLIENT));
+
+		if(client) {
+			client->name = names[i];
+			memcpy(client->address, addresses[i], (wcslen(addresses[i]) + 1) * sizeof(WCHAR));
+			PLINKEDLISTITEM item;
+			WindowMainAdd(&client, &item);
+		}
+	}
+
 	return TRUE;
 destroyWindow:
 	DestroyWindow(window);
