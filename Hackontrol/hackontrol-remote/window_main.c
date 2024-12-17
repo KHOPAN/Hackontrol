@@ -15,17 +15,15 @@ extern HFONT font;
 extern LINKEDLIST clientList;
 extern HANDLE clientListMutex;
 
-typedef struct {
-	BOOLEAN username : 1;
-	BOOLEAN ascending : 1;
-} SORTPARAMETER;
-
 static HWND window;
 static HWND border;
 static HWND listView;
-static SORTPARAMETER sort;
+static struct {
+	BOOLEAN username : 1;
+	BOOLEAN ascending : 1;
+} sort;
 
-static int CALLBACK compareList(PCLIENT first, PCLIENT second, LPARAM parameter) {
+static int CALLBACK compare(const PCLIENT first, const PCLIENT second, const LPARAM parameter) {
 	if(!first) {
 		return second ? -1 : 0;
 	} else if(!second) {
@@ -33,20 +31,19 @@ static int CALLBACK compareList(PCLIENT first, PCLIENT second, LPARAM parameter)
 	}
 
 	char compare;
-	char result;
 
 	if(sort.username) {
 		compare = wcscmp(first->name, second->name);
-		return compare ? compare : wcscmp(first->address, second->address);
+		compare = compare ? compare : wcscmp(first->address, second->address);
 	} else {
 		compare = wcscmp(first->address, second->address);
-		return compare ? compare : wcscmp(first->name, second->name);
+		compare = compare ? compare : wcscmp(first->name, second->name);
 	}
 
-	return sort.ascending ? result : -result;
+	return sort.ascending ? compare : -compare;
 }
 
-static BOOLEAN insertInternal(const PCLIENT client) {
+static BOOLEAN insert(const PCLIENT client) {
 	LVITEMW item = {0};
 	int size = (int) SendMessageW(listView, LVM_GETITEMCOUNT, 0, 0);
 	int index;
@@ -55,7 +52,7 @@ static BOOLEAN insertInternal(const PCLIENT client) {
 		item.mask = LVIF_PARAM;
 		item.iItem = index;
 
-		if(SendMessageW(listView, LVM_GETITEM, 0, (LPARAM) &item) && compareList(client, (PCLIENT) item.lParam, 0) > 0) {
+		if(SendMessageW(listView, LVM_GETITEM, 0, (LPARAM) &item) && compare(client, (PCLIENT) item.lParam, 0) > 0) {
 			item.iItem++;
 			break;
 		}
@@ -84,7 +81,7 @@ static BOOLEAN insertInternal(const PCLIENT client) {
 	return TRUE;
 }
 
-static void clickHeader(const int index) {
+static void listHeader(const int index) {
 	if(index < 0 || WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
 		return;
 	}
@@ -92,15 +89,13 @@ static void clickHeader(const int index) {
 	HWND header = (HWND) SendMessageW(listView, LVM_GETHEADER, 0, 0);
 
 	if(!header) {
-		ReleaseMutex(clientListMutex);
-		return;
+		goto releaseMutex;
 	}
 
 	int count = (int) SendMessageW(header, HDM_GETITEMCOUNT, 0, 0);
 
 	if(count < 1) {
-		ReleaseMutex(clientListMutex);
-		return;
+		goto releaseMutex;
 	}
 
 	HDITEMW item = {0};
@@ -129,11 +124,12 @@ static void clickHeader(const int index) {
 	}
 
 	sort.username = index == 0;
-	SendMessageW(listView, LVM_SORTITEMS, 0, (LPARAM) compareList);
+	SendMessageW(listView, LVM_SORTITEMS, 0, (LPARAM) compare);
+releaseMutex:
 	ReleaseMutex(clientListMutex);
 }
 
-static BOOLEAN openClient(const int index) {
+static BOOLEAN open(const int index) {
 	if(index < 0 && WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) {
 		return FALSE;
 	}
@@ -224,7 +220,7 @@ static LRESULT CALLBACK procedure(_In_ HWND inputWindow, _In_ UINT message, _In_
 		case IDM_REMOTE_REFRESH:
 			if(WaitForSingleObject(clientListMutex, INFINITE) == WAIT_FAILED) return 0;
 			SendMessageW(listView, LVM_DELETEALLITEMS, 0, 0);
-			KHOPAN_LINKED_LIST_ITERATE_FORWARD(listItem, &clientList) if(listItem->data) insertInternal((PCLIENT) listItem->data);
+			KHOPAN_LINKED_LIST_ITERATE_FORWARD(listItem, &clientList) if(listItem->data) insert((PCLIENT) listItem->data);
 			ReleaseMutex(clientListMutex);
 			return 0;
 		case IDM_REMOTE_ALWAYS_ON_TOP:
@@ -246,10 +242,10 @@ static LRESULT CALLBACK procedure(_In_ HWND inputWindow, _In_ UINT message, _In_
 
 		switch(((LPNMHDR) lparam)->code) {
 		case LVN_COLUMNCLICK:
-			clickHeader((UINT) ((LPNMLISTVIEW) lparam)->iSubItem);
+			listHeader((UINT) ((LPNMLISTVIEW) lparam)->iSubItem);
 			return 0;
 		case NM_DBLCLK:
-			openClient(((LPNMITEMACTIVATE) lparam)->iItem);
+			open(((LPNMITEMACTIVATE) lparam)->iItem);
 			return 0;
 		}
 
@@ -326,7 +322,7 @@ BOOLEAN WindowMainInitialize() {
 		goto destroyWindow;
 	}
 
-	clickHeader(0);
+	listHeader(0);
 	return TRUE;
 destroyWindow:
 	DestroyWindow(window);
@@ -341,7 +337,7 @@ void WindowMain() {
 	MSG message;
 
 	while(GetMessageW(&message, NULL, 0, 0)) {
-		if(message.message == WM_KEYDOWN && (message.wParam == VK_RETURN || message.wParam == VK_SPACE) && openClient((int) SendMessageW(listView, LVM_GETNEXTITEM, -1, LVNI_SELECTED))) {
+		if(message.message == WM_KEYDOWN && (message.wParam == VK_RETURN || message.wParam == VK_SPACE) && open((int) SendMessageW(listView, LVM_GETNEXTITEM, -1, LVNI_SELECTED))) {
 			continue;
 		}
 
@@ -360,6 +356,7 @@ BOOLEAN WindowMainAdd(const PPCLIENT inputClient, const PPLINKEDLISTITEM inputIt
 
 	PLINKEDLISTITEM item;
 	KHOPANERROR error;
+	BOOLEAN codeExit = FALSE;
 
 	if(!KHOPANLinkedAdd(&clientList, (PBYTE) *inputClient, &item, &error)) {
 		KHOPANERRORCONSOLE_KHOPAN(error);
@@ -368,7 +365,7 @@ BOOLEAN WindowMainAdd(const PPCLIENT inputClient, const PPLINKEDLISTITEM inputIt
 
 	PCLIENT client = (PCLIENT) item->data;
 
-	if(!client || !insertInternal(client)) {
+	if(!client || !insert(client)) {
 		KHOPANLinkedRemove(item, NULL);
 		goto releaseMutex;
 	}
@@ -376,11 +373,10 @@ BOOLEAN WindowMainAdd(const PPCLIENT inputClient, const PPLINKEDLISTITEM inputIt
 	KHOPAN_DEALLOCATE(*inputClient);
 	*inputClient = client;
 	*inputItem = item;
-	ReleaseMutex(clientListMutex);
-	return TRUE;
+	codeExit = TRUE;
 releaseMutex:
 	ReleaseMutex(clientListMutex);
-	return FALSE;
+	return codeExit;
 }
 
 BOOLEAN WindowMainRemove(const PLINKEDLISTITEM item) {
