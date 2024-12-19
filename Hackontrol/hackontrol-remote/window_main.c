@@ -118,7 +118,7 @@ static void listHeader(const int index) {
 			item.fmt |= HDF_SORTUP;
 		}
 
-		sort.ascending = item.fmt & HDF_SORTUP;
+		sort.ascending = item.fmt & HDF_SORTUP ? TRUE : FALSE;
 	setItem:
 		SendMessageW(header, HDM_SETITEM, i, (LPARAM) &item);
 	}
