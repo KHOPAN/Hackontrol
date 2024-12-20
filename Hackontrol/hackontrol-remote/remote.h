@@ -14,25 +14,23 @@
 #define USERDATA(type, name, window, message, wparam, lparam) type name=NULL;if(message==WM_CREATE){name=(type)(((CREATESTRUCT*)lparam)->lpCreateParams);SetWindowLongPtrW(window,GWLP_USERDATA,(LONG_PTR)(name));}else{name=(type)(GetWindowLongPtrW(window,GWLP_USERDATA));}if(!(name))return DefWindowProcW(window,message,wparam,lparam)
 
 typedef struct {
-	HWND tab;
-	ULONGLONG data;
-} TABSTORE, *PTABSTORE;
-
-typedef struct {
-	HANDLE thread;
-	PTABSTORE tabs;
-	HWND window;
-	HWND tab;
-	HWND selectedTab;
-} SESSION;
-
-typedef struct {
 	WCHAR address[16];
 	SOCKET socket;
 	HANDLE thread;
 	HRSPDATA hrsp;
 	LPWSTR name;
-	SESSION session;
+
+	struct {
+		HANDLE thread;
+		HWND window;
+		HWND tab;
+		HWND select;
+
+		struct TABLIST {
+			HWND tab;
+			ULONGLONG data;
+		} *tabs;
+	} session;
 } CLIENT, *PCLIENT, **PPCLIENT;
 
 DWORD WINAPI ThreadClient(_In_ PCLIENT client);

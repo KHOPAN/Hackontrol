@@ -26,21 +26,21 @@ static struct TABDATA {
 } *tabData;
 
 static void resize(const PCLIENT client) {
-	if(!client->session.selectedTab) {
+	if(!client->session.select) {
 		return;
 	}
 
 	RECT bounds;
 	GetClientRect(client->session.tab, &bounds);
 	SendMessageW(client->session.tab, TCM_ADJUSTRECT, FALSE, (LPARAM) &bounds);
-	SetWindowPos(client->session.selectedTab, HWND_TOP, bounds.left + TAB_OFFSET, bounds.top + TAB_OFFSET, bounds.right - bounds.left, bounds.bottom - bounds.top, 0);
+	SetWindowPos(client->session.select, HWND_TOP, bounds.left + TAB_OFFSET, bounds.top + TAB_OFFSET, bounds.right - bounds.left, bounds.bottom - bounds.top, 0);
 }
 
 static void selectTab(const PCLIENT client) {
 	size_t index = SendMessageW(client->session.tab, TCM_GETCURSEL, 0, 0);
 
 	if(((LONGLONG) index) >= 0) {
-		client->session.selectedTab = client->session.tabs[index].tab;
+		client->session.select = client->session.tabs[index].tab;
 
 		for(size_t i = 0; i < sizeof(sessionTabs) / sizeof(sessionTabs[0]); i++) {
 			if(client->session.tabs[i].tab) ShowWindow(client->session.tabs[i].tab, index == i ? SW_SHOW : SW_HIDE);
@@ -148,7 +148,7 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 		return 1;
 	}
 
-	client->session.tabs = KHOPAN_ALLOCATE(sizeof(sessionTabs) / sizeof(sessionTabs[0]) * sizeof(TABSTORE));
+	client->session.tabs = KHOPAN_ALLOCATE(sizeof(sessionTabs) / sizeof(sessionTabs[0]) * sizeof(struct TABLIST));
 	DWORD codeExit = 1;
 	size_t i;
 
@@ -235,7 +235,7 @@ functionExit:
 
 	CloseHandle(client->session.thread);
 
-	for(i = 0; i < sizeof(SESSION); i++) {
+	for(i = 0; i < sizeof(client->session); i++) {
 		((PBYTE) &client->session)[i] = 0;
 	}
 
