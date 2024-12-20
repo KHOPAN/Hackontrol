@@ -8,12 +8,13 @@ static void(__stdcall* sessionTabs[]) (const PTABINITIALIZER tab) = {
 };
 
 #define TAB_OFFSET 5
+
 #define CLASS_NAME L"HackontrolRemoteSession"
 
 extern HINSTANCE instance;
 extern HFONT font;
 
-typedef struct {
+static struct TABDATA {
 	LPCWSTR name;
 	TABUNINITIALIZE uninitialize;
 	TABCLIENTINITIALIZE clientInitialize;
@@ -22,11 +23,9 @@ typedef struct {
 	BOOLEAN alwaysProcessPacket;
 	ULONGLONG data;
 	LPCWSTR className;
-} TABDATA, *PTABDATA;
+} *tabData;
 
-static PTABDATA tabData;
-
-static void resizeTab(const PCLIENT client) {
+static void resize(const PCLIENT client) {
 	if(!client->session.selectedTab) {
 		return;
 	}
@@ -40,19 +39,15 @@ static void resizeTab(const PCLIENT client) {
 static void selectTab(const PCLIENT client) {
 	size_t index = SendMessageW(client->session.tab, TCM_GETCURSEL, 0, 0);
 
-	if(((LONGLONG) index) == -1) {
-		return;
-	}
+	if(((LONGLONG) index) >= 0) {
+		client->session.selectedTab = client->session.tabs[index].tab;
 
-	client->session.selectedTab = client->session.tabs[index].tab;
-
-	for(size_t i = 0; i < sizeof(sessionTabs) / sizeof(sessionTabs[0]); i++) {
-		if(client->session.tabs[i].tab) {
-			ShowWindow(client->session.tabs[i].tab, index == i ? SW_SHOW : SW_HIDE);
+		for(size_t i = 0; i < sizeof(sessionTabs) / sizeof(sessionTabs[0]); i++) {
+			if(client->session.tabs[i].tab) ShowWindow(client->session.tabs[i].tab, index == i ? SW_SHOW : SW_HIDE);
 		}
-	}
 
-	resizeTab(client);
+		resize(client);
+	}
 }
 
 static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
@@ -67,10 +62,13 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 		PostQuitMessage(0);
 		return 0;
 	case WM_NOTIFY:
+		if(!lparam) {
+			break;
+		}
+
 		switch(((LPNMHDR) lparam)->code) {
 		case TCN_SELCHANGE:
 			selectTab(client);
-			return FALSE;
 		case TCN_SELCHANGING:
 			return FALSE;
 		}
@@ -79,7 +77,7 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 	case WM_SIZE:
 		GetClientRect(window, &bounds);
 		SetWindowPos(client->session.tab, HWND_TOP, 0, 0, bounds.right - bounds.left - TAB_OFFSET * 2, bounds.bottom - bounds.top - TAB_OFFSET * 2, SWP_NOMOVE);
-		resizeTab(client);
+		resize(client);
 		return 0;
 	}
 
@@ -87,7 +85,7 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 }
 
 BOOLEAN WindowSessionInitialize() {
-	tabData = KHOPAN_ALLOCATE(sizeof(sessionTabs) / sizeof(sessionTabs[0]) * sizeof(TABDATA));
+	tabData = KHOPAN_ALLOCATE(sizeof(sessionTabs) / sizeof(sessionTabs[0]) * sizeof(struct TABDATA));
 
 	if(!tabData) {
 		KHOPANERRORMESSAGE_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"KHOPAN_ALLOCATE");
@@ -108,11 +106,11 @@ BOOLEAN WindowSessionInitialize() {
 		return FALSE;
 	}
 
-	size_t counter;
+	for(size_t i = 0; i < sizeof(sessionTabs) / sizeof(sessionTabs[0]); i++) {
+		size_t index;
 
-	for(size_t index = 0; index < sizeof(sessionTabs) / sizeof(sessionTabs[0]); index++) {
-		for(counter = 0; counter < sizeof(TABINITIALIZER); counter++) {
-			((PBYTE) &initializer)[counter] = 0;
+		for(index = 0; index < sizeof(TABINITIALIZER); index++) {
+			((PBYTE) &initializer)[index] = 0;
 		}
 
 		HBRUSH brush = CreateSolidBrush(0xF9F9F9);
@@ -120,24 +118,24 @@ BOOLEAN WindowSessionInitialize() {
 		initializer.windowClass.hInstance = instance;
 		initializer.windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
 		initializer.windowClass.hbrBackground = brush;
-		sessionTabs[index](&initializer);
-		tabData[index].name = initializer.name;
-		tabData[index].uninitialize = initializer.uninitialize;
-		tabData[index].clientInitialize = initializer.clientInitialize;
-		tabData[index].clientUninitialize = initializer.clientUninitialize;
-		tabData[index].packetHandler = initializer.packetHandler;
-		tabData[index].alwaysProcessPacket = initializer.alwaysProcessPacket;
-		tabData[index].data = initializer.data;
+		sessionTabs[i](&initializer);
+		tabData[i].name = initializer.name;
+		tabData[i].uninitialize = initializer.uninitialize;
+		tabData[i].clientInitialize = initializer.clientInitialize;
+		tabData[i].clientUninitialize = initializer.clientUninitialize;
+		tabData[i].packetHandler = initializer.packetHandler;
+		tabData[i].alwaysProcessPacket = initializer.alwaysProcessPacket;
+		tabData[i].data = initializer.data;
 
 		if(initializer.windowClass.lpszClassName) {
 			if(!initializer.windowClass.lpfnWndProc) initializer.windowClass.lpfnWndProc = DefWindowProcW;
-			counter = RegisterClassExW(&initializer.windowClass);
-			if(counter) tabData[index].className = initializer.windowClass.lpszClassName;
-			if(!counter) DeleteObject(brush);
+			index = RegisterClassExW(&initializer.windowClass);
+			if(index) tabData[i].className = initializer.windowClass.lpszClassName;
+			if(!index) DeleteObject(brush);
 		}
 
 		if(initializer.initialize) {
-			initializer.initialize(&tabData[index].data);
+			initializer.initialize(&tabData[i].data);
 		}
 	}
 
@@ -152,7 +150,7 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 
 	client->session.tabs = KHOPAN_ALLOCATE(sizeof(sessionTabs) / sizeof(sessionTabs[0]) * sizeof(TABSTORE));
 	DWORD codeExit = 1;
-	size_t index;
+	size_t i;
 
 	if(!client->session.tabs) {
 		KHOPANERRORCONSOLE_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"KHOPAN_ALLOCATE");
@@ -183,11 +181,11 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 	HRSPPacketSend(&client->hrsp, &packet, NULL);
 	byte = 0;
 
-	for(index = 0; index < sizeof(sessionTabs) / sizeof(sessionTabs[0]); index++) {
-		if(tabData[index].clientInitialize) {
-			client->session.tabs[index].data = 0;
-			HWND window = tabData[index].clientInitialize(client, &client->session.tabs[index].data, client->session.window);
-			client->session.tabs[index].tab = window ? window : NULL;
+	for(i = 0; i < sizeof(sessionTabs) / sizeof(sessionTabs[0]); i++) {
+		if(tabData[i].clientInitialize) {
+			client->session.tabs[i].data = 0;
+			HWND window = tabData[i].clientInitialize(client, &client->session.tabs[i].data, client->session.window);
+			client->session.tabs[i].tab = window ? window : NULL;
 		}
 	}
 
@@ -196,20 +194,16 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 	if(!client->session.tab) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
 		HRSPPacketSend(&client->hrsp, &packet, NULL);
-
-		for(index = 0; index < sizeof(sessionTabs) / sizeof(sessionTabs[0]); index++) {
-			if(tabData[index].clientUninitialize && client->session.tabs[index].tab) tabData[index].clientUninitialize(client, &client->session.tabs[index].data);
-		}
-
-		goto destroyWindow;
+		DestroyWindow(client->session.window);
+		goto sessionUninitialize;
 	}
 
 	TCITEMW item = {0};
 	item.mask = TCIF_TEXT;
 
-	for(index = 0; index < sizeof(sessionTabs) / sizeof(sessionTabs[0]); index++) {
-		item.pszText = (LPWSTR) tabData[index].name;
-		SendMessageW(client->session.tab, TCM_INSERTITEM, index, (LPARAM) &item);
+	for(i = 0; i < sizeof(sessionTabs) / sizeof(sessionTabs[0]); i++) {
+		item.pszText = (LPWSTR) tabData[i].name;
+		SendMessageW(client->session.tab, TCM_INSERTITEM, i, (LPARAM) &item);
 	}
 
 	SendMessageW(client->session.tab, WM_SETFONT, (WPARAM) font, TRUE);
@@ -225,17 +219,13 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 	}
 
 	HRSPPacketSend(&client->hrsp, &packet, NULL);
-
-	for(index = 0; index < sizeof(sessionTabs) / sizeof(sessionTabs[0]); index++) {
-		if(tabData[index].clientUninitialize && client->session.tabs[index].tab) {
-			tabData[index].clientUninitialize(client, &client->session.tabs[index].data);
+	codeExit = 0;
+sessionUninitialize:
+	for(i = 0; i < sizeof(sessionTabs) / sizeof(sessionTabs[0]); i++) {
+		if(tabData[i].clientUninitialize && client->session.tabs[i].tab) {
+			tabData[i].clientUninitialize(client, &client->session.tabs[i].data);
 		}
 	}
-
-	codeExit = 0;
-	goto freeTabs;
-destroyWindow:
-	DestroyWindow(client->session.window);
 freeTabs:
 	KHOPAN_DEALLOCATE(client->session.tabs);
 functionExit:
@@ -245,8 +235,8 @@ functionExit:
 
 	CloseHandle(client->session.thread);
 
-	for(index = 0; index < sizeof(SESSION); index++) {
-		((PBYTE) &client->session)[index] = 0;
+	for(i = 0; i < sizeof(SESSION); i++) {
+		((PBYTE) &client->session)[i] = 0;
 	}
 
 	return codeExit;
