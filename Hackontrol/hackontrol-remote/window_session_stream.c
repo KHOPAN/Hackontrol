@@ -94,19 +94,8 @@ static int CALLBACK compare(const PDEVICEENTRY first, const PDEVICEENTRY second,
 		return 0;
 	}
 
-	char compare;
-
-	if(!first) {
-		compare = second ? -1 : 0;
-	} else if(!second) {
-		compare = 1;
-	} else if(parameter->name) {
-		compare = wcscmp(first->name, second->name);
-		compare = compare ? compare : first->type > second->type ? 1 : first->type == second->type ? 0 : -1;
-	} else {
-		compare = first->type > second->type ? 1 : first->type == second->type ? wcscmp(first->name, second->name) : -1;
-	}
-
+	char compare = first ? second ? parameter->name ? wcscmp(first->name, second->name) : first->type > second->type ? 1 : first->type == second->type ? wcscmp(first->name, second->name) : -1 : 1 : second ? -1 : 0;
+	compare = compare ? compare : parameter->name && first && second ? first->type > second->type ? 1 : first->type == second->type ? 0 : -1 : 0;
 	return parameter->ascending ? compare : -compare;
 }
 

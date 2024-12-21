@@ -30,16 +30,8 @@ static int CALLBACK compare(const PCLIENT first, const PCLIENT second, const LPA
 		return 1;
 	}
 
-	char compare;
-
-	if(sort.username) {
-		compare = wcscmp(first->name, second->name);
-		compare = compare ? compare : wcscmp(first->address, second->address);
-	} else {
-		compare = wcscmp(first->address, second->address);
-		compare = compare ? compare : wcscmp(first->name, second->name);
-	}
-
+	char compare = wcscmp(sort.username ? first->name : first->address, sort.username ? second->name : second->address);
+	compare = compare ? compare : wcscmp(sort.username ? first->address : first->name, sort.username ? second->address : second->name);
 	return sort.ascending ? compare : -compare;
 }
 
