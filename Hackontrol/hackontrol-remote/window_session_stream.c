@@ -27,6 +27,62 @@ typedef struct {
 	HRSPREMOTESTREAMDEVICETYPE type;
 } DEVICEENTRY, *PDEVICEENTRY;
 
+static int CALLBACK compare(const PDEVICEENTRY first, const PDEVICEENTRY second, const PSORTPARAMETER parameter) {
+	if(!parameter) {
+		return 0;
+	}
+
+	char compare = first ? second ? parameter->name ? wcscmp(first->name, second->name) : first->type > second->type ? 1 : first->type == second->type ? wcscmp(first->name, second->name) : -1 : 1 : second ? -1 : 0;
+	compare = compare ? compare : parameter->name && first && second ? first->type > second->type ? 1 : first->type == second->type ? 0 : -1 : 0;
+	return parameter->ascending ? compare : -compare;
+}
+
+static void listHeader(const int index, const PTABSTREAMDATA data) {
+	if(index < 0 || !data) {
+		return;
+	}
+
+	HWND header = (HWND) SendMessageW(data->list, LVM_GETHEADER, 0, 0);
+
+	if(!header) {
+		return;
+	}
+
+	int count = (int) SendMessageW(header, HDM_GETITEMCOUNT, 0, 0);
+
+	if(count < 1) {
+		return;
+	}
+
+	HDITEMW item = {0};
+
+	for(int i = 0; i < count; i++) {
+		item.mask = HDI_FORMAT;
+		item.fmt = 0;
+		SendMessageW(header, HDM_GETITEM, i, (LPARAM) &item);
+
+		if(i != index) {
+			item.fmt &= ~(HDF_SORTUP | HDF_SORTDOWN);
+			goto setItem;
+		}
+
+		if(item.fmt & HDF_SORTUP) {
+			item.fmt = (item.fmt & ~HDF_SORTUP) | HDF_SORTDOWN;
+		} else if(item.fmt & HDF_SORTDOWN) {
+			item.fmt = (item.fmt & ~HDF_SORTDOWN) | HDF_SORTUP;
+		} else {
+			item.fmt |= HDF_SORTUP;
+		}
+
+		data->sort.ascending = item.fmt & HDF_SORTUP ? TRUE : FALSE;
+setItem:
+		SendMessageW(header, HDM_SETITEM, i, (LPARAM) &item);
+	}
+
+	data->sort.name = index == 0;
+	SendMessageW(data->list, LVM_SORTITEMS, (WPARAM) &data->sort, (LPARAM) compare);
+}
+
 static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG customData, const HWND parent) {
 	PTABSTREAMDATA data = KHOPAN_ALLOCATE(sizeof(TABSTREAMDATA));
 
@@ -77,6 +133,7 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 		goto destroyWindow;
 	}
 
+	listHeader(0, data);
 	HRSPPACKET packet = {0};
 	packet.type = HRSP_REMOTE_SERVER_REQUEST_STREAM_DEVICE;
 	HRSPPacketSend(&data->client->hrsp, &packet, NULL);
@@ -87,16 +144,6 @@ destroyWindow:
 freeData:
 	KHOPAN_DEALLOCATE(data);
 	return NULL;
-}
-
-static int CALLBACK compare(const PDEVICEENTRY first, const PDEVICEENTRY second, const PSORTPARAMETER parameter) {
-	if(!parameter) {
-		return 0;
-	}
-
-	char compare = first ? second ? parameter->name ? wcscmp(first->name, second->name) : first->type > second->type ? 1 : first->type == second->type ? wcscmp(first->name, second->name) : -1 : 1 : second ? -1 : 0;
-	compare = compare ? compare : parameter->name && first && second ? first->type > second->type ? 1 : first->type == second->type ? 0 : -1 : 0;
-	return parameter->ascending ? compare : -compare;
 }
 
 static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, const PHRSPPACKET packet) {
@@ -254,52 +301,6 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, 
 	}
 
 	return TRUE;
-}
-
-static void listHeader(const int index, const PTABSTREAMDATA data) {
-	if(index < 0 || !data) {
-		return;
-	}
-
-	HWND header = (HWND) SendMessageW(data->list, LVM_GETHEADER, 0, 0);
-
-	if(!header) {
-		return;
-	}
-
-	int count = (int) SendMessageW(header, HDM_GETITEMCOUNT, 0, 0);
-
-	if(count < 1) {
-		return;
-	}
-
-	HDITEMW item = {0};
-
-	for(int i = 0; i < count; i++) {
-		item.mask = HDI_FORMAT;
-		item.fmt = 0;
-		SendMessageW(header, HDM_GETITEM, i, (LPARAM) &item);
-
-		if(i != index) {
-			item.fmt &= ~(HDF_SORTUP | HDF_SORTDOWN);
-			goto setItem;
-		}
-
-		if(item.fmt & HDF_SORTUP) {
-			item.fmt = (item.fmt & ~HDF_SORTUP) | HDF_SORTDOWN;
-		} else if(item.fmt & HDF_SORTDOWN) {
-			item.fmt = (item.fmt & ~HDF_SORTDOWN) | HDF_SORTUP;
-		} else {
-			item.fmt |= HDF_SORTUP;
-		}
-
-		data->sort.ascending = item.fmt & HDF_SORTUP ? TRUE : FALSE;
-	setItem:
-		SendMessageW(header, HDM_SETITEM, i, (LPARAM) &item);
-	}
-
-	data->sort.name = index == 0;
-	SendMessageW(data->list, LVM_SORTITEMS, (WPARAM) &data->sort, (LPARAM) compare);
 }
 
 static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
