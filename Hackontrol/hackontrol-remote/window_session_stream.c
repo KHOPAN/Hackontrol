@@ -58,7 +58,6 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 		goto destroyWindow;
 	}
 
-	SendMessageW(data->list, WM_SETFONT, (WPARAM) font, TRUE);
 	SendMessageW(data->list, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_DOUBLEBUFFER | LVS_EX_FULLROWSELECT);
 	LVCOLUMNW column = {0};
 	column.mask = LVCF_FMT | LVCF_SUBITEM | LVCF_TEXT | LVCF_WIDTH;
@@ -90,24 +89,25 @@ freeData:
 	return NULL;
 }
 
-static int CALLBACK compareList(const PDEVICEENTRY first, const PDEVICEENTRY second, const PSORTPARAMETER parameter) {
-	if(!first) {
-		return second ? -1 : 0;
-	} else if(!second) {
-		return 1;
-	} else if(!parameter) {
+static int CALLBACK compare(const PDEVICEENTRY first, const PDEVICEENTRY second, const PSORTPARAMETER parameter) {
+	if(!parameter) {
 		return 0;
 	}
 
-	char result;
+	char compare;
 
-	if(parameter->name) {
-		result = wcscmp(first->name, second->name);
+	if(!first) {
+		compare = second ? -1 : 0;
+	} else if(!second) {
+		compare = 1;
+	} else if(parameter->name) {
+		compare = wcscmp(first->name, second->name);
+		compare = compare ? compare : first->type > second->type ? 1 : first->type == second->type ? 0 : -1;
 	} else {
-		result = first->type > second->type ? 1 : first->type == second->type ? 0 : -1;
+		compare = first->type > second->type ? 1 : first->type == second->type ? wcscmp(first->name, second->name) : -1;
 	}
 
-	return parameter->ascending ? result : -result;
+	return parameter->ascending ? compare : -compare;
 }
 
 static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, const PHRSPPACKET packet) {
@@ -235,7 +235,7 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, 
 		for(i = count - 1; i >= 0; i--) {
 			item.mask = LVIF_PARAM;
 			item.iItem = i;
-			if(!SendMessageW(data->list, LVM_GETITEM, 0, (LPARAM) &item) || compareList(entry, (PDEVICEENTRY) item.lParam, &data->sort) <= 0) continue;
+			if(!SendMessageW(data->list, LVM_GETITEM, 0, (LPARAM) &item) || compare(entry, (PDEVICEENTRY) item.lParam, &data->sort) <= 0) continue;
 			item.iItem++;
 			break;
 		}
@@ -267,7 +267,7 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, 
 	return TRUE;
 }
 
-static void clickHeader(const int index, const PTABSTREAMDATA data) {
+static void listHeader(const int index, const PTABSTREAMDATA data) {
 	if(index < 0 || !data) {
 		return;
 	}
@@ -310,7 +310,7 @@ static void clickHeader(const int index, const PTABSTREAMDATA data) {
 	}
 
 	data->sort.name = index == 0;
-	SendMessageW(data->list, LVM_SORTITEMS, (WPARAM) &data->sort, (LPARAM) compareList);
+	SendMessageW(data->list, LVM_SORTITEMS, (WPARAM) &data->sort, (LPARAM) compare);
 }
 
 static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
@@ -343,11 +343,6 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 		if(!menu) {
 			break;
 		}
-
-		/*if(item.lParam) {
-			AppendMenuW(menu, MF_STRING, IDM_AUDIO_CAPTURE, L"Capture");
-			AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
-		}*/
 
 		AppendMenuW(menu, MF_STRING, IDM_STREAM_REFRESH, L"Refresh");
 		SetForegroundWindow(window);
@@ -384,7 +379,7 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 
 		switch(((LPNMHDR) lparam)->code) {
 		case LVN_COLUMNCLICK:
-			clickHeader((UINT) ((LPNMLISTVIEW) lparam)->iSubItem, data);
+			listHeader((UINT) ((LPNMLISTVIEW) lparam)->iSubItem, data);
 			return 0;
 		}
 
