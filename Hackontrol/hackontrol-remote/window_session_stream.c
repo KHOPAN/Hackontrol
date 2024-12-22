@@ -181,27 +181,7 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, 
 	}
 
 	return FALSE;
-	/*size_t index = 1;
-
-	while(index < packet->size) {
-		if(index + 5 > packet->size) {
-			return FALSE;
-		}
-
-		index += ((((PBYTE) packet->data)[index + 1] << 24) | (((PBYTE) packet->data)[index + 2] << 16) | (((PBYTE) packet->data)[index + 3] << 8) | ((PBYTE) packet->data)[index + 4]) + 5;
-
-		if(index + 4 > packet->size) {
-			return FALSE;
-		}
-
-		index += ((((PBYTE) packet->data)[index] << 24) | (((PBYTE) packet->data)[index + 1] << 16) | (((PBYTE) packet->data)[index + 2] << 8) | ((PBYTE) packet->data)[index + 3]) + 4;
-
-		if(index > packet->size) {
-			return FALSE;
-		}
-	}
-
-	int count = (int) SendMessageW(data->list, LVM_GETITEMCOUNT, 0, 0);
+	/*int count = (int) SendMessageW(data->list, LVM_GETITEMCOUNT, 0, 0);
 	int i;
 	LVITEMW item = {0};
 	PDEVICEENTRY entry;
@@ -333,6 +313,8 @@ static void streamOpen(const PDEVICEENTRY entry) {
 
 static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	USERDATA(PTABSTREAMDATA, data, window, message, wparam, lparam);
+	size_t index = 1;
+
 	LVHITTESTINFO information = {0};
 	RECT bounds;
 	LVITEMW item = {0};
@@ -347,7 +329,16 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 			return 0;
 		}
 
-		LOG("Stream device\n");
+		while(index < wparam) {
+			if(index + 5 > wparam) goto cleanup;
+			index += ((((PBYTE) lparam)[index + 1] << 24) | (((PBYTE) lparam)[index + 2] << 16) | (((PBYTE) lparam)[index + 3] << 8) | ((PBYTE) lparam)[index + 4]) + 5;
+			if(index + 4 > wparam) goto cleanup;
+			index += ((((PBYTE) lparam)[index] << 24) | (((PBYTE) lparam)[index + 1] << 16) | (((PBYTE) lparam)[index + 2] << 8) | ((PBYTE) lparam)[index + 3]) + 4;
+			if(index > wparam) goto cleanup;
+		}
+
+		LOG("Passed\n");
+	cleanup:
 		KHOPAN_DEALLOCATE((LPVOID) lparam);
 		return 0;
 	case WM_CONTEXTMENU:
