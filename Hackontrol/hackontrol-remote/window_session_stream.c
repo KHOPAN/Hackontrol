@@ -5,6 +5,8 @@
 #define IDM_STREAM_OPEN    0xE001
 #define IDM_STREAM_REFRESH 0xE002
 
+#define SM_STREAM_DEVICE (WM_USER + 0x01)
+
 #define CLASS_NAME L"HackontrolRemoteSessionTabAudio"
 
 extern HFONT font;
@@ -16,6 +18,7 @@ typedef struct {
 
 typedef struct {
 	PCLIENT client;
+	HWND window;
 	HWND border;
 	HWND list;
 	SORTPARAMETER sort;
@@ -93,14 +96,14 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 	}
 
 	data->client = client;
-	HWND window = CreateWindowExW(WS_EX_CONTROLPARENT, CLASS_NAME, L"", WS_CHILD, 0, 0, 0, 0, parent, NULL, NULL, data);
+	data->window = CreateWindowExW(WS_EX_CONTROLPARENT, CLASS_NAME, L"", WS_CHILD, 0, 0, 0, 0, parent, NULL, NULL, data);
 
-	if(!window) {
+	if(!data->window) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
 		goto freeData;
 	}
 
-	data->border = CreateWindowExW(WS_EX_NOPARENTNOTIFY, L"Button", L"Stream Sources", BS_GROUPBOX | WS_CHILD | WS_VISIBLE, 0, 0, 0, 0, window, NULL, NULL, NULL);
+	data->border = CreateWindowExW(WS_EX_NOPARENTNOTIFY, L"Button", L"Stream Sources", BS_GROUPBOX | WS_CHILD | WS_VISIBLE, 0, 0, 0, 0, data->window, NULL, NULL, NULL);
 
 	if(!data->border) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
@@ -108,7 +111,7 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 	}
 
 	SendMessageW(data->border, WM_SETFONT, (WPARAM) font, TRUE);
-	data->list = CreateWindowExW(WS_EX_CLIENTEDGE, WC_LISTVIEW, L"", LVS_REPORT | LVS_SINGLESEL | WS_TABSTOP | WS_CHILD | WS_VISIBLE | WS_VSCROLL, 3, 17, 0, 0, window, NULL, NULL, NULL);
+	data->list = CreateWindowExW(WS_EX_CLIENTEDGE, WC_LISTVIEW, L"", LVS_REPORT | LVS_SINGLESEL | WS_TABSTOP | WS_CHILD | WS_VISIBLE | WS_VSCROLL, 3, 17, 0, 0, data->window, NULL, NULL, NULL);
 
 	if(!data->list) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
@@ -139,9 +142,9 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 	packet.type = HRSP_REMOTE_SERVER_REQUEST_STREAM_DEVICE;
 	HRSPPacketSend(&data->client->hrsp, &packet, NULL);
 	*customData = (ULONGLONG) data;
-	return window;
+	return data->window;
 destroyWindow:
-	DestroyWindow(window);
+	DestroyWindow(data->window);
 freeData:
 	KHOPAN_DEALLOCATE(data);
 	return NULL;
@@ -160,8 +163,10 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, 
 			return TRUE;
 		}
 
-		KHOPAN_DEALLOCATE(packet->data);
-		packet->data = NULL;
+		if(PostMessageW(data->window, SM_STREAM_DEVICE, packet->size, (LPARAM) packet->data)) {
+			packet->data = NULL;
+		}
+
 		return TRUE;
 	}
 
@@ -327,6 +332,14 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 	HRSPPACKET packet = {0};
 
 	switch(message) {
+	case SM_STREAM_DEVICE:
+		if(!lparam) {
+			return 0;
+		}
+
+		LOG("Stream device\n");
+		KHOPAN_DEALLOCATE((LPVOID) lparam);
+		return 0;
 	case WM_CONTEXTMENU:
 		GetCursorPos(&information.pt);
 		ScreenToClient(data->list, &information.pt);
