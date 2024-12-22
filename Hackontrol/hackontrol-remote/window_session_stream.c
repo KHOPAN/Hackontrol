@@ -181,130 +181,6 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, 
 	}
 
 	return FALSE;
-	/*int count = (int) SendMessageW(data->list, LVM_GETITEMCOUNT, 0, 0);
-	int i;
-	LVITEMW item = {0};
-	PDEVICEENTRY entry;
-	UINT32 size;
-
-	for(i = count - 1; i >= 0; i--) {
-		item.mask = LVIF_PARAM;
-		item.iItem = i;
-
-		if(!SendMessageW(data->list, LVM_GETITEM, 0, (LPARAM) &item) || !(entry = (PDEVICEENTRY) item.lParam)) {
-			SendMessageW(data->list, LVM_DELETEITEM, i, 0);
-			continue;
-		}
-
-		index = 1;
-
-		while(index < packet->size) {
-			index += ((((PBYTE) packet->data)[index + 1] << 24) | (((PBYTE) packet->data)[index + 2] << 16) | (((PBYTE) packet->data)[index + 3] << 8) | ((PBYTE) packet->data)[index + 4]) + 9;
-			size = (((PBYTE) packet->data)[index - 4] << 24) | (((PBYTE) packet->data)[index - 3] << 16) | (((PBYTE) packet->data)[index - 2] << 8) | ((PBYTE) packet->data)[index - 1];
-			index += size;
-			if(entry->identifierLength != size) continue;
-			if(!memcmp(((PBYTE) packet->data) + index - size, entry->identifier, size)) goto pass;
-		}
-
-		KHOPAN_DEALLOCATE(entry->name);
-		KHOPAN_DEALLOCATE(entry->identifier);
-		KHOPAN_DEALLOCATE(entry);
-		SendMessageW(data->list, LVM_DELETEITEM, i, 0);
-	pass:
-		continue;
-	}
-
-	index = 1;
-
-	while(index < packet->size) {
-		HRSPREMOTESTREAMDEVICETYPE type = ((PBYTE) packet->data)[index];
-		UINT32 nameLength = (((PBYTE) packet->data)[index + 1] << 24) | (((PBYTE) packet->data)[index + 2] << 16) | (((PBYTE) packet->data)[index + 3] << 8) | ((PBYTE) packet->data)[index + 4];
-		PBYTE pointerName = ((PBYTE) packet->data) + index + 5;
-		index += nameLength + 9;
-		size = (((PBYTE) packet->data)[index - 4] << 24) | (((PBYTE) packet->data)[index - 3] << 16) | (((PBYTE) packet->data)[index - 2] << 8) | ((PBYTE) packet->data)[index - 1];
-		index += size;
-
-		if(type > HRSP_REMOTE_STREAM_DEVICE_MONITOR) {
-			continue;
-		}
-
-		count = (int) SendMessageW(data->list, LVM_GETITEMCOUNT, 0, 0);
-
-		for(i = count - 1; i >= 0; i--) {
-			item.mask = LVIF_PARAM;
-			item.iItem = i;
-			if(!SendMessageW(data->list, LVM_GETITEM, 0, (LPARAM) &item) || !(entry = (PDEVICEENTRY) item.lParam) || entry->identifierLength != size) continue;
-			if(!memcmp(((PBYTE) packet->data) + index - size, entry->identifier, size)) goto skip;
-		}
-
-		entry = KHOPAN_ALLOCATE(sizeof(DEVICEENTRY));
-
-		if(!entry) {
-			continue;
-		}
-
-		entry->type = type;
-		entry->name = KHOPAN_ALLOCATE(nameLength + sizeof(WCHAR));
-
-		if(!entry->name) {
-			KHOPAN_DEALLOCATE(entry);
-			continue;
-		}
-
-		entry->identifierLength = size;
-		entry->identifier = KHOPAN_ALLOCATE(size);
-
-		if(!entry->identifier) {
-			KHOPAN_DEALLOCATE(entry->name);
-			KHOPAN_DEALLOCATE(entry);
-			continue;
-		}
-
-		UINT32 x;
-
-		for(x = 0; x < nameLength; x++) {
-			((PBYTE) entry->name)[x] = pointerName[x];
-		}
-
-		((PBYTE) entry->name)[nameLength] = ((PBYTE) entry->name)[nameLength + 1] = 0;
-
-		for(x = 0; x < size; x++) {
-			entry->identifier[x] = ((PBYTE) packet->data)[index - size + x];
-		}
-
-		for(i = count - 1; i >= 0; i--) {
-			item.mask = LVIF_PARAM;
-			item.iItem = i;
-			if(!SendMessageW(data->list, LVM_GETITEM, 0, (LPARAM) &item) || compare(entry, (PDEVICEENTRY) item.lParam, &data->sort) <= 0) continue;
-			item.iItem++;
-			break;
-		}
-
-		item.mask = LVIF_PARAM | LVIF_TEXT;
-		item.iSubItem = 0;
-		item.pszText = entry->name;
-		item.lParam = (LPARAM) entry;
-		i = (int) SendMessageW(data->list, LVM_INSERTITEM, 0, (LPARAM) &item);
-
-		if(i == -1) {
-			KHOPAN_DEALLOCATE(entry->identifier);
-			KHOPAN_DEALLOCATE(entry->name);
-			KHOPAN_DEALLOCATE(entry);
-			continue;
-		}
-
-		item.mask = LVIF_TEXT;
-		item.iSubItem = 1;
-		item.pszText = type == HRSP_REMOTE_STREAM_DEVICE_CAMERA ? L"Camera" : type == HRSP_REMOTE_STREAM_DEVICE_PRIMARY_MONITOR ? L"Monitor (Primary)" : L"Monitor";
-
-		if(!SendMessageW(data->list, LVM_SETITEM, 0, (LPARAM) &item)) {
-			SendMessageW(data->list, LVM_DELETEITEM, i, 0);
-		}
-	skip:
-		continue;
-	}
-
-	return TRUE;*/
 }
 
 static void streamOpen(const PDEVICEENTRY entry) {
@@ -314,13 +190,19 @@ static void streamOpen(const PDEVICEENTRY entry) {
 static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	USERDATA(PTABSTREAMDATA, data, window, message, wparam, lparam);
 	size_t index = 1;
+	int count;
+	int i;
+	LVITEMW item = {0};
+	PDEVICEENTRY entry = NULL;
+	UINT32 size;
+	HRSPREMOTESTREAMDEVICETYPE type;
+	UINT32 nameLength;
+	PBYTE pointerName;
+	UINT32 x;
 
 	LVHITTESTINFO information = {0};
 	RECT bounds;
-	LVITEMW item = {0};
 	HMENU menu;
-	PDEVICEENTRY entry = NULL;
-	BOOL option;
 	HRSPPACKET packet = {0};
 
 	switch(message) {
@@ -337,7 +219,105 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 			if(index > wparam) goto cleanup;
 		}
 
-		LOG("Passed\n");
+		count = (int) SendMessageW(data->list, LVM_GETITEMCOUNT, 0, 0);
+
+		for(i = count - 1; i >= 0; i--) {
+			item.mask = LVIF_PARAM;
+			item.iItem = i;
+
+			if(!SendMessageW(data->list, LVM_GETITEM, 0, (LPARAM) &item) || !(entry = (PDEVICEENTRY) item.lParam)) {
+				SendMessageW(data->list, LVM_DELETEITEM, i, 0);
+				continue;
+			}
+
+			index = 1;
+
+			while(index < wparam) {
+				index += ((((PBYTE) lparam)[index + 1] << 24) | (((PBYTE) lparam)[index + 2] << 16) | (((PBYTE) lparam)[index + 3] << 8) | ((PBYTE) lparam)[index + 4]) + 9;
+				size = (((PBYTE) lparam)[index - 4] << 24) | (((PBYTE) lparam)[index - 3] << 16) | (((PBYTE) lparam)[index - 2] << 8) | ((PBYTE) lparam)[index - 1];
+				index += size;
+				if(entry->identifierLength != size) continue;
+				if(!memcmp(((PBYTE) lparam) + index - size, entry->identifier, size)) goto pass;
+			}
+
+			KHOPAN_DEALLOCATE(entry->name);
+			KHOPAN_DEALLOCATE(entry->identifier);
+			KHOPAN_DEALLOCATE(entry);
+			SendMessageW(data->list, LVM_DELETEITEM, i, 0);
+		pass:
+			continue;
+		}
+
+		index = 1;
+
+		while(index < wparam) {
+			type = ((PBYTE) lparam)[index];
+			nameLength = (((PBYTE) lparam)[index + 1] << 24) | (((PBYTE) lparam)[index + 2] << 16) | (((PBYTE) lparam)[index + 3] << 8) | ((PBYTE) lparam)[index + 4];
+			pointerName = ((PBYTE) lparam) + index + 5;
+			index += nameLength + 9;
+			size = (((PBYTE) lparam)[index - 4] << 24) | (((PBYTE) lparam)[index - 3] << 16) | (((PBYTE) lparam)[index - 2] << 8) | ((PBYTE) lparam)[index - 1];
+			index += size;
+			if(type > HRSP_REMOTE_STREAM_DEVICE_MONITOR) continue;
+			count = (int) SendMessageW(data->list, LVM_GETITEMCOUNT, 0, 0);
+
+			for(i = count - 1; i >= 0; i--) {
+				item.mask = LVIF_PARAM;
+				item.iItem = i;
+				if(!SendMessageW(data->list, LVM_GETITEM, 0, (LPARAM) &item) || !(entry = (PDEVICEENTRY) item.lParam) || entry->identifierLength != size) continue;
+				if(!memcmp(((PBYTE) lparam) + index - size, entry->identifier, size)) goto skip;
+			}
+
+			entry = KHOPAN_ALLOCATE(sizeof(DEVICEENTRY));
+			if(!entry) continue;
+			entry->type = type;
+			entry->name = KHOPAN_ALLOCATE(nameLength + sizeof(WCHAR));
+
+			if(!entry->name) {
+				KHOPAN_DEALLOCATE(entry);
+				continue;
+			}
+
+			entry->identifierLength = size;
+			entry->identifier = KHOPAN_ALLOCATE(size);
+
+			if(!entry->identifier) {
+				KHOPAN_DEALLOCATE(entry->name);
+				KHOPAN_DEALLOCATE(entry);
+				continue;
+			}
+
+			for(x = 0; x < nameLength; x++) ((PBYTE) entry->name)[x] = pointerName[x];
+			((PBYTE) entry->name)[nameLength] = ((PBYTE) entry->name)[nameLength + 1] = 0;
+			for(x = 0; x < size; x++) entry->identifier[x] = ((PBYTE) lparam)[index - size + x];
+
+			for(i = count - 1; i >= 0; i--) {
+				item.mask = LVIF_PARAM;
+				item.iItem = i;
+				if(!SendMessageW(data->list, LVM_GETITEM, 0, (LPARAM) &item) || compare(entry, (PDEVICEENTRY) item.lParam, &data->sort) <= 0) continue;
+				item.iItem++;
+				break;
+			}
+
+			item.mask = LVIF_PARAM | LVIF_TEXT;
+			item.iSubItem = 0;
+			item.pszText = entry->name;
+			item.lParam = (LPARAM) entry;
+			i = (int) SendMessageW(data->list, LVM_INSERTITEM, 0, (LPARAM) &item);
+
+			if(i == -1) {
+				KHOPAN_DEALLOCATE(entry->identifier);
+				KHOPAN_DEALLOCATE(entry->name);
+				KHOPAN_DEALLOCATE(entry);
+				continue;
+			}
+
+			item.mask = LVIF_TEXT;
+			item.iSubItem = 1;
+			item.pszText = type == HRSP_REMOTE_STREAM_DEVICE_CAMERA ? L"Camera" : type == HRSP_REMOTE_STREAM_DEVICE_PRIMARY_MONITOR ? L"Monitor (Primary)" : L"Monitor";
+			if(!SendMessageW(data->list, LVM_SETITEM, 0, (LPARAM) &item)) SendMessageW(data->list, LVM_DELETEITEM, i, 0);
+		skip:
+			continue;
+		}
 	cleanup:
 		KHOPAN_DEALLOCATE((LPVOID) lparam);
 		return 0;
@@ -376,10 +356,10 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 
 		AppendMenuW(menu, MF_STRING, IDM_STREAM_REFRESH, L"Refresh");
 		SetForegroundWindow(window);
-		option = TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_TOPALIGN, LOWORD(lparam), HIWORD(lparam), window, NULL);
+		count = TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_TOPALIGN, LOWORD(lparam), HIWORD(lparam), window, NULL);
 		DestroyMenu(menu);
 
-		switch(option) {
+		switch(count) {
 		case IDM_STREAM_OPEN:
 			if(!WaitForSingleObject(data->mutex, INFINITE)) return 0;
 			streamOpen(entry);
@@ -398,9 +378,9 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 	case WM_DESTROY:
 		WaitForSingleObject(data->mutex, INFINITE);
 
-		for(option = 0; option < SendMessageW(data->list, LVM_GETITEMCOUNT, 0, 0); option++) {
+		for(i = 0; i < SendMessageW(data->list, LVM_GETITEMCOUNT, 0, 0); i++) {
 			item.mask = LVIF_PARAM;
-			item.iItem = option;
+			item.iItem = i;
 			if(!SendMessageW(data->list, LVM_GETITEM, 0, (LPARAM) &item) || !item.lParam) continue;
 			KHOPAN_DEALLOCATE(((PDEVICEENTRY) item.lParam)->name);
 			KHOPAN_DEALLOCATE(((PDEVICEENTRY) item.lParam)->identifier);
