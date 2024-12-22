@@ -18,6 +18,7 @@ typedef struct {
 
 typedef struct {
 	PCLIENT client;
+	HANDLE mutex;
 	HWND window;
 	HWND border;
 	HWND list;
@@ -96,11 +97,18 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 	}
 
 	data->client = client;
+	data->mutex = CreateMutexExW(NULL, NULL, 0, SYNCHRONIZE | DELETE);
+
+	if(!data->mutex) {
+		KHOPANLASTERRORCONSOLE_WIN32(L"CreateMutexExW");
+		goto freeData;
+	}
+
 	data->window = CreateWindowExW(WS_EX_CONTROLPARENT, CLASS_NAME, L"", WS_CHILD, 0, 0, 0, 0, parent, NULL, NULL, data);
 
 	if(!data->window) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
-		goto freeData;
+		goto closeMutex;
 	}
 
 	data->border = CreateWindowExW(WS_EX_NOPARENTNOTIFY, L"Button", L"Stream Sources", BS_GROUPBOX | WS_CHILD | WS_VISIBLE, 0, 0, 0, 0, data->window, NULL, NULL, NULL);
@@ -145,6 +153,8 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 	return data->window;
 destroyWindow:
 	DestroyWindow(data->window);
+closeMutex:
+	CloseHandle(data->mutex);
 freeData:
 	KHOPAN_DEALLOCATE(data);
 	return NULL;
@@ -349,12 +359,18 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 			break;
 		}
 
+		if(!WaitForSingleObject(data->mutex, INFINITE)) {
+			goto skipHit;
+		}
+
 		if(SendMessageW(data->list, LVM_HITTEST, 0, (LPARAM) &information) != -1) {
 			item.mask = LVIF_PARAM;
 			item.iItem = information.iItem;
 			SendMessageW(data->list, LVM_GETITEM, 0, (LPARAM) &item);
 		}
 
+		ReleaseMutex(data->mutex);
+	skipHit:
 		menu = CreatePopupMenu();
 
 		if(!menu) {
@@ -374,7 +390,9 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 
 		switch(option) {
 		case IDM_STREAM_OPEN:
+			if(!WaitForSingleObject(data->mutex, INFINITE)) return 0;
 			streamOpen(entry);
+			ReleaseMutex(data->mutex);
 			return 0;
 		case IDM_STREAM_REFRESH:
 			packet.type = HRSP_REMOTE_SERVER_REQUEST_STREAM_DEVICE;
@@ -387,6 +405,8 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 		SetDCBrushColor((HDC) wparam, 0xF9F9F9);
 		return (LRESULT) GetStockObject(DC_BRUSH);
 	case WM_DESTROY:
+		WaitForSingleObject(data->mutex, INFINITE);
+
 		for(option = 0; option < SendMessageW(data->list, LVM_GETITEMCOUNT, 0, 0); option++) {
 			item.mask = LVIF_PARAM;
 			item.iItem = option;
@@ -396,6 +416,7 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 			KHOPAN_DEALLOCATE((LPVOID) item.lParam);
 		}
 
+		CloseHandle(data->mutex);
 		KHOPAN_DEALLOCATE(data);
 		return 0;
 	case WM_NOTIFY:
@@ -405,7 +426,9 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 
 		switch(((LPNMHDR) lparam)->code) {
 		case LVN_COLUMNCLICK:
+			if(!WaitForSingleObject(data->mutex, INFINITE)) return 0;
 			listHeader((UINT) ((LPNMLISTVIEW) lparam)->iSubItem, data);
+			ReleaseMutex(data->mutex);
 			return 0;
 		}
 
