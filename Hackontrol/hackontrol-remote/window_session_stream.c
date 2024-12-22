@@ -2,7 +2,8 @@
 #include "window_session.h"
 #include <CommCtrl.h>
 
-#define IDM_STREAM_REFRESH 0xE001
+#define IDM_STREAM_OPEN    0xE001
+#define IDM_STREAM_REFRESH 0xE002
 
 #define CLASS_NAME L"HackontrolRemoteSessionTabAudio"
 
@@ -303,12 +304,17 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, 
 	return TRUE;
 }
 
+static void streamOpen(const PDEVICEENTRY entry) {
+	LOG("Stream open\n");
+}
+
 static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	USERDATA(PTABSTREAMDATA, data, window, message, wparam, lparam);
 	LVHITTESTINFO information = {0};
 	RECT bounds;
 	LVITEMW item = {0};
 	HMENU menu;
+	PDEVICEENTRY entry = NULL;
 	BOOL option;
 	HRSPPACKET packet = {0};
 
@@ -334,12 +340,21 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 			break;
 		}
 
+		if(item.lParam) {
+			AppendMenuW(menu, MF_STRING, IDM_STREAM_OPEN, L"Open");
+			AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
+			entry = (PDEVICEENTRY) item.lParam;
+		}
+
 		AppendMenuW(menu, MF_STRING, IDM_STREAM_REFRESH, L"Refresh");
 		SetForegroundWindow(window);
 		option = TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_TOPALIGN, LOWORD(lparam), HIWORD(lparam), window, NULL);
 		DestroyMenu(menu);
 
 		switch(option) {
+		case IDM_STREAM_OPEN:
+			streamOpen(entry);
+			return 0;
 		case IDM_STREAM_REFRESH:
 			packet.type = HRSP_REMOTE_SERVER_REQUEST_STREAM_DEVICE;
 			HRSPPacketSend(&data->client->hrsp, &packet, NULL);
