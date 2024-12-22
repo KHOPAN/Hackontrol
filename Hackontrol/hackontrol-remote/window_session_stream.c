@@ -80,7 +80,7 @@ static void listHeader(const int index, const PTABSTREAMDATA data) {
 		}
 
 		data->sort.ascending = item.fmt & HDF_SORTUP ? TRUE : FALSE;
-setItem:
+	setItem:
 		SendMessageW(header, HDM_SETITEM, i, (LPARAM) &item);
 	}
 
@@ -199,7 +199,6 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 	UINT32 nameLength;
 	PBYTE pointerName;
 	UINT32 x;
-
 	LVHITTESTINFO information = {0};
 	RECT bounds;
 	HMENU menu;
@@ -330,7 +329,7 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 			break;
 		}
 
-		if(!WaitForSingleObject(data->mutex, INFINITE)) {
+		if(WaitForSingleObject(data->mutex, INFINITE) == WAIT_FAILED) {
 			goto skipHit;
 		}
 
@@ -361,7 +360,7 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 
 		switch(count) {
 		case IDM_STREAM_OPEN:
-			if(!WaitForSingleObject(data->mutex, INFINITE)) return 0;
+			if(WaitForSingleObject(data->mutex, INFINITE) == WAIT_FAILED) return 0;
 			streamOpen(entry);
 			ReleaseMutex(data->mutex);
 			return 0;
@@ -397,7 +396,7 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 
 		switch(((LPNMHDR) lparam)->code) {
 		case LVN_COLUMNCLICK:
-			if(!WaitForSingleObject(data->mutex, INFINITE)) return 0;
+			if(WaitForSingleObject(data->mutex, INFINITE) == WAIT_FAILED) return 0;
 			listHeader((UINT) ((LPNMLISTVIEW) lparam)->iSubItem, data);
 			ReleaseMutex(data->mutex);
 			return 0;
