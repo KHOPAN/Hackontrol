@@ -150,15 +150,23 @@ freeData:
 static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, const PHRSPPACKET packet) {
 	PTABSTREAMDATA data;
 
-	if(packet->type != HRSP_REMOTE_CLIENT_RESPONSE_STREAM_DEVICE || packet->size < 1 || !customData || !(data = (PTABSTREAMDATA) *customData)) {
+	if(packet->size < 1 || !customData || !(data = (PTABSTREAMDATA) *customData)) {
 		return FALSE;
 	}
 
-	if(((PBYTE) packet->data)[0]) {
+	switch(packet->type) {
+	case HRSP_REMOTE_CLIENT_RESPONSE_STREAM_DEVICE:
+		if(((PBYTE) packet->data)[0]) {
+			return TRUE;
+		}
+
+		KHOPAN_DEALLOCATE(packet->data);
+		packet->data = NULL;
 		return TRUE;
 	}
 
-	size_t index = 1;
+	return FALSE;
+	/*size_t index = 1;
 
 	while(index < packet->size) {
 		if(index + 5 > packet->size) {
@@ -301,7 +309,7 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, 
 		continue;
 	}
 
-	return TRUE;
+	return TRUE;*/
 }
 
 static void streamOpen(const PDEVICEENTRY entry) {
