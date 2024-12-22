@@ -51,11 +51,8 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 		if(!WindowSessionHandlePacket(client, &packet)) {
 			LOG("[Client %ws]: Unknown packet type: %u\nSize: %llu\nData:", client->address, packet.type, packet.size);
 			for(size_t i = 0; i < packet.size; i++) LOG(" 0x%02X", ((PBYTE) packet.data)[i]);
+			if(packet.size) KHOPAN_DEALLOCATE(packet.data);
 			LOG("\n");
-		}
-
-		if(packet.size) {
-			KHOPAN_DEALLOCATE(packet.data);
 		}
 	}
 

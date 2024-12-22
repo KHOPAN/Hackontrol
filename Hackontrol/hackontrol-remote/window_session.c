@@ -251,13 +251,19 @@ BOOLEAN WindowSessionHandlePacket(const PCLIENT client, const PHRSPPACKET packet
 		PULONGLONG data = client->session.tabs ? &client->session.tabs[i].data : NULL;
 
 		if(tabData[i].alwaysProcessPacket) {
-			if(tabData[i].packetHandler(client, data, packet)) return TRUE;
+			if(tabData[i].packetHandler(client, data, packet)) goto cleanup;
 			continue;
 		}
 
-		if(client->session.tabs && client->session.tabs[i].tab && tabData[i].packetHandler(client, data, packet)) {
-			return TRUE;
+		if(!client->session.tabs || !client->session.tabs[i].tab || !tabData[i].packetHandler(client, data, packet)) {
+			continue;
 		}
+	cleanup:
+		if(packet->data) {
+			KHOPAN_DEALLOCATE(packet->data);
+		}
+
+		return TRUE;
 	}
 
 	return FALSE;
