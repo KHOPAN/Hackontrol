@@ -40,6 +40,10 @@ typedef struct {
 	PPOPUPDATA popup;
 } DEVICEENTRY, *PDEVICEENTRY;
 
+static void __stdcall uninitialize(const PULONGLONG data) {
+	UnregisterClassW(CLASS_NAME_POPUP, instance);
+}
+
 static int CALLBACK compare(const PDEVICEENTRY first, const PDEVICEENTRY second, const PSORTPARAMETER parameter) {
 	if(!parameter) {
 		return 0;
@@ -490,8 +494,18 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 
 void __stdcall WindowSessionTabStream(const PTABINITIALIZER tab) {
 	tab->name = L"Stream";
+	tab->uninitialize = uninitialize;
 	tab->clientInitialize = clientInitialize;
 	tab->packetHandler = packetHandler;
 	tab->windowClass.lpfnWndProc = procedure;
 	tab->windowClass.lpszClassName = CLASS_NAME;
+	WNDCLASSEXW windowClass = {0};
+	windowClass.cbSize = sizeof(WNDCLASSEXW);
+	windowClass.style = CS_HREDRAW | CS_VREDRAW;
+	windowClass.lpfnWndProc = DefWindowProcW;
+	windowClass.hInstance = instance;
+	windowClass.hCursor = NULL;
+	windowClass.hbrBackground = (HBRUSH) (COLOR_MENU + 1);
+	windowClass.lpszClassName = CLASS_NAME_POPUP;
+	RegisterClassExW(&windowClass);
 }
