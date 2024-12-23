@@ -492,6 +492,19 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 	return DefWindowProcW(window, message, wparam, lparam);
 }
 
+static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
+	switch(message) {
+	case WM_CLOSE:
+		DestroyWindow(window);
+		return 0;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+	}
+
+	return DefWindowProcW(window, message, wparam, lparam);
+}
+
 void __stdcall WindowSessionTabStream(const PTABINITIALIZER tab) {
 	tab->name = L"Stream";
 	tab->uninitialize = uninitialize;
@@ -502,7 +515,7 @@ void __stdcall WindowSessionTabStream(const PTABINITIALIZER tab) {
 	WNDCLASSEXW windowClass = {0};
 	windowClass.cbSize = sizeof(WNDCLASSEXW);
 	windowClass.style = CS_HREDRAW | CS_VREDRAW;
-	windowClass.lpfnWndProc = DefWindowProcW;
+	windowClass.lpfnWndProc = procedurePopup;
 	windowClass.hInstance = instance;
 	windowClass.hCursor = NULL;
 	windowClass.hbrBackground = (HBRUSH) (COLOR_MENU + 1);
