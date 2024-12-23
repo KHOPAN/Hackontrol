@@ -7,8 +7,10 @@
 
 #define SM_STREAM_DEVICE (WM_USER + 0x01)
 
-#define CLASS_NAME L"HackontrolRemoteSessionTabAudio"
+#define CLASS_NAME       L"HackontrolRemoteSessionTabStream"
+#define CLASS_NAME_POPUP L"HackontrolRemoteSessionTabStreamPopup"
 
+extern HINSTANCE instance;
 extern HFONT font;
 
 typedef struct {
@@ -26,10 +28,16 @@ typedef struct {
 } TABSTREAMDATA, *PTABSTREAMDATA;
 
 typedef struct {
+	HANDLE thread;
+	HWND window;
+} POPUPDATA, *PPOPUPDATA;
+
+typedef struct {
 	LPWSTR name;
 	UINT32 identifierLength;
 	PBYTE identifier;
 	HRSPREMOTESTREAMDEVICETYPE type;
+	PPOPUPDATA popup;
 } DEVICEENTRY, *PDEVICEENTRY;
 
 static int CALLBACK compare(const PDEVICEENTRY first, const PDEVICEENTRY second, const PSORTPARAMETER parameter) {
@@ -183,8 +191,73 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, 
 	return FALSE;
 }
 
-static void streamOpen(const PDEVICEENTRY entry) {
-	LOG("Stream open\n");
+static DWORD WINAPI popupThread(_In_ PPOPUPDATA popup) {
+	if(!popup) {
+		return 1;
+	}
+
+	popup->window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME_POPUP, NULL, WS_POPUP | WS_VISIBLE, 0, 0, (int) (((double) GetSystemMetrics(SM_CXSCREEN)) * 0.32942899), (int) (((double) GetSystemMetrics(SM_CYSCREEN)) * 0.390625), NULL, NULL, instance, NULL);
+	DWORD codeExit = 1;
+
+	if(!popup->window) {
+		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
+		goto functionExit;
+	}
+
+	MSG message;
+
+	while(GetMessageW(&message, NULL, 0, 0)) {
+		TranslateMessage(&message);
+		DispatchMessageW(&message);
+	}
+
+	codeExit = 0;
+functionExit:
+	CloseHandle(popup->thread);
+
+	for(size_t i = 0; i < sizeof(POPUPDATA); i++) {
+		((PBYTE) popup)[i] = 0;
+	}
+
+	return codeExit;
+}
+
+static void openPopup(const PDEVICEENTRY entry) {
+	if(entry->popup && entry->popup->thread) {
+		PostMessageW(entry->popup->window, WM_CLOSE, 0, 0);
+		WaitForSingleObject(entry->popup->thread, INFINITE);
+	}
+
+	if(!entry->popup) {
+		entry->popup = KHOPAN_ALLOCATE(sizeof(POPUPDATA));
+
+		if(!entry->popup) {
+			KHOPANERRORCONSOLE_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"KHOPAN_ALLOCATE");
+			return;
+		}
+	}
+
+	entry->popup->thread = CreateThread(NULL, 0, popupThread, entry->popup, 0, NULL);
+
+	if(!entry->popup->thread) {
+		KHOPANLASTERRORCONSOLE_WIN32(L"CreateThread");
+	}
+}
+
+static void freeDeviceEntry(const PDEVICEENTRY entry) {
+	KHOPAN_DEALLOCATE(entry->name);
+	KHOPAN_DEALLOCATE(entry->identifier);
+
+	if(entry->popup) {
+		if(entry->popup->thread) {
+			PostMessageW(entry->popup->window, WM_CLOSE, 0, 0);
+			WaitForSingleObject(entry->popup->thread, INFINITE);
+		}
+
+		KHOPAN_DEALLOCATE(entry->popup);
+	}
+
+	KHOPAN_DEALLOCATE(entry);
 }
 
 static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
@@ -218,6 +291,10 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 			if(index > wparam) goto cleanup;
 		}
 
+		if(WaitForSingleObject(data->mutex, INFINITE) == WAIT_FAILED) {
+			goto cleanup;
+		}
+
 		count = (int) SendMessageW(data->list, LVM_GETITEMCOUNT, 0, 0);
 
 		for(i = count - 1; i >= 0; i--) {
@@ -239,9 +316,7 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 				if(!memcmp(((PBYTE) lparam) + index - size, entry->identifier, size)) goto pass;
 			}
 
-			KHOPAN_DEALLOCATE(entry->name);
-			KHOPAN_DEALLOCATE(entry->identifier);
-			KHOPAN_DEALLOCATE(entry);
+			freeDeviceEntry(entry);
 			SendMessageW(data->list, LVM_DELETEITEM, i, 0);
 		pass:
 			continue;
@@ -317,6 +392,8 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 		skip:
 			continue;
 		}
+
+		ReleaseMutex(data->mutex);
 	cleanup:
 		KHOPAN_DEALLOCATE((LPVOID) lparam);
 		return 0;
@@ -361,7 +438,7 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 		switch(count) {
 		case IDM_STREAM_OPEN:
 			if(WaitForSingleObject(data->mutex, INFINITE) == WAIT_FAILED) return 0;
-			streamOpen(entry);
+			openPopup(entry);
 			ReleaseMutex(data->mutex);
 			return 0;
 		case IDM_STREAM_REFRESH:
@@ -381,9 +458,7 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 			item.mask = LVIF_PARAM;
 			item.iItem = i;
 			if(!SendMessageW(data->list, LVM_GETITEM, 0, (LPARAM) &item) || !item.lParam) continue;
-			KHOPAN_DEALLOCATE(((PDEVICEENTRY) item.lParam)->name);
-			KHOPAN_DEALLOCATE(((PDEVICEENTRY) item.lParam)->identifier);
-			KHOPAN_DEALLOCATE((LPVOID) item.lParam);
+			freeDeviceEntry((PDEVICEENTRY) item.lParam);
 		}
 
 		CloseHandle(data->mutex);
