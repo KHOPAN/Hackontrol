@@ -200,7 +200,7 @@ static DWORD WINAPI popupThread(_In_ PPOPUPDATA popup) {
 		return 1;
 	}
 
-	popup->window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME_POPUP, NULL, WS_POPUP | WS_VISIBLE, 0, 0, (int) (((double) GetSystemMetrics(SM_CXSCREEN)) * 0.32942899), (int) (((double) GetSystemMetrics(SM_CYSCREEN)) * 0.390625), NULL, NULL, instance, NULL);
+	popup->window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME_POPUP, NULL, WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, 0, (int) (((double) GetSystemMetrics(SM_CXSCREEN)) * 0.32942899), (int) (((double) GetSystemMetrics(SM_CYSCREEN)) * 0.390625), NULL, NULL, instance, NULL);
 	DWORD codeExit = 1;
 
 	if(!popup->window) {
