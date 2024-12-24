@@ -517,7 +517,7 @@ void __stdcall WindowSessionTabStream(const PTABINITIALIZER tab) {
 	windowClass.style = CS_HREDRAW | CS_VREDRAW;
 	windowClass.lpfnWndProc = procedurePopup;
 	windowClass.hInstance = instance;
-	windowClass.hCursor = NULL;
+	windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
 	windowClass.hbrBackground = (HBRUSH) (COLOR_MENU + 1);
 	windowClass.lpszClassName = CLASS_NAME_POPUP;
 	RegisterClassExW(&windowClass);
