@@ -493,12 +493,35 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 }
 
 static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
+	PAINTSTRUCT paintStruct;
+	HDC context;
+	HDC memoryContext;
+	RECT bounds;
+	HBITMAP bitmap;
+	HBITMAP oldBitmap;
+	HBRUSH brush;
+
 	switch(message) {
 	case WM_CLOSE:
 		DestroyWindow(window);
 		return 0;
 	case WM_DESTROY:
 		PostQuitMessage(0);
+		return 0;
+	case WM_PAINT:
+		context = BeginPaint(window, &paintStruct);
+		memoryContext = CreateCompatibleDC(context);
+		GetClientRect(window, &bounds);
+		bitmap = CreateCompatibleBitmap(context, bounds.right, bounds.bottom);
+		oldBitmap = SelectObject(memoryContext, bitmap);
+		brush = GetStockObject(DC_BRUSH);
+		SetDCBrushColor(memoryContext, 0x000000);
+		FillRect(memoryContext, &bounds, brush);
+		BitBlt(context, 0, 0, bounds.right, bounds.bottom, memoryContext, 0, 0, SRCCOPY);
+		SelectObject(memoryContext, oldBitmap);
+		DeleteObject(bitmap);
+		DeleteDC(memoryContext);
+		EndPaint(window, &paintStruct);
 		return 0;
 	}
 
