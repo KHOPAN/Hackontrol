@@ -195,15 +195,15 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, 
 	return FALSE;
 }
 
-static DWORD WINAPI popupThread(_In_ PPOPUPDATA popup) {
-	if(!popup) {
+static DWORD WINAPI popupThread(_In_ PDEVICEENTRY entry) {
+	if(!entry || !entry->popup) {
 		return 1;
 	}
 
-	popup->window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME_POPUP, NULL, WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, 0, (int) (((double) GetSystemMetrics(SM_CXSCREEN)) * 0.32942899), (int) (((double) GetSystemMetrics(SM_CYSCREEN)) * 0.390625), NULL, NULL, instance, NULL);
+	entry->popup->window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME_POPUP, entry->name, WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, 0, (int) (((double) GetSystemMetrics(SM_CXSCREEN)) * 0.32942899), (int) (((double) GetSystemMetrics(SM_CYSCREEN)) * 0.390625), NULL, NULL, instance, NULL);
 	DWORD codeExit = 1;
 
-	if(!popup->window) {
+	if(!entry->popup->window) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
 		goto functionExit;
 	}
@@ -217,10 +217,10 @@ static DWORD WINAPI popupThread(_In_ PPOPUPDATA popup) {
 
 	codeExit = 0;
 functionExit:
-	CloseHandle(popup->thread);
+	CloseHandle(entry->popup->thread);
 
 	for(size_t i = 0; i < sizeof(POPUPDATA); i++) {
-		((PBYTE) popup)[i] = 0;
+		((PBYTE) entry->popup)[i] = 0;
 	}
 
 	return codeExit;
@@ -241,7 +241,7 @@ static void openPopup(const PDEVICEENTRY entry) {
 		}
 	}
 
-	entry->popup->thread = CreateThread(NULL, 0, popupThread, entry->popup, 0, NULL);
+	entry->popup->thread = CreateThread(NULL, 0, popupThread, entry, 0, NULL);
 
 	if(!entry->popup->thread) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateThread");
