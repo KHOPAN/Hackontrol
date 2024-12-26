@@ -1,3 +1,4 @@
+#include <windowsx.h>
 #include <hrsp_remote.h>
 #include "window_session.h"
 #include <CommCtrl.h>
@@ -493,6 +494,8 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 }
 
 static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
+	HMENU menu;
+	BOOL status;
 	PAINTSTRUCT paintStruct;
 	HDC context;
 	HDC memoryContext;
@@ -505,6 +508,24 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 	case WM_CLOSE:
 		DestroyWindow(window);
 		return 0;
+	case WM_CONTEXTMENU:
+		menu = CreatePopupMenu();
+
+		if(!menu) {
+			break;
+		}
+
+		AppendMenuW(menu, MF_STRING, 0xE001, L"Enable");
+		SetForegroundWindow(window);
+		status = TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_TOPALIGN, GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam), window, NULL);
+		DestroyMenu(menu);
+
+		switch(status) {
+		case 0xE001:
+			return 0;
+		}
+
+		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
