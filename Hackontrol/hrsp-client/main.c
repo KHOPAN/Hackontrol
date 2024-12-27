@@ -177,6 +177,8 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 		case HRSP_REMOTE_SERVER_REQUEST_STREAM_DEVICE:
 			StreamRequestDevice(clientSocket, &protocolData);
 			break;
+		case HRSP_REMOTE_SERVER_REQUEST_STREAM_DATA:
+			break;
 		}
 
 		if(packet.data) {
