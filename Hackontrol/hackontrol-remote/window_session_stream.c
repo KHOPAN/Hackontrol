@@ -2,14 +2,14 @@
 #include <hrsp_remote.h>
 #include "window_session.h"
 #include <CommCtrl.h>
+#include "window_session_stream_window.h"
 
 #define IDM_STREAM_OPEN    0xE001
 #define IDM_STREAM_REFRESH 0xE002
 
 #define SM_STREAM_DEVICE (WM_USER + 0x01)
 
-#define CLASS_NAME       L"HackontrolRemoteSessionTabStream"
-#define CLASS_NAME_POPUP L"HackontrolRemoteSessionTabStreamPopup"
+#define CLASS_NAME L"HackontrolRemoteSessionTabStream"
 
 extern HINSTANCE instance;
 extern HFONT font;
@@ -28,7 +28,7 @@ typedef struct {
 	SORTPARAMETER sort;
 } TABSTREAMDATA, *PTABSTREAMDATA;
 
-typedef struct {
+/*typedef struct {
 	HANDLE thread;
 	HWND window;
 } POPUPDATA, *PPOPUPDATA;
@@ -39,7 +39,7 @@ typedef struct {
 	PBYTE identifier;
 	HRSPREMOTESTREAMDEVICETYPE type;
 	PPOPUPDATA popup;
-} DEVICEENTRY, *PDEVICEENTRY;
+} DEVICEENTRY, *PDEVICEENTRY;*/
 
 static void __stdcall uninitialize(const PULONGLONG data) {
 	UnregisterClassW(CLASS_NAME_POPUP, instance);
@@ -194,37 +194,6 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, 
 	}
 
 	return FALSE;
-}
-
-static DWORD WINAPI popupThread(_In_ PDEVICEENTRY entry) {
-	if(!entry || !entry->popup) {
-		return 1;
-	}
-
-	entry->popup->window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME_POPUP, entry->name, WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, 0, (int) (((double) GetSystemMetrics(SM_CXSCREEN)) * 0.32942899), (int) (((double) GetSystemMetrics(SM_CYSCREEN)) * 0.390625), NULL, NULL, instance, NULL);
-	DWORD codeExit = 1;
-
-	if(!entry->popup->window) {
-		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
-		goto functionExit;
-	}
-
-	MSG message;
-
-	while(GetMessageW(&message, NULL, 0, 0)) {
-		TranslateMessage(&message);
-		DispatchMessageW(&message);
-	}
-
-	codeExit = 0;
-functionExit:
-	CloseHandle(entry->popup->thread);
-
-	for(size_t i = 0; i < sizeof(POPUPDATA); i++) {
-		((PBYTE) entry->popup)[i] = 0;
-	}
-
-	return codeExit;
 }
 
 static void openPopup(const PDEVICEENTRY entry) {
@@ -487,71 +456,6 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 		GetClientRect(window, &bounds);
 		SetWindowPos(data->border, HWND_TOP, 0, 0, bounds.right - bounds.left - 2, bounds.bottom - bounds.top, SWP_NOMOVE);
 		SetWindowPos(data->list, HWND_TOP, 0, 0, bounds.right - bounds.left - 8, bounds.bottom - bounds.top - 21, SWP_NOMOVE);
-		return 0;
-	}
-
-	return DefWindowProcW(window, message, wparam, lparam);
-}
-
-static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
-	HMENU menu;
-	BOOL status;
-	PAINTSTRUCT paintStruct;
-	HDC context;
-	HDC memoryContext;
-	RECT bounds;
-	HBITMAP bitmap;
-	HBITMAP oldBitmap;
-	HBRUSH brush;
-
-	switch(message) {
-	case WM_CLOSE:
-		DestroyWindow(window);
-		return 0;
-	case WM_CONTEXTMENU:
-		menu = CreatePopupMenu();
-
-		if(!menu) {
-			break;
-		}
-
-		AppendMenuW(menu, MF_STRING, 0xE001, L"Enable");
-		SetForegroundWindow(window);
-		status = TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_TOPALIGN, GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam), window, NULL);
-		DestroyMenu(menu);
-
-		switch(status) {
-		case 0xE001:
-			return 0;
-		}
-
-		break;
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		return 0;
-	case WM_LBUTTONDOWN:
-		LOG("Down\n");
-		return 1;
-	case WM_LBUTTONUP:
-		LOG("Up\n");
-		return 1;
-	case WM_MOUSEMOVE:
-		LOG("Move\n");
-		return 0;
-	case WM_PAINT:
-		context = BeginPaint(window, &paintStruct);
-		memoryContext = CreateCompatibleDC(context);
-		GetClientRect(window, &bounds);
-		bitmap = CreateCompatibleBitmap(context, bounds.right, bounds.bottom);
-		oldBitmap = SelectObject(memoryContext, bitmap);
-		brush = GetStockObject(DC_BRUSH);
-		SetDCBrushColor(memoryContext, 0x000000);
-		FillRect(memoryContext, &bounds, brush);
-		BitBlt(context, 0, 0, bounds.right, bounds.bottom, memoryContext, 0, 0, SRCCOPY);
-		SelectObject(memoryContext, oldBitmap);
-		DeleteObject(bitmap);
-		DeleteDC(memoryContext);
-		EndPaint(window, &paintStruct);
 		return 0;
 	}
 

@@ -154,6 +154,7 @@
     <ClCompile Include="window_session.c" />
     <ClCompile Include="window_session_audio.c" />
     <ClCompile Include="window_session_stream.c" />
+    <ClCompile Include="window_session_stream_window.c" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="hackontrol-remote.exe.manifest" />
@@ -161,6 +162,7 @@
   <ItemGroup>
     <ClInclude Include="remote.h" />
     <ClInclude Include="window_session.h" />
+    <ClInclude Include="window_session_stream_window.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\hrsp-protocol\hrsp-protocol.vcxproj">

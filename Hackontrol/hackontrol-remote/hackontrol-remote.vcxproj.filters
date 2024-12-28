@@ -32,6 +32,9 @@
     <ClCompile Include="window_session_audio.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="window_session_stream_window.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="hackontrol-remote.exe.manifest" />
@@ -41,6 +44,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="window_session.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="window_session_stream_window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
