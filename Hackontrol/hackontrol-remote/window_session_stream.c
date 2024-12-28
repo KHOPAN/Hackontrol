@@ -529,6 +529,15 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
+	case WM_LBUTTONDOWN:
+		LOG("Down\n");
+		return 1;
+	case WM_LBUTTONUP:
+		LOG("Up\n");
+		return 1;
+	case WM_MOUSEMOVE:
+		LOG("Move\n");
+		return 0;
 	case WM_PAINT:
 		context = BeginPaint(window, &paintStruct);
 		memoryContext = CreateCompatibleDC(context);
