@@ -2,7 +2,7 @@
 #include "remote.h"
 #include <CommCtrl.h>
 
-#define IDM_REMOTE_ALWAYS_ON_TOP 0xE010
+#define IDSM_REMOTE_ALWAYS_ON_TOP 0xE010
 
 #define IDM_REMOTE_OPEN       0xE001
 #define IDM_REMOTE_DISCONNECT 0xE002
@@ -239,9 +239,9 @@ static LRESULT CALLBACK procedure(_In_ HWND inputWindow, _In_ UINT message, _In_
 		SetWindowPos(listView, HWND_TOP, 0, 0, bounds.right - 18, bounds.bottom - 26, SWP_NOMOVE);
 		return 0;
 	case WM_SYSCOMMAND:
-		if((wparam & 0xFFF0) == IDM_REMOTE_ALWAYS_ON_TOP) {
+		if((wparam & 0xFFF0) == IDSM_REMOTE_ALWAYS_ON_TOP) {
 			status = GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST;
-			CheckMenuItem(GetSystemMenu(window, FALSE), IDM_REMOTE_ALWAYS_ON_TOP, MF_BYCOMMAND | (status ? MF_UNCHECKED : MF_CHECKED));
+			CheckMenuItem(GetSystemMenu(window, FALSE), IDSM_REMOTE_ALWAYS_ON_TOP, MF_BYCOMMAND | (status ? MF_UNCHECKED : MF_CHECKED));
 			SetWindowPos(window, status ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
 			return 0;
 		}
@@ -280,7 +280,7 @@ BOOLEAN WindowMainInitialize() {
 
 	HMENU menu = GetSystemMenu(window, FALSE);
 
-	if(!InsertMenuW(menu, SC_CLOSE, MF_BYCOMMAND | MF_CHECKED | MF_STRING, IDM_REMOTE_ALWAYS_ON_TOP, L"Always On Top")) {
+	if(!InsertMenuW(menu, SC_CLOSE, MF_BYCOMMAND | MF_CHECKED | MF_STRING, IDSM_REMOTE_ALWAYS_ON_TOP, L"Always On Top")) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"InsertMenuW");
 		goto destroyWindow;
 	}
