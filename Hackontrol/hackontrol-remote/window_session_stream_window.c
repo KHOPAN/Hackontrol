@@ -1,5 +1,7 @@
 #include "window_session_stream_window.h"
 
+#define IDM_STREAM_WINDOW_PICTURE_IN_PICTURE 0xE001
+
 extern HINSTANCE instance;
 
 DWORD WINAPI popupThread(_In_ PDEVICEENTRY entry) {
@@ -55,13 +57,13 @@ LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_ WPARAM
 			break;
 		}
 
-		AppendMenuW(menu, MF_STRING, 0xE001, L"Enable");
+		AppendMenuW(menu, MF_STRING, IDM_STREAM_WINDOW_PICTURE_IN_PICTURE, L"Picture in Picture");
 		SetForegroundWindow(window);
 		status = TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_TOPALIGN, GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam), window, NULL);
 		DestroyMenu(menu);
 
 		switch(status) {
-		case 0xE001:
+		case IDM_STREAM_WINDOW_PICTURE_IN_PICTURE:
 			return 0;
 		}
 
