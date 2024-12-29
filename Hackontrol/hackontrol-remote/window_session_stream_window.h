@@ -9,6 +9,7 @@
 typedef struct {
 	HANDLE thread;
 	HWND window;
+	POINT pressed;
 } POPUPDATA, *PPOPUPDATA;
 
 typedef struct {

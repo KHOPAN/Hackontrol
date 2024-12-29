@@ -9,7 +9,7 @@ DWORD WINAPI popupThread(_In_ PDEVICEENTRY entry) {
 		return 1;
 	}
 
-	entry->popup->window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME_POPUP, entry->name, WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, 0, (int) (((double) GetSystemMetrics(SM_CXSCREEN)) * 0.32942899), (int) (((double) GetSystemMetrics(SM_CYSCREEN)) * 0.390625), NULL, NULL, instance, NULL);
+	entry->popup->window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME_POPUP, entry->name, WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, 0, (int) (((double) GetSystemMetrics(SM_CXSCREEN)) * 0.32942899), (int) (((double) GetSystemMetrics(SM_CYSCREEN)) * 0.390625), NULL, NULL, instance, entry->popup);
 	DWORD codeExit = 1;
 
 	if(!entry->popup->window) {
@@ -36,6 +36,7 @@ functionExit:
 }
 
 LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
+	USERDATA(PPOPUPDATA, data, window, message, wparam, lparam);
 	HMENU menu;
 	BOOLEAN pictureInPicture;
 	BOOL status;
@@ -46,6 +47,8 @@ LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_ WPARAM
 	HBITMAP bitmap;
 	HBITMAP oldBitmap;
 	HBRUSH brush;
+
+	POINT location;
 
 	switch(message) {
 	case WM_CLOSE:
@@ -76,10 +79,13 @@ LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_ WPARAM
 		PostQuitMessage(0);
 		return 0;
 	case WM_LBUTTONDOWN:
+		GetCursorPos(&data->pressed);
 		return 1;
 	case WM_LBUTTONUP:
 		return 1;
 	case WM_MOUSEMOVE:
+		GetCursorPos(&location);
+		LOG("X: %d Y: %d\n", location.x - data->pressed.x, location.y - data->pressed.y);
 		return 0;
 	case WM_PAINT:
 		context = BeginPaint(window, &paintStruct);
