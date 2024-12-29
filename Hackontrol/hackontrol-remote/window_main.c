@@ -269,14 +269,22 @@ BOOLEAN WindowMainInitialize() {
 		return FALSE;
 	}
 
+	HMENU menu = CreateMenu();
+
+	if(!menu) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"CreateMenu");
+		goto unregisterClass;
+	}
+
 	double screenWidth = GetSystemMetrics(SM_CXSCREEN);
 	double screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	double width = screenWidth * 0.292825769;
 	double height = screenHeight * 0.78125;
-	window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME, L"Remote", WS_OVERLAPPEDWINDOW, (int) ((screenWidth - width) / 2.0), (int) ((screenHeight - height) / 2.0), (int) width, (int) height, NULL, NULL, instance, NULL);
+	window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME, L"Remote", WS_OVERLAPPEDWINDOW, (int) ((screenWidth - width) / 2.0), (int) ((screenHeight - height) / 2.0), (int) width, (int) height, NULL, menu, instance, NULL);
 
 	if(!window) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"CreateWindowExW");
+		DestroyMenu(menu);
 		goto unregisterClass;
 	}
 
