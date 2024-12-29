@@ -7,6 +7,8 @@ static void(__stdcall* sessionTabs[]) (const PTABINITIALIZER tab) = {
 	WindowSessionTabAudio
 };
 
+#define IDSM_SESSION_ALWAYS_ON_TOP 0xE010
+
 #define TAB_OFFSET 5
 
 #define CLASS_NAME L"HackontrolRemoteSession"
@@ -53,6 +55,7 @@ static void selectTab(const PCLIENT client) {
 static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	USERDATA(PCLIENT, client, window, message, wparam, lparam);
 	RECT bounds;
+	BOOLEAN alwaysOnTop;
 
 	switch(message) {
 	case WM_CLOSE:
@@ -79,6 +82,15 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 		SetWindowPos(client->session.tab, HWND_TOP, 0, 0, bounds.right - bounds.left - TAB_OFFSET * 2, bounds.bottom - bounds.top - TAB_OFFSET * 2, SWP_NOMOVE);
 		resize(client);
 		return 0;
+	case WM_SYSCOMMAND:
+		if((wparam & 0xFFF0) == IDSM_SESSION_ALWAYS_ON_TOP) {
+			alwaysOnTop = GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST;
+			CheckMenuItem(GetSystemMenu(window, FALSE), IDSM_SESSION_ALWAYS_ON_TOP, MF_BYCOMMAND | (alwaysOnTop ? MF_UNCHECKED : MF_CHECKED));
+			SetWindowPos(window, alwaysOnTop ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+			return 0;
+		}
+
+		break;
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
@@ -170,6 +182,20 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 
 	if(!client->session.window) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
+		goto freeTabs;
+	}
+
+	HMENU menu = GetSystemMenu(client->session.window, FALSE);
+
+	if(!InsertMenuW(menu, SC_CLOSE, MF_BYCOMMAND | MF_CHECKED | MF_STRING, IDSM_SESSION_ALWAYS_ON_TOP, L"Always On Top")) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"InsertMenuW");
+		DestroyWindow(client->session.window);
+		goto freeTabs;
+	}
+
+	if(!InsertMenuW(menu, SC_CLOSE, MF_BYCOMMAND | MF_SEPARATOR, 0, NULL)) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"InsertMenuW");
+		DestroyWindow(client->session.window);
 		goto freeTabs;
 	}
 
