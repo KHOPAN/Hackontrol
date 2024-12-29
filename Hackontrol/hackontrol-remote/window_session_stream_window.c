@@ -37,6 +37,7 @@ functionExit:
 
 LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	HMENU menu;
+	BOOLEAN pictureInPicture;
 	BOOL status;
 	PAINTSTRUCT paintStruct;
 	HDC context;
@@ -57,13 +58,16 @@ LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_ WPARAM
 			break;
 		}
 
-		AppendMenuW(menu, MF_STRING, IDM_STREAM_WINDOW_PICTURE_IN_PICTURE, L"Picture in Picture");
+		pictureInPicture = GetWindowLongPtrW(window, GWL_STYLE) & WS_POPUP ? TRUE : FALSE;
+		AppendMenuW(menu, MF_STRING | (pictureInPicture ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_WINDOW_PICTURE_IN_PICTURE, L"Picture in Picture");
 		SetForegroundWindow(window);
 		status = TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_TOPALIGN, GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam), window, NULL);
 		DestroyMenu(menu);
 
 		switch(status) {
 		case IDM_STREAM_WINDOW_PICTURE_IN_PICTURE:
+			SetWindowLongPtrW(window, GWL_STYLE, (pictureInPicture ? WS_OVERLAPPEDWINDOW : WS_POPUP) | WS_VISIBLE);
+			SetWindowPos(window, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
 			return 0;
 		}
 
