@@ -2,11 +2,11 @@
 #include "remote.h"
 #include <CommCtrl.h>
 
-#define IDM_REMOTE_OPEN          0xE001
-#define IDM_REMOTE_DISCONNECT    0xE002
-#define IDM_REMOTE_REFRESH       0xE003
-#define IDM_REMOTE_ALWAYS_ON_TOP 0xE004
-#define IDM_REMOTE_EXIT          0xE005
+#define IDM_REMOTE_ALWAYS_ON_TOP 0xE010
+
+#define IDM_REMOTE_OPEN       0xE001
+#define IDM_REMOTE_DISCONNECT 0xE002
+#define IDM_REMOTE_REFRESH    0xE003
 
 #define CLASS_NAME L"HackontrolRemote"
 
@@ -148,7 +148,6 @@ static LRESULT CALLBACK procedure(_In_ HWND inputWindow, _In_ UINT message, _In_
 	LVITEMW item = {0};
 	PCLIENT client = NULL;
 	HMENU menu;
-	BOOLEAN topMost;
 	int status;
 	PLINKEDLISTITEM listItem;
 
@@ -194,10 +193,6 @@ static LRESULT CALLBACK procedure(_In_ HWND inputWindow, _In_ UINT message, _In_
 		}
 
 		AppendMenuW(menu, MF_STRING, IDM_REMOTE_REFRESH, L"Refresh");
-		AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
-		topMost = GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST;
-		AppendMenuW(menu, MF_STRING | (topMost ? MF_CHECKED : MF_UNCHECKED), IDM_REMOTE_ALWAYS_ON_TOP, L"Always On Top");
-		AppendMenuW(menu, MF_STRING, IDM_REMOTE_EXIT, L"Exit");
 		SetForegroundWindow(window);
 		status = TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_TOPALIGN, GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam), window, NULL);
 		DestroyMenu(menu);
@@ -214,12 +209,6 @@ static LRESULT CALLBACK procedure(_In_ HWND inputWindow, _In_ UINT message, _In_
 			SendMessageW(listView, LVM_DELETEALLITEMS, 0, 0);
 			KHOPAN_LINKED_LIST_ITERATE_FORWARD(listItem, &clientList) if(listItem->data) insert((PCLIENT) listItem->data);
 			ReleaseMutex(clientListMutex);
-			return 0;
-		case IDM_REMOTE_ALWAYS_ON_TOP:
-			SetWindowPos(window, topMost ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
-			return 0;
-		case IDM_REMOTE_EXIT:
-			WindowMainExit();
 			return 0;
 		}
 
@@ -249,6 +238,15 @@ static LRESULT CALLBACK procedure(_In_ HWND inputWindow, _In_ UINT message, _In_
 		SetWindowPos(border, HWND_TOP, 0, 0, bounds.right - 10, bounds.bottom - 4, SWP_NOMOVE);
 		SetWindowPos(listView, HWND_TOP, 0, 0, bounds.right - 18, bounds.bottom - 26, SWP_NOMOVE);
 		return 0;
+	case WM_SYSCOMMAND:
+		if((wparam & 0xFFF0) == IDM_REMOTE_ALWAYS_ON_TOP) {
+			status = GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST;
+			CheckMenuItem(GetSystemMenu(window, FALSE), IDM_REMOTE_ALWAYS_ON_TOP, MF_BYCOMMAND | (status ? MF_UNCHECKED : MF_CHECKED));
+			SetWindowPos(window, status ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+			return 0;
+		}
+
+		break;
 	}
 
 	return DefWindowProcW(inputWindow, message, wparam, lparam);
@@ -278,6 +276,18 @@ BOOLEAN WindowMainInitialize() {
 	if(!window) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"CreateWindowExW");
 		goto unregisterClass;
+	}
+
+	HMENU menu = GetSystemMenu(window, FALSE);
+
+	if(!InsertMenuW(menu, SC_CLOSE, MF_BYCOMMAND | MF_CHECKED | MF_STRING, IDM_REMOTE_ALWAYS_ON_TOP, L"Always On Top")) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"InsertMenuW");
+		goto destroyWindow;
+	}
+
+	if(!InsertMenuW(menu, SC_CLOSE, MF_BYCOMMAND | MF_SEPARATOR, 0, NULL)) {
+		KHOPANLASTERRORMESSAGE_WIN32(L"InsertMenuW");
+		goto destroyWindow;
 	}
 
 	border = CreateWindowExW(WS_EX_NOPARENTNOTIFY, L"Button", L"Target List", BS_GROUPBOX | WS_CHILD | WS_VISIBLE, 5, 0, 0, 0, window, NULL, NULL, NULL);
