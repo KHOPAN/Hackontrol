@@ -2,14 +2,16 @@
 #include <hrsp_remote.h>
 #include "window_session.h"
 #include <CommCtrl.h>
-#include "window_session_stream_window.h"
 
 #define IDM_STREAM_OPEN    0xE001
 #define IDM_STREAM_REFRESH 0xE002
 
+#define IDM_STREAM_WINDOW_PICTURE_IN_PICTURE 0xE001
+
 #define SM_STREAM_DEVICE (WM_USER + 0x01)
 
-#define CLASS_NAME L"HackontrolRemoteSessionTabStream"
+#define CLASS_NAME       L"HackontrolRemoteSessionTabStream"
+#define CLASS_NAME_POPUP L"HackontrolRemoteSessionTabStreamPopup"
 
 extern HINSTANCE instance;
 extern HFONT font;
@@ -28,9 +30,10 @@ typedef struct {
 	SORTPARAMETER sort;
 } TABSTREAMDATA, *PTABSTREAMDATA;
 
-/*typedef struct {
+typedef struct {
 	HANDLE thread;
 	HWND window;
+	POINT pressed;
 } POPUPDATA, *PPOPUPDATA;
 
 typedef struct {
@@ -39,7 +42,112 @@ typedef struct {
 	PBYTE identifier;
 	HRSPREMOTESTREAMDEVICETYPE type;
 	PPOPUPDATA popup;
-} DEVICEENTRY, *PDEVICEENTRY;*/
+} DEVICEENTRY, *PDEVICEENTRY;
+
+static DWORD WINAPI popupThread(_In_ PDEVICEENTRY entry) {
+	if(!entry || !entry->popup) {
+		return 1;
+	}
+
+	entry->popup->window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME_POPUP, entry->name, WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, 0, (int) (((double) GetSystemMetrics(SM_CXSCREEN)) * 0.32942899), (int) (((double) GetSystemMetrics(SM_CYSCREEN)) * 0.390625), NULL, NULL, instance, entry->popup);
+	DWORD codeExit = 1;
+
+	if(!entry->popup->window) {
+		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
+		goto functionExit;
+	}
+
+	MSG message;
+
+	while(GetMessageW(&message, NULL, 0, 0)) {
+		TranslateMessage(&message);
+		DispatchMessageW(&message);
+	}
+
+	codeExit = 0;
+functionExit:
+	CloseHandle(entry->popup->thread);
+
+	for(size_t i = 0; i < sizeof(POPUPDATA); i++) {
+		((PBYTE) entry->popup)[i] = 0;
+	}
+
+	return codeExit;
+}
+
+static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
+	USERDATA(PPOPUPDATA, data, window, message, wparam, lparam);
+	HMENU menu;
+	BOOLEAN pictureInPicture;
+	BOOL status;
+	PAINTSTRUCT paintStruct;
+	HDC context;
+	HDC memoryContext;
+	RECT bounds;
+	HBITMAP bitmap;
+	HBITMAP oldBitmap;
+	HBRUSH brush;
+
+	POINT location;
+
+	switch(message) {
+	case WM_CLOSE:
+		DestroyWindow(window);
+		return 0;
+	case WM_CONTEXTMENU:
+		menu = CreatePopupMenu();
+
+		if(!menu) {
+			break;
+		}
+
+		pictureInPicture = GetWindowLongPtrW(window, GWL_STYLE) & WS_POPUP ? TRUE : FALSE;
+		AppendMenuW(menu, MF_STRING | (pictureInPicture ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_WINDOW_PICTURE_IN_PICTURE, L"Picture in Picture");
+		SetForegroundWindow(window);
+		status = TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_TOPALIGN, GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam), window, NULL);
+		DestroyMenu(menu);
+
+		switch(status) {
+		case IDM_STREAM_WINDOW_PICTURE_IN_PICTURE:
+			SetWindowLongPtrW(window, GWL_STYLE, (pictureInPicture ? WS_OVERLAPPEDWINDOW : WS_POPUP) | WS_VISIBLE);
+			SetWindowPos(window, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
+			return 0;
+		}
+
+		break;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+	case WM_LBUTTONDOWN:
+		GetCursorPos(&data->pressed);
+		return 1;
+	case WM_LBUTTONUP:
+		return 1;
+	case WM_MOUSEMOVE:
+		GetCursorPos(&location);
+		LOG("X: %d Y: %d\n", location.x - data->pressed.x, location.y - data->pressed.y);
+		return 0;
+	case WM_PAINT:
+		context = BeginPaint(window, &paintStruct);
+		memoryContext = CreateCompatibleDC(context);
+		GetClientRect(window, &bounds);
+		bitmap = CreateCompatibleBitmap(context, bounds.right, bounds.bottom);
+		oldBitmap = SelectObject(memoryContext, bitmap);
+		brush = GetStockObject(DC_BRUSH);
+		SetDCBrushColor(memoryContext, 0x000000);
+		FillRect(memoryContext, &bounds, brush);
+		BitBlt(context, 0, 0, bounds.right, bounds.bottom, memoryContext, 0, 0, SRCCOPY);
+		SelectObject(memoryContext, oldBitmap);
+		DeleteObject(bitmap);
+		DeleteDC(memoryContext);
+		EndPaint(window, &paintStruct);
+		return 0;
+	}
+
+	return DefWindowProcW(window, message, wparam, lparam);
+}
+
+// ----------------------------------------------------------------------------------------------------
 
 static void __stdcall uninitialize(const PULONGLONG data) {
 	UnregisterClassW(CLASS_NAME_POPUP, instance);
