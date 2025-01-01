@@ -80,15 +80,6 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 	HMENU menu;
 	BOOLEAN pictureInPicture;
 	BOOL status;
-	PAINTSTRUCT paintStruct;
-	HDC context;
-	HDC memoryContext;
-	RECT bounds;
-	HBITMAP bitmap;
-	HBITMAP oldBitmap;
-	HBRUSH brush;
-
-	POINT location;
 
 	switch(message) {
 	case WM_CLOSE:
@@ -119,28 +110,10 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 		PostQuitMessage(0);
 		return 0;
 	case WM_LBUTTONDOWN:
-		GetCursorPos(&data->pressed);
 		return 1;
 	case WM_LBUTTONUP:
 		return 1;
 	case WM_MOUSEMOVE:
-		GetCursorPos(&location);
-		LOG("X: %d Y: %d\n", location.x - data->pressed.x, location.y - data->pressed.y);
-		return 0;
-	case WM_PAINT:
-		context = BeginPaint(window, &paintStruct);
-		memoryContext = CreateCompatibleDC(context);
-		GetClientRect(window, &bounds);
-		bitmap = CreateCompatibleBitmap(context, bounds.right, bounds.bottom);
-		oldBitmap = SelectObject(memoryContext, bitmap);
-		brush = GetStockObject(DC_BRUSH);
-		SetDCBrushColor(memoryContext, 0x000000);
-		FillRect(memoryContext, &bounds, brush);
-		BitBlt(context, 0, 0, bounds.right, bounds.bottom, memoryContext, 0, 0, SRCCOPY);
-		SelectObject(memoryContext, oldBitmap);
-		DeleteObject(bitmap);
-		DeleteDC(memoryContext);
-		EndPaint(window, &paintStruct);
 		return 0;
 	}
 
@@ -148,11 +121,11 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 }
 
 // ----------------------------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------------------------
 
 static void __stdcall uninitialize(const PULONGLONG data) {
-	UnregisterClassW(CLASS_NAME_POPUP, instance);
+	if(*data) {
+		UnregisterClassW(CLASS_NAME_POPUP, instance);
+	}
 }
 
 static int CALLBACK compare(const PDEVICEENTRY first, const PDEVICEENTRY second, const PSORTPARAMETER parameter) {
@@ -587,5 +560,5 @@ void __stdcall WindowSessionTabStream(const PTABINITIALIZER tab) {
 	windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
 	windowClass.hbrBackground = (HBRUSH) (COLOR_MENU + 1);
 	windowClass.lpszClassName = CLASS_NAME_POPUP;
-	RegisterClassExW(&windowClass);
+	tab->data = RegisterClassExW(&windowClass);
 }
