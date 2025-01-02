@@ -317,6 +317,20 @@ static void freeDeviceEntry(const PDEVICEENTRY entry) {
 	KHOPAN_DEALLOCATE(entry);
 }
 
+static void openPopupIndex(const HWND listView, const int index) {
+	if(index < 0) {
+		return;
+	}
+
+	LVITEMW item = {0};
+	item.mask = LVIF_PARAM;
+	item.iItem = index;
+
+	if(SendMessageW(listView, LVM_GETITEM, 0, (LPARAM) &item)) {
+		openPopup((PDEVICEENTRY) item.lParam);
+	}
+}
+
 static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	USERDATA(PTABSTREAMDATA, data, window, message, wparam, lparam);
 	size_t index = 1;
@@ -530,6 +544,17 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 		case LVN_COLUMNCLICK:
 			if(WaitForSingleObject(data->mutex, INFINITE) == WAIT_FAILED) return 0;
 			listHeader((UINT) ((LPNMLISTVIEW) lparam)->iSubItem, data);
+			ReleaseMutex(data->mutex);
+			return 0;
+		case LVN_KEYDOWN:
+			if(((LPNMLVKEYDOWN) lparam)->wVKey != VK_SPACE) return 0;
+			if(WaitForSingleObject(data->mutex, INFINITE) == WAIT_FAILED) return 0;
+			openPopupIndex(data->list, (int) SendMessageW(data->list, LVM_GETNEXTITEM, -1, LVNI_SELECTED));
+			ReleaseMutex(data->mutex);
+			return 0;
+		case NM_DBLCLK:
+			if(WaitForSingleObject(data->mutex, INFINITE) == WAIT_FAILED) return 0;
+			openPopupIndex(data->list, ((LPNMITEMACTIVATE) lparam)->iItem);
 			ReleaseMutex(data->mutex);
 			return 0;
 		}
