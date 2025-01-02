@@ -225,6 +225,10 @@ static LRESULT CALLBACK procedure(_In_ HWND inputWindow, _In_ UINT message, _In_
 		case LVN_COLUMNCLICK:
 			listHeader((UINT) ((LPNMLISTVIEW) lparam)->iSubItem);
 			return 0;
+		case LVN_KEYDOWN:
+			if(((LPNMLVKEYDOWN) lparam)->wVKey != VK_SPACE) return 0;
+			open((int) SendMessageW(listView, LVM_GETNEXTITEM, -1, LVNI_SELECTED));
+			return 0;
 		case NM_DBLCLK:
 			open(((LPNMITEMACTIVATE) lparam)->iItem);
 			return 0;
@@ -339,10 +343,6 @@ void WindowMain() {
 	MSG message;
 
 	while(GetMessageW(&message, NULL, 0, 0)) {
-		if(message.message == WM_KEYDOWN && (message.wParam == VK_RETURN || message.wParam == VK_SPACE) && open((int) SendMessageW(listView, LVM_GETNEXTITEM, -1, LVNI_SELECTED))) {
-			continue;
-		}
-
 		if(!IsDialogMessageW(window, &message)) {
 			TranslateMessage(&message);
 			DispatchMessageW(&message);
