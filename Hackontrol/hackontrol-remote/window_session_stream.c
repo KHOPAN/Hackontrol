@@ -544,22 +544,22 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 		case LVN_COLUMNCLICK:
 			if(WaitForSingleObject(data->mutex, INFINITE) == WAIT_FAILED) return 0;
 			listHeader((UINT) ((LPNMLISTVIEW) lparam)->iSubItem, data);
-			ReleaseMutex(data->mutex);
-			return 0;
+			goto releaseMutex;
 		case LVN_KEYDOWN:
 			if(((LPNMLVKEYDOWN) lparam)->wVKey != VK_SPACE) return 0;
 			if(WaitForSingleObject(data->mutex, INFINITE) == WAIT_FAILED) return 0;
 			openPopupIndex(data->list, (int) SendMessageW(data->list, LVM_GETNEXTITEM, -1, LVNI_SELECTED));
-			ReleaseMutex(data->mutex);
-			return 0;
+			goto releaseMutex;
 		case NM_DBLCLK:
 			if(WaitForSingleObject(data->mutex, INFINITE) == WAIT_FAILED) return 0;
 			openPopupIndex(data->list, ((LPNMITEMACTIVATE) lparam)->iItem);
-			ReleaseMutex(data->mutex);
-			return 0;
+			goto releaseMutex;
 		}
 
 		break;
+	releaseMutex:
+		ReleaseMutex(data->mutex);
+		return 0;
 	case WM_SIZE:
 		GetClientRect(window, &bounds);
 		SetWindowPos(data->border, HWND_TOP, 0, 0, bounds.right - bounds.left - 2, bounds.bottom - bounds.top, SWP_NOMOVE);
