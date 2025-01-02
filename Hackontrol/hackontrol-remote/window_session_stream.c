@@ -115,6 +115,9 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 		return 1;
 	case WM_MOUSEMOVE:
 		return 0;
+	case WM_SIZING:
+		((PRECT) lparam)->bottom = 200;
+		return TRUE;
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
