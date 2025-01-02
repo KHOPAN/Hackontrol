@@ -31,28 +31,27 @@ typedef struct {
 } TABSTREAMDATA, *PTABSTREAMDATA;
 
 typedef struct {
-	HANDLE thread;
-	HWND window;
-	POINT pressed;
-} POPUPDATA, *PPOPUPDATA;
-
-typedef struct {
 	LPWSTR name;
 	UINT32 identifierLength;
 	PBYTE identifier;
 	HRSPREMOTESTREAMDEVICETYPE type;
-	PPOPUPDATA popup;
+
+	struct {
+		HANDLE thread;
+		HWND window;
+		POINT pressed;
+	} popup;
 } DEVICEENTRY, *PDEVICEENTRY;
 
 static DWORD WINAPI popupThread(_In_ PDEVICEENTRY entry) {
-	if(!entry || !entry->popup) {
+	if(!entry) {
 		return 1;
 	}
 
-	entry->popup->window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME_POPUP, entry->name, WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, 0, (int) (((double) GetSystemMetrics(SM_CXSCREEN)) * 0.32942899), (int) (((double) GetSystemMetrics(SM_CYSCREEN)) * 0.390625), NULL, NULL, instance, entry->popup);
+	entry->popup.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME_POPUP, entry->name, WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, 0, (int) (((double) GetSystemMetrics(SM_CXSCREEN)) * 0.32942899), (int) (((double) GetSystemMetrics(SM_CYSCREEN)) * 0.390625), NULL, NULL, instance, entry);
 	DWORD codeExit = 1;
 
-	if(!entry->popup->window) {
+	if(!entry->popup.window) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
 		goto functionExit;
 	}
@@ -66,17 +65,17 @@ static DWORD WINAPI popupThread(_In_ PDEVICEENTRY entry) {
 
 	codeExit = 0;
 functionExit:
-	CloseHandle(entry->popup->thread);
+	CloseHandle(entry->popup.thread);
 
-	for(size_t i = 0; i < sizeof(POPUPDATA); i++) {
-		((PBYTE) entry->popup)[i] = 0;
+	for(size_t i = 0; i < sizeof(entry->popup); i++) {
+		((PBYTE) &entry->popup)[i] = 0;
 	}
 
 	return codeExit;
 }
 
 static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
-	USERDATA(PPOPUPDATA, data, window, message, wparam, lparam);
+	USERDATA(PDEVICEENTRY, entry, window, message, wparam, lparam);
 	HMENU menu;
 	BOOLEAN pictureInPicture;
 	BOOL status;
@@ -294,23 +293,14 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, 
 }
 
 static void openPopup(const PDEVICEENTRY entry) {
-	if(entry->popup && entry->popup->thread) {
-		PostMessageW(entry->popup->window, WM_CLOSE, 0, 0);
-		WaitForSingleObject(entry->popup->thread, INFINITE);
+	if(entry->popup.thread) {
+		PostMessageW(entry->popup.window, WM_CLOSE, 0, 0);
+		WaitForSingleObject(entry->popup.thread, INFINITE);
 	}
 
-	if(!entry->popup) {
-		entry->popup = KHOPAN_ALLOCATE(sizeof(POPUPDATA));
+	entry->popup.thread = CreateThread(NULL, 0, popupThread, entry, 0, NULL);
 
-		if(!entry->popup) {
-			KHOPANERRORCONSOLE_COMMON(ERROR_COMMON_ALLOCATION_FAILED, L"KHOPAN_ALLOCATE");
-			return;
-		}
-	}
-
-	entry->popup->thread = CreateThread(NULL, 0, popupThread, entry, 0, NULL);
-
-	if(!entry->popup->thread) {
+	if(!entry->popup.thread) {
 		KHOPANLASTERRORCONSOLE_WIN32(L"CreateThread");
 	}
 }
@@ -319,13 +309,9 @@ static void freeDeviceEntry(const PDEVICEENTRY entry) {
 	KHOPAN_DEALLOCATE(entry->name);
 	KHOPAN_DEALLOCATE(entry->identifier);
 
-	if(entry->popup) {
-		if(entry->popup->thread) {
-			PostMessageW(entry->popup->window, WM_CLOSE, 0, 0);
-			WaitForSingleObject(entry->popup->thread, INFINITE);
-		}
-
-		KHOPAN_DEALLOCATE(entry->popup);
+	if(entry->popup.thread) {
+		PostMessageW(entry->popup.window, WM_CLOSE, 0, 0);
+		WaitForSingleObject(entry->popup.thread, INFINITE);
 	}
 
 	KHOPAN_DEALLOCATE(entry);
