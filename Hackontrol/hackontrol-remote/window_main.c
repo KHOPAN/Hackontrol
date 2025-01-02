@@ -226,8 +226,7 @@ static LRESULT CALLBACK procedure(_In_ HWND inputWindow, _In_ UINT message, _In_
 			listHeader((UINT) ((LPNMLISTVIEW) lparam)->iSubItem);
 			return 0;
 		case LVN_KEYDOWN:
-			if(((LPNMLVKEYDOWN) lparam)->wVKey != VK_SPACE) return 0;
-			open((int) SendMessageW(listView, LVM_GETNEXTITEM, -1, LVNI_SELECTED));
+			if(((LPNMLVKEYDOWN) lparam)->wVKey == VK_SPACE) open((int) SendMessageW(listView, LVM_GETNEXTITEM, -1, LVNI_SELECTED));
 			return 0;
 		case NM_DBLCLK:
 			open(((LPNMITEMACTIVATE) lparam)->iItem);
