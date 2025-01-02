@@ -115,9 +115,20 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 		return 1;
 	case WM_MOUSEMOVE:
 		return 0;
-	case WM_SIZING:
-		((PRECT) lparam)->bottom = 200;
-		return TRUE;
+	case WM_SIZING: {
+		int targetWidth = 600;
+		int targetHeight = 400;
+		PRECT bounds = (PRECT) lparam;
+
+		if(wparam == WMSZ_RIGHT) {
+			int width = bounds->right - bounds->left;
+			int height = (int) (((double) width) / ((double) targetWidth) * ((double) targetHeight));
+			bounds->bottom = bounds->top + height;
+			return TRUE;
+		}
+
+		return FALSE;
+	}
 	}
 
 	return DefWindowProcW(window, message, wparam, lparam);
