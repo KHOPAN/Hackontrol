@@ -7,6 +7,7 @@
 #define IDM_STREAM_REFRESH 0xE002
 
 #define IDM_STREAM_WINDOW_PICTURE_IN_PICTURE 0xE001
+#define IDM_STREAM_WINDOW_ENABLE_STREAM      0xE002
 
 #define SM_STREAM_DEVICE (WM_USER + 0x01)
 
@@ -93,6 +94,7 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 
 		pictureInPicture = GetWindowLongPtrW(window, GWL_STYLE) & WS_POPUP ? TRUE : FALSE;
 		AppendMenuW(menu, MF_STRING | (pictureInPicture ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_WINDOW_PICTURE_IN_PICTURE, L"Picture in Picture");
+		AppendMenuW(menu, MF_STRING, IDM_STREAM_WINDOW_ENABLE_STREAM, L"Enable Stream");
 		SetForegroundWindow(window);
 		status = TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_TOPALIGN, GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam), window, NULL);
 		DestroyMenu(menu);
@@ -101,6 +103,9 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 		case IDM_STREAM_WINDOW_PICTURE_IN_PICTURE:
 			SetWindowLongPtrW(window, GWL_STYLE, (pictureInPicture ? WS_OVERLAPPEDWINDOW : WS_POPUP) | WS_VISIBLE);
 			SetWindowPos(window, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
+			return 0;
+		case IDM_STREAM_WINDOW_ENABLE_STREAM:
+			LOG("Enable Stream\n");
 			return 0;
 		}
 
