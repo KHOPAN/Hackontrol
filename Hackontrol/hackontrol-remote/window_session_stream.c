@@ -42,6 +42,8 @@ typedef struct {
 		HANDLE thread;
 		HWND window;
 		BOOLEAN stream;
+		UINT targetWidth;
+		UINT targetHeight;
 	} popup;
 } DEVICEENTRY, *PDEVICEENTRY;
 
