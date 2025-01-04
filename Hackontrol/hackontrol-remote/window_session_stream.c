@@ -36,6 +36,7 @@ typedef struct {
 	UINT32 identifierLength;
 	PBYTE identifier;
 	HRSPREMOTESTREAMDEVICETYPE type;
+	PTABSTREAMDATA data;
 
 	struct {
 		HANDLE thread;
@@ -103,6 +104,12 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 		switch(status) {
 		case IDM_STREAM_WINDOW_ENABLE_STREAM:
 			entry->popup.stream = !entry->popup.stream;
+			pictureInPicture = entry->popup.stream;
+			HRSPPACKET packet;
+			packet.size = 1;
+			packet.type = HRSP_REMOTE_SERVER_REQUEST_STREAM_DATA;
+			packet.data = &pictureInPicture;
+			HRSPPacketSend(&entry->data->client->hrsp, &packet, NULL);
 			return 0;
 		case IDM_STREAM_WINDOW_PICTURE_IN_PICTURE:
 			SetWindowLongPtrW(window, GWL_STYLE, (pictureInPicture ? WS_OVERLAPPEDWINDOW : WS_POPUP) | WS_VISIBLE);
@@ -426,6 +433,7 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 			entry = KHOPAN_ALLOCATE(sizeof(DEVICEENTRY));
 			if(!entry) continue;
 			entry->type = type;
+			entry->data = data;
 			entry->name = KHOPAN_ALLOCATE(nameLength + sizeof(WCHAR));
 
 			if(!entry->name) {
