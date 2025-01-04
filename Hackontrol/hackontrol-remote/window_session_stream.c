@@ -142,6 +142,11 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 			int width = (int) (((double) height) / ((double) targetHeight) * ((double) targetWidth));
 			bounds->right = bounds->left + width;
 			return TRUE;
+		} else if(wparam == WMSZ_LEFT) {
+			int width = bounds->right - bounds->left;
+			int height = (int) (((double) width) / ((double) targetWidth) * ((double) targetHeight));
+			bounds->top = bounds->bottom - height;
+			return TRUE;
 		}
 
 		return FALSE;
