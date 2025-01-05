@@ -53,6 +53,8 @@ static DWORD WINAPI popupThread(_In_ PDEVICEENTRY entry) {
 	}
 
 	entry->popup.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME_POPUP, entry->name, WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, 0, (int) (((double) GetSystemMetrics(SM_CXSCREEN)) * 0.32942899), (int) (((double) GetSystemMetrics(SM_CYSCREEN)) * 0.390625), NULL, NULL, instance, entry);
+	entry->popup.targetWidth = 1920;
+	entry->popup.targetHeight = 1080;
 	DWORD codeExit = 1;
 
 	if(!entry->popup.window) {
@@ -133,6 +135,25 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 		int targetWidth = 600;
 		int targetHeight = 400;
 		PRECT bounds = (PRECT) lparam;
+
+		switch(wparam) {
+		case WMSZ_BOTTOM:
+			break;
+		case WMSZ_BOTTOMLEFT:
+			break;
+		case WMSZ_BOTTOMRIGHT:
+			break;
+		case WMSZ_LEFT:
+			break;
+		case WMSZ_RIGHT:
+			break;
+		case WMSZ_TOP:
+			break;
+		case WMSZ_TOPLEFT:
+			break;
+		case WMSZ_TOPRIGHT:
+			break;
+		}
 
 		if(wparam == WMSZ_RIGHT) {
 			int width = bounds->right - bounds->left;
