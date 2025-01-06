@@ -132,47 +132,33 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 	case WM_MOUSEMOVE:
 		return 0;
 	case WM_SIZING: {
-		int targetWidth = 600;
-		int targetHeight = 400;
 		PRECT bounds = (PRECT) lparam;
+		int width;
+		int height;
 
 		switch(wparam) {
 		case WMSZ_BOTTOM:
-			break;
 		case WMSZ_BOTTOMLEFT:
-			break;
 		case WMSZ_BOTTOMRIGHT:
-			break;
-		case WMSZ_LEFT:
-			break;
-		case WMSZ_RIGHT:
-			break;
-		case WMSZ_TOP:
-			break;
-		case WMSZ_TOPLEFT:
-			break;
-		case WMSZ_TOPRIGHT:
-			break;
-		}
-
-		if(wparam == WMSZ_RIGHT) {
-			int width = bounds->right - bounds->left;
-			int height = (int) (((double) width) / ((double) targetWidth) * ((double) targetHeight));
-			bounds->bottom = bounds->top + height;
-			return TRUE;
-		} else if(wparam == WMSZ_BOTTOM) {
-			int height = bounds->bottom - bounds->top;
-			int width = (int) (((double) height) / ((double) targetHeight) * ((double) targetWidth));
+			height = bounds->bottom - bounds->top;
+			width = (int) (((double) height) / ((double) entry->popup.targetHeight) * ((double) entry->popup.targetWidth));
 			bounds->right = bounds->left + width;
 			return TRUE;
-		} else if(wparam == WMSZ_LEFT) {
-			int width = bounds->right - bounds->left;
-			int height = (int) (((double) width) / ((double) targetWidth) * ((double) targetHeight));
+		case WMSZ_LEFT:
+			width = bounds->right - bounds->left;
+			height = (int) (((double) width) / ((double) entry->popup.targetWidth) * ((double) entry->popup.targetHeight));
 			bounds->top = bounds->bottom - height;
 			return TRUE;
-		} else if(wparam == WMSZ_TOP) {
-			int height = bounds->bottom - bounds->top;
-			int width = (int) (((double) height) / ((double) targetHeight) * ((double) targetWidth));
+		case WMSZ_RIGHT:
+			width = bounds->right - bounds->left;
+			height = (int) (((double) width) / ((double) entry->popup.targetWidth) * ((double) entry->popup.targetHeight));
+			bounds->bottom = bounds->top + height;
+			return TRUE;
+		case WMSZ_TOP:
+		case WMSZ_TOPLEFT:
+		case WMSZ_TOPRIGHT:
+			height = bounds->bottom - bounds->top;
+			width = (int) (((double) height) / ((double) entry->popup.targetHeight) * ((double) entry->popup.targetWidth));
 			bounds->left = bounds->right - width;
 			return TRUE;
 		}
