@@ -53,8 +53,8 @@ static DWORD WINAPI popupThread(_In_ PDEVICEENTRY entry) {
 	}
 
 	entry->popup.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME_POPUP, entry->name, WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, 0, (int) (((double) GetSystemMetrics(SM_CXSCREEN)) * 0.32942899), (int) (((double) GetSystemMetrics(SM_CYSCREEN)) * 0.390625), NULL, NULL, instance, entry);
-	entry->popup.targetWidth = 1920;
-	entry->popup.targetHeight = 1080;
+	entry->popup.targetWidth = 600;
+	entry->popup.targetHeight = 400;
 	DWORD codeExit = 1;
 
 	if(!entry->popup.window) {
