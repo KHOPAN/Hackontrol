@@ -85,6 +85,10 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 	HMENU menu;
 	BOOLEAN pictureInPicture;
 	BOOL status;
+	HRSPPACKET packet;
+	PRECT bounds;
+	int width;
+	int height;
 
 	switch(message) {
 	case WM_CLOSE:
@@ -109,7 +113,6 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 		case IDM_STREAM_WINDOW_ENABLE_STREAM:
 			entry->popup.stream = !entry->popup.stream;
 			pictureInPicture = entry->popup.stream;
-			HRSPPACKET packet;
 			packet.size = 1;
 			packet.type = HRSP_REMOTE_SERVER_REQUEST_STREAM_DATA;
 			packet.data = &pictureInPicture;
@@ -132,9 +135,7 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 	case WM_MOUSEMOVE:
 		return 0;
 	case WM_SIZING: {
-		PRECT bounds = (PRECT) lparam;
-		int width;
-		int height;
+		bounds = (PRECT) lparam;
 
 		switch(wparam) {
 		case WMSZ_BOTTOM:
