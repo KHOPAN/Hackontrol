@@ -42,8 +42,14 @@ typedef struct {
 		HANDLE thread;
 		HWND window;
 		BOOLEAN stream;
-		UINT targetWidth;
-		UINT targetHeight;
+
+		POINT cursor;
+		RECT client;
+
+		struct {
+			ULONG width;
+			ULONG height;
+		} target;
 	} popup;
 } DEVICEENTRY, *PDEVICEENTRY;
 
@@ -53,8 +59,8 @@ static DWORD WINAPI popupThread(_In_ PDEVICEENTRY entry) {
 	}
 
 	entry->popup.window = CreateWindowExW(WS_EX_TOPMOST, CLASS_NAME_POPUP, entry->name, WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, 0, (int) (((double) GetSystemMetrics(SM_CXSCREEN)) * 0.32942899), (int) (((double) GetSystemMetrics(SM_CYSCREEN)) * 0.390625), NULL, NULL, instance, entry);
-	entry->popup.targetWidth = 0;
-	entry->popup.targetHeight = 0;
+	entry->popup.target.width = 16;
+	entry->popup.target.height = 9;
 	DWORD codeExit = 1;
 
 	if(!entry->popup.window) {
@@ -86,9 +92,10 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 	BOOLEAN pictureInPicture;
 	BOOL status;
 	HRSPPACKET packet;
-	PRECT bounds;
+	/*PRECT bounds;
 	int width;
-	int height;
+	int height;*/
+	POINT point;
 
 	switch(message) {
 	case WM_CLOSE:
@@ -129,13 +136,23 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 		PostQuitMessage(0);
 		return 0;
 	case WM_LBUTTONDOWN:
+		GetCursorPos(&entry->popup.cursor);
+		GetWindowRect(window, &entry->popup.client);
+		SetCapture(window);
 		return 1;
 	case WM_LBUTTONUP:
+		ReleaseCapture();
 		return 1;
 	case WM_MOUSEMOVE:
+		if(!(wparam & MK_LBUTTON)) {
+			break;
+		}
+
+		GetCursorPos(&point);
+		SetWindowPos(window, HWND_TOP, point.x - entry->popup.cursor.x + entry->popup.client.left, point.y - entry->popup.cursor.y + entry->popup.client.top, 0, 0, SWP_NOSIZE);
 		return 0;
 	case WM_SIZING: {
-		bounds = (PRECT) lparam;
+		/*bounds = (PRECT) lparam;
 
 		switch(wparam) {
 		case WMSZ_BOTTOM:
@@ -162,7 +179,7 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 			width = (int) (((double) height) / ((double) entry->popup.targetHeight) * ((double) entry->popup.targetWidth));
 			bounds->left = bounds->right - width;
 			return TRUE;
-		}
+		}*/
 
 		return FALSE;
 	}
