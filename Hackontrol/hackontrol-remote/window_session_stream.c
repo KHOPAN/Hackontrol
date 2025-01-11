@@ -42,7 +42,6 @@ typedef struct {
 		HANDLE thread;
 		HWND window;
 		BOOLEAN stream;
-
 		POINT cursor;
 		RECT client;
 
