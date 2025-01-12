@@ -49,6 +49,13 @@ typedef struct {
 			ULONG width;
 			ULONG height;
 		} target;
+
+		struct {
+			BOOLEAN north : 1;
+			BOOLEAN east : 1;
+			BOOLEAN south : 1;
+			BOOLEAN west : 1;
+		};
 	} popup;
 } DEVICEENTRY, *PDEVICEENTRY;
 
