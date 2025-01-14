@@ -9,6 +9,7 @@
 #define IDM_STREAM_WINDOW_ENABLE_STREAM      0xE001
 #define IDM_STREAM_WINDOW_LOCK_WINDOW        0xE002
 #define IDM_STREAM_WINDOW_PICTURE_IN_PICTURE 0xE003
+#define IDM_STREAM_WINDOW_SCREEN_LIMIT       0xE004
 
 #define SM_STREAM_DEVICE (WM_USER + 0x01)
 
@@ -120,6 +121,7 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 		pictureInPicture = GetWindowLongPtrW(window, GWL_STYLE) & WS_POPUP ? TRUE : FALSE;
 		AppendMenuW(menu, MF_STRING, IDM_STREAM_WINDOW_LOCK_WINDOW, L"Lock Window");
 		AppendMenuW(menu, MF_STRING | (pictureInPicture ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_WINDOW_PICTURE_IN_PICTURE, L"Picture in Picture");
+		AppendMenuW(menu, MF_STRING, IDM_STREAM_WINDOW_SCREEN_LIMIT, L"Screen Limit");
 		SetForegroundWindow(window);
 		status = TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_TOPALIGN, GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam), window, NULL);
 		DestroyMenu(menu);
