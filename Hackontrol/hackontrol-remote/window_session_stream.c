@@ -7,9 +7,10 @@
 #define IDM_STREAM_REFRESH 0xE002
 
 #define IDM_STREAM_WINDOW_ENABLE_STREAM      0xE001
-#define IDM_STREAM_WINDOW_LOCK_WINDOW        0xE002
-#define IDM_STREAM_WINDOW_PICTURE_IN_PICTURE 0xE003
-#define IDM_STREAM_WINDOW_SCREEN_LIMIT       0xE004
+#define IDM_STREAM_WINDOW_ALWAYS_ON_TOP      0xE002
+#define IDM_STREAM_WINDOW_LOCK_WINDOW        0xE003
+#define IDM_STREAM_WINDOW_PICTURE_IN_PICTURE 0xE004
+#define IDM_STREAM_WINDOW_SCREEN_LIMIT       0xE005
 
 #define SM_STREAM_DEVICE (WM_USER + 0x01)
 
@@ -118,8 +119,9 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 
 		AppendMenuW(menu, MF_STRING | (entry->popup.stream ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_WINDOW_ENABLE_STREAM, L"Enable Stream");
 		AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
-		pictureInPicture = GetWindowLongPtrW(window, GWL_STYLE) & WS_POPUP ? TRUE : FALSE;
+		AppendMenuW(menu, MF_STRING, IDM_STREAM_WINDOW_ALWAYS_ON_TOP, L"Always On Top");
 		AppendMenuW(menu, MF_STRING, IDM_STREAM_WINDOW_LOCK_WINDOW, L"Lock Window");
+		pictureInPicture = GetWindowLongPtrW(window, GWL_STYLE) & WS_POPUP ? TRUE : FALSE;
 		AppendMenuW(menu, MF_STRING | (pictureInPicture ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_WINDOW_PICTURE_IN_PICTURE, L"Picture in Picture");
 		AppendMenuW(menu, MF_STRING, IDM_STREAM_WINDOW_SCREEN_LIMIT, L"Screen Limit");
 		SetForegroundWindow(window);
