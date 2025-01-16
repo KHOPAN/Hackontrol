@@ -44,7 +44,6 @@ typedef struct {
 	struct {
 		HANDLE thread;
 		HWND window;
-		BOOLEAN stream;
 		POINT cursor;
 		RECT client;
 
@@ -54,6 +53,8 @@ typedef struct {
 		} target;
 
 		struct {
+			BOOLEAN stream : 1;
+			BOOLEAN lock : 1;
 			BOOLEAN north : 1;
 			BOOLEAN east : 1;
 			BOOLEAN south : 1;
