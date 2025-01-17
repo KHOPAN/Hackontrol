@@ -138,9 +138,15 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 			packet.data = &pictureInPicture;
 			HRSPPacketSend(&entry->data->client->hrsp, &packet, NULL);
 			return 0;
+		case IDM_STREAM_WINDOW_ALWAYS_ON_TOP:
+			return 0;
+		case IDM_STREAM_WINDOW_LOCK_WINDOW:
+			return 0;
 		case IDM_STREAM_WINDOW_PICTURE_IN_PICTURE:
 			SetWindowLongPtrW(window, GWL_STYLE, (pictureInPicture ? WS_OVERLAPPEDWINDOW : WS_POPUP) | WS_VISIBLE);
 			SetWindowPos(window, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
+			return 0;
+		case IDM_STREAM_WINDOW_SCREEN_LIMIT:
 			return 0;
 		}
 
