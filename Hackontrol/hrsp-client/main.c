@@ -11,21 +11,26 @@
 
 #define BACKGROUND_WINDOW_CLASS L"HRSPClientBackground"
 
-#define USERDATA(type, name, window, message, wparam, lparam) type name=NULL;if(message==WM_CREATE){name=(type)(((CREATESTRUCT*)lparam)->lpCreateParams);SetWindowLongPtrW(window,GWLP_USERDATA,(LONG_PTR)(name));}else{name=(type)(GetWindowLongPtrW(window,GWLP_USERDATA));}if(!(name))return DefWindowProcW(window,message,wparam,lparam)
-
 typedef struct {
+	HWND window;
+	BOOLEAN activate;
 	SOCKET socket;
 	PHRSPDATA data;
-	HWND window;
-	BOOLEAN status;
 } BACKGROUNDTHREAD, *PBACKGROUNDTHREAD;
 
 static LRESULT CALLBACK backgroundProcedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {	
-	USERDATA(PBACKGROUNDTHREAD, background, window, message, wparam, lparam);
+	PBACKGROUNDTHREAD background;
+
+	if(message == WM_CREATE) {
+		SetWindowLongPtrW(window, GWLP_USERDATA, (LONG_PTR) (background = (PBACKGROUNDTHREAD) ((CREATESTRUCT*) lparam)->lpCreateParams));
+		return background ? 0 : -1;
+	} else if(!(background = (PBACKGROUNDTHREAD) GetWindowLongPtrW(window, GWLP_USERDATA))) {
+		return DefWindowProcW(window, message, wparam, lparam);
+	}
 
 	switch(message) {
 	case WM_DEVICECHANGE:
-		if(background->status) {
+		if(background->activate) {
 			StreamRequestDevice(background->socket, background->data);
 		}
 
@@ -170,14 +175,12 @@ BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const 
 
 	while(HRSPPacketReceive(&protocolData, &packet, error)) {
 		switch(packet.type) {
-		case HRSP_REMOTE_SERVER_STATUS:
+		case HRSP_REMOTE_SERVER_ACTIVATE:
 			if(packet.size < 1) break;
-			((PBACKGROUNDTHREAD) buffer)->status = ((PBYTE) packet.data)[0] ? TRUE : FALSE;
+			((PBACKGROUNDTHREAD) buffer)->activate = ((PBYTE) packet.data)[0] ? TRUE : FALSE;
 			break;
-		case HRSP_REMOTE_SERVER_REQUEST_STREAM_DEVICE:
+		case HRSP_REMOTE_SERVER_STREAM_DEVICES:
 			StreamRequestDevice(clientSocket, &protocolData);
-			break;
-		case HRSP_REMOTE_SERVER_REQUEST_STREAM_DATA:
 			break;
 		}
 
