@@ -201,7 +201,7 @@ DWORD WINAPI WindowSession(_In_ PCLIENT client) {
 
 	BYTE byte = 1;
 	HRSPPACKET packet;
-	packet.type = HRSP_REMOTE_SERVER_STATUS;
+	packet.type = HRSP_REMOTE_SERVER_ACTIVATE;
 	packet.size = 1;
 	packet.data = &byte;
 	HRSPPacketSend(&client->hrsp, &packet, NULL);

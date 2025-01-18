@@ -134,7 +134,7 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 			entry->popup.stream = !entry->popup.stream;
 			pictureInPicture = entry->popup.stream;
 			packet.size = 1;
-			packet.type = HRSP_REMOTE_SERVER_REQUEST_STREAM_DATA;
+			//packet.type = HRSP_REMOTE_SERVER_REQUEST_STREAM_DATA;
 			packet.data = &pictureInPicture;
 			HRSPPacketSend(&entry->data->client->hrsp, &packet, NULL);
 			return 0;
@@ -330,7 +330,7 @@ static HWND __stdcall clientInitialize(const PCLIENT client, const PULONGLONG cu
 
 	listHeader(0, data);
 	HRSPPACKET packet = {0};
-	packet.type = HRSP_REMOTE_SERVER_REQUEST_STREAM_DEVICE;
+	packet.type = HRSP_REMOTE_SERVER_STREAM_DEVICES;
 	HRSPPacketSend(&data->client->hrsp, &packet, NULL);
 	*customData = (ULONGLONG) data;
 	return data->window;
@@ -351,7 +351,7 @@ static BOOLEAN packetHandler(const PCLIENT client, const PULONGLONG customData, 
 	}
 
 	switch(packet->type) {
-	case HRSP_REMOTE_CLIENT_RESPONSE_STREAM_DEVICE:
+	case HRSP_REMOTE_CLIENT_STREAM_DEVICES:
 		if(((PBYTE) packet->data)[0]) {
 			return TRUE;
 		}
@@ -588,7 +588,7 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 			ReleaseMutex(data->mutex);
 			return 0;
 		case IDM_STREAM_REFRESH:
-			packet.type = HRSP_REMOTE_SERVER_REQUEST_STREAM_DEVICE;
+			packet.type = HRSP_REMOTE_SERVER_STREAM_DEVICES;
 			HRSPPacketSend(&data->client->hrsp, &packet, NULL);
 			return 0;
 		}
