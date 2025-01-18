@@ -1,6 +1,6 @@
-#include <libkhopanlist.h>
 #include <mfapi.h>
 #include <mfidl.h>
+#include <libkhopanlist.h>
 #include <hrsp_remote.h>
 #include "hrsp_client_internal.h"
 
@@ -129,31 +129,19 @@ static BOOLEAN requestCameras(const PDATASTREAM stream) {
 
 void StreamRequestDevice(const SOCKET socket, const PHRSPDATA data) {
 	DATASTREAM stream = {0};
-	HRSPPACKET packet;
-	packet.type = HRSP_REMOTE_CLIENT_RESPONSE_STREAM_DEVICE;
 	BYTE byte = 0;
+	HRSPPACKET packet;
+	packet.type = HRSP_REMOTE_CLIENT_STREAM_DEVICES;
 
-	if(!KHOPANStreamAdd(&stream, &byte, 1, NULL)) {
-		goto functionExit;
+	if(KHOPANStreamAdd(&stream, &byte, 1, NULL) && EnumDisplayMonitors(NULL, NULL, (MONITORENUMPROC) iterateMonitor, (LPARAM) &stream) && requestCameras(&stream)) {
+		packet.size = stream.size;
+		packet.data = stream.data;
+	} else {
+		byte = 1;
+		packet.size = 1;
+		packet.data = &byte;
 	}
 
-	if(!EnumDisplayMonitors(NULL, NULL, (MONITORENUMPROC) iterateMonitor, (LPARAM) &stream)) {
-		goto functionExit;
-	}
-
-	if(!requestCameras(&stream)) {
-		goto functionExit;
-	}
-
-	packet.size = stream.size;
-	packet.data = stream.data;
 	HRSPPacketSend(data, &packet, NULL);
 	KHOPANStreamFree(&stream, NULL);
-	return;
-functionExit:
-	KHOPANStreamFree(&stream, NULL);
-	packet.size = 1;
-	byte = 1;
-	packet.data = &byte;
-	HRSPPacketSend(data, &packet, NULL);
 }
