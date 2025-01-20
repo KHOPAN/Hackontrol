@@ -96,12 +96,17 @@ functionExit:
 	return codeExit;
 }
 
+static void streamAction(const PHRSPDATA data) {
+	HRSPPACKET packet = {0};
+	packet.type = HRSP_REMOTE_SERVER_STREAM_ACTION;
+	HRSPPacketSend(data, &packet, NULL);
+}
+
 static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	USERDATA(PDEVICEENTRY, entry, window, message, wparam, lparam);
 	HMENU menu;
 	BOOLEAN pictureInPicture;
 	BOOL status;
-	HRSPPACKET packet;
 	/*PRECT bounds;
 	int width;
 	int height;*/
@@ -132,11 +137,7 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 		switch(status) {
 		case IDM_STREAM_WINDOW_ENABLE_STREAM:
 			entry->popup.stream = !entry->popup.stream;
-			pictureInPicture = entry->popup.stream;
-			packet.size = 1;
-			//packet.type = HRSP_REMOTE_SERVER_REQUEST_STREAM_DATA;
-			packet.data = &pictureInPicture;
-			HRSPPacketSend(&entry->data->client->hrsp, &packet, NULL);
+			streamAction(&entry->data->client->hrsp);
 			return 0;
 		case IDM_STREAM_WINDOW_ALWAYS_ON_TOP:
 			return 0;
