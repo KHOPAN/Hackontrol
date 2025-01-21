@@ -96,10 +96,12 @@ functionExit:
 	return codeExit;
 }
 
-static void streamAction(const PHRSPDATA data) {
-	HRSPPACKET packet = {0};
+static void streamAction(PDEVICEENTRY entry) {
+	HRSPPACKET packet;
 	packet.type = HRSP_REMOTE_SERVER_STREAM_ACTION;
-	HRSPPacketSend(data, &packet, NULL);
+	packet.size = entry->identifierLength;
+	packet.data = entry->identifier;
+	HRSPPacketSend(&entry->data->client->hrsp, &packet, NULL);
 }
 
 static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
@@ -137,7 +139,7 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 		switch(status) {
 		case IDM_STREAM_WINDOW_ENABLE_STREAM:
 			entry->popup.stream = !entry->popup.stream;
-			streamAction(&entry->data->client->hrsp);
+			streamAction(entry);
 			return 0;
 		case IDM_STREAM_WINDOW_ALWAYS_ON_TOP:
 			return 0;
