@@ -96,7 +96,7 @@ functionExit:
 	return codeExit;
 }
 
-static void streamAction(PDEVICEENTRY entry) {
+static void streamAction(const PDEVICEENTRY entry) {
 	HRSPPACKET packet;
 	packet.type = HRSP_REMOTE_SERVER_STREAM_ACTION;
 	packet.size = entry->identifierLength;
