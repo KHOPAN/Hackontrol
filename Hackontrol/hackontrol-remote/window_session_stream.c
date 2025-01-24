@@ -107,7 +107,11 @@ static void streamAction(const PDEVICEENTRY entry) {
 static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	USERDATA(PDEVICEENTRY, entry, window, message, wparam, lparam);
 	HMENU menu;
-	BOOLEAN pictureInPicture;
+	struct {
+		BOOLEAN pictureInPicture : 1;
+		BOOLEAN topMost : 1;
+	} boolean;
+
 	BOOL status;
 	/*PRECT bounds;
 	int width;
@@ -127,10 +131,11 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 
 		AppendMenuW(menu, MF_STRING | (entry->popup.stream ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_WINDOW_ENABLE_STREAM, L"Enable Stream");
 		AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
-		AppendMenuW(menu, MF_STRING, IDM_STREAM_WINDOW_ALWAYS_ON_TOP, L"Always On Top");
+		boolean.topMost = GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST ? TRUE : FALSE;
+		AppendMenuW(menu, MF_STRING | (boolean.topMost ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_WINDOW_ALWAYS_ON_TOP, L"Always On Top");
 		AppendMenuW(menu, MF_STRING | (entry->popup.lock ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_WINDOW_LOCK_WINDOW, L"Lock Window");
-		pictureInPicture = GetWindowLongPtrW(window, GWL_STYLE) & WS_POPUP ? TRUE : FALSE;
-		AppendMenuW(menu, MF_STRING | (pictureInPicture ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_WINDOW_PICTURE_IN_PICTURE, L"Picture in Picture");
+		boolean.pictureInPicture = GetWindowLongPtrW(window, GWL_STYLE) & WS_POPUP ? TRUE : FALSE;
+		AppendMenuW(menu, MF_STRING | (boolean.pictureInPicture ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_WINDOW_PICTURE_IN_PICTURE, L"Picture in Picture");
 		AppendMenuW(menu, MF_STRING, IDM_STREAM_WINDOW_SCREEN_LIMIT, L"Screen Limit");
 		SetForegroundWindow(window);
 		status = TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_TOPALIGN, GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam), window, NULL);
@@ -142,12 +147,13 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 			streamAction(entry);
 			return 0;
 		case IDM_STREAM_WINDOW_ALWAYS_ON_TOP:
+			SetWindowPos(window, boolean.topMost ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
 			return 0;
 		case IDM_STREAM_WINDOW_LOCK_WINDOW:
 			entry->popup.lock = !entry->popup.lock;
 			return 0;
 		case IDM_STREAM_WINDOW_PICTURE_IN_PICTURE:
-			SetWindowLongPtrW(window, GWL_STYLE, (pictureInPicture ? WS_OVERLAPPEDWINDOW : WS_POPUP) | WS_VISIBLE);
+			SetWindowLongPtrW(window, GWL_STYLE, (boolean.pictureInPicture ? WS_OVERLAPPEDWINDOW : WS_POPUP) | WS_VISIBLE);
 			SetWindowPos(window, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
 			return 0;
 		case IDM_STREAM_WINDOW_SCREEN_LIMIT:
