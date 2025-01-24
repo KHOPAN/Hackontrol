@@ -55,6 +55,7 @@ typedef struct {
 		struct {
 			BOOLEAN stream : 1;
 			BOOLEAN lock : 1;
+			BOOLEAN limit : 1;
 			BOOLEAN north : 1;
 			BOOLEAN east : 1;
 			BOOLEAN south : 1;
@@ -136,7 +137,7 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 		AppendMenuW(menu, MF_STRING | (entry->popup.lock ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_WINDOW_LOCK_WINDOW, L"Lock Window");
 		boolean.pictureInPicture = GetWindowLongPtrW(window, GWL_STYLE) & WS_POPUP ? TRUE : FALSE;
 		AppendMenuW(menu, MF_STRING | (boolean.pictureInPicture ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_WINDOW_PICTURE_IN_PICTURE, L"Picture in Picture");
-		AppendMenuW(menu, MF_STRING, IDM_STREAM_WINDOW_SCREEN_LIMIT, L"Screen Limit");
+		AppendMenuW(menu, MF_STRING | (entry->popup.limit ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_WINDOW_SCREEN_LIMIT, L"Screen Limit");
 		SetForegroundWindow(window);
 		status = TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_TOPALIGN, GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam), window, NULL);
 		DestroyMenu(menu);
@@ -157,6 +158,7 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 			SetWindowPos(window, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
 			return 0;
 		case IDM_STREAM_WINDOW_SCREEN_LIMIT:
+			entry->popup.limit = !entry->popup.limit;
 			return 0;
 		}
 
