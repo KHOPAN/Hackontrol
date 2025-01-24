@@ -128,7 +128,7 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 		AppendMenuW(menu, MF_STRING | (entry->popup.stream ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_WINDOW_ENABLE_STREAM, L"Enable Stream");
 		AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
 		AppendMenuW(menu, MF_STRING, IDM_STREAM_WINDOW_ALWAYS_ON_TOP, L"Always On Top");
-		AppendMenuW(menu, MF_STRING, IDM_STREAM_WINDOW_LOCK_WINDOW, L"Lock Window");
+		AppendMenuW(menu, MF_STRING | (entry->popup.lock ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_WINDOW_LOCK_WINDOW, L"Lock Window");
 		pictureInPicture = GetWindowLongPtrW(window, GWL_STYLE) & WS_POPUP ? TRUE : FALSE;
 		AppendMenuW(menu, MF_STRING | (pictureInPicture ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_WINDOW_PICTURE_IN_PICTURE, L"Picture in Picture");
 		AppendMenuW(menu, MF_STRING, IDM_STREAM_WINDOW_SCREEN_LIMIT, L"Screen Limit");
@@ -144,6 +144,7 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 		case IDM_STREAM_WINDOW_ALWAYS_ON_TOP:
 			return 0;
 		case IDM_STREAM_WINDOW_LOCK_WINDOW:
+			entry->popup.lock = !entry->popup.lock;
 			return 0;
 		case IDM_STREAM_WINDOW_PICTURE_IN_PICTURE:
 			SetWindowLongPtrW(window, GWL_STYLE, (pictureInPicture ? WS_OVERLAPPEDWINDOW : WS_POPUP) | WS_VISIBLE);
@@ -166,7 +167,7 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 		ReleaseCapture();
 		return 1;
 	case WM_MOUSEMOVE:
-		if(!(wparam & MK_LBUTTON)) {
+		if(entry->popup.lock || !(wparam & MK_LBUTTON)) {
 			break;
 		}
 
