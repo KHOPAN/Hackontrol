@@ -209,6 +209,10 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 		SetWindowPos(window, HWND_TOP, point.x - entry->popup.cursor.x + entry->popup.client.left, point.y - entry->popup.cursor.y + entry->popup.client.top, 0, 0, SWP_NOSIZE);
 		return 0;
 	case WM_SIZING: {
+		if(entry->popup.lock) {
+			break;
+		}
+
 		switch(wparam) {
 		case WMSZ_BOTTOM:
 		case WMSZ_BOTTOMLEFT:
