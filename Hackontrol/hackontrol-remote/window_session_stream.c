@@ -97,12 +97,28 @@ functionExit:
 	return codeExit;
 }
 
-static void streamAction(const PDEVICEENTRY entry) {
+static void streamToggle(const PDEVICEENTRY entry) {
+	DATASTREAM stream = {0};
+	BYTE data = entry->type;
+
+	if(!KHOPANStreamAdd(&stream, &data, 1, NULL) || !KHOPANStreamAdd(&stream, entry->identifier, entry->identifierLength, NULL)) {
+		KHOPANStreamFree(&stream, NULL);
+		return;
+	}
+
+	data = entry->popup.stream;
+
+	if(!KHOPANStreamAdd(&stream, &data, 1, NULL)) {
+		KHOPANStreamFree(&stream, NULL);
+		return;
+	}
+
 	HRSPPACKET packet;
 	packet.type = HRSP_REMOTE_SERVER_STREAM_ACTION;
-	packet.size = entry->identifierLength;
-	packet.data = entry->identifier;
+	packet.size = stream.size;
+	packet.data = stream.data;
 	HRSPPacketSend(&entry->data->client->hrsp, &packet, NULL);
+	KHOPANStreamFree(&stream, NULL);
 }
 
 static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
@@ -143,7 +159,7 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 		switch(status) {
 		case IDM_STREAM_WINDOW_ENABLE_STREAM:
 			entry->popup.stream = !entry->popup.stream;
-			streamAction(entry);
+			streamToggle(entry);
 			return 0;
 		case IDM_STREAM_WINDOW_ALWAYS_ON_TOP:
 			SetWindowPos(window, boolean.topMost ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
