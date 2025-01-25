@@ -165,6 +165,10 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 		PostQuitMessage(0);
 		return 0;
 	case WM_LBUTTONDOWN:
+		if(entry->popup.lock) {
+			break;
+		}
+
 		GetCursorPos(&entry->popup.cursor);
 		GetWindowRect(window, &entry->popup.client);
 		SetCapture(window);
