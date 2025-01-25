@@ -8,9 +8,11 @@
 
 #define IDM_STREAM_WINDOW_ENABLE_STREAM      0xE001
 #define IDM_STREAM_WINDOW_ALWAYS_ON_TOP      0xE002
-#define IDM_STREAM_WINDOW_LOCK_WINDOW        0xE003
-#define IDM_STREAM_WINDOW_PICTURE_IN_PICTURE 0xE004
-#define IDM_STREAM_WINDOW_SCREEN_LIMIT       0xE005
+#define IDM_STREAM_WINDOW_FULLSCREEN         0xE003
+#define IDM_STREAM_WINDOW_SCREEN_LIMIT       0xE004
+#define IDM_STREAM_WINDOW_LOCK_WINDOW        0xE005
+#define IDM_STREAM_WINDOW_MATCH_ASPECT_RATIO 0xE006
+#define IDM_STREAM_WINDOW_PICTURE_IN_PICTURE 0xE007
 
 #define SM_STREAM_DEVICE (WM_USER + 0x01)
 
@@ -148,10 +150,12 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 		AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
 		boolean.topMost = GetWindowLongW(window, GWL_EXSTYLE) & WS_EX_TOPMOST ? TRUE : FALSE;
 		AppendMenuW(menu, MF_STRING | (boolean.topMost ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_WINDOW_ALWAYS_ON_TOP, L"Always On Top");
+		AppendMenuW(menu, MF_STRING, IDM_STREAM_WINDOW_FULLSCREEN, L"Fullscreen");
+		AppendMenuW(menu, MF_STRING | (entry->popup.limit ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_WINDOW_SCREEN_LIMIT, L"Limit To Screen");
 		AppendMenuW(menu, MF_STRING | (entry->popup.lock ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_WINDOW_LOCK_WINDOW, L"Lock Window");
+		AppendMenuW(menu, MF_STRING, IDM_STREAM_WINDOW_MATCH_ASPECT_RATIO, L"Match Aspect Ratio");
 		boolean.pictureInPicture = GetWindowLongPtrW(window, GWL_STYLE) & WS_POPUP ? TRUE : FALSE;
 		AppendMenuW(menu, MF_STRING | (boolean.pictureInPicture ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_WINDOW_PICTURE_IN_PICTURE, L"Picture in Picture");
-		AppendMenuW(menu, MF_STRING | (entry->popup.limit ? MF_CHECKED : MF_UNCHECKED), IDM_STREAM_WINDOW_SCREEN_LIMIT, L"Screen Limit");
 		SetForegroundWindow(window);
 		status = TrackPopupMenuEx(menu, TPM_LEFTALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_TOPALIGN, GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam), window, NULL);
 		DestroyMenu(menu);
@@ -164,15 +168,19 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 		case IDM_STREAM_WINDOW_ALWAYS_ON_TOP:
 			SetWindowPos(window, boolean.topMost ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
 			return 0;
+		case IDM_STREAM_WINDOW_FULLSCREEN:
+			return 0;
+		case IDM_STREAM_WINDOW_SCREEN_LIMIT:
+			entry->popup.limit = !entry->popup.limit;
+			return 0;
 		case IDM_STREAM_WINDOW_LOCK_WINDOW:
 			entry->popup.lock = !entry->popup.lock;
+			return 0;
+		case IDM_STREAM_WINDOW_MATCH_ASPECT_RATIO:
 			return 0;
 		case IDM_STREAM_WINDOW_PICTURE_IN_PICTURE:
 			SetWindowLongPtrW(window, GWL_STYLE, (boolean.pictureInPicture ? WS_OVERLAPPEDWINDOW : WS_POPUP) | WS_VISIBLE);
 			SetWindowPos(window, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
-			return 0;
-		case IDM_STREAM_WINDOW_SCREEN_LIMIT:
-			entry->popup.limit = !entry->popup.limit;
 			return 0;
 		}
 
