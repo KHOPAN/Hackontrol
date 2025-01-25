@@ -115,9 +115,7 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 
 	BOOL status;
 	POINT point;
-	PRECT bounds;
-	int width;
-	int height;
+	int length = 0;
 
 	switch(message) {
 	case WM_CLOSE:
@@ -183,32 +181,37 @@ static LRESULT CALLBACK procedurePopup(_In_ HWND window, _In_ UINT message, _In_
 		SetWindowPos(window, HWND_TOP, point.x - entry->popup.cursor.x + entry->popup.client.left, point.y - entry->popup.cursor.y + entry->popup.client.top, 0, 0, SWP_NOSIZE);
 		return 0;
 	case WM_SIZING: {
-		bounds = (PRECT) lparam;
+		switch(wparam) {
+		case WMSZ_BOTTOM:
+		case WMSZ_BOTTOMLEFT:
+		case WMSZ_BOTTOMRIGHT:
+		case WMSZ_TOP:
+		case WMSZ_TOPLEFT:
+		case WMSZ_TOPRIGHT:
+			length = (int) (((double) (((PRECT) lparam)->bottom - ((PRECT) lparam)->top)) / ((double) entry->popup.target.height) * ((double) entry->popup.target.width));
+			break;
+		case WMSZ_LEFT:
+		case WMSZ_RIGHT:
+			length = (int) (((double) (((PRECT) lparam)->right - ((PRECT) lparam)->left)) / ((double) entry->popup.target.width) * ((double) entry->popup.target.height));
+			break;
+		}
 
 		switch(wparam) {
 		case WMSZ_BOTTOM:
 		case WMSZ_BOTTOMLEFT:
 		case WMSZ_BOTTOMRIGHT:
-			height = bounds->bottom - bounds->top;
-			width = (int) (((double) height) / ((double) entry->popup.target.height) * ((double) entry->popup.target.width));
-			bounds->right = bounds->left + width;
+			((PRECT) lparam)->right = ((PRECT) lparam)->left + length;
 			return TRUE;
 		case WMSZ_LEFT:
-			width = bounds->right - bounds->left;
-			height = (int) (((double) width) / ((double) entry->popup.target.width) * ((double) entry->popup.target.height));
-			bounds->top = bounds->bottom - height;
+			((PRECT) lparam)->top = ((PRECT) lparam)->bottom - length;
 			return TRUE;
 		case WMSZ_RIGHT:
-			width = bounds->right - bounds->left;
-			height = (int) (((double) width) / ((double) entry->popup.target.width) * ((double) entry->popup.target.height));
-			bounds->bottom = bounds->top + height;
+			((PRECT) lparam)->bottom = ((PRECT) lparam)->top + length;
 			return TRUE;
 		case WMSZ_TOP:
 		case WMSZ_TOPLEFT:
 		case WMSZ_TOPRIGHT:
-			height = bounds->bottom - bounds->top;
-			width = (int) (((double) height) / ((double) entry->popup.target.height) * ((double) entry->popup.target.width));
-			bounds->left = bounds->right - width;
+			((PRECT) lparam)->left = ((PRECT) lparam)->right - length;
 			return TRUE;
 		}
 
