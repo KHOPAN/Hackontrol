@@ -145,3 +145,27 @@ void StreamRequestDevice(const SOCKET socket, const PHRSPDATA data) {
 	HRSPPacketSend(data, &packet, NULL);
 	KHOPANStreamFree(&stream, NULL);
 }
+
+static void processCamera(const PBYTE identifier, const UINT32 identifierLength, const BYTE action) {
+	printf("Identifier: %ws\n", (LPWSTR) identifier);
+}
+
+void StreamProcessAction(const PHRSPPACKET packet) {
+	if(packet->size < 3) {
+		return;
+	}
+
+	HRSPREMOTESTREAMDEVICETYPE type = ((PBYTE) packet->data)[0];
+
+	if(type > HRSP_REMOTE_STREAM_DEVICE_MONITOR) {
+		return;
+	}
+
+	BYTE action = ((PBYTE) packet->data)[packet->size - 1];
+
+	switch(type) {
+	case HRSP_REMOTE_STREAM_DEVICE_CAMERA:
+		processCamera(((PBYTE) packet->data) + 1, (UINT32) (packet->size - 2), action);
+		break;
+	}
+}
