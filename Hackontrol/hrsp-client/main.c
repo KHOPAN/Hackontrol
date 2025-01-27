@@ -1,4 +1,10 @@
-#include <WS2tcpip.h>
+#include "hrsp_client.h"
+
+HRSPCLIENTCONNECTSTATUS HRSPClientConnect(const LPCWSTR address, const LPCWSTR port) {
+	return HRSP_CLIENT_CONNECT_OK;
+}
+
+/*#include <WS2tcpip.h>
 #include <lmcons.h>
 #include <hrsp_remote.h>
 #include "hrsp_client_internal.h"
@@ -210,4 +216,4 @@ closeSocket:
 cleanupSocket:
 	WSACleanup();
 	return codeExit;
-}
+}*/
