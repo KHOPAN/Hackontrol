@@ -1,7 +1,11 @@
 #include "hrsp_client.h"
 
-HRSPCLIENTCONNECTSTATUS HRSPClientConnect(const LPCWSTR address, const LPCWSTR port) {
-	return HRSP_CLIENT_CONNECT_OK;
+HRSPCLIENTSTATUS HRSPClientConnect(const PHRPSCLIENTPARAMETER parameter) {
+	if(!parameter) {
+		return HRSP_CLIENT_NULL_PARAMETER;
+	}
+
+	return HRSP_CLIENT_OK;
 }
 
 /*#include <WS2tcpip.h>

@@ -9,15 +9,21 @@ typedef struct {
 	HRSPCLIENTCALLBACK callbackConnected;
 } HRSPCLIENTINPUT, *PHRSPCLIENTINPUT;
 
+typedef struct {
+	LPCWSTR address;
+	LPCWSTR port;
+} HRPSCLIENTPARAMETER, *PHRPSCLIENTPARAMETER;
+
 typedef enum {
-	HRSP_CLIENT_CONNECT_OK
-} HRSPCLIENTCONNECTSTATUS;
+	HRSP_CLIENT_OK,
+	HRSP_CLIENT_NULL_PARAMETER
+} HRSPCLIENTSTATUS;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 //BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const PHRSPCLIENTINPUT input, const PKHOPANERROR error);
-HRSPCLIENTCONNECTSTATUS HRSPClientConnect(const LPCWSTR address, const LPCWSTR port);
+HRSPCLIENTSTATUS HRSPClientConnect(const PHRPSCLIENTPARAMETER parameter);
 #ifdef __cplusplus
 }
 #endif
