@@ -5,6 +5,20 @@ HRSPCLIENTSTATUS HRSPClientConnect(const PHRPSCLIENTPARAMETER parameter) {
 		return HRSP_CLIENT_NULL_PARAMETER;
 	}
 
+	if(!parameter->wsaInitialized) {
+		WSADATA data;
+
+		if(WSAStartup(MAKEWORD(2, 2), &data)) {
+			return HRSP_CLIENT_WSA_INITIALIZATION_FAILED;
+		}
+	}
+
+	if(!parameter->wsaInitialized && !parameter->wsaNoCleanup) {
+		if(WSACleanup() == SOCKET_ERROR) {
+			return HRSP_CLIENT_WSA_CLEANUP_FAILED;
+		}
+	}
+
 	return HRSP_CLIENT_OK;
 }
 

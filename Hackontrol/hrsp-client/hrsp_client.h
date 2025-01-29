@@ -12,11 +12,18 @@ typedef struct {
 typedef struct {
 	LPCWSTR address;
 	LPCWSTR port;
+
+	struct {
+		BOOLEAN wsaInitialized : 1;
+		BOOLEAN wsaNoCleanup : 1;
+	};
 } HRPSCLIENTPARAMETER, *PHRPSCLIENTPARAMETER;
 
 typedef enum {
 	HRSP_CLIENT_OK,
-	HRSP_CLIENT_NULL_PARAMETER
+	HRSP_CLIENT_NULL_PARAMETER,
+	HRSP_CLIENT_WSA_INITIALIZATION_FAILED,
+	HRSP_CLIENT_WSA_CLEANUP_FAILED
 } HRSPCLIENTSTATUS;
 
 #ifdef __cplusplus
