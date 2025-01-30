@@ -1,4 +1,7 @@
+#include <WS2tcpip.h>
 #include "hrsp_client.h"
+
+#define DEFAULT_PORT L"42485"
 
 HRSPCLIENTSTATUS HRSPClientConnect(const PHRPSCLIENTPARAMETER parameter) {
 	if(!parameter) {
@@ -13,13 +16,26 @@ HRSPCLIENTSTATUS HRSPClientConnect(const PHRPSCLIENTPARAMETER parameter) {
 		}
 	}
 
+	ADDRINFOW hints = {0};
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = IPPROTO_TCP;
+	HRSPCLIENTSTATUS status = HRSP_CLIENT_OK;
+
+	if(GetAddrInfoW(parameter->address ? parameter->address : L"localhost", parameter->port ? parameter->port : DEFAULT_PORT, &hints, &hints.ai_next)) {
+		status = HRSP_CLIENT_HOST_TRANSLATION_FAILED;
+		goto cleanupSocket;
+	}
+
+	FreeAddrInfoW(hints.ai_next);
+cleanupSocket:
 	if(!parameter->wsaInitialized && !parameter->wsaNoCleanup) {
-		if(WSACleanup() == SOCKET_ERROR) {
-			return HRSP_CLIENT_WSA_CLEANUP_FAILED;
+		if(WSACleanup() == SOCKET_ERROR && status == HRSP_CLIENT_OK) {
+			status = HRSP_CLIENT_WSA_CLEANUP_FAILED;
 		}
 	}
 
-	return HRSP_CLIENT_OK;
+	return status;
 }
 
 /*#include <WS2tcpip.h>
