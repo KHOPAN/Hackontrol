@@ -34,7 +34,7 @@ HRSPCLIENTSTATUS HRSPClientConnect(const PHRPSCLIENTPARAMETER parameter) {
 
 		if(clientSocket == INVALID_SOCKET) {
 			FreeAddrInfoW(hints.ai_next);
-			status = HRSP_CLIENT_CANNOT_CREATE_SOCKET;
+			status = HRSP_CLIENT_CONNECTION_FAILED;
 			goto cleanupSocket;
 		}
 
@@ -49,10 +49,11 @@ HRSPCLIENTSTATUS HRSPClientConnect(const PHRPSCLIENTPARAMETER parameter) {
 	FreeAddrInfoW(hints.ai_next);
 
 	if(clientSocket == INVALID_SOCKET) {
-		status = HRSP_CLIENT_CANNOT_CREATE_SOCKET;
+		status = HRSP_CLIENT_CONNECTION_FAILED;
 		goto cleanupSocket;
 	}
 
+	printf("Hello, world!\n");
 	closesocket(clientSocket);
 cleanupSocket:
 	if(!parameter->wsaInitialized && !parameter->wsaNoCleanup) {

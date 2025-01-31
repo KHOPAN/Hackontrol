@@ -1,4 +1,4 @@
-#include <mfapi.h>
+/*#include <mfapi.h>
 #include <mfidl.h>
 #include <libkhopanlist.h>
 #include <hrsp_remote.h>
@@ -168,4 +168,4 @@ void StreamProcessAction(const PHRSPPACKET packet) {
 		processCamera(((PBYTE) packet->data) + 1, (UINT32) (packet->size - 2), action);
 		break;
 	}
-}
+}*/
