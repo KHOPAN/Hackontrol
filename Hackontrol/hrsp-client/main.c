@@ -27,7 +27,33 @@ HRSPCLIENTSTATUS HRSPClientConnect(const PHRPSCLIENTPARAMETER parameter) {
 		goto cleanupSocket;
 	}
 
+	SOCKET clientSocket = INVALID_SOCKET;
+
+	for(PADDRINFOW pointer = hints.ai_next; pointer != NULL; pointer = pointer->ai_next) {
+		clientSocket = socket(pointer->ai_family, pointer->ai_socktype, pointer->ai_protocol);
+
+		if(clientSocket == INVALID_SOCKET) {
+			FreeAddrInfoW(hints.ai_next);
+			status = HRSP_CLIENT_CANNOT_CREATE_SOCKET;
+			goto cleanupSocket;
+		}
+
+		if(connect(clientSocket, pointer->ai_addr, (int) pointer->ai_addrlen) != SOCKET_ERROR) {
+			break;
+		}
+
+		closesocket(clientSocket);
+		clientSocket = INVALID_SOCKET;
+	}
+
 	FreeAddrInfoW(hints.ai_next);
+
+	if(clientSocket == INVALID_SOCKET) {
+		status = HRSP_CLIENT_CANNOT_CREATE_SOCKET;
+		goto cleanupSocket;
+	}
+
+	closesocket(clientSocket);
 cleanupSocket:
 	if(!parameter->wsaInitialized && !parameter->wsaNoCleanup) {
 		if(WSACleanup() == SOCKET_ERROR && status == HRSP_CLIENT_OK) {
@@ -114,51 +140,6 @@ static DWORD WINAPI backgroundThread(_In_ PBACKGROUNDTHREAD background) {
 }
 
 BOOL HRSPClientConnectToServer(const LPCWSTR address, const LPCWSTR port, const PHRSPCLIENTINPUT input, const PKHOPANERROR error) {
-	WSADATA data;
-	int status = WSAStartup(MAKEWORD(2, 2), &data);
-
-	if(status) {
-		ERROR_WIN32(status, L"HRSPClientConnectToServer", L"WSAStartup");
-		return 1;
-	}
-
-	ADDRINFOW hints = {0};
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_protocol = IPPROTO_TCP;
-	BOOL codeExit = FALSE;
-
-	if(GetAddrInfoW(address ? address : L"localhost", port ? port : HRSP_PROTOCOL_PORT_STRING, &hints, &hints.ai_next)) {
-		ERROR_WSA(L"HRSPClientConnectToServer", L"GetAddrInfoW");
-		goto cleanupSocket;
-	}
-
-	SOCKET clientSocket = INVALID_SOCKET;
-
-	for(PADDRINFOW pointer = hints.ai_next; pointer != NULL; pointer = pointer->ai_next) {
-		clientSocket = socket(pointer->ai_family, pointer->ai_socktype, pointer->ai_protocol);
-
-		if(clientSocket == INVALID_SOCKET) {
-			ERROR_WSA(L"HRSPClientConnectToServer", L"socket");
-			FreeAddrInfoW(hints.ai_next);
-			goto cleanupSocket;
-		}
-
-		if(connect(clientSocket, pointer->ai_addr, (int) pointer->ai_addrlen) != SOCKET_ERROR) {
-			break;
-		}
-
-		closesocket(clientSocket);
-		clientSocket = INVALID_SOCKET;
-	}
-
-	FreeAddrInfoW(hints.ai_next);
-
-	if(clientSocket == INVALID_SOCKET) {
-		ERROR_COMMON(ERROR_COMMON_FUNCTION_FAILED, L"HRSPClientConnectToServer", NULL);
-		goto cleanupSocket;
-	}
-
 	HRSPDATA protocolData;
 
 	if(!HRSPClientInitialize(clientSocket, &protocolData, error)) {
