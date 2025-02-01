@@ -53,7 +53,16 @@ HRSPCLIENTSTATUS HRSPClientConnect(const PHRPSCLIENTPARAMETER parameter) {
 		goto cleanupSocket;
 	}
 
+	BCRYPT_ALG_HANDLE symmetricAlgorithm;
+
+	if(!BCRYPT_SUCCESS(BCryptOpenAlgorithmProvider(&symmetricAlgorithm, BCRYPT_AES_ALGORITHM, NULL, 0))) {
+		status = HRPS_CLIENT_BCRYPT_CANNOT_OPEN_ALGORITHM;
+		goto closeSocket;
+	}
+
 	printf("Hello, world!\n");
+	BCryptCloseAlgorithmProvider(symmetricAlgorithm, 0);
+closeSocket:
 	closesocket(clientSocket);
 cleanupSocket:
 	if(!parameter->wsaInitialized && !parameter->wsaNoCleanup) {
