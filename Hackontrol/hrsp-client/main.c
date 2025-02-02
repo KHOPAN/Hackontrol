@@ -3,6 +3,8 @@
 
 #define DEFAULT_PORT L"42485"
 
+#define KEY_LENGTH_AES 32
+
 HRSPCLIENTSTATUS HRSPClientConnect(const PHRPSCLIENTPARAMETER parameter) {
 	if(!parameter) {
 		return HRSP_CLIENT_NULL_PARAMETER;
@@ -60,7 +62,16 @@ HRSPCLIENTSTATUS HRSPClientConnect(const PHRPSCLIENTPARAMETER parameter) {
 		goto closeSocket;
 	}
 
+	PBYTE aesBytes = KHOPAN_ALLOCATE(KEY_LENGTH_AES);
+
+	if(!aesBytes) {
+		status = HRSP_CLIENT_MEMORY_ALLOCATION_FAILED;
+		goto closeSymmetricAlgorithm;
+	}
+
 	printf("Hello, world!\n");
+	KHOPAN_DEALLOCATE(aesBytes);
+closeSymmetricAlgorithm:
 	BCryptCloseAlgorithmProvider(symmetricAlgorithm, 0);
 closeSocket:
 	closesocket(clientSocket);
