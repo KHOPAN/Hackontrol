@@ -5,6 +5,8 @@
 
 #define KEY_LENGTH_AES 32
 
+#pragma warning(disable: 6385)
+
 HRSPCLIENTSTATUS HRSPClientConnect(const PHRPSCLIENTPARAMETER parameter) {
 	if(!parameter) {
 		return HRSP_CLIENT_NULL_PARAMETER;
@@ -57,6 +59,20 @@ HRSPCLIENTSTATUS HRSPClientConnect(const PHRPSCLIENTPARAMETER parameter) {
 
 	if(send(clientSocket, "HRSP", 4, 0) == SOCKET_ERROR) {
 		status = HRSP_CLIENT_SEND_FAILED;
+		goto closeSocket;
+	}
+
+	BYTE byte;
+
+	if(recv(clientSocket, &byte, 1, MSG_WAITALL) == SOCKET_ERROR) {
+		status = HRSP_CLIENT_RECEIVE_FAILED;
+		byte = HRSP_CLIENT_RECEIVE_FAILED;
+		send(clientSocket, &byte, 1, 0);
+		goto closeSocket;
+	}
+
+	if(!byte) {
+		status = HRSP_CLIENT_SERVER_ERROR;
 		goto closeSocket;
 	}
 
