@@ -76,14 +76,16 @@ HRSPCLIENTSTATUS HRSPClientConnect(const PHRPSCLIENTPARAMETER parameter) {
 		goto closeSocket;
 	}
 
-	/*BCRYPT_ALG_HANDLE symmetricAlgorithm;
+	BCRYPT_ALG_HANDLE symmetricAlgorithm;
 
 	if(!BCRYPT_SUCCESS(BCryptOpenAlgorithmProvider(&symmetricAlgorithm, BCRYPT_AES_ALGORITHM, NULL, 0))) {
 		status = HRPS_CLIENT_BCRYPT_CANNOT_OPEN_ALGORITHM;
+		byte = HRPS_CLIENT_BCRYPT_CANNOT_OPEN_ALGORITHM;
+		send(clientSocket, &byte, 1, 0);
 		goto closeSocket;
 	}
 
-	PBYTE aesBytes = KHOPAN_ALLOCATE(KEY_LENGTH_AES);
+	/*PBYTE aesBytes = KHOPAN_ALLOCATE(KEY_LENGTH_AES);
 
 	if(!aesBytes) {
 		status = HRSP_CLIENT_MEMORY_ALLOCATION_FAILED;
@@ -92,8 +94,8 @@ HRSPCLIENTSTATUS HRSPClientConnect(const PHRPSCLIENTPARAMETER parameter) {
 
 	printf("Hello, world!\n");
 	KHOPAN_DEALLOCATE(aesBytes);
-closeSymmetricAlgorithm:
-	BCryptCloseAlgorithmProvider(symmetricAlgorithm, 0);*/
+closeSymmetricAlgorithm:*/
+	BCryptCloseAlgorithmProvider(symmetricAlgorithm, 0);
 closeSocket:
 	closesocket(clientSocket);
 cleanupSocket:
