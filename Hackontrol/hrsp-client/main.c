@@ -90,8 +90,22 @@ HRSPCLIENTSTATUS HRSPClientConnect(const PHRPSCLIENTPARAMETER parameter) {
 		goto closeSymmetricAlgorithm;
 	}
 
-	printf("Hello, world!\n");
+	if(!BCRYPT_SUCCESS(BCryptGenRandom(NULL, aesBytes, KEY_LENGTH_AES, BCRYPT_USE_SYSTEM_PREFERRED_RNG))) {
+		SEND_ERROR(HRSP_CLIENT_ERROR_GENERATING_RANDOM_KEY_DATA);
+		KHOPAN_DEALLOCATE(aesBytes);
+		goto closeSymmetricAlgorithm;
+	}
+
+	BCRYPT_KEY_HANDLE symmetricKey;
+
+	if(!BCRYPT_SUCCESS(BCryptGenerateSymmetricKey(symmetricAlgorithm, &symmetricKey, NULL, 0, aesBytes, HRSP_AES_KEY_LENGTH, 0))) {
+		SEND_ERROR(HRSP_CLIENT_ERROR_GENERATING_KEY);
+		KHOPAN_DEALLOCATE(aesBytes);
+		goto closeSymmetricAlgorithm;
+	}
+
 	KHOPAN_DEALLOCATE(aesBytes);
+	printf("Hello, world!\n");
 closeSymmetricAlgorithm:
 	BCryptCloseAlgorithmProvider(symmetricAlgorithm, 0);
 closeSocket:
