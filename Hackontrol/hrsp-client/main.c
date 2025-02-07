@@ -105,7 +105,6 @@ HRSPCLIENTSTATUS HRSPClientConnect(const PHRPSCLIENTPARAMETER parameter) {
 	}
 
 	KHOPAN_DEALLOCATE(aesBytes);
-	printf("Hello, world!\n");
 closeSymmetricAlgorithm:
 	BCryptCloseAlgorithmProvider(symmetricAlgorithm, 0);
 closeSocket:
