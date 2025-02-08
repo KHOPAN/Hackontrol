@@ -17,8 +17,14 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	DWORD codeExit = 1;
 	PLINKEDLISTITEM item = NULL;
 
-	if(!HRSPServerSessionInitialize(client->socket, &client->hrsp, &serverData, &error)) {
+	/*if(!HRSPServerSessionInitialize(client->socket, &client->hrsp, &serverData, &error)) {
 		KHOPANERRORCONSOLE_KHOPAN(error);
+		goto functionExit;
+	}*/
+
+	BYTE buffer[4];
+
+	if(recv(client->socket, buffer, 4, 0)) {
 		goto functionExit;
 	}
 
