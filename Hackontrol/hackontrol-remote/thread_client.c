@@ -28,6 +28,10 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 		goto functionExit;
 	}
 
+	if(memcmp(buffer, "HRSP", 4)) {
+		goto functionExit;
+	}
+
 	HRSPPACKET packet;
 
 	if(!HRSPPacketReceive(&client->hrsp, &packet, &error)) {
