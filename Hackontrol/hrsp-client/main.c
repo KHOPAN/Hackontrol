@@ -7,8 +7,6 @@
 
 #define SEND_ERROR(error) status=error;byte=error;send(clientSocket,&byte,1,0)
 
-#pragma warning(disable: 6385)
-
 HRSPCLIENTSTATUS HRSPClientConnect(const PHRPSCLIENTPARAMETER parameter) {
 	if(!parameter) {
 		return HRSP_CLIENT_NULL_PARAMETER;
@@ -36,9 +34,7 @@ HRSPCLIENTSTATUS HRSPClientConnect(const PHRPSCLIENTPARAMETER parameter) {
 	SOCKET clientSocket = INVALID_SOCKET;
 
 	for(PADDRINFOW pointer = hints.ai_next; pointer != NULL; pointer = pointer->ai_next) {
-		clientSocket = socket(pointer->ai_family, pointer->ai_socktype, pointer->ai_protocol);
-
-		if(clientSocket == INVALID_SOCKET) {
+		if((clientSocket = socket(pointer->ai_family, pointer->ai_socktype, pointer->ai_protocol)) == INVALID_SOCKET) {
 			FreeAddrInfoW(hints.ai_next);
 			status = HRSP_CLIENT_CONNECTION_FAILED;
 			goto cleanupSocket;
@@ -67,7 +63,7 @@ HRSPCLIENTSTATUS HRSPClientConnect(const PHRPSCLIENTPARAMETER parameter) {
 	BYTE byte;
 
 	if(recv(clientSocket, &byte, 1, MSG_WAITALL) == SOCKET_ERROR) {
-		SEND_ERROR(HRSP_CLIENT_RECEIVE_FAILED);
+		status = HRSP_CLIENT_RECEIVE_FAILED;
 		goto closeSocket;
 	}
 
@@ -83,28 +79,27 @@ HRSPCLIENTSTATUS HRSPClientConnect(const PHRPSCLIENTPARAMETER parameter) {
 		goto closeSocket;
 	}
 
-	PBYTE aesBytes = KHOPAN_ALLOCATE(KEY_LENGTH_AES);
+	PBYTE bytes = HeapAlloc(GetProcessHeap(), 0, KEY_LENGTH_AES);
 
-	if(!aesBytes) {
+	if(!bytes) {
 		SEND_ERROR(HRSP_CLIENT_MEMORY_ALLOCATION_FAILED);
 		goto closeSymmetricAlgorithm;
 	}
 
-	if(!BCRYPT_SUCCESS(BCryptGenRandom(NULL, aesBytes, KEY_LENGTH_AES, BCRYPT_USE_SYSTEM_PREFERRED_RNG))) {
+	if(!BCRYPT_SUCCESS(BCryptGenRandom(NULL, bytes, KEY_LENGTH_AES, BCRYPT_USE_SYSTEM_PREFERRED_RNG))) {
 		SEND_ERROR(HRSP_CLIENT_ERROR_GENERATING_RANDOM_KEY_DATA);
-		KHOPAN_DEALLOCATE(aesBytes);
+		HeapFree(GetProcessHeap(), 0, bytes);
 		goto closeSymmetricAlgorithm;
 	}
 
 	BCRYPT_KEY_HANDLE symmetricKey;
+	byte = BCRYPT_SUCCESS(BCryptGenerateSymmetricKey(symmetricAlgorithm, &symmetricKey, NULL, 0, bytes, KEY_LENGTH_AES, 0));
+	HeapFree(GetProcessHeap(), 0, bytes);
 
-	if(!BCRYPT_SUCCESS(BCryptGenerateSymmetricKey(symmetricAlgorithm, &symmetricKey, NULL, 0, aesBytes, HRSP_AES_KEY_LENGTH, 0))) {
+	if(!byte) {
 		SEND_ERROR(HRSP_CLIENT_ERROR_GENERATING_KEY);
-		KHOPAN_DEALLOCATE(aesBytes);
 		goto closeSymmetricAlgorithm;
 	}
-
-	KHOPAN_DEALLOCATE(aesBytes);
 closeSymmetricAlgorithm:
 	BCryptCloseAlgorithmProvider(symmetricAlgorithm, 0);
 closeSocket:
