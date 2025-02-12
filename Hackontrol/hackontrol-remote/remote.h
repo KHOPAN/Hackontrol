@@ -1,7 +1,6 @@
 #pragma once
 
 #include <libkhopanlist.h>
-#include <hrsp.h>
 
 #define LOGGER_ENABLE
 

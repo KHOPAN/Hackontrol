@@ -1,7 +1,7 @@
 #include <WS2tcpip.h>
 #include "remote.h"
 
-HRSPSERVERDATA serverData;
+#define SERVER_PORT L"42485"
 
 extern LINKEDLIST clientList;
 extern HANDLE clientListMutex;
@@ -28,7 +28,7 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
 
-	if(GetAddrInfoW(NULL, HRSP_PROTOCOL_PORT_STRING, &hints, &hints.ai_next)) {
+	if(GetAddrInfoW(NULL, SERVER_PORT, &hints, &hints.ai_next)) {
 		KHOPANLASTERRORMESSAGE_WSA(L"GetAddrInfoW");
 		goto freeList;
 	}
@@ -51,11 +51,6 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 
 	if(listen(*socketListen, SOMAXCONN) == SOCKET_ERROR) {
 		KHOPANLASTERRORMESSAGE_WSA(L"listen");
-		goto freeList;
-	}
-
-	if(!HRSPServerInitialize(&serverData, &error)) {
-		KHOPANERRORMESSAGE_KHOPAN(error);
 		goto freeList;
 	}
 
@@ -123,7 +118,6 @@ DWORD WINAPI ThreadServer(_In_ SOCKET* socketListen) {
 	}
 
 	codeExit = 0;
-	HRSPServerCleanup(&serverData);
 freeList:
 	KHOPANArrayFree(&list, NULL);
 functionExit:
