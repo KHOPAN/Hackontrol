@@ -32,7 +32,7 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 		goto functionExit;
 	}
 
-	HRSPPACKET packet;
+	/*HRSPPACKET packet;
 
 	if(!HRSPPacketReceive(&client->hrsp, &packet, &error)) {
 		KHOPANERRORCONSOLE_KHOPAN(error);
@@ -50,7 +50,7 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 		goto cleanupProtocol;
 	}
 
-	client->name = packet.data;
+	client->name = packet.data;*/
 	LOG("[Client %ws]: Username: '%ws'\n", client->address, client->name);
 
 	if(!WindowMainAdd(&client, &item)) {
