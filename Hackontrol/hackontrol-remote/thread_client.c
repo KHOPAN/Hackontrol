@@ -32,6 +32,12 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 		goto functionExit;
 	}
 
+	buffer[0] = 0;
+
+	if(!send(client->socket, buffer, 1, 0)) {
+		goto functionExit;
+	}
+
 	/*HRSPPACKET packet;
 
 	if(!HRSPPacketReceive(&client->hrsp, &packet, &error)) {
