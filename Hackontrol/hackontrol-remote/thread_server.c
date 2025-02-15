@@ -1,4 +1,4 @@
-#include <WS2tcpip.h>
+/*#include <WS2tcpip.h>
 #include "remote.h"
 
 #define SERVER_PORT L"42485"
@@ -124,4 +124,4 @@ functionExit:
 	WindowMainExit();
 	LOG("[Server]: Exit with code: %d\n", codeExit);
 	return codeExit;
-}
+}*/

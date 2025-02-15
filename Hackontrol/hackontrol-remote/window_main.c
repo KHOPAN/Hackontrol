@@ -1,4 +1,4 @@
-#include <windowsx.h>
+/*#include <windowsx.h>
 #include "remote.h"
 #include <CommCtrl.h>
 
@@ -413,4 +413,4 @@ void WindowMainExit() {
 void WindowMainDestroy() {
 	DestroyWindow(window);
 	UnregisterClassW(CLASS_NAME, instance);
-}
+}*/

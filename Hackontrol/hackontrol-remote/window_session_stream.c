@@ -1,4 +1,4 @@
-#include <windowsx.h>
+/*#include <windowsx.h>
 #include <hrsp_remote.h>
 #include "window_session.h"
 #include <CommCtrl.h>
@@ -708,4 +708,4 @@ void __stdcall WindowSessionTabStream(const PTABINITIALIZER tab) {
 	windowClass.hbrBackground = (HBRUSH) (COLOR_MENU + 1);
 	windowClass.lpszClassName = CLASS_NAME_POPUP;
 	tab->data = RegisterClassExW(&windowClass);
-}
+}*/

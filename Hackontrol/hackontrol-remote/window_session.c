@@ -1,4 +1,4 @@
-#include <hrsp_remote.h>
+/*#include <hrsp_remote.h>
 #include "window_session.h"
 #include <CommCtrl.h>
 
@@ -314,4 +314,4 @@ void WindowSessionCleanup() {
 
 	UnregisterClassW(CLASS_NAME, instance);
 	KHOPAN_DEALLOCATE(tabData);
-}
+}*/

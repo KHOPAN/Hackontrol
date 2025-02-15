@@ -1,4 +1,4 @@
-#include "window_session.h"
+/*#include "window_session.h"
 
 #define CLASS_NAME L"HackontrolRemoteSessionTabAudio"
 
@@ -8,7 +8,7 @@ void __stdcall WindowSessionTabAudio(const PTABINITIALIZER tab) {
 	//tab->packetHandler = packetHandler;
 	//tab->windowClass.lpfnWndProc = procedure;
 	tab->windowClass.lpszClassName = CLASS_NAME;
-}
+}*/
 
 /*#include <CommCtrl.h>
 #include <hrsp_remote.h>

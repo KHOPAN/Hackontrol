@@ -1,4 +1,4 @@
-#include <WinSock2.h>
+/*#include <WinSock2.h>
 #include <hrsp_remote.h>
 #include "remote.h"
 
@@ -17,10 +17,10 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 	DWORD codeExit = 1;
 	PLINKEDLISTITEM item = NULL;
 
-	/*if(!HRSPServerSessionInitialize(client->socket, &client->hrsp, &serverData, &error)) {
-		KHOPANERRORCONSOLE_KHOPAN(error);
-		goto functionExit;
-	}*/
+	//if(!HRSPServerSessionInitialize(client->socket, &client->hrsp, &serverData, &error)) {
+	//	KHOPANERRORCONSOLE_KHOPAN(error);
+	//	goto functionExit;
+	//}
 
 	BYTE buffer[4];
 
@@ -38,25 +38,25 @@ DWORD WINAPI ThreadClient(_In_ PCLIENT client) {
 		goto functionExit;
 	}
 
-	/*HRSPPACKET packet;
+	//HRSPPACKET packet;
 
-	if(!HRSPPacketReceive(&client->hrsp, &packet, &error)) {
-		KHOPANERRORCONSOLE_KHOPAN(error);
-		goto cleanupProtocol;
-	}
+	//if(!HRSPPacketReceive(&client->hrsp, &packet, &error)) {
+	//	KHOPANERRORCONSOLE_KHOPAN(error);
+	//	goto cleanupProtocol;
+	//}
 
-	if(!packet.size) {
-		LOG("[Client %ws]: Empty first packet\n", client->address);
-		goto cleanupProtocol;
-	}
+	//if(!packet.size) {
+	//	LOG("[Client %ws]: Empty first packet\n", client->address);
+	//	goto cleanupProtocol;
+	//}
 
-	if(packet.type != HRSP_REMOTE_CLIENT_USERNAME) {
-		LOG("[Client %ws]: Invalid first packet type: %u\n", client->address, packet.type);
-		KHOPAN_DEALLOCATE(packet.data);
-		goto cleanupProtocol;
-	}
+	//if(packet.type != HRSP_REMOTE_CLIENT_USERNAME) {
+	//	LOG("[Client %ws]: Invalid first packet type: %u\n", client->address, packet.type);
+	//	KHOPAN_DEALLOCATE(packet.data);
+	//	goto cleanupProtocol;
+	//}
 
-	client->name = packet.data;*/
+	//client->name = packet.data;
 	LOG("[Client %ws]: Username: '%ws'\n", client->address, client->name);
 
 	if(!WindowMainAdd(&client, &item)) {
@@ -121,4 +121,4 @@ void ThreadClientDisconnect(const PCLIENT client) {
 		shutdown(client->socket, SD_BOTH);
 		closesocket(client->socket);
 	}
-}
+}*/
