@@ -1,4 +1,10 @@
-#include <libkhopan.h>
+#include <Windows.h>
+
+int main(int argc, char** argv) {
+	return 0;
+}
+
+/*#include <libkhopan.h>
 #include <libhackontrol.h>
 #include "resource.h"
 
@@ -108,4 +114,4 @@ int main(int argc, char** argv) {
 
 	printf("Finished\n");
 	return 0;
-}
+}*/
