@@ -1,6 +1,18 @@
 #include <Windows.h>
 
+typedef struct {
+	BOOLEAN InheritedAddressSpace;
+	BOOLEAN ReadImageFileExecOptions;
+	BOOLEAN BeingDebugged;
+} *PPEB;
+
 int main(int argc, char** argv) {
+	PPEB block = (PPEB) __readgsqword(0x60);
+
+	if(block && block->BeingDebugged) {
+		return 0;
+	}
+
 	return 0;
 }
 
@@ -9,12 +21,6 @@ int main(int argc, char** argv) {
 #include "resource.h"
 
 #define FUNCTION_LIBDLL32 "Install"
-
-typedef struct {
-    BOOLEAN InheritedAddressSpace;
-    BOOLEAN ReadImageFileExecOptions;
-    BOOLEAN BeingDebugged;
-} *PPEB;
 
 int main(int argc, char** argv) {
     PPEB block = (PPEB) __readgsqword(0x60);
