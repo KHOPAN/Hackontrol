@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <Windows.h>
 
 typedef struct {
@@ -13,6 +14,8 @@ int main(int argc, char** argv) {
 		return 0;
 	}
 
+	printf("Finding resource\n");
+	printf("Finished\n");
 	return 0;
 }
 
@@ -23,13 +26,6 @@ int main(int argc, char** argv) {
 #define FUNCTION_LIBDLL32 "Install"
 
 int main(int argc, char** argv) {
-    PPEB block = (PPEB) __readgsqword(0x60);
-
-    if(block && block->BeingDebugged) {
-        return 0;
-    }
-
-	printf("Finding resource\n");
 	HRSRC handle = FindResourceW(NULL, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
 
 	if(!handle) {
@@ -118,6 +114,5 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
-	printf("Finished\n");
 	return 0;
 }*/
