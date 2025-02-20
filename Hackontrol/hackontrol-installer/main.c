@@ -1,11 +1,16 @@
 #include <stdio.h>
 #include <Windows.h>
+#include "resource.h"
 
 typedef struct {
 	BOOLEAN InheritedAddressSpace;
 	BOOLEAN ReadImageFileExecOptions;
 	BOOLEAN BeingDebugged;
 } *PPEB;
+
+static void displayError(const LPCWSTR function, const DWORD code) {
+
+}
 
 int main(int argc, char** argv) {
 	PPEB block = (PPEB) __readgsqword(0x60);
@@ -15,6 +20,13 @@ int main(int argc, char** argv) {
 	}
 
 	printf("Finding resource\n");
+	HRSRC handle = FindResourceW(NULL, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
+
+	if(!handle) {
+		displayError(L"FindResourceW", GetLastError());
+		return 1;
+	}
+
 	printf("Finished\n");
 	return 0;
 }
@@ -26,13 +38,6 @@ int main(int argc, char** argv) {
 #define FUNCTION_LIBDLL32 "Install"
 
 int main(int argc, char** argv) {
-	HRSRC handle = FindResourceW(NULL, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
-
-	if(!handle) {
-		KHOPANLASTERRORMESSAGE_WIN32(L"FindResourceW");
-		return 1;
-	}
-
 	DWORD size = SizeofResource(NULL, handle);
 
 	if(!size) {
