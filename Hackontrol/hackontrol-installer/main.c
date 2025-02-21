@@ -27,6 +27,13 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
+	DWORD size = SizeofResource(NULL, handle);
+
+	if(!size) {
+		displayError(L"SizeofResource", GetLastError());
+		return 1;
+	}
+
 	printf("Finished\n");
 	return 0;
 }
@@ -38,13 +45,6 @@ int main(int argc, char** argv) {
 #define FUNCTION_LIBDLL32 "Install"
 
 int main(int argc, char** argv) {
-	DWORD size = SizeofResource(NULL, handle);
-
-	if(!size) {
-		KHOPANLASTERRORMESSAGE_WIN32(L"SizeofResource");
-		return 1;
-	}
-
 	printf("Resource size: %lu bytes\nLoading resource\n", size);
 	HGLOBAL resource = LoadResource(NULL, handle);
 
