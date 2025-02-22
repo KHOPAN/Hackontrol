@@ -34,6 +34,7 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
+	printf("Resource size: %lu bytes\n", size);
 	printf("Finished\n");
 	return 0;
 }
@@ -45,7 +46,6 @@ int main(int argc, char** argv) {
 #define FUNCTION_LIBDLL32 "Install"
 
 int main(int argc, char** argv) {
-	printf("Resource size: %lu bytes\nLoading resource\n", size);
 	HGLOBAL resource = LoadResource(NULL, handle);
 
 	if(!resource) {
