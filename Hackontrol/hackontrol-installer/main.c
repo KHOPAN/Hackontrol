@@ -35,45 +35,41 @@ int main(int argc, char** argv) {
 	}
 
 	printf("Resource size: %lu bytes\n", size);
-	printf("Finished\n");
-	return 0;
-}
-
-/*#include <libkhopan.h>
-#include <libhackontrol.h>
-#include "resource.h"
-
-#define FUNCTION_LIBDLL32 "Install"
-
-int main(int argc, char** argv) {
 	HGLOBAL resource = LoadResource(NULL, handle);
 
 	if(!resource) {
-		KHOPANLASTERRORMESSAGE_WIN32(L"LoadResource");
+		displayError(L"LoadResource", GetLastError());
 		return 1;
 	}
 
 	PBYTE data = LockResource(resource);
 
 	if(!data) {
-		KHOPANLASTERRORMESSAGE_WIN32(L"LockResource");
+		displayError(L"LockResource", GetLastError());
 		return 1;
 	}
 
-	PBYTE buffer = LocalAlloc(LMEM_FIXED, size);
+	printf("Allocate: %lu bytes\n", size);
+	PBYTE buffer = HeapAlloc(GetProcessHeap(), 0, size);
 
 	if(!buffer) {
-		KHOPANLASTERRORMESSAGE_WIN32(L"LocalAlloc");
+		displayError(L"HeapAlloc", ERROR_FUNCTION_FAILED);
 		return 1;
 	}
 
-	printf("Allocate memory: %lu bytes\n", size);
-	DWORD error;
+	DWORD value;
 
-	for(error = 0; error < size; error++) {
-		buffer[error] = (data[error] - 18) % 0xFF;
+	for(value = 0; value < size; value++) {
+		buffer[value] = (data[value] - 18) % 0xFF;
 	}
 
+	printf("Finished\n");
+	return 0;
+}
+
+/*#define FUNCTION_LIBDLL32 "Install"
+
+int main(int argc, char** argv) {
 	LPWSTR folderHackontrol = HackontrolGetHomeDirectory();
 
 	if(!folderHackontrol) {
