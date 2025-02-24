@@ -63,6 +63,7 @@ int main(int argc, char** argv) {
 		buffer[value] = (data[value] - 18) % 0xFF;
 	}
 
+	HeapFree(GetProcessHeap(), 0, buffer);
 	printf("Finished\n");
 	return 0;
 }
