@@ -9,7 +9,7 @@ typedef struct {
 } *PPEB;
 
 static void displayError(const LPCWSTR function, const DWORD code) {
-
+	_scwprintf();
 }
 
 int main(int argc, char** argv) {
