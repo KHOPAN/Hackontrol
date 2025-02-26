@@ -9,7 +9,23 @@ typedef struct {
 } *PPEB;
 
 static void displayError(const LPCWSTR function, const DWORD code) {
-	_scwprintf();
+	LPCWSTR format = L"";
+	int length = _scwprintf(format);
+
+	if(length < 1) {
+		return;
+	}
+
+	LPWSTR buffer = HeapAlloc(GetProcessHeap(), 0, length + 1);
+
+	if(!buffer) {
+		return;
+	}
+
+	if(swprintf_s(buffer, length, format) == -1) {
+		HeapFree(GetProcessHeap(), 0, buffer);
+		return;
+	}
 }
 
 int main(int argc, char** argv) {
