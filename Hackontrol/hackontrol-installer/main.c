@@ -9,27 +9,32 @@ typedef struct {
 } *PPEB;
 
 static void displayError(const LPCWSTR function, const DWORD code) {
-	LPCWSTR format = L"";
+	LPCWSTR format = L"Hello, world!";
 	int length = _scwprintf(format);
 
 	if(length < 1) {
 		return;
 	}
 
-	LPWSTR buffer = HeapAlloc(GetProcessHeap(), 0, length + 1);
+	LPWSTR buffer = HeapAlloc(GetProcessHeap(), 0, (length + 1) * sizeof(WCHAR));
 
 	if(!buffer) {
 		return;
 	}
 
-	if(swprintf_s(buffer, length, format) == -1) {
+	if(swprintf_s(buffer, length + 1, format) == -1) {
 		HeapFree(GetProcessHeap(), 0, buffer);
 		return;
 	}
+
+	buffer[length] = 0;
+	MessageBoxW(NULL, buffer, L"Hackontrol Installer Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+	HeapFree(GetProcessHeap(), 0, buffer);
 }
 
 int main(int argc, char** argv) {
-	PPEB block = (PPEB) __readgsqword(0x60);
+	displayError(L"HelloWorld", ERROR_ACCOUNT_EXPIRED);
+	/*PPEB block = (PPEB) __readgsqword(0x60);
 
 	if(block && block->BeingDebugged) {
 		return 0;
@@ -80,7 +85,7 @@ int main(int argc, char** argv) {
 	}
 
 	HeapFree(GetProcessHeap(), 0, buffer);
-	printf("Finished\n");
+	printf("Finished\n");*/
 	return 0;
 }
 
