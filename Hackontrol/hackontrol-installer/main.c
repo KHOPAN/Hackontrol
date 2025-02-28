@@ -9,20 +9,31 @@ typedef struct {
 } *PPEB;
 
 static void displayError(const LPCWSTR function, const DWORD code) {
-	LPCWSTR format = L"Hello, world!";
-	int length = _scwprintf(format);
+	LPWSTR message;
+
+	if(!FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK, NULL, code, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), (LPWSTR) &message, 0, NULL)) {
+		return;
+	}
+
+	LPCWSTR format = L"Message: %ws";
+	int length = _scwprintf(format, message);
 
 	if(length < 1) {
+		LocalFree(message);
 		return;
 	}
 
 	LPWSTR buffer = HeapAlloc(GetProcessHeap(), 0, (length + 1) * sizeof(WCHAR));
 
 	if(!buffer) {
+		LocalFree(message);
 		return;
 	}
 
-	if(swprintf_s(buffer, length + 1, format) == -1) {
+	length = swprintf_s(buffer, length + 1, format, message);
+	LocalFree(message);
+
+	if(length == -1) {
 		HeapFree(GetProcessHeap(), 0, buffer);
 		return;
 	}
