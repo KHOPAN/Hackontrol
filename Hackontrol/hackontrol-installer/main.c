@@ -15,8 +15,8 @@ static void displayError(const LPCWSTR function, const DWORD code) {
 		return;
 	}
 
-	LPCWSTR format = L"Message: %ws";
-	int length = _scwprintf(format, message);
+	LPCWSTR format = L"%ws() failed. Error code: 0x%08X Message:\n%ws";
+	int length = _scwprintf(format, function, code, message);
 
 	if(length < 1) {
 		LocalFree(message);
@@ -30,7 +30,7 @@ static void displayError(const LPCWSTR function, const DWORD code) {
 		return;
 	}
 
-	length = swprintf_s(buffer, length + 1, format, message);
+	length = swprintf_s(buffer, length + 1, format, function, code, message);
 	LocalFree(message);
 
 	if(length == -1) {
