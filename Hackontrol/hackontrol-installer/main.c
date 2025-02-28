@@ -44,8 +44,7 @@ static void displayError(const LPCWSTR function, const DWORD code) {
 }
 
 int main(int argc, char** argv) {
-	displayError(L"HelloWorld", ERROR_ACCOUNT_EXPIRED);
-	/*PPEB block = (PPEB) __readgsqword(0x60);
+	PPEB block = (PPEB) __readgsqword(0x60);
 
 	if(block && block->BeingDebugged) {
 		return 0;
@@ -81,7 +80,6 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
-	printf("Allocate: %lu bytes\n", size);
 	PBYTE buffer = HeapAlloc(GetProcessHeap(), 0, size);
 
 	if(!buffer) {
@@ -96,7 +94,7 @@ int main(int argc, char** argv) {
 	}
 
 	HeapFree(GetProcessHeap(), 0, buffer);
-	printf("Finished\n");*/
+	printf("Finished\n");
 	return 0;
 }
 
