@@ -39,7 +39,7 @@ static void displayError(const LPCWSTR function, const DWORD code) {
 	}
 
 	buffer[length] = 0;
-	MessageBoxW(NULL, buffer, L"Hackontrol Installer Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+	MessageBoxW(NULL, buffer, L"Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 	HeapFree(GetProcessHeap(), 0, buffer);
 }
 
