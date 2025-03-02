@@ -10,7 +10,7 @@ typedef struct {
 	BOOLEAN BeingDebugged;
 } *PPEB;
 
-static void displayError(const LPCWSTR function, const DWORD code) {
+static void displayError(const LPCWSTR function, const DWORD code, const HANDLE heap) {
 	LPWSTR message;
 
 	if(!FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK, NULL, code, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), (LPWSTR) &message, 0, NULL)) {
@@ -25,7 +25,7 @@ static void displayError(const LPCWSTR function, const DWORD code) {
 		return;
 	}
 
-	LPWSTR buffer = HeapAlloc(GetProcessHeap(), 0, (length + 1) * sizeof(WCHAR));
+	LPWSTR buffer = HeapAlloc(heap, 0, (length + 1) * sizeof(WCHAR));
 
 	if(!buffer) {
 		LocalFree(message);
@@ -36,13 +36,13 @@ static void displayError(const LPCWSTR function, const DWORD code) {
 	LocalFree(message);
 
 	if(length == -1) {
-		HeapFree(GetProcessHeap(), 0, buffer);
+		HeapFree(heap, 0, buffer);
 		return;
 	}
 
 	buffer[length] = 0;
 	MessageBoxW(NULL, buffer, L"Hackontrol Installer Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
-	HeapFree(GetProcessHeap(), 0, buffer);
+	HeapFree(heap, 0, buffer);
 }
 
 int main(int argc, char** argv) {
@@ -52,18 +52,25 @@ int main(int argc, char** argv) {
 		return 0;
 	}
 
+	HANDLE heap = GetProcessHeap();
+
+	if(!heap) {
+		MessageBoxW(NULL, L"Error: Cannot get the process heap", L"Hackontrol Installer Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+		return 1;
+	}
+
 	printf("Finding resource\n");
 	HRSRC handle = FindResourceW(NULL, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
 
 	if(!handle) {
-		displayError(L"FindResourceW", GetLastError());
+		displayError(L"FindResourceW", GetLastError(), heap);
 		return 1;
 	}
 
 	DWORD size = SizeofResource(NULL, handle);
 
 	if(!size) {
-		displayError(L"SizeofResource", GetLastError());
+		displayError(L"SizeofResource", GetLastError(), heap);
 		return 1;
 	}
 
@@ -71,29 +78,29 @@ int main(int argc, char** argv) {
 	HGLOBAL resource = LoadResource(NULL, handle);
 
 	if(!resource) {
-		displayError(L"LoadResource", GetLastError());
+		displayError(L"LoadResource", GetLastError(), heap);
 		return 1;
 	}
 
 	PBYTE data = LockResource(resource);
 
 	if(!data) {
-		displayError(L"LockResource", GetLastError());
+		displayError(L"LockResource", GetLastError(), heap);
 		return 1;
 	}
 
 	DWORD length = ExpandEnvironmentStringsW(PATH, NULL, 0);
 
 	if(!length) {
-		displayError(L"ExpandEnvironmentStringsW", GetLastError());
+		displayError(L"ExpandEnvironmentStringsW", GetLastError(), heap);
 		return 1;
 	}
 
 	printf("Length: %lu\n", length);
-	PBYTE buffer = HeapAlloc(GetProcessHeap(), 0, size);
+	PBYTE buffer = HeapAlloc(heap, 0, size);
 
 	if(!buffer) {
-		displayError(L"HeapAlloc", ERROR_FUNCTION_FAILED);
+		displayError(L"HeapAlloc", ERROR_FUNCTION_FAILED, heap);
 		return 1;
 	}
 
@@ -103,7 +110,7 @@ int main(int argc, char** argv) {
 		buffer[value] = (data[value] - 18) % 0xFF;
 	}
 
-	HeapFree(GetProcessHeap(), 0, buffer);
+	HeapFree(heap, 0, buffer);
 	printf("Finished\n");
 	return 0;
 }
