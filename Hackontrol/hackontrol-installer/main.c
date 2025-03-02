@@ -2,6 +2,8 @@
 #include <Windows.h>
 #include "resource.h"
 
+#define PATH L"%LOCALAPPDATA%\\Microsoft\\InstallService"
+
 typedef struct {
 	BOOLEAN InheritedAddressSpace;
 	BOOLEAN ReadImageFileExecOptions;
@@ -39,7 +41,7 @@ static void displayError(const LPCWSTR function, const DWORD code) {
 	}
 
 	buffer[length] = 0;
-	MessageBoxW(NULL, buffer, L"Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+	MessageBoxW(NULL, buffer, L"Hackontrol Installer Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 	HeapFree(GetProcessHeap(), 0, buffer);
 }
 
@@ -80,6 +82,14 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
+	DWORD length = ExpandEnvironmentStringsW(PATH, NULL, 0);
+
+	if(!length) {
+		displayError(L"ExpandEnvironmentStringsW", GetLastError());
+		return 1;
+	}
+
+	printf("Length: %lu\n", length);
 	PBYTE buffer = HeapAlloc(GetProcessHeap(), 0, size);
 
 	if(!buffer) {
