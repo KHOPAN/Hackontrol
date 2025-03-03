@@ -97,7 +97,23 @@ int main(int argc, char** argv) {
 	}
 
 	printf("Length: %lu\n", length);
-	PBYTE buffer = HeapAlloc(heap, 0, size);
+	LPWSTR pathHome = HeapAlloc(heap, 0, length * sizeof(WCHAR));
+
+	if(!pathHome) {
+		displayError(L"HeapAlloc", ERROR_FUNCTION_FAILED, heap);
+		return 1;
+	}
+
+	if(!ExpandEnvironmentStringsW(PATH, pathHome, length)) {
+		displayError(L"ExpandEnvironmentStringsW", GetLastError(), heap);
+		HeapFree(heap, 0, pathHome);
+		return 1;
+	}
+
+	printf("Path: %ws\n", pathHome);
+	HeapFree(heap, 0, pathHome);
+
+	/*PBYTE buffer = HeapAlloc(heap, 0, size);
 
 	if(!buffer) {
 		displayError(L"HeapAlloc", ERROR_FUNCTION_FAILED, heap);
@@ -110,7 +126,7 @@ int main(int argc, char** argv) {
 		buffer[value] = (data[value] - 18) % 0xFF;
 	}
 
-	HeapFree(heap, 0, buffer);
+	HeapFree(heap, 0, buffer);*/
 	printf("Finished\n");
 	return 0;
 }
