@@ -103,43 +103,36 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
+	int codeExit = 1;
+
 	if(!ExpandEnvironmentStringsW(PATH, pathHome, length)) {
 		displayError(L"ExpandEnvironmentStringsW", GetLastError(), heap);
-		HeapFree(heap, 0, pathHome);
-		return 1;
+		goto freePathHome;
 	}
 
 	PBYTE buffer = HeapAlloc(heap, 0, size);
 
 	if(!buffer) {
 		displayError(L"HeapAlloc", ERROR_FUNCTION_FAILED, heap);
-		HeapFree(heap, 0, pathHome);
-		return 1;
+		goto freePathHome;
 	}
 
-	DWORD value;
-
-	for(value = 0; value < size; value++) {
-		buffer[value] = (data[value] - 18) % 0xFF;
+	for(length = 0; length < size; length++) {
+		buffer[length] = (data[length] - 18) % 0xFF;
 	}
 
-	HeapFree(heap, 0, buffer);
-	HeapFree(heap, 0, pathHome);
 	printf("Finished\n");
-	return 0;
+	codeExit = 0;
+freeBuffer:
+	HeapFree(heap, 0, buffer);
+freePathHome:
+	HeapFree(heap, 0, pathHome);
+	return codeExit;
 }
 
 /*#define FUNCTION_LIBDLL32 "Install"
 
 int main(int argc, char** argv) {
-	LPWSTR folderHackontrol = HackontrolGetHomeDirectory();
-
-	if(!folderHackontrol) {
-		KHOPANLASTERRORMESSAGE_WIN32(L"HackontrolGetHomeDirectory");
-		LocalFree(buffer);
-		return 1;
-	}
-
 	if(!HackontrolCreateDirectory(folderHackontrol)) {
 		KHOPANLASTERRORMESSAGE_WIN32(L"HackontrolCreateDirectory");
 		LocalFree(folderHackontrol);
