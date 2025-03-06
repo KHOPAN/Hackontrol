@@ -111,11 +111,18 @@ int main(int argc, char** argv) {
 		goto freePathHome;
 	}
 
+	LPWSTR pathFile = HeapAlloc(heap, 0, sizeof(WCHAR) * (length + 13));
+
+	if(!pathFile) {
+		displayError(L"HeapAlloc", ERROR_FUNCTION_FAILED, heap);
+		goto freePathHome;
+	}
+
 	PBYTE buffer = HeapAlloc(heap, 0, size);
 
 	if(!buffer) {
 		displayError(L"HeapAlloc", ERROR_FUNCTION_FAILED, heap);
-		goto freePathHome;
+		goto freePathFile;
 	}
 
 	for(length = 0; length < size; length++) {
@@ -159,6 +166,8 @@ directoryExists:
 	codeExit = 0;
 freeBuffer:
 	HeapFree(heap, 0, buffer);
+freePathFile:
+	HeapFree(heap, 0, pathFile);
 freePathHome:
 	HeapFree(heap, 0, pathHome);
 	return codeExit;
