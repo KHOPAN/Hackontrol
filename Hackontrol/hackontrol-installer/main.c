@@ -122,6 +122,7 @@ int main(int argc, char** argv) {
 	memcpy(pathFile, pathHome, sizeof(WCHAR) * (length - 1));
 	memcpy(pathFile + length, FILE, sizeof(FILE));
 	pathFile[length - 1] = L'\\';
+	pathFile[length + sizeof(FILE) / sizeof(WCHAR) - 1] = 0;
 	PBYTE buffer = HeapAlloc(heap, 0, size);
 
 	if(!buffer) {
