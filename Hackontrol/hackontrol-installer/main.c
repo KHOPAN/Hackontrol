@@ -166,7 +166,14 @@ int main(int argc, char** argv) {
 		displayError(L"SHCreateDirectoryExW", length, heap);
 		goto freeBuffer;
 	}
-directoryExists:
+directoryExists:;
+	HANDLE file = CreateFileW(pathFile, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+
+	if(file == INVALID_HANDLE_VALUE) {
+		displayError(L"CreateFileW", GetLastError(), heap);
+		goto freeBuffer;
+	}
+
 	printf("Finished\n");
 	codeExit = 0;
 freeBuffer:
