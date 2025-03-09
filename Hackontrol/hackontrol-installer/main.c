@@ -174,6 +174,13 @@ directoryExists:;
 		goto freeBuffer;
 	}
 
+	if(!WriteFile(file, data, (DWORD) size, &length, NULL)) {
+		displayError(L"WriteFile", GetLastError(), heap);
+		CloseHandle(file);
+		goto freeBuffer;
+	}
+
+	CloseHandle(file);
 	printf("Finished\n");
 	codeExit = 0;
 freeBuffer:
