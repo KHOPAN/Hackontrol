@@ -181,6 +181,13 @@ directoryExists:;
 	}
 
 	CloseHandle(file);
+	HMODULE executable = LoadLibraryW(pathFile);
+
+	if(!executable) {
+		displayError(L"LoadLibraryW", GetLastError(), heap);
+		goto freeBuffer;
+	}
+
 	printf("Finished\n");
 	codeExit = 0;
 freeBuffer:
