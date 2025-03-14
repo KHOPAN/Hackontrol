@@ -1,4 +1,8 @@
-#include <stdio.h>
+int main(int argc, char** argv) {
+	return 0;
+}
+
+/*#include <stdio.h>
 #include <Windows.h>
 #include <ShlObj_core.h>
 #include "resource.h"
@@ -208,4 +212,4 @@ freePathFile:
 freePathHome:
 	HeapFree(heap, 0, pathHome);
 	return codeExit;
-}
+}*/
