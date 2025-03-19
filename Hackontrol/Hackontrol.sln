@@ -5,7 +5,7 @@ VisualStudioVersion = 17.7.34031.279
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libdll32", "libdll32\libdll32.vcxproj", "{66C59002-919D-45DE-94B4-8C76ED45D873}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hackontrol-installer", "hackontrol-installer\hackontrol-installer.vcxproj", "{9CA978FC-474A-472B-A087-84FEB8BE74C1}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hackontrol-installer-old", "hackontrol-installer-old\hackontrol-installer-old.vcxproj", "{9CA978FC-474A-472B-A087-84FEB8BE74C1}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libruntime32", "libruntime32\libruntime32.vcxproj", "{6F875087-C42F-4977-95C0-68CF4364B53F}"
 EndProject
