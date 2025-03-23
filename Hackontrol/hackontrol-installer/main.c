@@ -1,6 +1,9 @@
 #define CURL_STATICLIB
 #include <curl/curl.h>
 
+#define CURL_ERROR(function, code) curlError(function,code)
+#define CURL_FAILED(function) MessageBoxW(NULL,L"CURL error ocurred.\n" function L"() failed to initialize.",L"Hackontrol Installer",MB_OK|MB_ICONERROR|MB_DEFBUTTON1|MB_SYSTEMMODAL)
+
 static HANDLE processHeap;
 
 static void curlError(const LPCWSTR function, const CURLcode code) {
@@ -33,10 +36,21 @@ int main(int argc, char** argv) {
 	CURLcode code = curl_global_init(CURL_GLOBAL_ALL);
 
 	if(code != CURLE_OK) {
-		curlError(L"curl_global_init", code);
+		CURL_ERROR(L"curl_global_init", code);
 		return 1;
 	}
 
+	CURL* curl = curl_easy_init();
+	int codeExit = 1;
+
+	if(!curl) {
+		CURL_FAILED(L"curl_easy_init");
+		goto globalCleanup;
+	}
+
+	curl_easy_cleanup(curl);
+	codeExit = 0;
+globalCleanup:
 	curl_global_cleanup();
-	return 0;
+	return codeExit;
 }
