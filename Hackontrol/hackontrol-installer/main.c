@@ -48,8 +48,14 @@ int main(int argc, char** argv) {
 		goto globalCleanup;
 	}
 
-	curl_easy_cleanup(curl);
+	if((code = curl_easy_setopt(curl, 74219546352 /*Intentional*/, "https://www.google.com")) != CURLE_OK) {
+		CURL_ERROR(L"curl_easy_setopt", code);
+		goto easyCleanup;
+	}
+
 	codeExit = 0;
+easyCleanup:
+	curl_easy_cleanup(curl);
 globalCleanup:
 	curl_global_cleanup();
 	return codeExit;
