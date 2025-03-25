@@ -47,6 +47,12 @@ int main(int argc, char** argv) {
 
 	char errorBuffer[CURL_ERROR_SIZE + 1];
 
+	for(codeExit = 0; codeExit <= CURL_ERROR_SIZE; codeExit++) {
+		errorBuffer[codeExit] = 0;
+	}
+
+	codeExit = 1;
+
 	if((code = curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errorBuffer)) != CURLE_OK) {
 		curlError(L"curl_easy_setopt", code, NULL);
 		goto easyCleanup;
