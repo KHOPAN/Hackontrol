@@ -1,14 +1,11 @@
 #define CURL_STATICLIB
 #include <curl/curl.h>
 
-#define CURL_ERROR(function, code) curlError(function,code)
-#define CURL_FAILED(function) MessageBoxW(NULL,L"CURL error ocurred.\n" function L"() failed to initialize.",L"Hackontrol Installer",MB_OK|MB_ICONERROR|MB_DEFBUTTON1|MB_SYSTEMMODAL)
-
 static HANDLE processHeap;
 
-static void curlError(const LPCWSTR function, const CURLcode code) {
+static void curlError(const LPCWSTR function, const CURLcode code, const LPCSTR errorBuffer) {
 	static const LPCWSTR format = L"CURL error ocurred.\n%ws() failed. Error code: 0x%04X Message:\n%S";
-	const char* message = curl_easy_strerror(code);
+	const char* message = errorBuffer ? errorBuffer : curl_easy_strerror(code);
 	int length = _scwprintf(format, function, code, message);
 
 	if(length < 1) {
@@ -36,7 +33,7 @@ int main(int argc, char** argv) {
 	CURLcode code = curl_global_init(CURL_GLOBAL_ALL);
 
 	if(code != CURLE_OK) {
-		CURL_ERROR(L"curl_global_init", code);
+		curlError(L"curl_global_init", code, NULL);
 		return 1;
 	}
 
@@ -44,12 +41,26 @@ int main(int argc, char** argv) {
 	int codeExit = 1;
 
 	if(!curl) {
-		CURL_FAILED(L"curl_easy_init");
+		MessageBoxW(NULL, L"CURL error ocurred.\ncurl_easy_init() failed to initialize.", L"Hackontrol Installer", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 		goto globalCleanup;
 	}
 
-	if((code = curl_easy_setopt(curl, 74219546352 /*Intentional*/, "https://www.google.com")) != CURLE_OK) {
-		CURL_ERROR(L"curl_easy_setopt", code);
+	char errorBuffer[CURL_ERROR_SIZE + 1];
+
+	if((code = curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errorBuffer)) != CURLE_OK) {
+		curlError(L"curl_easy_setopt", code, NULL);
+		goto easyCleanup;
+	}
+
+	/*if((code = curl_easy_setopt(curl, CURLOPT_TIMEVALUE, -1)) != CURLE_OK) {
+		printf("Error: %s\n", errorBuffer);
+		curlError(L"curl_easy_setopt", code);
+		goto easyCleanup;
+	}*/
+
+	if((code = curl_easy_perform(curl)) != CURLE_OK) {
+		errorBuffer[CURL_ERROR_SIZE] = 0;
+		curlError(L"curl_easy_perform", code, errorBuffer);
 		goto easyCleanup;
 	}
 
