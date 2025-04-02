@@ -58,11 +58,15 @@ int main(int argc, char** argv) {
 		goto easyCleanup;
 	}
 
-	/*if((code = curl_easy_setopt(curl, CURLOPT_TIMEVALUE, -1)) != CURLE_OK) {
-		printf("Error: %s\n", errorBuffer);
-		curlError(L"curl_easy_setopt", code);
+	if((code = curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0)) != CURLE_OK) {
+		curlError(L"curl_easy_setopt", code, NULL);
 		goto easyCleanup;
-	}*/
+	}
+
+	if((code = curl_easy_setopt(curl, CURLOPT_URL, "https://www.google.com")) != CURLE_OK) {
+		curlError(L"curl_easy_setopt", code, NULL);
+		goto easyCleanup;
+	}
 
 	if((code = curl_easy_perform(curl)) != CURLE_OK) {
 		errorBuffer[CURL_ERROR_SIZE] = 0;
