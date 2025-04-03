@@ -28,6 +28,10 @@ static void curlError(const LPCWSTR function, const CURLcode code, const LPCSTR 
 	HeapFree(processHeap, 0, buffer);
 }
 
+static size_t curlWriteCallback(const char* const data, const size_t size, const size_t count, const void* const pointer) {
+	return 0;
+}
+
 int main(int argc, char** argv) {
 	processHeap = GetProcessHeap();
 	CURLcode code = curl_global_init(CURL_GLOBAL_ALL);
@@ -64,6 +68,11 @@ int main(int argc, char** argv) {
 	}
 
 	if((code = curl_easy_setopt(curl, CURLOPT_URL, "https://www.google.com")) != CURLE_OK) {
+		curlError(L"curl_easy_setopt", code, NULL);
+		goto easyCleanup;
+	}
+
+	if((code = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteCallback)) != CURLE_OK) {
 		curlError(L"curl_easy_setopt", code, NULL);
 		goto easyCleanup;
 	}
