@@ -28,8 +28,10 @@ static void curlError(const LPCWSTR function, const CURLcode code, const LPCSTR 
 	HeapFree(processHeap, 0, buffer);
 }
 
-static size_t curlWriteCallback(const char* const data, const size_t size, const size_t count, const void* const pointer) {
-	return 0;
+static size_t curlWriteCallback(const char* const data, size_t size, const size_t count, const void* const pointer) {
+	size *= count;
+	printf("Burst: %llu\n", size);
+	return size;
 }
 
 int main(int argc, char** argv) {
