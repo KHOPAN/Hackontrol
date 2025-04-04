@@ -1,6 +1,11 @@
 #define CURL_STATICLIB
 #include <curl/curl.h>
 
+typedef struct {
+	void* data;
+	size_t size;
+} DATABUFFER;
+
 static HANDLE processHeap;
 
 static void curlError(const LPCWSTR function, const CURLcode code, const LPCSTR errorBuffer) {
@@ -70,6 +75,13 @@ int main(int argc, char** argv) {
 	}
 
 	if((code = curl_easy_setopt(curl, CURLOPT_URL, "https://www.google.com")) != CURLE_OK) {
+		curlError(L"curl_easy_setopt", code, NULL);
+		goto easyCleanup;
+	}
+
+	DATABUFFER buffer = {0};
+
+	if((code = curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer)) != CURLE_OK) {
 		curlError(L"curl_easy_setopt", code, NULL);
 		goto easyCleanup;
 	}
