@@ -2,6 +2,17 @@
 
 #define CLASS_NAME L"WindowClass"
 
+static void paint(const HWND window) {
+	PAINTSTRUCT paintStruct;
+	HDC context = BeginPaint(window, &paintStruct);
+	HBRUSH brush = GetStockObject(DC_BRUSH);
+	SetDCBrushColor(context, 0x000000);
+	RECT bounds;
+	GetClientRect(window, &bounds);
+	FillRect(context, &bounds, brush);
+	EndPaint(window, &paintStruct);
+}
+
 static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
 	switch(message) {
 	case WM_CLOSE:
@@ -9,6 +20,9 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 		return 0;
 	case WM_DESTROY:
 		PostQuitMessage(0);
+		return 0;
+	case WM_PAINT:
+		paint(window);
 		return 0;
 	}
 
