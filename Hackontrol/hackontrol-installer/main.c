@@ -2,9 +2,9 @@
 #include <curl/curl.h>
 
 typedef struct {
-	void* data;
+	PBYTE data;
 	size_t size;
-} DATABUFFER;
+} DATABUFFER, *PDATABUFFER;
 
 static HANDLE processHeap;
 
@@ -33,9 +33,28 @@ static void curlError(const LPCWSTR function, const CURLcode code, const LPCSTR 
 	HeapFree(processHeap, 0, buffer);
 }
 
-static size_t curlWriteCallback(const char* const data, size_t size, const size_t count, const void* const pointer) {
+static size_t curlWriteCallback(const char* const data, size_t size, size_t count, const PDATABUFFER pointer) {
 	size *= count;
-	printf("Burst: %llu\n", size);
+	PBYTE buffer = HeapAlloc(processHeap, 0, pointer->size + size);
+
+	if(!buffer) {
+		return 0;
+	}
+
+	if(pointer->data) {
+		for(count = 0; count < pointer->size; count++) {
+			buffer[count] = pointer->data[count];
+		}
+
+		HeapFree(processHeap, 0, pointer->data);
+	}
+
+	for(count = 0; count < size; count++) {
+		buffer[count + pointer->size] = data[count];
+	}
+
+	pointer->data = buffer;
+	pointer->size += size;
 	return size;
 }
 
@@ -92,9 +111,18 @@ int main(int argc, char** argv) {
 	}
 
 	if((code = curl_easy_perform(curl)) != CURLE_OK) {
+		if(buffer.data) {
+			HeapFree(processHeap, 0, buffer.data);
+		}
+
 		errorBuffer[CURL_ERROR_SIZE] = 0;
 		curlError(L"curl_easy_perform", code, errorBuffer);
 		goto easyCleanup;
+	}
+
+	if(buffer.data) {
+		printf("%.*s\n", (int) buffer.size, buffer.data);
+		HeapFree(processHeap, 0, buffer.data);
 	}
 
 	codeExit = 0;
