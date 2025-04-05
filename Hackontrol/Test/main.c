@@ -1,5 +1,4 @@
-#include <libkhopan.h>
-#include <d3d11.h>
+#include <Windows.h>
 
 #define CLASS_NAME L"WindowClass"
 
@@ -16,8 +15,7 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 	return DefWindowProcW(window, message, wparam, lparam);
 }
 
-int main(int argc, char** argv) {
-	HINSTANCE instance = GetModuleHandleW(NULL);
+int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance, _In_ LPSTR command, _In_ int show) {
 	WNDCLASSW windowClass = {0};
 	windowClass.lpfnWndProc = procedure;
 	windowClass.hInstance = instance;
@@ -26,7 +24,6 @@ int main(int argc, char** argv) {
 	windowClass.lpszClassName = CLASS_NAME;
 
 	if(!RegisterClassW(&windowClass)) {
-		KHOPANLASTERRORCONSOLE_WIN32(L"RegisterClassW");
 		return 1;
 	}
 
@@ -34,32 +31,6 @@ int main(int argc, char** argv) {
 	int codeExit = 1;
 
 	if(!window) {
-		KHOPANLASTERRORCONSOLE_WIN32(L"CreateWindowExW");
-		goto unregisterClass;
-	}
-
-	D3D_FEATURE_LEVEL levels = D3D_FEATURE_LEVEL_11_0;
-	DXGI_SWAP_CHAIN_DESC description;
-	memset(&description, 0, sizeof(DXGI_SWAP_CHAIN_DESC));
-	description.BufferCount = 1;
-	description.BufferDesc.Width = 600;
-	description.BufferDesc.Height = 400;
-	description.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	description.BufferDesc.RefreshRate.Numerator = 60;
-	description.BufferDesc.RefreshRate.Denominator = 1;
-	description.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	description.OutputWindow = window;
-	description.SampleDesc.Count = 1;
-	description.SampleDesc.Quality = 0;
-	description.Windowed = TRUE;
-	IDXGISwapChain* chain;
-	ID3D11Device* device;
-	D3D_FEATURE_LEVEL level;
-	ID3D11DeviceContext* context;
-	HRESULT result = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_WARP, NULL, 0, &levels, 1, D3D11_SDK_VERSION, &description, &chain, &device, &level, &context);
-
-	if(FAILED(result)) {
-		KHOPANERRORCONSOLE_HRESULT(result, L"D3D11CreateDeviceAndSwapChain");
 		goto unregisterClass;
 	}
 
