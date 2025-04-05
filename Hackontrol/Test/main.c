@@ -6,10 +6,11 @@ static void paint(const HWND window) {
 	PAINTSTRUCT paintStruct;
 	HDC context = BeginPaint(window, &paintStruct);
 	HBRUSH brush = GetStockObject(DC_BRUSH);
-	SetDCBrushColor(context, 0x000000);
+	SetDCBrushColor(context, 0x7F7F7F);
 	RECT bounds;
 	GetClientRect(window, &bounds);
 	FillRect(context, &bounds, brush);
+	ExtTextOutW(context, 100, 100, 0, NULL, L"Hello, world!", 13, NULL);
 	EndPaint(window, &paintStruct);
 }
 
