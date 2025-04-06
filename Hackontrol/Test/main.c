@@ -1,4 +1,5 @@
 #include <Windows.h>
+#include "header.h"
 
 #define CLASS_NAME L"WindowClass"
 
@@ -31,7 +32,7 @@ static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPAR
 		PostQuitMessage(0);
 		return 0;
 	case WM_PAINT:
-		paint(window);
+		drawDirect2D();
 		return 0;
 	}
 
@@ -63,6 +64,11 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	}
 
 	SetTimer(window, 1, 10, timerFunction);
+
+	if(!initializeDirect2D(window)) {
+		goto unregisterClass;
+	}
+
 	MSG message;
 
 	while(GetMessageW(&message, NULL, 0, 0)) {
