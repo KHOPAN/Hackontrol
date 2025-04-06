@@ -33,9 +33,10 @@ BOOLEAN initializeDirect2D(const HWND window) {
 	return TRUE;
 }
 
-void drawDirect2D() {
+void drawDirect2D(const int x) {
 	target->BeginDraw();
-	target->FillRectangle(D2D1::RectF(100.0f, 100.0f, 200.0f, 200.0f), brush);
+	target->Clear();
+	target->FillRectangle(D2D1::RectF(x, 100.0f, x + 100.0f, 200.0f), brush);
 
 	if(FAILED(target->EndDraw())) {
 		printf("ID2D1HwndRenderTarget::EndDraw() failed\n");
