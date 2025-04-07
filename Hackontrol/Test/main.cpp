@@ -3,14 +3,27 @@
 
 #define CLASS_NAME L"TestWindowClass"
 
+static ID2D1HwndRenderTarget* target;
+static ID2D1SolidColorBrush* brush;
+
 extern "C" {
-	static LRESULT CALLBACK procedure(_In_ HWND window, _In_ UINT message, _In_ WPARAM wparam, _In_ LPARAM lparam) {
+	static LRESULT CALLBACK procedure(_In_ const HWND window, _In_ const UINT message, _In_ const WPARAM wparam, _In_ const LPARAM lparam) {
+		PAINTSTRUCT paintStruct;
+
 		switch(message) {
 		case WM_CLOSE:
 			DestroyWindow(window);
 			return 0;
 		case WM_DESTROY:
 			PostQuitMessage(0);
+			return 0;
+		case WM_PAINT:
+			BeginPaint(window, &paintStruct);
+			target->BeginDraw();
+			target->Clear();
+			target->FillRectangle(D2D1::RectF(100.0f, 100.0f, 200.0f, 200.0f), brush);
+			target->EndDraw();
+			EndPaint(window, &paintStruct);
 			return 0;
 		}
 
@@ -48,24 +61,17 @@ int main(const int argc, const char* const argv) {
 
 	RECT bounds;
 	GetClientRect(window, &bounds);
-	ID2D1HwndRenderTarget* target;
 
 	if(FAILED(factory->CreateHwndRenderTarget(D2D1::RenderTargetProperties(), D2D1::HwndRenderTargetProperties(window, D2D1::SizeU(bounds.right - bounds.left, bounds.bottom - bounds.top)), &target))) {
 		printf("ID2D1Factory::CreateHwndRenderTarget() failed\n");
 		goto releaseFactory;
 	}
 
-	ID2D1SolidColorBrush* brush;
-
 	if(FAILED(target->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Aqua), &brush))) {
 		printf("ID2D1HwndRenderTarget::CreateSolidColorBrush() failed\n");
 		goto releaseTarget;
 	}
 
-	target->BeginDraw();
-	target->Clear();
-	target->FillRectangle(D2D1::RectF(100.0f, 100.0f, 200.0f, 200.0f), brush);
-	target->EndDraw();
 	MSG message;
 
 	while(GetMessageW(&message, NULL, 0, 0)) {
