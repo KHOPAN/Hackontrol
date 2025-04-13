@@ -1,12 +1,24 @@
 #define CURL_STATICLIB
 #include <curl/curl.h>
 
-typedef struct {
+static const LPCWSTR programName = L"Hackontrol Installer";
+
+static HANDLE processHeap;
+
+int main(int argc, char** argv) {
+	processHeap = GetProcessHeap();
+
+	if(!processHeap) {
+		MessageBoxW(NULL, L"GetProcessHeap() failed.", programName, MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+	}
+
+	return 0;
+}
+
+/*typedef struct {
 	PBYTE data;
 	size_t size;
 } DATABUFFER, *PDATABUFFER;
-
-static HANDLE processHeap;
 
 static void curlError(const LPCWSTR function, const CURLcode code, const LPCSTR errorBuffer) {
 	static const LPCWSTR format = L"CURL error ocurred.\n%ws() failed. Error code: 0x%04X Message:\n%S";
@@ -59,7 +71,6 @@ static size_t curlWriteCallback(const char* const data, size_t size, size_t coun
 }
 
 int main(int argc, char** argv) {
-	processHeap = GetProcessHeap();
 	CURLcode code = curl_global_init(CURL_GLOBAL_ALL);
 
 	if(code != CURLE_OK) {
@@ -131,4 +142,4 @@ easyCleanup:
 globalCleanup:
 	curl_global_cleanup();
 	return codeExit;
-}
+}*/
