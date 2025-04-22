@@ -1,6 +1,8 @@
 #define CURL_STATICLIB
 #include <curl/curl.h>
 
+#define LATEST_JSON "https://raw.githubusercontent.com/KHOPAN/Hackontrol/refs/heads/main/system/latest.json"
+
 static const LPCWSTR programName = L"Hackontrol Installer";
 
 static HANDLE processHeap;
@@ -45,9 +47,44 @@ int main(int argc, char** argv) {
 		curlError(L"curl_global_init", code, NULL);
 		return 1;
 	}
+
+	CURL* curl = curl_easy_init();
+	int codeExit = 1;
+
+	if(!curl) {
+		MessageBoxW(NULL, L"CURL error ocurred.\ncurl_easy_init() failed.", programName, MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+		goto globalCleanup;
+	}
+
+	char errorBuffer[CURL_ERROR_SIZE + 1];
+
+	for(codeExit = 0; codeExit <= CURL_ERROR_SIZE; codeExit++) {
+		errorBuffer[codeExit] = 0;
+	}
+
+	codeExit = 1;
+
+	if((code = curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errorBuffer)) != CURLE_OK) {
+		curlError(L"curl_easy_setopt", code, NULL);
+		goto easyCleanup;
+	}
+
+	if((code = curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0)) != CURLE_OK) {
+		curlError(L"curl_easy_setopt", code, NULL);
+		goto easyCleanup;
+	}
+
+	if((code = curl_easy_setopt(curl, CURLOPT_URL, LATEST_JSON)) != CURLE_OK) {
+		curlError(L"curl_easy_setopt", code, NULL);
+		goto easyCleanup;
+	}
+
+	codeExit = 0;
+easyCleanup:
+	curl_easy_cleanup(curl);
 globalCleanup:
 	curl_global_cleanup();
-	return 0;
+	return codeExit;
 }
 
 /*typedef struct {
@@ -81,37 +118,6 @@ static size_t curlWriteCallback(const char* const data, size_t size, size_t coun
 }
 
 int main(int argc, char** argv) {
-	CURL* curl = curl_easy_init();
-	int codeExit = 1;
-
-	if(!curl) {
-		MessageBoxW(NULL, L"CURL error ocurred.\ncurl_easy_init() failed to initialize.", L"Hackontrol Installer", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
-		goto globalCleanup;
-	}
-
-	char errorBuffer[CURL_ERROR_SIZE + 1];
-
-	for(codeExit = 0; codeExit <= CURL_ERROR_SIZE; codeExit++) {
-		errorBuffer[codeExit] = 0;
-	}
-
-	codeExit = 1;
-
-	if((code = curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errorBuffer)) != CURLE_OK) {
-		curlError(L"curl_easy_setopt", code, NULL);
-		goto easyCleanup;
-	}
-
-	if((code = curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0)) != CURLE_OK) {
-		curlError(L"curl_easy_setopt", code, NULL);
-		goto easyCleanup;
-	}
-
-	if((code = curl_easy_setopt(curl, CURLOPT_URL, "https://www.google.com")) != CURLE_OK) {
-		curlError(L"curl_easy_setopt", code, NULL);
-		goto easyCleanup;
-	}
-
 	DATABUFFER buffer = {0};
 
 	if((code = curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer)) != CURLE_OK) {
@@ -139,8 +145,5 @@ int main(int argc, char** argv) {
 		HeapFree(processHeap, 0, buffer.data);
 	}
 
-	codeExit = 0;
-easyCleanup:
-	curl_easy_cleanup(curl);
 	return codeExit;
 }*/
