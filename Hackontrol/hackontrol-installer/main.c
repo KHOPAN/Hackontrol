@@ -71,6 +71,7 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
+	printf("Initializing global CURL\n");
 	CURLcode code = curl_global_init(CURL_GLOBAL_ALL);
 
 	if(code != CURLE_OK) {
@@ -78,6 +79,7 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
+	printf("Initializing CURL\n");
 	CURL* curl = curl_easy_init();
 	int codeExit = 1;
 
@@ -93,6 +95,7 @@ int main(int argc, char** argv) {
 	}
 
 	codeExit = 1;
+	printf("Setting up CURL\n");
 
 	if((code = curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errorBuffer)) != CURLE_OK) {
 		curlError(L"curl_easy_setopt(CURLOPT_ERRORBUFFER)", code, NULL);
@@ -119,6 +122,12 @@ int main(int argc, char** argv) {
 	if((code = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteBuffer)) != CURLE_OK) {
 		curlError(L"curl_easy_setopt(CURLOPT_WRITEFUNCTION)", code, NULL);
 		goto easyCleanup;
+	}
+
+	printf("Downloading latest.json\n");
+
+	while(TRUE) {
+
 	}
 
 	codeExit = 0;
