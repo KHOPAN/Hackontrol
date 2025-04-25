@@ -126,8 +126,12 @@ int main(int argc, char** argv) {
 
 	printf("Downloading latest.json\n");
 
-	while(TRUE) {
+	while(curl_easy_perform(curl) != CURLE_OK) {
+		if(buffer.data) {
+			HeapFree(processHeap, 0, buffer.data);
+		}
 
+		printf("Download failed, try again\n");
 	}
 
 	codeExit = 0;
@@ -139,16 +143,6 @@ globalCleanup:
 }
 
 /*int main(int argc, char** argv) {
-	if((code = curl_easy_perform(curl)) != CURLE_OK) {
-		if(buffer.data) {
-			HeapFree(processHeap, 0, buffer.data);
-		}
-
-		errorBuffer[CURL_ERROR_SIZE] = 0;
-		curlError(L"curl_easy_perform", code, errorBuffer);
-		goto easyCleanup;
-	}
-
 	if(buffer.data) {
 		printf("%.*s\n", (int) buffer.size, buffer.data);
 		HeapFree(processHeap, 0, buffer.data);
