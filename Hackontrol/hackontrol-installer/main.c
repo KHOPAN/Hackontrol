@@ -126,14 +126,17 @@ int main(int argc, char** argv) {
 
 	printf("Downloading latest.json\n");
 
-	while(curl_easy_perform(curl) != CURLE_OK) {
+	while(curl_easy_perform(curl) != CURLE_OK || !buffer.data) {
 		if(buffer.data) {
 			HeapFree(processHeap, 0, buffer.data);
+			buffer.data = NULL;
+			buffer.size = 0;
 		}
 
 		printf("Download failed, try again\n");
 	}
 
+	MessageBoxA(NULL, (LPSTR) buffer.data, "Test", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 	codeExit = 0;
 easyCleanup:
 	curl_easy_cleanup(curl);
