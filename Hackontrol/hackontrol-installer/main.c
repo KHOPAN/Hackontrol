@@ -88,19 +88,7 @@ int main(int argc, char** argv) {
 		goto globalCleanup;
 	}
 
-	char errorBuffer[CURL_ERROR_SIZE + 1];
-
-	for(codeExit = 0; codeExit <= CURL_ERROR_SIZE; codeExit++) {
-		errorBuffer[codeExit] = 0;
-	}
-
-	codeExit = 1;
 	printf("Setting up CURL\n");
-
-	if((code = curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errorBuffer)) != CURLE_OK) {
-		curlError(L"curl_easy_setopt(CURLOPT_ERRORBUFFER)", code, NULL);
-		goto easyCleanup;
-	}
 
 	if((code = curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0)) != CURLE_OK) {
 		curlError(L"curl_easy_setopt(CURLOPT_SSL_VERIFYPEER)", code, NULL);
