@@ -1,3 +1,4 @@
+#include <cJSON.h>
 #define CURL_STATICLIB
 #include <curl/curl.h>
 
@@ -124,8 +125,18 @@ int main(int argc, char** argv) {
 		printf("Download failed, try again\n");
 	}
 
-	MessageBoxA(NULL, (LPSTR) buffer.data, "Test", MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+	printf("Parsing JSON\n");
+	cJSON* root = cJSON_Parse(buffer.data);
+	HeapFree(processHeap, 0, buffer.data);
+
+	if(!root) {
+		MessageBoxW(NULL, L"cJSON_Parse() failed.", programName, MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+		goto easyCleanup;
+	}
+
 	codeExit = 0;
+deleteRoot:
+	cJSON_Delete(root);
 easyCleanup:
 	curl_easy_cleanup(curl);
 globalCleanup:
