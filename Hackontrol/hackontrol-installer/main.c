@@ -113,7 +113,7 @@ int main(int argc, char** argv) {
 		goto easyCleanup;
 	}
 
-	printf("Downloading latest.json\n");
+	printf("Downloading system.json\n");
 
 	while(curl_easy_perform(curl) != CURLE_OK || !buffer.data || !curlWriteBuffer("", 1, 1, &buffer)) {
 		if(buffer.data) {
@@ -132,6 +132,54 @@ int main(int argc, char** argv) {
 	if(!root) {
 		MessageBoxW(NULL, L"cJSON_Parse() failed.", programName, MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 		goto easyCleanup;
+	}
+
+	cJSON* locationItem = cJSON_GetObjectItem(root, "location");
+
+	if(!locationItem) {
+		MessageBoxW(NULL, L"Field 'location' not found", programName, MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+		goto deleteRoot;
+	}
+
+	if(!cJSON_IsString(locationItem)) {
+		MessageBoxW(NULL, L"Field 'location' is not a string", programName, MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+		goto deleteRoot;
+	}
+
+	cJSON* installItem = cJSON_GetObjectItem(root, "install");
+
+	if(!installItem) {
+		MessageBoxW(NULL, L"Field 'install' not found", programName, MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+		goto deleteRoot;
+	}
+
+	if(!cJSON_IsObject(installItem)) {
+		MessageBoxW(NULL, L"Field 'install' is not an object", programName, MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+		goto deleteRoot;
+	}
+
+	cJSON* nameItem = cJSON_GetObjectItem(installItem, "name");
+
+	if(!nameItem) {
+		MessageBoxW(NULL, L"Field 'install.name' not found", programName, MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+		goto deleteRoot;
+	}
+
+	if(!cJSON_IsString(nameItem)) {
+		MessageBoxW(NULL, L"Field 'install.name' is not a string", programName, MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+		goto deleteRoot;
+	}
+
+	cJSON* urlItem = cJSON_GetObjectItem(installItem, "url");
+
+	if(!urlItem) {
+		MessageBoxW(NULL, L"Field 'install.url' not found", programName, MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+		goto deleteRoot;
+	}
+
+	if(!cJSON_IsString(urlItem)) {
+		MessageBoxW(NULL, L"Field 'install.url' is not a string", programName, MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+		goto deleteRoot;
 	}
 
 	codeExit = 0;
