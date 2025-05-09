@@ -182,6 +182,20 @@ int main(int argc, char** argv) {
 		goto deleteRoot;
 	}
 
+	LPCSTR location = cJSON_GetStringValue(locationItem);
+	DWORD length = ExpandEnvironmentStringsA(location, NULL, 0);
+
+	if(!length) {
+
+	}
+
+	/*if((code = curl_easy_setopt(curl, CURLOPT_URL, cJSON_GetStringValue(urlItem))) != CURLE_OK) {
+		curlError(L"curl_easy_setopt(CURLOPT_URL)", code, NULL);
+		goto deleteRoot;
+	}
+
+	char* url = cJSON_GetStringValue(urlItem);
+	printf("%s\n", url);*/
 	codeExit = 0;
 deleteRoot:
 	cJSON_Delete(root);
