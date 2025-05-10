@@ -13,9 +13,9 @@ typedef struct {
 	size_t size;
 } DATABUFFER, *PDATABUFFER;
 
-static void curlError(const LPCWSTR function, const CURLcode code, const LPCSTR errorBuffer) {
+static void curlError(const LPCWSTR function, const CURLcode code) {
 	static const LPCWSTR format = L"CURL error ocurred.\n%ws failed. Error code: 0x%04X Message:\n%S";
-	const char* message = errorBuffer ? errorBuffer : curl_easy_strerror(code);
+	const char* message = curl_easy_strerror(code);
 	int length = _scwprintf(format, function, code, message);
 
 	if(length < 1) {
@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
 	CURLcode code = curl_global_init(CURL_GLOBAL_ALL);
 
 	if(code != CURLE_OK) {
-		curlError(L"curl_global_init()", code, NULL);
+		curlError(L"curl_global_init()", code);
 		return 1;
 	}
 
@@ -92,24 +92,24 @@ int main(int argc, char** argv) {
 	printf("Setting up CURL\n");
 
 	if((code = curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0)) != CURLE_OK) {
-		curlError(L"curl_easy_setopt(CURLOPT_SSL_VERIFYPEER)", code, NULL);
+		curlError(L"curl_easy_setopt(CURLOPT_SSL_VERIFYPEER)", code);
 		goto easyCleanup;
 	}
 
 	if((code = curl_easy_setopt(curl, CURLOPT_URL, SYSTEM_JSON)) != CURLE_OK) {
-		curlError(L"curl_easy_setopt(CURLOPT_URL)", code, NULL);
+		curlError(L"curl_easy_setopt(CURLOPT_URL)", code);
 		goto easyCleanup;
 	}
 
 	DATABUFFER buffer = {0};
 
 	if((code = curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer)) != CURLE_OK) {
-		curlError(L"curl_easy_setopt(CURLOPT_WRITEDATA)", code, NULL);
+		curlError(L"curl_easy_setopt(CURLOPT_WRITEDATA)", code);
 		goto easyCleanup;
 	}
 
 	if((code = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteBuffer)) != CURLE_OK) {
-		curlError(L"curl_easy_setopt(CURLOPT_WRITEFUNCTION)", code, NULL);
+		curlError(L"curl_easy_setopt(CURLOPT_WRITEFUNCTION)", code);
 		goto easyCleanup;
 	}
 
