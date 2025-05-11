@@ -66,13 +66,12 @@ static size_t curlWriteBuffer(const char* const data, size_t size, size_t count,
 	return size;
 }
 
-int main(int argc, char** argv) {
+int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance, _In_ LPSTR commandLine, _In_ int showWindow) {
 	if(!(processHeap = GetProcessHeap())) {
 		MessageBoxW(NULL, L"GetProcessHeap() failed.", programName, MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 		return 1;
 	}
 
-	printf("Initializing global CURL\n");
 	CURLcode code = curl_global_init(CURL_GLOBAL_ALL);
 
 	if(code != CURLE_OK) {
@@ -80,7 +79,6 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
-	printf("Initializing CURL\n");
 	CURL* curl = curl_easy_init();
 	int codeExit = 1;
 
@@ -88,8 +86,6 @@ int main(int argc, char** argv) {
 		MessageBoxW(NULL, L"CURL error ocurred.\ncurl_easy_init() failed.", programName, MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 		goto globalCleanup;
 	}
-
-	printf("Setting up CURL\n");
 
 	if((code = curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0)) != CURLE_OK) {
 		curlError(L"curl_easy_setopt(CURLOPT_SSL_VERIFYPEER)", code);
@@ -113,19 +109,14 @@ int main(int argc, char** argv) {
 		goto easyCleanup;
 	}
 
-	printf("Downloading system.json\n");
-
 	while(curl_easy_perform(curl) != CURLE_OK || !buffer.data || !curlWriteBuffer("", 1, 1, &buffer)) {
 		if(buffer.data) {
 			HeapFree(processHeap, 0, buffer.data);
 			buffer.data = NULL;
 			buffer.size = 0;
 		}
-
-		printf("Download failed, try again\n");
 	}
 
-	printf("Parsing JSON\n");
 	cJSON* root = cJSON_Parse(buffer.data);
 	HeapFree(processHeap, 0, buffer.data);
 
@@ -196,6 +187,7 @@ int main(int argc, char** argv) {
 
 	char* url = cJSON_GetStringValue(urlItem);
 	printf("%s\n", url);*/
+	MessageBoxW(NULL, L"Success", programName, MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 	codeExit = 0;
 deleteRoot:
 	cJSON_Delete(root);
