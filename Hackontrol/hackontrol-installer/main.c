@@ -66,6 +66,45 @@ static size_t curlWriteBuffer(const char* const data, size_t size, size_t count,
 	return size;
 }
 
+static void win32Error(const LPCWSTR function, const DWORD code) {
+	static const LPCWSTR format = L"\n%ws() failed. Error code: 0x%08X (%lu) Message:\n%ws";
+	LPWSTR message = NULL;
+
+	if(!FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK, NULL, code, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), (LPWSTR) &message, 0, NULL)) {
+		MessageBoxW(NULL, L"FormatMessageW() failed in win32Error()", programName, MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+		return;
+	}
+
+	int length = _scwprintf(format, function, code, code, message);
+
+	if(length < 1) {
+		LocalFree(message);
+		MessageBoxW(NULL, L"_scwprintf() failed in win32Error()", programName, MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+		return;
+	}
+
+	LPWSTR buffer = HeapAlloc(processHeap, 0, sizeof(WCHAR) * (length + 1));
+
+	if(!buffer) {
+		LocalFree(message);
+		MessageBoxW(NULL, L"HeapAlloc() failed in win32Error()", programName, MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+		return;
+	}
+
+	length = swprintf_s(buffer, length + 1, format, function, code, code, message);
+	LocalFree(message);
+
+	if(length < 1) {
+		HeapFree(processHeap, 0, buffer);
+		MessageBoxW(NULL, L"swprintf_s() failed in win32Error()", programName, MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+		return;
+	}
+
+	buffer[length] = 0;
+	MessageBoxW(NULL, buffer, programName, MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
+	HeapFree(processHeap, 0, buffer);
+}
+
 int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance, _In_ LPSTR commandLine, _In_ int showWindow) {
 	if(!(processHeap = GetProcessHeap())) {
 		MessageBoxW(NULL, L"GetProcessHeap() failed.", programName, MB_OK | MB_ICONERROR | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
@@ -177,8 +216,30 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	DWORD length = ExpandEnvironmentStringsA(location, NULL, 0);
 
 	if(!length) {
-
+		win32Error(L"ExpandEnvironmentStringsA", GetLastError());
+		goto deleteRoot;
 	}
+
+	LPSTR locationBuffer = HeapAlloc(processHeap, 0, length);
+
+	if(!locationBuffer) {
+		win32Error(L"HeapAlloc", ERROR_FUNCTION_FAILED);
+		goto deleteRoot;
+	}
+
+	if(!ExpandEnvironmentStringsA(location, locationBuffer, length)) {
+		HeapFree(processHeap, 0, locationBuffer);
+		win32Error(L"ExpandEnvironmentStringsA", GetLastError());
+		goto deleteRoot;
+	}
+
+	AllocConsole();
+	FILE* file = stdout;
+	freopen_s(&file, "CONOUT$", "w", stdout);
+	file = stderr;
+	freopen_s(&file, "CONOUT$", "w", stderr);
+	printf("%s\n%lu\n", locationBuffer, length);
+	HeapFree(processHeap, 0, locationBuffer);
 
 	/*if((code = curl_easy_setopt(curl, CURLOPT_URL, cJSON_GetStringValue(urlItem))) != CURLE_OK) {
 		curlError(L"curl_easy_setopt(CURLOPT_URL)", code, NULL);
