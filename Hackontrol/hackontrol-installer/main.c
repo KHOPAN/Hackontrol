@@ -236,7 +236,29 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 
 	length = SHCreateDirectoryExA(NULL, locationBuffer, NULL);
 
-	if(length != ERROR_SUCCESS && length != ERROR_ALREADY_EXISTS && length != ERROR_FILE_EXISTS) {
+	if(length == ERROR_ALREADY_EXISTS || length == ERROR_FILE_EXISTS) {
+		length = GetFileAttributesA(locationBuffer);
+
+		if(length == INVALID_FILE_ATTRIBUTES) {
+			HeapFree(processHeap, 0, locationBuffer);
+			win32Error(L"GetFileAttributesW", GetLastError());
+			goto deleteRoot;
+		}
+
+		if(!(length & FILE_ATTRIBUTE_DIRECTORY)) {
+			if(!DeleteFileA(locationBuffer)) {
+				HeapFree(processHeap, 0, locationBuffer);
+				win32Error(L"DeleteFileW", GetLastError());
+				goto deleteRoot;
+			}
+
+			if((length = SHCreateDirectoryExA(NULL, locationBuffer, NULL)) != ERROR_SUCCESS) {
+				HeapFree(processHeap, 0, locationBuffer);
+				win32Error(L"SHCreateDirectoryExW", length);
+				goto deleteRoot;
+			}
+		}
+	} else if(length != ERROR_SUCCESS) {
 		HeapFree(processHeap, 0, locationBuffer);
 		win32Error(L"SHCreateDirectoryExW", length);
 		goto deleteRoot;
