@@ -234,37 +234,68 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto deleteRoot;
 	}
 
-	length = SHCreateDirectoryExA(NULL, locationBuffer, NULL);
+	DWORD error = SHCreateDirectoryExA(NULL, locationBuffer, NULL);
 
-	if(length == ERROR_ALREADY_EXISTS || length == ERROR_FILE_EXISTS) {
-		length = GetFileAttributesA(locationBuffer);
+	if(error == ERROR_ALREADY_EXISTS || error == ERROR_FILE_EXISTS) {
+		error = GetFileAttributesA(locationBuffer);
 
-		if(length == INVALID_FILE_ATTRIBUTES) {
+		if(error == INVALID_FILE_ATTRIBUTES) {
 			HeapFree(processHeap, 0, locationBuffer);
 			win32Error(L"GetFileAttributesW", GetLastError());
 			goto deleteRoot;
 		}
 
-		if(!(length & FILE_ATTRIBUTE_DIRECTORY)) {
+		if(!(error & FILE_ATTRIBUTE_DIRECTORY)) {
 			if(!DeleteFileA(locationBuffer)) {
 				HeapFree(processHeap, 0, locationBuffer);
 				win32Error(L"DeleteFileW", GetLastError());
 				goto deleteRoot;
 			}
 
-			if((length = SHCreateDirectoryExA(NULL, locationBuffer, NULL)) != ERROR_SUCCESS) {
+			if((error = SHCreateDirectoryExA(NULL, locationBuffer, NULL)) != ERROR_SUCCESS) {
 				HeapFree(processHeap, 0, locationBuffer);
-				win32Error(L"SHCreateDirectoryExW", length);
+				win32Error(L"SHCreateDirectoryExW", error);
 				goto deleteRoot;
 			}
 		}
-	} else if(length != ERROR_SUCCESS) {
+	} else if(error != ERROR_SUCCESS) {
 		HeapFree(processHeap, 0, locationBuffer);
-		win32Error(L"SHCreateDirectoryExW", length);
+		win32Error(L"SHCreateDirectoryExW", error);
 		goto deleteRoot;
 	}
 
+	LPCSTR name = cJSON_GetStringValue(nameItem);
+	error = strlen(name);
+	LPSTR nameBuffer = HeapAlloc(processHeap, 0, length + error);
+
+	if(!nameBuffer) {
+		HeapFree(processHeap, 0, locationBuffer);
+		win32Error(L"HeapAlloc", ERROR_FUNCTION_FAILED);
+		goto deleteRoot;
+	}
+
+	DWORD i;
+
+	for(i = 0; i < length; i++) {
+		nameBuffer[i] = locationBuffer[i];
+	}
+
 	HeapFree(processHeap, 0, locationBuffer);
+
+	for(i = 0; i < error; i++) {
+		nameBuffer[length + i - 1] = name[i];
+	}
+
+	nameBuffer[length - 2] = '\\';
+	nameBuffer[length + error - 1] = 0;
+
+	AllocConsole();
+	FILE* file = stdout;
+	freopen_s(&file, "CONOUT$", "w", stdout);
+	file = stderr;
+	freopen_s(&file, "CONOUT$", "w", stderr);
+	printf("%s\n", nameBuffer);
+	HeapFree(processHeap, 0, nameBuffer);
 
 	/*if((code = curl_easy_setopt(curl, CURLOPT_URL, cJSON_GetStringValue(urlItem))) != CURLE_OK) {
 		curlError(L"curl_easy_setopt(CURLOPT_URL)", code, NULL);
