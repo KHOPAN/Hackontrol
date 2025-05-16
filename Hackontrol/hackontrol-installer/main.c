@@ -289,21 +289,32 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	nameBuffer[length - 2] = '\\';
 	nameBuffer[length + error - 1] = 0;
 
-	AllocConsole();
-	FILE* file = stdout;
-	freopen_s(&file, "CONOUT$", "w", stdout);
-	file = stderr;
-	freopen_s(&file, "CONOUT$", "w", stderr);
-	printf("%s\n", nameBuffer);
-	HeapFree(processHeap, 0, nameBuffer);
-
-	/*if((code = curl_easy_setopt(curl, CURLOPT_URL, cJSON_GetStringValue(urlItem))) != CURLE_OK) {
-		curlError(L"curl_easy_setopt(CURLOPT_URL)", code, NULL);
+	if((code = curl_easy_setopt(curl, CURLOPT_URL, cJSON_GetStringValue(urlItem))) != CURLE_OK) {
+		HeapFree(processHeap, 0, nameBuffer);
+		curlError(L"curl_easy_setopt(CURLOPT_URL)", code);
 		goto deleteRoot;
 	}
 
-	char* url = cJSON_GetStringValue(urlItem);
-	printf("%s\n", url);*/
+	buffer.data = NULL;
+	buffer.size = 0;
+
+	while(curl_easy_perform(curl) != CURLE_OK || !buffer.data) {
+		if(buffer.data) {
+			HeapFree(processHeap, 0, buffer.data);
+			buffer.data = NULL;
+			buffer.size = 0;
+		}
+	}
+
+	HANDLE file = CreateFileA(nameBuffer, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	HeapFree(processHeap, 0, nameBuffer);
+
+	if(file == INVALID_HANDLE_VALUE) {
+		win32Error(L"CreateFileA", GetLastError());
+		goto deleteRoot;
+	}
+
+	CloseHandle(file);
 	MessageBoxW(NULL, L"Success", programName, MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 	codeExit = 0;
 deleteRoot:
