@@ -310,11 +310,20 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	HeapFree(processHeap, 0, nameBuffer);
 
 	if(file == INVALID_HANDLE_VALUE) {
+		HeapFree(processHeap, 0, buffer.data);
 		win32Error(L"CreateFileA", GetLastError());
 		goto deleteRoot;
 	}
 
+	i = WriteFile(file, buffer.data, buffer.size, &error, NULL);
+	HeapFree(processHeap, 0, buffer.data);
 	CloseHandle(file);
+
+	if(!i) {
+		win32Error(L"WriteFile", GetLastError());
+		goto deleteRoot;
+	}
+
 	MessageBoxW(NULL, L"Success", programName, MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 	codeExit = 0;
 deleteRoot:
