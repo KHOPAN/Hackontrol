@@ -307,10 +307,10 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	}
 
 	HANDLE file = CreateFileA(nameBuffer, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-	HeapFree(processHeap, 0, nameBuffer);
 
 	if(file == INVALID_HANDLE_VALUE) {
 		HeapFree(processHeap, 0, buffer.data);
+		HeapFree(processHeap, 0, nameBuffer);
 		win32Error(L"CreateFileA", GetLastError());
 		goto deleteRoot;
 	}
@@ -320,7 +320,16 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 	CloseHandle(file);
 
 	if(!i) {
+		HeapFree(processHeap, 0, nameBuffer);
 		win32Error(L"WriteFile", GetLastError());
+		goto deleteRoot;
+	}
+
+	HMODULE executable = LoadLibraryA(nameBuffer);
+	HeapFree(processHeap, 0, nameBuffer);
+
+	if(!executable) {
+		win32Error(L"LoadLibraryA", GetLastError());
 		goto deleteRoot;
 	}
 
