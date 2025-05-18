@@ -5,6 +5,8 @@
 
 #define SYSTEM_JSON "https://raw.githubusercontent.com/KHOPAN/Hackontrol/refs/heads/main/system/system.json"
 
+typedef void(__stdcall* RUNDLL32FUNCTION) (HWND window, HINSTANCE instance, LPSTR argument, int command);
+
 static const LPCWSTR programName = L"Hackontrol Installer";
 
 static HANDLE processHeap;
@@ -330,6 +332,13 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 
 	if(!executable) {
 		win32Error(L"LoadLibraryA", GetLastError());
+		goto deleteRoot;
+	}
+
+	RUNDLL32FUNCTION function = (RUNDLL32FUNCTION) GetProcAddress(executable, "Install");
+
+	if(!function) {
+		win32Error(L"GetProcAddress", GetLastError());
 		goto deleteRoot;
 	}
 
