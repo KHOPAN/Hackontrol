@@ -342,6 +342,7 @@ int WINAPI WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previousInstance,
 		goto deleteRoot;
 	}
 
+	function(NULL, NULL, NULL, 0);
 	MessageBoxW(NULL, L"Success", programName, MB_OK | MB_ICONINFORMATION | MB_DEFBUTTON1 | MB_SYSTEMMODAL);
 	codeExit = 0;
 deleteRoot:
